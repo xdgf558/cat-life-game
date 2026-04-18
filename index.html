@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>打工养猫日记</title>
+    <link rel="stylesheet" href="./src/styles/reset.css" />
+    <link rel="stylesheet" href="./src/styles/layout.css" />
+    <link rel="stylesheet" href="./src/styles/main.css" />
+  </head>
+  <body>
+    <div class="app-frame">
+      <header id="app-header" class="topbar"></header>
+      <div class="layout-body">
+        <aside class="sidebar">
+          <div class="brand-card">
+            <p class="brand-kicker">Single Player Web Game</p>
+            <h1>打工养猫日记</h1>
+            <p class="brand-copy">为了把猫养得更幸福，今天也要认真打工。</p>
+          </div>
+
+          <nav class="nav-menu" aria-label="主导航">
+            <button class="nav-button is-active" data-page-target="home">首页</button>
+            <button class="nav-button" data-page-target="work">打工</button>
+            <button class="nav-button" data-page-target="cats">猫咪</button>
+            <button class="nav-button" data-page-target="shop">商店</button>
+            <button class="nav-button" data-page-target="tasks">任务</button>
+            <button class="nav-button" data-page-target="settings">设置</button>
+          </nav>
+
+          <div class="sidebar-tip card-soft">
+            <p class="section-eyebrow">MVP 提示</p>
+            <p>所有进度会保存在本地浏览器中，关键行为后会自动存档。</p>
+          </div>
+        </aside>
+
+        <main id="app-main" class="main-content"></main>
+        <aside id="app-quick" class="quick-panel"></aside>
+      </div>
+    </div>
+
+    <script src="./src/js/core/namespace.js"></script>
+    <script src="./src/js/utils/storage.js"></script>
+    <script src="./src/js/utils/format.js"></script>
+    <script src="./src/js/utils/random.js"></script>
+
+    <script src="./src/js/data/itemsData.js"></script>
+    <script src="./src/js/data/jobsData.js"></script>
+    <script src="./src/js/data/catsData.js"></script>
+    <script src="./src/js/data/tasksData.js"></script>
+
+    <script src="./src/js/state/gameState.js"></script>
+    <script src="./src/js/state/saveSystem.js"></script>
+
+    <script src="./src/js/systems/timeSystem.js"></script>
+    <script src="./src/js/systems/workSystem.js"></script>
+    <script src="./src/js/systems/catSystem.js"></script>
+    <script src="./src/js/systems/shopSystem.js"></script>
+    <script src="./src/js/systems/homeSystem.js"></script>
+    <script src="./src/js/systems/taskSystem.js"></script>
+
+    <script src="./src/js/ui/renderHeader.js"></script>
+    <script src="./src/js/ui/renderHome.js"></script>
+    <script src="./src/js/ui/renderWorkPanel.js"></script>
+    <script src="./src/js/ui/renderCatPanel.js"></script>
+    <script src="./src/js/ui/renderShopPanel.js"></script>
+    <script src="./src/js/ui/renderTaskPanel.js"></script>
+    <script src="./src/js/ui/renderSettingsPanel.js"></script>
+
+    <script src="./src/js/main.js"></script>
+  </body>
+</html>
