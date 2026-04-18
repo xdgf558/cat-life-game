@@ -572,6 +572,24 @@
         getText(cat, "name") +
           (game.utils.i18n.getLanguage() === "en" ? " took a comfortable rest in the cat bed." : "在猫窝里舒舒服服地休息了一会儿。")
       );
+    } else if (actionKey === "catGrass") {
+      if (state.inventory.catGrass <= 0) {
+        return { ok: false, message: t("cat_grass_empty") };
+      }
+      state.inventory.catGrass -= 1;
+      cat.mood = clamp(cat.mood + 30, 0, 100);
+      cat.intimacy = clamp(cat.intimacy + 2, 0, 100);
+      resetDecayTracker(cat, ["mood"], nowIso);
+      messages.push(t("cat_grass_used", { name: getText(cat, "name") }));
+    } else if (actionKey === "medicine") {
+      if (state.inventory.medicine <= 0) {
+        return { ok: false, message: t("medicine_empty") };
+      }
+      state.inventory.medicine -= 1;
+      cat.health = clamp(cat.health + 30, 0, 100);
+      cat.mood = clamp(cat.mood + 4, 0, 100);
+      resetDecayTracker(cat, ["health", "mood"], nowIso);
+      messages.push(t("medicine_used", { name: getText(cat, "name") }));
     } else {
       return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Unknown cat interaction." : "未知的猫咪互动。" };
     }

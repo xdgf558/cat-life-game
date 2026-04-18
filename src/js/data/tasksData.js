@@ -95,6 +95,16 @@
         target: 50,
         reward: { gold: 140, exp: 24 },
       },
+      {
+        id: "achievement_arcade_wealth",
+        title: "老虎机传说",
+        titleEn: "Slot Legend",
+        description: "通过老虎机累计赢取 10000 金币。",
+        descriptionEn: "Win a total of 10000 gold through the slot machine.",
+        metric: "arcadeTotalWon",
+        target: 10000,
+        reward: { gold: 2000, exp: 200 },
+      },
     ],
   };
 })(window.CatGame);

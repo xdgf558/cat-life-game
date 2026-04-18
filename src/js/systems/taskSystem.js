@@ -16,6 +16,7 @@
       playTimesToday: state.player.playTimesToday,
       spendGoldToday: state.player.totalSpend - (state.tasks._dailySpendOffset || 0),
       totalIncome: state.player.totalIncome,
+      arcadeTotalWon: state.player.arcadeTotalWon,
       furnitureCount: state.inventory.furnitureOwned.length,
       maxIntimacy: maxIntimacy,
     };

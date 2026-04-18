@@ -2,18 +2,18 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.6.0",
+      version: "1.6.1",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "整体 UI 改成更明亮的掌机冒险风格，页面层次和按钮反馈更丰富。",
-          "新增多首可循环背景音乐，会随首页、打工、陪猫和游戏厅状态切换。",
-          "新增游戏厅模块和老虎机玩法，可以投入金币进行抽奖。",
+          "老虎机新增滚动动画效果，开转与停下更有街机感。",
+          "任务里新增老虎机累计赢取 1 万金币的成就奖励。",
+          "商店新增猫草，营养膏和猫草都可以在猫咪页直接使用。",
         ],
         en: [
-          "Refreshed the UI with a brighter handheld-adventure inspired style and richer button feedback.",
-          "Added multiple looping background music themes that switch between home, work, cat care, and arcade states.",
-          "Added an arcade module with a slot machine that lets you spend gold on spins.",
+          "Added reel scrolling animation to the slot machine for a stronger arcade feel.",
+          "Added a new achievement for earning 10,000 gold through the slot machine.",
+          "Added cat grass to the shop, and both nutrition paste and cat grass can now be used from the cat page.",
         ],
       },
       readoptCost: 80,
@@ -43,6 +43,7 @@
       currentPage: "home",
       selectedCatId: "cat_001",
       notifications: [],
+      arcadeSpin: null,
     },
     systems: {},
     ui: {},

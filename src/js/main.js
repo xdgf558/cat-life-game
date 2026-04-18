@@ -4,6 +4,7 @@
   var getText = game.utils.i18n.getDataText;
   var dom = {};
   var liveTickId = null;
+  var arcadeSpinTimerId = null;
 
   function getSelectedCat() {
     var current = game.state.game.cats.find(function (cat) {
@@ -214,6 +215,51 @@
     );
   }
 
+  function buildArcadeSpinColumns() {
+    var symbolIcons = game.systems.arcadeSystem.symbols.map(function (symbol) {
+      return symbol.icon;
+    });
+
+    return [0, 1, 2].map(function () {
+      var column = [];
+      var i;
+      for (i = 0; i < 12; i += 1) {
+        column.push(symbolIcons[Math.floor(Math.random() * symbolIcons.length)]);
+      }
+      return column;
+    });
+  }
+
+  function startArcadeSpin(betValue) {
+    var validation = game.systems.arcadeSystem.validateSpin(betValue);
+
+    if (!validation.ok) {
+      handleActionResult(validation);
+      return;
+    }
+
+    if (game.state.arcadeSpin) {
+      return;
+    }
+
+    game.state.arcadeSpin = {
+      bet: Number(betValue),
+      columns: buildArcadeSpinColumns(),
+    };
+    render();
+
+    if (arcadeSpinTimerId) {
+      window.clearTimeout(arcadeSpinTimerId);
+    }
+
+    arcadeSpinTimerId = window.setTimeout(function () {
+      var result = game.systems.arcadeSystem.spinSlot(betValue);
+      game.state.arcadeSpin = null;
+      arcadeSpinTimerId = null;
+      handleActionResult(result);
+    }, 1300);
+  }
+
   function render() {
     var pageRenderers = {
       home: game.ui.renderHome,
@@ -328,7 +374,7 @@
     }
 
     if (slotButton) {
-      handleActionResult(game.systems.arcadeSystem.spinSlot(slotButton.dataset.slotBet));
+      startArcadeSpin(slotButton.dataset.slotBet);
       return;
     }
 

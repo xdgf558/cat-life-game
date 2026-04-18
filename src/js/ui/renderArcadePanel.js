@@ -20,12 +20,15 @@
 
   function renderArcadePanel(state) {
     var lastSpin = state.home.arcadeLastSpin;
+    var activeSpin = game.state.arcadeSpin;
     var bets = game.config.slotBets
       .map(function (bet) {
         return (
           '<button class="primary-button" data-slot-bet="' +
           bet +
-          '">' +
+          '" ' +
+          (activeSpin ? "disabled" : "") +
+          ">" +
           t("slot_spin_bet", { amount: bet }) +
           "</button>"
         );
@@ -55,16 +58,32 @@
       '<section class="home-grid">' +
       '<div class="page-card">' +
       '<p class="section-eyebrow">' + t("slot_machine") + '</p><h3 class="panel-title">' + t("slot_machine_title") + "</h3>" +
-      '<div class="slot-machine" style="margin-top: 16px;">' +
-      '<div class="slot-window">' +
-      (lastSpin ? lastSpin.reels[0] : "⭐") +
-      '</div><div class="slot-window">' +
-      (lastSpin ? lastSpin.reels[1] : "🐱") +
-      '</div><div class="slot-window">' +
-      (lastSpin ? lastSpin.reels[2] : "7️⃣") +
-      "</div></div>" +
+      '<div class="slot-machine' +
+      (activeSpin ? " is-spinning" : "") +
+      '" style="margin-top: 16px;">' +
+      [0, 1, 2]
+        .map(function (index) {
+          var displayIcon = lastSpin ? lastSpin.reels[index] : index === 0 ? "⭐" : index === 1 ? "🐱" : "7️⃣";
+          var spinColumn = activeSpin && activeSpin.columns ? activeSpin.columns[index] : null;
+
+          if (spinColumn) {
+            return '<div class="slot-window is-animated"><div class="slot-reel-strip">' +
+              spinColumn
+                .map(function (icon) {
+                  return '<span class="slot-symbol">' + icon + "</span>";
+                })
+                .join("") +
+              "</div></div>";
+          }
+
+          return '<div class="slot-window"><span class="slot-symbol">' + displayIcon + "</span></div>";
+        })
+        .join("") +
+      "</div>" +
       '<p class="helper-text" style="margin-top: 14px;">' +
-      (lastSpin
+      (activeSpin
+        ? t("slot_spinning")
+        : lastSpin
         ? t(lastSpin.resultKey, { payout: lastSpin.payout, bet: lastSpin.bet })
         : t("slot_intro")) +
       "</p>" +

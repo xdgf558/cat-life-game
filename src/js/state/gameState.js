@@ -111,6 +111,7 @@
         premiumFood: 1,
         litter: 2,
         toys: 0,
+        catGrass: 0,
         medicine: 0,
         furnitureOwned: game.config.startingFurniture.slice(),
       },
@@ -236,6 +237,12 @@
 
     if (typeof normalized.inventory.toys !== "number") {
       normalized.inventory.toys = fresh.inventory.toys;
+    }
+    if (typeof normalized.inventory.catGrass !== "number") {
+      normalized.inventory.catGrass = fresh.inventory.catGrass;
+    }
+    if (typeof normalized.inventory.medicine !== "number") {
+      normalized.inventory.medicine = fresh.inventory.medicine;
     }
 
     if (typeof normalized.settings.bgmEnabled !== "boolean") {

@@ -182,6 +182,12 @@
       '<button class="chip-button" data-cat-action="rest" ' +
       (isDead || isLocked ? "disabled" : "") +
       '>' + t("rest_action") + "</button>" +
+      '<button class="ghost-button" data-cat-action="catGrass" ' +
+      (isDead || isLocked ? "disabled" : "") +
+      '>' + t("cat_grass_action") + "</button>" +
+      '<button class="secondary-button" data-cat-action="medicine" ' +
+      (isDead || isLocked ? "disabled" : "") +
+      '>' + t("medicine_action") + "</button>" +
       (catDisease && !isDead
         ? '<button class="secondary-button" data-page-target="hospital">' + t("go_hospital") + "</button>"
         : "") +
@@ -195,8 +201,11 @@
       state.inventory.litter +
       " / 🪶 " +
       state.inventory.toys +
-      " " +
       t("uses_remaining") +
+      " / 🌿 " +
+      state.inventory.catGrass +
+      " / 💊 " +
+      state.inventory.medicine +
       "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("care_tips") + "</strong></p><p>" + t("care_tips_copy") + "</p></div>" +
       (isLocked ? "" : renderCountdownItem(selectedCat, "hunger", t("hunger_next_drop"), true)) +

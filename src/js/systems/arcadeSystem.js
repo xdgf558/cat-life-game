@@ -65,12 +65,9 @@
     var lastSpin;
     var messages = [];
 
-    if (game.config.slotBets.indexOf(amount) === -1) {
-      return { ok: false, message: t("slot_invalid_bet") };
-    }
-
-    if (state.player.gold < amount) {
-      return { ok: false, message: t("slot_not_enough_gold", { amount: amount }) };
+    var validation = validateSpin(amount);
+    if (!validation.ok) {
+      return validation;
     }
 
     reels = getSpinSymbols();
@@ -120,8 +117,24 @@
     };
   }
 
+  function validateSpin(bet) {
+    var state = game.state.game;
+    var amount = Number(bet || 0);
+
+    if (game.config.slotBets.indexOf(amount) === -1) {
+      return { ok: false, message: t("slot_invalid_bet") };
+    }
+
+    if (state.player.gold < amount) {
+      return { ok: false, message: t("slot_not_enough_gold", { amount: amount }) };
+    }
+
+    return { ok: true };
+  }
+
   game.systems.arcadeSystem = {
     symbols: symbols,
+    validateSpin: validateSpin,
     spinSlot: spinSlot,
   };
 })(window.CatGame);
