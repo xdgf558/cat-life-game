@@ -2,23 +2,31 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.3.0",
+      version: "1.4.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "加入猫咪死亡后的重新领养机制。",
-          "设置页新增中英语言切换，支持英文界面。",
-          "猫咪新增状态图标，会随心情和死亡状态变化。",
-          "商店里的道具和家具新增图标展示。",
+          "逗猫棒改为消耗次数道具，用完后会自动消失。",
+          "新增猫咪年龄与疾病系统，年龄按现实时间 10 倍成长。",
+          "新增医院页面，不同疾病会有不同治疗费用。",
+          "其他猫咪现在需要金币 5000 且原始猫咪满 1 岁后解锁。",
         ],
         en: [
-          "Added a readoption system after a cat dies.",
-          "Added English language support and a settings language switch.",
-          "Cats now have expressive state icons for mood and death.",
-          "Shop items and furniture now display icons.",
+          "Toy wands are now limited-use items and disappear when spent.",
+          "Added cat aging and disease systems with 10x real-time growth.",
+          "Added a hospital page with disease-based treatment costs.",
+          "Extra cats now unlock at 5000 gold and after the first cat turns 1 year old.",
         ],
       },
       readoptCost: 80,
+      toyWandUsesPerPurchase: 6,
+      catUnlockRequirements: {
+        gold: 5000,
+        baseCatId: "cat_001",
+        baseAgeYears: 1,
+      },
+      catAgeAcceleration: 10,
+      diseaseCheckIntervalMs: 15 * 60 * 1000,
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
         clean: { intervalMs: 8 * 60 * 1000, label: "清洁" },

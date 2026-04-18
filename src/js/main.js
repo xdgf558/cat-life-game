@@ -7,7 +7,7 @@
 
   function getSelectedCat() {
     var current = game.state.game.cats.find(function (cat) {
-      return cat.id === game.state.selectedCatId && cat.unlocked;
+      return cat.id === game.state.selectedCatId;
     });
 
     if (current) {
@@ -137,9 +137,13 @@
 
   function renderQuickPanel() {
     var selectedCat = getSelectedCat();
+    var unlockStatus;
+    var disease;
     if (!selectedCat) {
       return '<section class="quick-card"><div class="empty-state">' + t("no_cat_data") + "</div></section>";
     }
+    unlockStatus = game.systems.catSystem.getUnlockStatus(selectedCat);
+    disease = game.systems.catSystem.getCatDisease(selectedCat);
 
     var notices = game.state.notifications.length
       ? game.state.notifications
@@ -166,15 +170,25 @@
       "</h3>" +
       '<p class="page-copy">' +
       format.escapeHtml(getText(selectedCat, "breed")) +
-      (selectedCat.isAlive === false
+      (!selectedCat.unlocked
+        ? " · " + t("later_unlock")
+        : selectedCat.isAlive === false
         ? " · " + t("dead_label")
         : " · " + t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
+      "</p><p class=\"helper-text\" style=\"margin-top:8px;\">" +
+      (selectedCat.unlocked
+        ? t("age_label") + "：" + format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +
+          (disease ? " · " + t("disease_label") + "：" + format.escapeHtml(getText(disease, "name")) : "")
+        : t("unlock_gold_condition", { current: unlockStatus.currentGold, target: unlockStatus.requiredGold })) +
       "</p></div></div>" +
-      '<div style="margin-top: 14px;">' +
-      game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
-      game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
-      game.ui.helpers.renderBar(t("mood_label"), selectedCat.mood) +
-      "</div></section>" +
+      (selectedCat.unlocked
+        ? '<div style="margin-top: 14px;">' +
+          game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
+          game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
+          game.ui.helpers.renderBar(t("mood_label"), selectedCat.mood) +
+          "</div>"
+        : "") +
+      "</section>" +
       (game.systems.workSystem.hasActiveWork()
         ? '<section class="quick-card"><p class="section-eyebrow">' + t("current_work") + '</p><h3 class="panel-title">' +
           format.escapeHtml(
@@ -200,6 +214,7 @@
       home: game.ui.renderHome,
       work: game.ui.renderWorkPanel,
       cats: game.ui.renderCatPanel,
+      hospital: game.ui.renderHospitalPanel,
       shop: game.ui.renderShopPanel,
       tasks: game.ui.renderTaskPanel,
       settings: game.ui.renderSettingsPanel,
@@ -260,6 +275,7 @@
     var renameButton = event.target.closest("[data-rename-player]");
     var releaseNoteButton = event.target.closest("[data-dismiss-release-note]");
     var readoptButton = event.target.closest("[data-readopt-cat]");
+    var treatButton = event.target.closest("[data-treat-cat]");
 
     if (pageButton) {
       game.state.currentPage = pageButton.dataset.pageTarget;
@@ -285,6 +301,11 @@
 
     if (readoptButton) {
       handleActionResult(game.systems.catSystem.readoptCat(readoptButton.dataset.readoptCat));
+      return;
+    }
+
+    if (treatButton) {
+      handleActionResult(game.systems.hospitalSystem.treatCat(treatButton.dataset.treatCat));
       return;
     }
 

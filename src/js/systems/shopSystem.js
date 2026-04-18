@@ -37,12 +37,19 @@
           : "买下了「" + getText(item, "name") + "」，已自动摆进小客厅。"
       );
     } else {
-      state.inventory[item.inventoryField] += 1;
+      if (item.inventoryField === "toys" && item.usesPerPurchase) {
+        state.inventory[item.inventoryField] += item.usesPerPurchase;
+      } else {
+        state.inventory[item.inventoryField] += 1;
+      }
       messages.push(
         game.utils.i18n.getLanguage() === "en"
           ? "Purchased " + getText(item, "name") + ". It was added to your inventory."
           : "购买成功：「" + getText(item, "name") + "」已放入背包。"
       );
+      if (item.inventoryField === "toys" && item.usesPerPurchase) {
+        messages.push(game.utils.i18n.t("toy_purchase_uses", { count: item.usesPerPurchase }));
+      }
     }
 
     if (game.systems.taskSystem) {

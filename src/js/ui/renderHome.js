@@ -28,6 +28,8 @@
       .join(" ");
     var selectedCatDead = selectedCat.isAlive === false;
     var catVisual = game.systems.catSystem.getCatVisualState(selectedCat);
+    var catDisease = game.systems.catSystem.getCatDisease(selectedCat);
+    var sickCount = game.systems.hospitalSystem.getSickCats().length;
     var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
 
     var releaseNotes = (game.config.releaseNotes[game.utils.i18n.getLanguage()] || game.config.releaseNotes["zh-CN"])
@@ -45,6 +47,7 @@
       '<div class="inline-row" style="margin-top:18px; flex-wrap: wrap;">' +
       '<button class="primary-button" data-page-target="work">' + t("nav_work") + "</button>" +
       '<button class="secondary-button" data-page-target="cats">' + t("nav_cats") + "</button>" +
+      '<button class="secondary-button" data-page-target="hospital">' + t("nav_hospital") + "</button>" +
       '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
       "</div>" +
       "</div>" +
@@ -100,6 +103,13 @@
         ? t("status_dead")
         : t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
       "</p>" +
+      '<p class="helper-text" style="margin-top: 8px;">' +
+      t("age_label") + "：" +
+      format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +
+      (catDisease
+        ? " · " + t("disease_label") + "：" + format.escapeHtml(getText(catDisease, "name"))
+        : " · " + t("disease_none")) +
+      "</p>" +
       '<div style="margin-top: 14px;">' +
       game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
       game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
@@ -136,6 +146,14 @@
       state.inventory.litter +
       " / 🪶 " +
       state.inventory.toys +
+      " " +
+      t("uses_remaining") +
+      '</p></div><div class="notice-item"><p><strong>' +
+      t("hospital_alert") +
+      "</strong></p><p>" +
+      (sickCount > 0
+        ? t("hospital_alert_copy", { count: sickCount })
+        : t("hospital_empty_copy")) +
       "</p></div>" +
       "</div>" +
       "</div>" +

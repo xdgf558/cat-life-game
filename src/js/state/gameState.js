@@ -47,6 +47,14 @@
         isAlive: true,
         diedAt: null,
         deathReason: null,
+        ageYears: typeof cat.initialAgeYears === "number" ? cat.initialAgeYears : 0.2,
+        ageUpdatedAt: nowIso,
+        diseaseId: null,
+        diseaseStartedAt: null,
+        diseaseProgressAt: nowIso,
+        diseaseCheckAt: nowIso,
+        diseaseHistory: [],
+        adoptionCount: 0,
         decayTracker: {
           hunger: nowIso,
           clean: nowIso,
@@ -88,6 +96,7 @@
         playTimes: 0,
         playTimesToday: 0,
         furniturePurchaseCount: 0,
+        hospitalVisits: 0,
         activeWork: null,
       },
       cats: createDefaultCats(),
@@ -95,7 +104,7 @@
         food: 3,
         premiumFood: 1,
         litter: 2,
-        toys: 1,
+        toys: 0,
         medicine: 0,
         furnitureOwned: game.config.startingFurniture.slice(),
       },
@@ -122,6 +131,7 @@
       },
       flags: {
         tutorialFinished: false,
+        toyUsesMigrated: true,
       },
     };
   }
@@ -188,8 +198,26 @@
       normalized.player.activeWork = null;
     }
 
+    if (typeof normalized.player.hospitalVisits !== "number") {
+      normalized.player.hospitalVisits = 0;
+    }
+
+    if (typeof normalized.inventory.toys !== "number") {
+      normalized.inventory.toys = fresh.inventory.toys;
+    }
+
+    if (normalized.flags.toyUsesMigrated !== true) {
+      if (normalized.inventory.toys > 0) {
+        normalized.inventory.toys = normalized.inventory.toys * game.config.toyWandUsesPerPurchase;
+      }
+      normalized.flags.toyUsesMigrated = true;
+    }
+
     normalized.cats = normalized.cats.map(function (cat) {
       var fallbackTime = normalized.meta.lastSyncAt || fresh.meta.lastSyncAt;
+      var baseCat = game.data.cats.find(function (entry) {
+        return entry.id === cat.id;
+      }) || {};
       if (typeof cat.isAlive !== "boolean") {
         cat.isAlive = true;
       }
@@ -198,6 +226,30 @@
       }
       if (!cat.deathReason) {
         cat.deathReason = null;
+      }
+      if (typeof cat.adoptionCount !== "number") {
+        cat.adoptionCount = 0;
+      }
+      if (typeof cat.ageYears !== "number") {
+        cat.ageYears = typeof baseCat.initialAgeYears === "number" ? baseCat.initialAgeYears : 0.2;
+      }
+      if (!cat.ageUpdatedAt) {
+        cat.ageUpdatedAt = fallbackTime;
+      }
+      if (!cat.diseaseId) {
+        cat.diseaseId = null;
+      }
+      if (!cat.diseaseStartedAt) {
+        cat.diseaseStartedAt = null;
+      }
+      if (!cat.diseaseProgressAt) {
+        cat.diseaseProgressAt = fallbackTime;
+      }
+      if (!cat.diseaseCheckAt) {
+        cat.diseaseCheckAt = fallbackTime;
+      }
+      if (!Array.isArray(cat.diseaseHistory)) {
+        cat.diseaseHistory = [];
       }
       if (!cat.decayTracker) {
         cat.decayTracker = {};

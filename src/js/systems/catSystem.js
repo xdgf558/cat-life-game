@@ -3,6 +3,7 @@
   var decayRules = game.config.catDecayRules;
   var t = game.utils.i18n.t;
   var getText = game.utils.i18n.getDataText;
+  var YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
   function getNowIso() {
     return game.systems.timeSystem.getNow().toISOString();
@@ -16,6 +17,7 @@
 
   function ensureCatRuntimeFields(cat, fallbackIso) {
     var seedTime = fallbackIso || getNowIso();
+    var baseCat = getBaseCat(cat.id) || {};
 
     if (typeof cat.isAlive !== "boolean") {
       cat.isAlive = true;
@@ -29,6 +31,27 @@
     if (typeof cat.adoptionCount !== "number") {
       cat.adoptionCount = 0;
     }
+    if (typeof cat.ageYears !== "number") {
+      cat.ageYears = typeof baseCat.initialAgeYears === "number" ? baseCat.initialAgeYears : 0.2;
+    }
+    if (!cat.ageUpdatedAt) {
+      cat.ageUpdatedAt = seedTime;
+    }
+    if (!cat.diseaseId) {
+      cat.diseaseId = null;
+    }
+    if (!cat.diseaseStartedAt) {
+      cat.diseaseStartedAt = null;
+    }
+    if (!cat.diseaseProgressAt) {
+      cat.diseaseProgressAt = seedTime;
+    }
+    if (!cat.diseaseCheckAt) {
+      cat.diseaseCheckAt = seedTime;
+    }
+    if (!Array.isArray(cat.diseaseHistory)) {
+      cat.diseaseHistory = [];
+    }
     if (!cat.decayTracker) {
       cat.decayTracker = {};
     }
@@ -40,6 +63,57 @@
     });
   }
 
+  function getDisease(cat) {
+    return cat && cat.diseaseId ? game.data.diseaseMap[cat.diseaseId] || null : null;
+  }
+
+  function getCatAgeYears(cat, nowDate) {
+    var now = nowDate || game.systems.timeSystem.getNow();
+    var updatedAt;
+    var elapsed;
+
+    if (!cat) {
+      return 0;
+    }
+
+    ensureCatRuntimeFields(cat, now.toISOString());
+    updatedAt = new Date(cat.ageUpdatedAt).getTime();
+    elapsed = Math.max(0, now.getTime() - updatedAt);
+
+    return cat.ageYears + elapsed / YEAR_MS * game.config.catAgeAcceleration;
+  }
+
+  function getUnlockStatus(cat) {
+    var state = game.state.game;
+    var requirement = game.config.catUnlockRequirements;
+    var baseCat = getCat(requirement.baseCatId);
+    var baseAge = baseCat ? getCatAgeYears(baseCat) : 0;
+
+    if (!cat || cat.id === requirement.baseCatId) {
+      return {
+        isBaseCat: true,
+        unlocked: true,
+        goldReady: true,
+        ageReady: true,
+        currentGold: state.player.gold,
+        currentAge: baseAge,
+        requiredGold: requirement.gold,
+        requiredAge: requirement.baseAgeYears,
+      };
+    }
+
+    return {
+      isBaseCat: false,
+      unlocked: !!cat.unlocked,
+      goldReady: state.player.gold >= requirement.gold,
+      ageReady: baseAge >= requirement.baseAgeYears,
+      currentGold: state.player.gold,
+      currentAge: baseAge,
+      requiredGold: requirement.gold,
+      requiredAge: requirement.baseAgeYears,
+    };
+  }
+
   function resetDecayTracker(cat, statKeys, isoTime) {
     var timestamp = isoTime || getNowIso();
     ensureCatRuntimeFields(cat, timestamp);
@@ -48,27 +122,46 @@
     });
   }
 
-  function markCatDead(cat, nowIso, source, messages) {
+  function buildDeathMessage(cat, source, reason, disease) {
+    var name = getText(cat, "name");
+    var lang = game.utils.i18n.getLanguage();
+
+    if (reason === "disease_zero" && disease) {
+      return source === "init"
+        ? lang === "en"
+          ? name + " passed away from untreated " + getText(disease, "name") + " while you were away."
+          : "离线期间，" + name + "因" + getText(disease, "name") + "未及时治疗而去世。"
+        : lang === "en"
+          ? name + " passed away from untreated " + getText(disease, "name") + "."
+          : name + "因" + getText(disease, "name") + "未及时治疗而去世。";
+    }
+
+    return source === "init"
+      ? lang === "en"
+        ? name + "'s hunger reached zero while you were away, and the cat died."
+        : "离线期间，" + name + "的饱腹感归零，已经死亡。"
+      : lang === "en"
+        ? name + "'s hunger reached zero and the cat died."
+        : name + "的饱腹感归零，已经死亡。";
+  }
+
+  function markCatDead(cat, nowIso, source, messages, reason, disease) {
     if (!cat.isAlive) {
       return;
     }
 
     cat.isAlive = false;
-    cat.hunger = 0;
+    if (reason === "hunger_zero") {
+      cat.hunger = 0;
+    }
+    if (reason === "disease_zero") {
+      cat.health = 0;
+    }
     cat.diedAt = nowIso;
-    cat.deathReason = "hunger_zero";
+    cat.deathReason = reason || "hunger_zero";
     cat.mood = 0;
     cat.energy = 0;
-
-    messages.push(
-      source === "init"
-        ? game.utils.i18n.getLanguage() === "en"
-          ? getText(cat, "name") + "'s hunger reached zero while you were away, and the cat died."
-          : "离线期间，" + getText(cat, "name") + "的饱腹感归零，已经死亡。"
-        : game.utils.i18n.getLanguage() === "en"
-          ? getText(cat, "name") + "'s hunger reached zero and the cat died."
-          : getText(cat, "name") + "的饱腹感归零，已经死亡。"
-    );
+    messages.push(buildDeathMessage(cat, source, reason || "hunger_zero", disease));
   }
 
   function applyDecaySteps(cat, statKey, nowDate, source, messages) {
@@ -88,23 +181,195 @@
     cat.decayTracker[statKey] = new Date(nextTrackerTime).toISOString();
 
     if (statKey === "hunger" && cat.hunger <= 0) {
-      markCatDead(cat, nowDate.toISOString(), source, messages);
+      markCatDead(cat, nowDate.toISOString(), source, messages, "hunger_zero");
     }
 
     return true;
   }
 
-  function syncCatDecay(nowDate, source) {
+  function updateCatAge(cat, nowDate) {
+    var before = Math.floor((cat.ageYears || 0) * 100);
+    var currentAge = getCatAgeYears(cat, nowDate);
+    var after = Math.floor(currentAge * 100);
+
+    cat.ageYears = currentAge;
+    cat.ageUpdatedAt = nowDate.toISOString();
+
+    return before !== after;
+  }
+
+  function refreshCatUnlocks(nowDate, messages) {
+    var changed = false;
+
+    game.state.game.cats.forEach(function (cat) {
+      var status;
+      if (cat.unlocked || cat.id === game.config.catUnlockRequirements.baseCatId) {
+        return;
+      }
+
+      status = getUnlockStatus(cat);
+      if (status.goldReady && status.ageReady) {
+        cat.unlocked = true;
+        ensureCatRuntimeFields(cat, nowDate.toISOString());
+        changed = true;
+        messages.push(t("unlock_new_cat", { name: getText(cat, "name") }));
+      }
+    });
+
+    return changed;
+  }
+
+  function calculateDiseaseChance(cat, disease) {
+    var chance = disease.baseChance;
+    var exposureCount = game.state.game.cats.filter(function (otherCat) {
+      var otherDisease = getDisease(otherCat);
+      return (
+        otherCat.id !== cat.id &&
+        otherCat.unlocked &&
+        otherCat.isAlive !== false &&
+        otherDisease &&
+        otherDisease.contagious &&
+        otherDisease.id === disease.id
+      );
+    }).length;
+
+    chance += Math.max(0, getCatAgeYears(cat) - 0.6) * 0.07;
+    chance += Math.max(0, 55 - (cat.mood || 0)) / 220;
+    chance += Math.max(0, 55 - (cat.clean || 0)) / 240;
+    chance += Math.max(0, 50 - (cat.hunger || 0)) / 260;
+    chance += Math.max(0, 65 - (cat.health || 0)) / 320;
+
+    if (disease.contagious && exposureCount > 0) {
+      chance += 0.18 + exposureCount * 0.08;
+    }
+
+    return Math.min(0.85, chance);
+  }
+
+  function infectCat(cat, disease, infectedAtIso, messages) {
+    cat.diseaseId = disease.id;
+    cat.diseaseStartedAt = infectedAtIso;
+    cat.diseaseProgressAt = infectedAtIso;
+    cat.diseaseCheckAt = infectedAtIso;
+    cat.diseaseHistory.push({
+      id: disease.id,
+      at: infectedAtIso,
+    });
+    messages.push(
+      t("sickness_found", {
+        name: getText(cat, "name"),
+        disease: getText(disease, "name"),
+      })
+    );
+  }
+
+  function syncDiseaseChecks(cat, nowDate, messages) {
+    var trackerTime;
+    var elapsed;
+    var steps;
+    var diseases;
+    var index;
+    var checkTime;
+    var disease;
+
+    if (!cat.isAlive || cat.diseaseId) {
+      return false;
+    }
+
+    trackerTime = new Date(cat.diseaseCheckAt).getTime();
+    elapsed = nowDate.getTime() - trackerTime;
+    steps = Math.floor(elapsed / game.config.diseaseCheckIntervalMs);
+
+    if (steps <= 0) {
+      return false;
+    }
+
+    diseases = game.data.diseases.filter(function (entry) {
+      return getCatAgeYears(cat, nowDate) >= entry.minAgeYears;
+    });
+
+    for (index = 1; index <= steps; index += 1) {
+      checkTime = new Date(trackerTime + index * game.config.diseaseCheckIntervalMs).toISOString();
+      disease = diseases.find(function (entry) {
+        return game.utils.random.chance(calculateDiseaseChance(cat, entry));
+      });
+
+      if (disease) {
+        infectCat(cat, disease, checkTime, messages);
+        return true;
+      }
+    }
+
+    cat.diseaseCheckAt = new Date(trackerTime + steps * game.config.diseaseCheckIntervalMs).toISOString();
+    return false;
+  }
+
+  function syncDiseaseProgress(cat, nowDate, source, messages) {
+    var disease = getDisease(cat);
+    var trackerTime;
+    var elapsed;
+    var steps;
+    var previousHealth;
+    var previousMood;
+    var extraDecay = 0;
+
+    if (!cat.isAlive || !disease) {
+      return false;
+    }
+
+    trackerTime = new Date(cat.diseaseProgressAt).getTime();
+    elapsed = nowDate.getTime() - trackerTime;
+    steps = Math.floor(elapsed / disease.progressIntervalMs);
+
+    if (steps <= 0) {
+      return false;
+    }
+
+    previousHealth = cat.health;
+    previousMood = cat.mood;
+    if (cat.hunger <= 20) {
+      extraDecay += steps;
+    }
+    if (cat.clean <= 20) {
+      extraDecay += steps;
+    }
+
+    cat.health = clamp(cat.health - steps * disease.healthDecay - extraDecay, 0, 100);
+    cat.mood = clamp(cat.mood - steps * disease.moodDecay, 0, 100);
+    cat.diseaseProgressAt = new Date(trackerTime + steps * disease.progressIntervalMs).toISOString();
+
+    if (cat.health <= 0) {
+      markCatDead(cat, nowDate.toISOString(), source, messages, "disease_zero", disease);
+      return true;
+    }
+
+    if (source !== "timer" && (Math.floor(previousHealth / 20) !== Math.floor(cat.health / 20) || Math.floor(previousMood / 20) !== Math.floor(cat.mood / 20))) {
+      messages.push(
+        t("sickness_worse", {
+          name: getText(cat, "name"),
+          disease: getText(disease, "name"),
+        })
+      );
+    }
+
+    return true;
+  }
+
+  function syncCatState(nowDate, source) {
     var fallbackIso = nowDate.toISOString();
     var messages = [];
     var changed = false;
 
     game.state.game.cats.forEach(function (cat) {
+      ensureCatRuntimeFields(cat, fallbackIso);
+
+      if (cat.id === game.config.catUnlockRequirements.baseCatId || cat.unlocked) {
+        changed = updateCatAge(cat, nowDate) || changed;
+      }
+
       if (!cat.unlocked) {
         return;
       }
-
-      ensureCatRuntimeFields(cat, fallbackIso);
 
       if (!cat.isAlive) {
         return;
@@ -114,7 +379,14 @@
         var didChange = applyDecaySteps(cat, statKey, nowDate, source, messages);
         changed = changed || didChange;
       });
+
+      changed = syncDiseaseProgress(cat, nowDate, source, messages) || changed;
+      if (cat.isAlive) {
+        changed = syncDiseaseChecks(cat, nowDate, messages) || changed;
+      }
     });
+
+    changed = refreshCatUnlocks(nowDate, messages) || changed;
 
     return {
       changed: changed,
@@ -154,25 +426,45 @@
     return countdown + Math.max(0, cat.hunger - 1) * decayRules.hunger.intervalMs;
   }
 
+  function getDiseaseProgressCountdown(cat, nowDate) {
+    var disease = getDisease(cat);
+    var now = nowDate || game.systems.timeSystem.getNow();
+    var trackerTime;
+    var elapsed;
+
+    if (!cat || !cat.isAlive || !disease) {
+      return null;
+    }
+
+    ensureCatRuntimeFields(cat, now.toISOString());
+    trackerTime = new Date(cat.diseaseProgressAt).getTime();
+    elapsed = Math.max(0, now.getTime() - trackerTime);
+
+    return disease.progressIntervalMs - (elapsed % disease.progressIntervalMs || 0);
+  }
+
   function getCatVisualState(cat) {
+    var iconSet;
+
     ensureCatRuntimeFields(cat, getNowIso());
+    iconSet = cat.iconSet || {};
 
     if (!cat.isAlive) {
-      return { icon: "☠️", labelKey: "dead_state" };
+      return { icon: iconSet.dead || "☠️", labelKey: "dead_state" };
     }
-    if (cat.health <= 25) {
-      return { icon: "😵", labelKey: "sick_state" };
+    if (cat.diseaseId || cat.health <= 25) {
+      return { icon: iconSet.sick || "😵", labelKey: "sick_state" };
     }
     if (cat.hunger <= 25) {
-      return { icon: "😿", labelKey: "hungry_state" };
+      return { icon: iconSet.hungry || "😿", labelKey: "hungry_state" };
     }
     if (cat.mood >= 75) {
-      return { icon: "😻", labelKey: "happy_state" };
+      return { icon: iconSet.happy || "😻", labelKey: "happy_state" };
     }
     if (cat.mood <= 35) {
-      return { icon: "😾", labelKey: "sad_state" };
+      return { icon: iconSet.sad || "😾", labelKey: "sad_state" };
     }
-    return { icon: "😺", labelKey: "calm_state" };
+    return { icon: iconSet.calm || "😺", labelKey: "calm_state" };
   }
 
   function getCat(catId) {
@@ -252,7 +544,7 @@
       );
     } else if (actionKey === "play") {
       cat.mood = clamp(cat.mood + 18 + comfortBonus, 0, 100);
-      cat.intimacy = clamp(cat.intimacy + 8 + Math.min(4, state.inventory.toys * 2), 0, 100);
+      cat.intimacy = clamp(cat.intimacy + 8, 0, 100);
       cat.energy = clamp(cat.energy - 10, 0, 100);
       resetDecayTracker(cat, ["mood", "energy"], nowIso);
       state.player.playTimes += 1;
@@ -264,7 +556,12 @@
           : "你陪" + getText(cat, "name") + "玩了好一会儿，气氛变得轻松很多。"
       );
       if (state.inventory.toys > 0) {
-        messages.push(game.utils.i18n.getLanguage() === "en" ? "Your toy wand made playtime even more effective." : "家里的逗猫棒让这次陪玩更有效率。");
+        state.inventory.toys -= 1;
+        cat.intimacy = clamp(cat.intimacy + 4, 0, 100);
+        messages.push(t("toy_bonus_used", { count: state.inventory.toys }));
+        if (state.inventory.toys <= 0) {
+          messages.push(t("toy_depleted"));
+        }
       }
     } else if (actionKey === "rest") {
       cat.energy = clamp(cat.energy + 20 + comfortBonus, 0, 100);
@@ -320,6 +617,13 @@
       isAlive: true,
       diedAt: null,
       deathReason: null,
+      ageYears: typeof baseCat.initialAgeYears === "number" ? baseCat.initialAgeYears : 0.2,
+      ageUpdatedAt: nowIso,
+      diseaseId: null,
+      diseaseStartedAt: null,
+      diseaseProgressAt: nowIso,
+      diseaseCheckAt: nowIso,
+      diseaseHistory: [],
       adoptionCount: adoptionCount,
       decayTracker: {
         hunger: nowIso,
@@ -343,11 +647,15 @@
   game.systems.catSystem = {
     getCat: getCat,
     performAction: performAction,
-    syncCatDecay: syncCatDecay,
+    syncCatState: syncCatState,
     getStatCountdown: getStatCountdown,
     getHungerDeathEta: getHungerDeathEta,
+    getDiseaseProgressCountdown: getDiseaseProgressCountdown,
     ensureCatRuntimeFields: ensureCatRuntimeFields,
     getCatVisualState: getCatVisualState,
+    getCatAgeYears: getCatAgeYears,
+    getCatDisease: getDisease,
+    getUnlockStatus: getUnlockStatus,
     readoptCat: readoptCat,
   };
 })(window.CatGame);

@@ -21,7 +21,9 @@
       '" data-select-cat="' +
       cat.id +
       '">' +
-      '<div class="inline-row"><strong>' +
+      '<div class="inline-row"><span class="item-icon cat-chip-icon">' +
+      game.systems.catSystem.getCatVisualState(cat).icon +
+      '</span><strong>' +
       format.escapeHtml(getText(cat, "name")) +
       "</strong><span class=\"pill\">" +
       format.escapeHtml(getText(cat, "breed")) +
@@ -34,6 +36,29 @@
         : t("later_unlock")) +
       "</p>" +
       "</button>"
+    );
+  }
+
+  function renderUnlockInfo(cat) {
+    var status = game.systems.catSystem.getUnlockStatus(cat);
+
+    if (status.isBaseCat || cat.unlocked) {
+      return "";
+    }
+
+    return (
+      '<div class="notice-item" style="margin-top: 14px;"><p><strong>' + t("unlock_condition") + '</strong></p><p>' +
+      t("unlock_gold_condition", { current: status.currentGold, target: status.requiredGold }) +
+      '<br />' +
+      t("unlock_age_condition", {
+        current: format.formatAgeYears(status.currentAge),
+        target: format.formatAgeYears(status.requiredAge),
+      }) +
+      '</p><p style="margin-top:8px;">' +
+      (status.goldReady ? "✅ " : "⏳ ") + t(status.goldReady ? "unlock_gold_ready" : "unlock_waiting") +
+      " / " +
+      (status.ageReady ? "✅ " : "⏳ ") + t(status.ageReady ? "unlock_age_ready" : "unlock_waiting") +
+      "</p></div>"
     );
   }
 
@@ -65,13 +90,16 @@
   function renderCatPanel(state) {
     var selectedCat =
       state.cats.find(function (cat) {
-        return cat.id === game.state.selectedCatId && cat.unlocked;
+        return cat.id === game.state.selectedCatId;
       }) ||
       state.cats.find(function (cat) {
         return cat.unlocked;
       });
     var isDead = selectedCat.isAlive === false;
     var catVisual = game.systems.catSystem.getCatVisualState(selectedCat);
+    var catDisease = game.systems.catSystem.getCatDisease(selectedCat);
+    var diseaseCountdown = game.systems.catSystem.getDiseaseProgressCountdown(selectedCat);
+    var isLocked = !selectedCat.unlocked;
 
     return (
       '<section class="page-header">' +
@@ -99,13 +127,27 @@
       " · " +
       format.escapeHtml(getText(selectedCat, "breed")) +
       '</h3></div><span class="status-pill ' +
-      (isDead ? "is-danger" : "is-success") +
+      (isDead ? "is-danger" : isLocked ? "is-warning" : "is-success") +
       '">' +
-      (isDead ? t("dead_label") : t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
+      (isDead
+        ? t("dead_label")
+        : isLocked
+          ? t("later_unlock")
+          : t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
       "</span></div>" +
       '<div class="cat-portrait" style="margin-top: 14px;"><div class="cat-portrait-icon">' +
       catVisual.icon +
       '</div><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
+      '<div class="notice-list" style="margin-top: 14px;">' +
+      '<div class="notice-item"><p><strong>' + t("age_label") + "</strong></p><p>" +
+      format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +
+      '</p></div><div class="notice-item"><p><strong>' + t("disease_label") + "</strong></p><p>" +
+      (catDisease
+        ? format.escapeHtml(getText(catDisease, "name")) +
+          (diseaseCountdown !== null ? ' · ' + t("next_worsen") + " " + format.formatDuration(diseaseCountdown) : "")
+        : t("disease_none")) +
+      "</p></div></div>" +
+      renderUnlockInfo(selectedCat) +
       (isDead
         ? '<div class="notice-item" style="margin-top: 14px;"><p><strong>' + t("death_state") + '</strong></p><p>' +
           t("death_desc", { name: getText(selectedCat, "name") }) +
@@ -126,20 +168,23 @@
       "</div>" +
       '<div class="inline-row" style="margin-top: 16px; flex-wrap: wrap;">' +
       '<button class="action-button" data-cat-action="feedBasic" ' +
-      (isDead ? "disabled" : "") +
+      (isDead || isLocked ? "disabled" : "") +
       '>' + t("feed_basic") + "</button>" +
       '<button class="secondary-button" data-cat-action="feedPremium" ' +
-      (isDead ? "disabled" : "") +
+      (isDead || isLocked ? "disabled" : "") +
       '>' + t("feed_premium") + "</button>" +
       '<button class="ghost-button" data-cat-action="clean" ' +
-      (isDead ? "disabled" : "") +
+      (isDead || isLocked ? "disabled" : "") +
       '>' + t("clean_action") + "</button>" +
       '<button class="primary-button" data-cat-action="play" ' +
-      (isDead ? "disabled" : "") +
+      (isDead || isLocked ? "disabled" : "") +
       '>' + t("play_action") + "</button>" +
       '<button class="chip-button" data-cat-action="rest" ' +
-      (isDead ? "disabled" : "") +
+      (isDead || isLocked ? "disabled" : "") +
       '>' + t("rest_action") + "</button>" +
+      (catDisease && !isDead
+        ? '<button class="secondary-button" data-page-target="hospital">' + t("go_hospital") + "</button>"
+        : "") +
       "</div>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
       '<div class="notice-item"><p><strong>' + t("bag_inventory") + "</strong></p><p>🥣 " +
@@ -150,13 +195,15 @@
       state.inventory.litter +
       " / 🪶 " +
       state.inventory.toys +
+      " " +
+      t("uses_remaining") +
       "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("care_tips") + "</strong></p><p>" + t("care_tips_copy") + "</p></div>" +
-      renderCountdownItem(selectedCat, "hunger", t("hunger_next_drop"), true) +
-      renderCountdownItem(selectedCat, "clean", t("clean_label"), false) +
-      renderCountdownItem(selectedCat, "mood", t("mood_label"), false) +
-      renderCountdownItem(selectedCat, "health", t("health_label"), false) +
-      renderCountdownItem(selectedCat, "energy", t("energy_label"), false) +
+      (isLocked ? "" : renderCountdownItem(selectedCat, "hunger", t("hunger_next_drop"), true)) +
+      (isLocked ? "" : renderCountdownItem(selectedCat, "clean", t("clean_label"), false)) +
+      (isLocked ? "" : renderCountdownItem(selectedCat, "mood", t("mood_label"), false)) +
+      (isLocked ? "" : renderCountdownItem(selectedCat, "health", t("health_label"), false)) +
+      (isLocked ? "" : renderCountdownItem(selectedCat, "energy", t("energy_label"), false)) +
       "</div>" +
       "</div>" +
       "</section>"

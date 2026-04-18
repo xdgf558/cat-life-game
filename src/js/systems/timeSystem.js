@@ -1,4 +1,6 @@
 (function (game) {
+  var t = game.utils.i18n.t;
+
   function getNow() {
     return new Date();
   }
@@ -18,15 +20,7 @@
       game.systems.taskSystem.resetDailyTasks(todayKey);
       changed = true;
       if (source !== "init") {
-        messages.push("已按电脑日期刷新今日任务。");
-      }
-    }
-
-    if (game.systems.catSystem) {
-      var catSyncResult = game.systems.catSystem.syncCatDecay(now, source);
-      if (catSyncResult.changed) {
-        changed = true;
-        messages = messages.concat(catSyncResult.messages || []);
+        messages.push(t("daily_reset_notice"));
       }
     }
 
@@ -35,6 +29,14 @@
       if (workSyncResult.changed) {
         changed = true;
         messages = messages.concat(workSyncResult.messages || []);
+      }
+    }
+
+    if (game.systems.catSystem) {
+      var catSyncResult = game.systems.catSystem.syncCatState(now, source);
+      if (catSyncResult.changed) {
+        changed = true;
+        messages = messages.concat(catSyncResult.messages || []);
       }
     }
 

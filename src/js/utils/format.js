@@ -60,6 +60,14 @@
     return Number(value || 0).toLocaleString("zh-CN");
   }
 
+  function formatAgeYears(value) {
+    var amount = Math.max(0, Number(value || 0));
+    var language = window.CatGame && window.CatGame.utils && window.CatGame.utils.i18n
+      ? window.CatGame.utils.i18n.getLanguage()
+      : "zh-CN";
+    return amount.toFixed(2) + (language === "en" ? " y" : " 岁");
+  }
+
   function escapeHtml(text) {
     return String(text || "")
       .replace(/&/g, "&amp;")
@@ -93,6 +101,7 @@
     formatDateKey: formatDateKey,
     formatDuration: formatDuration,
     formatNumber: formatNumber,
+    formatAgeYears: formatAgeYears,
     escapeHtml: escapeHtml,
     getBarTone: getBarTone,
     toPercent: toPercent,
