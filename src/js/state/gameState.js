@@ -41,7 +41,21 @@
   }
 
   function createDefaultCats() {
-    return deepClone(game.data.cats);
+    var nowIso = new Date().toISOString();
+    return deepClone(game.data.cats).map(function (cat) {
+      return Object.assign({}, cat, {
+        isAlive: true,
+        diedAt: null,
+        deathReason: null,
+        decayTracker: {
+          hunger: nowIso,
+          clean: nowIso,
+          mood: nowIso,
+          health: nowIso,
+          energy: nowIso,
+        },
+      });
+    });
   }
 
   function createNewGame() {
@@ -173,6 +187,28 @@
     if (!normalized.player.activeWork) {
       normalized.player.activeWork = null;
     }
+
+    normalized.cats = normalized.cats.map(function (cat) {
+      var fallbackTime = normalized.meta.lastSyncAt || fresh.meta.lastSyncAt;
+      if (typeof cat.isAlive !== "boolean") {
+        cat.isAlive = true;
+      }
+      if (!cat.diedAt) {
+        cat.diedAt = null;
+      }
+      if (!cat.deathReason) {
+        cat.deathReason = null;
+      }
+      if (!cat.decayTracker) {
+        cat.decayTracker = {};
+      }
+      ["hunger", "clean", "mood", "health", "energy"].forEach(function (key) {
+        if (!cat.decayTracker[key]) {
+          cat.decayTracker[key] = fallbackTime;
+        }
+      });
+      return cat;
+    });
 
     return normalized;
   }

@@ -197,6 +197,11 @@
   background: #fff0de;
 }
 
+.cat-chip.is-dead {
+  background: rgba(234, 228, 224, 0.9);
+  border-color: rgba(216, 116, 106, 0.25);
+}
+
 .cat-chip.is-locked {
   opacity: 0.6;
 }

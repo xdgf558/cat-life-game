@@ -73,6 +73,18 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-active-work-remaining]"), function (node) {
       node.textContent = remainingText;
     });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cat-stat-countdown]"), function (node) {
+      var cat = game.systems.catSystem.getCat(node.dataset.catId);
+      var countdown = cat ? game.systems.catSystem.getStatCountdown(cat, node.dataset.catStat) : null;
+      node.textContent = countdown === null ? "已停止" : format.formatDuration(countdown);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-cat-hunger-zero]"), function (node) {
+      var cat = game.systems.catSystem.getCat(node.dataset.catId);
+      var deathEta = cat ? game.systems.catSystem.getHungerDeathEta(cat) : null;
+      node.textContent = deathEta === null ? "已死亡" : format.formatDuration(deathEta);
+    });
   }
 
   function syncRealtime(source) {
@@ -122,9 +134,10 @@
       "</h3>" +
       '<p class="page-copy">' +
       format.escapeHtml(selectedCat.breed) +
-      " · 亲密度 " +
-      selectedCat.intimacy +
-      "/100</p>" +
+      (selectedCat.isAlive === false
+        ? " · 已死亡"
+        : " · 亲密度 " + selectedCat.intimacy + "/100") +
+      "</p>" +
       '<div style="margin-top: 14px;">' +
       game.ui.helpers.renderBar("饱腹", selectedCat.hunger) +
       game.ui.helpers.renderBar("清洁", selectedCat.clean) +
@@ -335,6 +348,14 @@
 
     document.addEventListener("click", handleClick);
     document.addEventListener("change", handleChange);
+    window.addEventListener("focus", function () {
+      syncRealtime("focus");
+    });
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) {
+        syncRealtime("visibility");
+      }
+    });
     window.addEventListener("beforeunload", function () {
       game.state.saveSystem.saveGame(game.state.game);
     });

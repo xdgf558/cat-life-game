@@ -24,6 +24,7 @@
         return '<span class="status-pill">' + format.escapeHtml(item.name) + "</span>";
       })
       .join(" ");
+    var selectedCatDead = selectedCat.isAlive === false;
 
     var releaseNotes = game.config.releaseNotes
       .map(function (note) {
@@ -88,17 +89,30 @@
       " · " +
       format.escapeHtml(selectedCat.breed) +
       "</h3>" +
-      '<p class="page-copy">亲密度 ' +
-      selectedCat.intimacy +
-      " / 100，健康值 " +
-      selectedCat.health +
-      " / 100</p>" +
+      '<p class="page-copy">' +
+      (selectedCatDead
+        ? "当前状态：已死亡"
+        : "亲密度 " + selectedCat.intimacy + " / 100，健康值 " + selectedCat.health + " / 100") +
+      "</p>" +
       '<div style="margin-top: 14px;">' +
       game.ui.helpers.renderBar("饱腹", selectedCat.hunger) +
       game.ui.helpers.renderBar("清洁", selectedCat.clean) +
       game.ui.helpers.renderBar("心情", selectedCat.mood) +
       game.ui.helpers.renderBar("活力", selectedCat.energy) +
       "</div>" +
+      '<p class="helper-text" style="margin-top: 10px;">' +
+      (selectedCatDead
+        ? "这只猫咪已经无法再互动。"
+        : "饱腹下次下降：<span data-cat-stat-countdown data-cat-id=\"" +
+          selectedCat.id +
+          '" data-cat-stat="hunger">' +
+          format.formatDuration(game.systems.catSystem.getStatCountdown(selectedCat, "hunger")) +
+          '</span>，归零预计：<span data-cat-hunger-zero data-cat-id="' +
+          selectedCat.id +
+          '">' +
+          format.formatDuration(game.systems.catSystem.getHungerDeathEta(selectedCat)) +
+          "</span>") +
+      "</p>" +
       "</div>" +
       '<div class="page-card">' +
       '<p class="section-eyebrow">小家状态</p>' +

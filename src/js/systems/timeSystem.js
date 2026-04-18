@@ -22,6 +22,14 @@
       }
     }
 
+    if (game.systems.catSystem) {
+      var catSyncResult = game.systems.catSystem.syncCatDecay(now, source);
+      if (catSyncResult.changed) {
+        changed = true;
+        messages = messages.concat(catSyncResult.messages || []);
+      }
+    }
+
     if (game.systems.workSystem) {
       var workSyncResult = game.systems.workSystem.syncActiveWork(now, source);
       if (workSyncResult.changed) {
