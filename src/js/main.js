@@ -1,5 +1,7 @@
 (function (game) {
   var format = game.utils.format;
+  var t = game.utils.i18n.t;
+  var getText = game.utils.i18n.getDataText;
   var dom = {};
   var liveTickId = null;
 
@@ -42,6 +44,33 @@
     game.state.saveSystem.autoSave();
   }
 
+  function updateShellText() {
+    var brandTitle = document.querySelector(".brand-card h1");
+    var brandCopy = document.querySelector(".brand-copy");
+    var sidebarTitle = document.querySelector(".sidebar-tip .section-eyebrow");
+    var sidebarCopy = document.querySelector(".sidebar-tip p:last-child");
+
+    document.title = t("appTitle");
+    document.documentElement.lang = game.utils.i18n.getLanguage();
+
+    if (brandTitle) {
+      brandTitle.textContent = t("brandTitle");
+    }
+    if (brandCopy) {
+      brandCopy.textContent = t("brandCopy");
+    }
+    if (sidebarTitle) {
+      sidebarTitle.textContent = t("sidebar_tip_title");
+    }
+    if (sidebarCopy) {
+      sidebarCopy.textContent = t("sidebar_tip_copy");
+    }
+
+    Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
+      button.textContent = t("nav_" + button.dataset.pageTarget);
+    });
+  }
+
   function handleActionResult(result) {
     if (!result) {
       return;
@@ -64,7 +93,7 @@
     var activeWork = game.systems.workSystem.getActiveWork();
     var remainingText = activeWork
       ? format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork))
-      : "已完成";
+      : t("task_completed");
 
     Array.prototype.forEach.call(document.querySelectorAll("[data-live-clock]"), function (node) {
       node.textContent = format.formatGameTime();
@@ -77,13 +106,13 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-cat-stat-countdown]"), function (node) {
       var cat = game.systems.catSystem.getCat(node.dataset.catId);
       var countdown = cat ? game.systems.catSystem.getStatCountdown(cat, node.dataset.catStat) : null;
-      node.textContent = countdown === null ? "已停止" : format.formatDuration(countdown);
+      node.textContent = countdown === null ? t("stopped") : format.formatDuration(countdown);
     });
 
     Array.prototype.forEach.call(document.querySelectorAll("[data-cat-hunger-zero]"), function (node) {
       var cat = game.systems.catSystem.getCat(node.dataset.catId);
       var deathEta = cat ? game.systems.catSystem.getHungerDeathEta(cat) : null;
-      node.textContent = deathEta === null ? "已死亡" : format.formatDuration(deathEta);
+      node.textContent = deathEta === null ? t("dead_label") : format.formatDuration(deathEta);
     });
   }
 
@@ -109,7 +138,7 @@
   function renderQuickPanel() {
     var selectedCat = getSelectedCat();
     if (!selectedCat) {
-      return '<section class="quick-card"><div class="empty-state">当前还没有可用的猫咪数据。</div></section>';
+      return '<section class="quick-card"><div class="empty-state">' + t("no_cat_data") + "</div></section>";
     }
 
     var notices = game.state.notifications.length
@@ -124,34 +153,42 @@
             );
           })
           .join("")
-      : '<div class="empty-state">还没有新的记录，先开始今天的第一件事吧。</div>';
+      : '<div class="empty-state">' + t("notices_empty") + "</div>";
 
     return (
       '<section class="quick-card">' +
-      '<p class="section-eyebrow">快捷信息</p>' +
+      '<p class="section-eyebrow">' + t("cat_overview") + "</p>" +
+      '<div class="cat-portrait"><div class="cat-portrait-icon">' +
+      game.systems.catSystem.getCatVisualState(selectedCat).icon +
+      '</div><div>' +
       '<h3 class="panel-title">' +
-      format.escapeHtml(selectedCat.name) +
+      format.escapeHtml(getText(selectedCat, "name")) +
       "</h3>" +
       '<p class="page-copy">' +
-      format.escapeHtml(selectedCat.breed) +
+      format.escapeHtml(getText(selectedCat, "breed")) +
       (selectedCat.isAlive === false
-        ? " · 已死亡"
-        : " · 亲密度 " + selectedCat.intimacy + "/100") +
-      "</p>" +
+        ? " · " + t("dead_label")
+        : " · " + t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
+      "</p></div></div>" +
       '<div style="margin-top: 14px;">' +
-      game.ui.helpers.renderBar("饱腹", selectedCat.hunger) +
-      game.ui.helpers.renderBar("清洁", selectedCat.clean) +
-      game.ui.helpers.renderBar("心情", selectedCat.mood) +
+      game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
+      game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
+      game.ui.helpers.renderBar(t("mood_label"), selectedCat.mood) +
       "</div></section>" +
       (game.systems.workSystem.hasActiveWork()
-        ? '<section class="quick-card"><p class="section-eyebrow">打工倒计时</p><h3 class="panel-title">' +
-          format.escapeHtml(game.systems.workSystem.getActiveWork().jobName) +
-          '</h3><p class="page-copy">剩余时间：<span data-active-work-remaining>' +
+        ? '<section class="quick-card"><p class="section-eyebrow">' + t("current_work") + '</p><h3 class="panel-title">' +
+          format.escapeHtml(
+            getText(
+              game.data.jobMap[game.systems.workSystem.getActiveWork().jobId] || game.systems.workSystem.getActiveWork(),
+              "name"
+            )
+          ) +
+          '</h3><p class="page-copy">' + t("remaining") + '：<span data-active-work-remaining>' +
           format.formatDuration(game.systems.workSystem.getRemainingMs(game.systems.workSystem.getActiveWork())) +
           "</span></p></section>"
         : "") +
       '<section class="quick-card">' +
-      '<p class="section-eyebrow">最近记录</p>' +
+      '<p class="section-eyebrow">' + t("quick_log") + "</p>" +
       '<div class="notice-list">' +
       notices +
       "</div></section>"
@@ -172,6 +209,7 @@
     dom.header.innerHTML = game.ui.renderHeader(game.state.game);
     dom.main.innerHTML = renderer(game.state.game);
     dom.quick.innerHTML = renderQuickPanel();
+    updateShellText();
 
     Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
       button.classList.toggle("is-active", button.dataset.pageTarget === game.state.currentPage);
@@ -193,7 +231,7 @@
     }
 
     game.state.saveSystem.saveGame(game.state.game);
-    pushNotice("设置已更新。");
+    pushNotice(t("settings_updated"));
     render();
   }
 
@@ -205,7 +243,7 @@
     game.systems.taskSystem.refreshAllTasks();
     syncRealtime("import");
     getSelectedCat();
-    pushNotice("存档导入成功。");
+    pushNotice(t("import_success"));
     render();
   }
 
@@ -221,6 +259,7 @@
     var resetButton = event.target.closest("[data-reset-save]");
     var renameButton = event.target.closest("[data-rename-player]");
     var releaseNoteButton = event.target.closest("[data-dismiss-release-note]");
+    var readoptButton = event.target.closest("[data-readopt-cat]");
 
     if (pageButton) {
       game.state.currentPage = pageButton.dataset.pageTarget;
@@ -244,6 +283,11 @@
       return;
     }
 
+    if (readoptButton) {
+      handleActionResult(game.systems.catSystem.readoptCat(readoptButton.dataset.readoptCat));
+      return;
+    }
+
     if (shopButton) {
       handleActionResult(game.systems.shopSystem.purchase(shopButton.dataset.storeItem));
       return;
@@ -258,7 +302,7 @@
 
     if (exportButton) {
       game.state.saveSystem.downloadExport();
-      pushNotice("当前存档已导出为 JSON 文件。");
+      pushNotice(t("export_success"));
       render();
       return;
     }
@@ -266,19 +310,19 @@
     if (importButton) {
       var importField = document.getElementById("save-import-text");
       if (!importField || !importField.value.trim()) {
-        handleActionResult({ ok: false, message: "请先粘贴要导入的 JSON 存档内容。" });
+        handleActionResult({ ok: false, message: t("import_need_text") });
         return;
       }
       try {
         importFromText(importField.value.trim());
       } catch (error) {
-        handleActionResult({ ok: false, message: "导入失败，请确认 JSON 格式正确。" });
+        handleActionResult({ ok: false, message: t("import_invalid") });
       }
       return;
     }
 
     if (resetButton) {
-      if (!window.confirm("确定要重置当前存档吗？此操作会覆盖本地进度。")) {
+      if (!window.confirm(t("reset_confirm"))) {
         return;
       }
       game.state.game = game.state.saveSystem.resetGame();
@@ -286,7 +330,7 @@
       game.systems.workSystem.refreshJobUnlocks();
       game.systems.taskSystem.refreshAllTasks();
       game.state.selectedCatId = "cat_001";
-      pushNotice("已重置为新档。");
+      pushNotice(t("reset_success"));
       render();
       return;
     }
@@ -296,7 +340,7 @@
       var nextName = nameInput ? nameInput.value.trim() : "";
       game.state.game.player.name = nextName || "玩家";
       game.state.saveSystem.saveGame(game.state.game);
-      pushNotice("玩家名字已更新。");
+      pushNotice(t("rename_success"));
       render();
       return;
     }
@@ -304,7 +348,7 @@
     if (releaseNoteButton) {
       game.state.game.meta.lastSeenVersion = game.config.version;
       persistGame(true);
-      pushNotice("已记录本次版本说明。");
+      pushNotice(t("release_noted"));
       render();
     }
   }
@@ -323,7 +367,7 @@
         try {
           importFromText(String(reader.result || ""));
         } catch (error) {
-          handleActionResult({ ok: false, message: "文件导入失败，请确认内容是有效的 JSON 存档。" });
+          handleActionResult({ ok: false, message: t("import_file_invalid") });
         }
       };
       reader.readAsText(target.files[0], "utf-8");
@@ -364,7 +408,7 @@
     });
 
     syncRealtime("init");
-    pushNotice("存档已载入，时间会按电脑当前时间同步。");
+    pushNotice(t("storage_loaded"));
     render();
     game.state.saveSystem.saveGame(game.state.game);
 

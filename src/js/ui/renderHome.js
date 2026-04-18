@@ -1,5 +1,7 @@
 (function (game) {
   var format = game.utils.format;
+  var t = game.utils.i18n.t;
+  var getText = game.utils.i18n.getDataText;
 
   function renderHome(state) {
     var isNewVersion = state.meta.lastSeenVersion !== game.config.version;
@@ -25,8 +27,10 @@
       })
       .join(" ");
     var selectedCatDead = selectedCat.isAlive === false;
+    var catVisual = game.systems.catSystem.getCatVisualState(selectedCat);
+    var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
 
-    var releaseNotes = game.config.releaseNotes
+    var releaseNotes = (game.config.releaseNotes[game.utils.i18n.getLanguage()] || game.config.releaseNotes["zh-CN"])
       .map(function (note) {
         return "<p>• " + format.escapeHtml(note) + "</p>";
       })
@@ -35,79 +39,81 @@
     return (
       '<section class="page-header">' +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">首页</p>' +
-      '<h2 class="page-title">今天也为了猫咪认真生活</h2>' +
-      '<p class="page-copy">先看看资源和猫咪状态，再决定是去打工、补货，还是回家陪它一会儿。</p>' +
+      '<p class="section-eyebrow">' + t("page_home") + "</p>" +
+      '<h2 class="page-title">' + t("home_panel_title") + "</h2>" +
+      '<p class="page-copy">' + t("home_panel_copy") + "</p>" +
       '<div class="inline-row" style="margin-top:18px; flex-wrap: wrap;">' +
-      '<button class="primary-button" data-page-target="work">去打工</button>' +
-      '<button class="secondary-button" data-page-target="cats">去陪猫</button>' +
-      '<button class="ghost-button" data-page-target="shop">去采购</button>' +
+      '<button class="primary-button" data-page-target="work">' + t("nav_work") + "</button>" +
+      '<button class="secondary-button" data-page-target="cats">' + t("nav_cats") + "</button>" +
+      '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
       "</div>" +
       "</div>" +
       '<div class="page-card">' +
       '<p class="section-eyebrow">' +
-      (isNewVersion ? "版本更新" : "当前版本") +
+      (isNewVersion ? t("release_update") : t("release_current")) +
       "</p>" +
       '<h3 class="panel-title">v' +
       format.escapeHtml(game.config.version) +
-      (isNewVersion ? " 已更新" : " 版本内容") +
+      (isNewVersion ? " " + t("release_updated") : " " + t("release_content")) +
       "</h3>" +
       '<div class="helper-text" style="margin-top: 10px;">' +
       releaseNotes +
       "</div>" +
       (isNewVersion
-        ? '<div class="inline-row" style="margin-top: 16px;"><span class="status-pill is-warning">有新调整</span><button class="secondary-button" data-dismiss-release-note>我知道了</button></div>'
+        ? '<div class="inline-row" style="margin-top: 16px;"><span class="status-pill is-warning">' + t("release_update") + '</span><button class="secondary-button" data-dismiss-release-note>' + t("release_ack") + "</button></div>"
         : "") +
       "</div>" +
       "</section>" +
       '<section class="home-grid">' +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">今日重点</p>' +
-      '<p class="page-copy">完成日常可以快速补贴金币和经验，适合开局滚动成长。</p>' +
+      '<p class="section-eyebrow">' + t("todays_focus") + "</p>" +
+      '<p class="page-copy">' + t("today_task_reward") + "</p>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
       dailyCards +
       "</div>" +
       "</div>" +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">当前打工</p>' +
+      '<p class="section-eyebrow">' + t("current_work") + "</p>" +
       (activeWork
         ? '<h3 class="panel-title">' +
-          format.escapeHtml(activeWork.jobName) +
-          '</h3><p class="page-copy">预计完成：' +
+          format.escapeHtml(getText(activeJob, "name")) +
+          '</h3><p class="page-copy">' + t("expected_finish") + '：' +
           format.escapeHtml(format.formatRealDateTime(activeWork.endsAt)) +
-          '</p><p class="helper-text" style="margin-top: 10px;">剩余时间：<span data-active-work-remaining>' +
+          '</p><p class="helper-text" style="margin-top: 10px;">' + t("remaining") + '：<span data-active-work-remaining>' +
           format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork)) +
           "</span></p>"
-        : '<h3 class="panel-title">暂时空闲</h3><p class="page-copy">现在可以开始一份现实时间自动结算的打工。</p>') +
+        : '<h3 class="panel-title">' + t("idle_now") + '</h3><p class="page-copy">' + t("start_realtime_work") + "</p>") +
       "</div>" +
       "</section>" +
       '<section class="home-grid">' +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">猫咪概览</p>' +
+      '<p class="section-eyebrow">' + t("cat_overview") + "</p>" +
+      '<div class="cat-portrait">' +
+      '<div class="cat-portrait-icon">' + catVisual.icon + '</div><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
       '<h3 class="panel-title">' +
-      format.escapeHtml(selectedCat.name) +
+      format.escapeHtml(getText(selectedCat, "name")) +
       " · " +
-      format.escapeHtml(selectedCat.breed) +
+      format.escapeHtml(getText(selectedCat, "breed")) +
       "</h3>" +
       '<p class="page-copy">' +
       (selectedCatDead
-        ? "当前状态：已死亡"
-        : "亲密度 " + selectedCat.intimacy + " / 100，健康值 " + selectedCat.health + " / 100") +
+        ? t("status_dead")
+        : t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
       "</p>" +
       '<div style="margin-top: 14px;">' +
-      game.ui.helpers.renderBar("饱腹", selectedCat.hunger) +
-      game.ui.helpers.renderBar("清洁", selectedCat.clean) +
-      game.ui.helpers.renderBar("心情", selectedCat.mood) +
-      game.ui.helpers.renderBar("活力", selectedCat.energy) +
+      game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
+      game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
+      game.ui.helpers.renderBar(t("mood_label"), selectedCat.mood) +
+      game.ui.helpers.renderBar(t("energy_label"), selectedCat.energy) +
       "</div>" +
       '<p class="helper-text" style="margin-top: 10px;">' +
       (selectedCatDead
-        ? "这只猫咪已经无法再互动。"
-        : "饱腹下次下降：<span data-cat-stat-countdown data-cat-id=\"" +
+        ? t("cat_unavailable")
+        : t("hunger_next_drop") + '：<span data-cat-stat-countdown data-cat-id="' +
           selectedCat.id +
           '" data-cat-stat="hunger">' +
           format.formatDuration(game.systems.catSystem.getStatCountdown(selectedCat, "hunger")) +
-          '</span>，归零预计：<span data-cat-hunger-zero data-cat-id="' +
+          '</span>，' + t("hunger_zero_eta") + '：<span data-cat-hunger-zero data-cat-id="' +
           selectedCat.id +
           '">' +
           format.formatDuration(game.systems.catSystem.getHungerDeathEta(selectedCat)) +
@@ -115,22 +121,20 @@
       "</p>" +
       "</div>" +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">小家状态</p>' +
-      '<h3 class="panel-title">小客厅</h3>' +
-      '<p class="page-copy">当前舒适度 ' +
-      state.home.comfortScore +
-      '，购买家具后会自动摆放到房间里。</p>' +
+      '<p class="section-eyebrow">' + t("home_status") + "</p>" +
+      '<h3 class="panel-title">' + t("living_room") + "</h3>" +
+      '<p class="page-copy">' + t("comfort_now", { value: state.home.comfortScore }) + "</p>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
-      '<div class="notice-item"><p><strong>已摆放家具</strong></p><p>' +
+      '<div class="notice-item"><p><strong>' + t("placed_furniture") + "</strong></p><p>" +
       (furnitureList || "暂无") +
       "</p></div>" +
-      '<div class="notice-item"><p><strong>库存概览</strong></p><p>普通猫粮 ' +
+      '<div class="notice-item"><p><strong>' + t("inventory_overview") + "</strong></p><p>🥣 " +
       state.inventory.food +
-      " / 高级猫粮 " +
+      " / 🍗 " +
       state.inventory.premiumFood +
-      " / 猫砂 " +
+      " / 🧺 " +
       state.inventory.litter +
-      " / 逗猫棒 " +
+      " / 🪶 " +
       state.inventory.toys +
       "</p></div>" +
       "</div>" +

@@ -1,5 +1,7 @@
 (function (game) {
   var clamp = game.utils.format.clamp;
+  var t = game.utils.i18n.t;
+  var getText = game.utils.i18n.getDataText;
 
   function getJob(jobId) {
     return game.state.game.jobs.find(function (job) {
@@ -49,7 +51,11 @@
       player.exp -= player.level * 100;
       player.level += 1;
       player.stamina = clamp(player.stamina + 20, 0, 100);
-      messages.push("玩家升级到 Lv." + player.level + "，体力恢复了一些。");
+      messages.push(
+        game.utils.i18n.getLanguage() === "en"
+          ? "You reached Lv." + player.level + " and recovered some stamina."
+          : "玩家升级到 Lv." + player.level + "，体力恢复了一些。"
+      );
     }
 
     refreshJobUnlocks();
@@ -81,16 +87,16 @@
     var messages = [];
 
     if (!job) {
-      return { ok: false, message: "没有找到这个工作。" };
+      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "That job could not be found." : "没有找到这个工作。" };
     }
     if (state.player.activeWork) {
-      return { ok: false, message: "已经有一份工作在进行中了，先等它结束吧。" };
+      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "A job is already in progress. Wait for it to finish first." : "已经有一份工作在进行中了，先等它结束吧。" };
     }
     if (!job.unlocked) {
-      return { ok: false, message: "玩家等级还不够，暂时无法接这份工作。" };
+      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Your level is too low for this job." : "玩家等级还不够，暂时无法接这份工作。" };
     }
     if (state.player.stamina < job.staminaCost) {
-      return { ok: false, message: "体力不足，先去陪猫或等到第二天恢复吧。" };
+      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Not enough stamina. Rest first or wait for recovery." : "体力不足，先去陪猫或等到第二天恢复吧。" };
     }
 
     event = game.utils.random.pick(job.eventPool) || { text: "今天平稳收工。", goldDelta: 0 };
@@ -102,25 +108,37 @@
     state.player.activeWork = {
       jobId: job.id,
       jobName: job.name,
+      jobNameEn: job.nameEn || job.name,
       startedAt: now.toISOString(),
       endsAt: endAt.toISOString(),
       durationMinutes: job.durationMinutes,
       rewardGold: income,
       expReward: job.expReward,
       eventText: event.text,
+      eventTextEn: event.textEn || event.text,
       itemReward: event.itemReward || null,
       itemAmount: event.itemAmount || 0,
       staminaCost: job.staminaCost,
     };
 
     messages.push(
-      "已开始「" +
-        job.name +
-        "」，现实时间约 " +
-        job.durationMinutes +
-        " 分钟后结算，期间退出页面也会继续计时。"
+      game.utils.i18n.getLanguage() === "en"
+        ? "Started " +
+          getText(job, "name") +
+          ". It will finish in about " +
+          job.durationMinutes +
+          " minute(s), even if you leave the page."
+        : "已开始「" +
+          getText(job, "name") +
+          "」，现实时间约 " +
+          job.durationMinutes +
+          " 分钟后结算，期间退出页面也会继续计时。"
     );
-    messages.push("已先扣除 " + job.staminaCost + " 点体力。");
+    messages.push(
+      game.utils.i18n.getLanguage() === "en"
+        ? job.staminaCost + " stamina was deducted immediately."
+        : "已先扣除 " + job.staminaCost + " 点体力。"
+    );
 
     return {
       ok: true,
@@ -159,18 +177,30 @@
     }
 
     messages.unshift(
-      (source === "init" ? "离线期间的打工已完成：" : "打工完成：") +
-        "「" +
-        activeWork.jobName +
-        "」获得 " +
-        activeWork.rewardGold +
-        " 金币。"
+      game.utils.i18n.getLanguage() === "en"
+        ? (source === "init" ? "A job finished while you were away: " : "Job complete: ") +
+          getText(job || activeWork, "name") +
+          ", " +
+          activeWork.rewardGold +
+          " gold earned."
+        : (source === "init" ? "离线期间的打工已完成：" : "打工完成：") +
+          "「" +
+          activeWork.jobName +
+          "」获得 " +
+          activeWork.rewardGold +
+          " 金币。"
     );
-    messages.push(activeWork.eventText);
+    messages.push(
+      game.utils.i18n.getLanguage() === "en" && activeWork.eventTextEn ? activeWork.eventTextEn : activeWork.eventText
+    );
 
     if (activeWork.itemReward) {
       messages.push(
-        "额外获得：" + game.data.itemMap[activeWork.itemReward].name + " x" + (activeWork.itemAmount || 1) + "。"
+        (game.utils.i18n.getLanguage() === "en" ? "Bonus item: " : "额外获得：") +
+          getText(game.data.itemMap[activeWork.itemReward], "name") +
+          " x" +
+          (activeWork.itemAmount || 1) +
+          (game.utils.i18n.getLanguage() === "en" ? "." : "。")
       );
     }
 

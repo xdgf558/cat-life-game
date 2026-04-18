@@ -202,6 +202,35 @@
   border-color: rgba(216, 116, 106, 0.25);
 }
 
+.cat-portrait,
+.item-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cat-portrait-icon,
+.item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(255, 243, 228, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(203, 158, 113, 0.16);
+}
+
+.cat-portrait-icon {
+  width: 72px;
+  height: 72px;
+  font-size: 40px;
+}
+
+.item-icon {
+  width: 44px;
+  height: 44px;
+  font-size: 24px;
+}
+
 .cat-chip.is-locked {
   opacity: 0.6;
 }

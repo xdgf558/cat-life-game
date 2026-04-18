@@ -3,7 +3,9 @@
     {
       id: "cat_001",
       name: "小橘",
+      nameEn: "Sunny",
       breed: "橘猫",
+      breedEn: "Orange Tabby",
       rarity: "普通",
       hunger: 80,
       clean: 75,
@@ -17,7 +19,9 @@
     {
       id: "cat_002",
       name: "牛奶",
+      nameEn: "MooMoo",
       breed: "奶牛猫",
+      breedEn: "Tuxedo Cat",
       rarity: "普通",
       hunger: 72,
       clean: 80,
@@ -31,7 +35,9 @@
     {
       id: "cat_003",
       name: "雪团",
+      nameEn: "Snowball",
       breed: "金吉拉",
+      breedEn: "Chinchilla Persian",
       rarity: "普通",
       hunger: 76,
       clean: 84,

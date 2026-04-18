@@ -1,8 +1,10 @@
 (function (game) {
   var format = game.utils.format;
+  var t = game.utils.i18n.t;
+  var getText = game.utils.i18n.getDataText;
 
   function renderShopCard(item, gold, owned) {
-    var buttonLabel = owned ? "已拥有" : "购买";
+    var buttonLabel = owned ? t("owned") : t("buy");
     var disabled = gold < item.price || owned;
 
     return (
@@ -10,24 +12,26 @@
       (owned ? "is-owned" : "") +
       '">' +
       '<div class="shop-row"><div><p class="section-eyebrow">' +
-      (item.type === "furniture" ? "家具" : "道具") +
-      "</p><h3 class=\"panel-title\">" +
-      format.escapeHtml(item.name) +
-      "</h3></div>" +
+      (item.type === "furniture" ? t("furniture") : t("item")) +
+      '</p><div class="item-title"><span class="item-icon">' +
+      item.icon +
+      "</span><h3 class=\"panel-title\">" +
+      format.escapeHtml(getText(item, "name")) +
+      "</h3></div></div>" +
       '<span class="pill">' +
       item.price +
-      " 金币</span></div>" +
+      " " + t("gold_unit") + "</span></div>" +
       '<p class="page-copy">' +
-      format.escapeHtml(item.description) +
+      format.escapeHtml(getText(item, "description")) +
       "</p>" +
-      '<p class="shop-meta" style="margin-top: 10px;">效果：' +
-      format.escapeHtml(item.effectText) +
+      '<p class="shop-meta" style="margin-top: 10px;">' + t("effect") + '：' +
+      format.escapeHtml(getText(item, "effectText")) +
       "</p>" +
       '<div class="inline-row" style="margin-top: 16px;">' +
       '<span class="status-pill ' +
       (gold >= item.price ? "is-success" : "is-warning") +
       '">' +
-      (gold >= item.price ? "可购买" : "金币不足") +
+      (gold >= item.price ? t("can_buy") : t("not_enough_gold")) +
       "</span>" +
       '<button class="store-button" data-store-item="' +
       item.id +
@@ -51,22 +55,22 @@
     return (
       '<section class="page-header">' +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">商店页面</p>' +
-      '<h2 class="page-title">把猫咪需要的东西慢慢添齐</h2>' +
-      '<p class="page-copy">道具用于日常照顾，家具会自动摆进家里并提高舒适度。</p>' +
+      '<p class="section-eyebrow">' + t("page_shop") + "</p>" +
+      '<h2 class="page-title">' + t("shop_panel_title") + "</h2>" +
+      '<p class="page-copy">' + t("shop_panel_copy") + "</p>" +
       "</div>" +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">购物说明</p>' +
-      '<p class="page-copy">本版不做折扣、抽卡和付费货币，所有商品固定价格，买到就是赚到。</p>' +
+      '<p class="section-eyebrow">' + t("shopping_info") + "</p>" +
+      '<p class="page-copy">' + t("shopping_copy") + "</p>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
-      '<div class="notice-item"><p><strong>当前金币</strong></p><p>' +
+      '<div class="notice-item"><p><strong>' + t("current_gold") + "</strong></p><p>" +
       state.player.gold +
-      " 金币</p></div>" +
+      " " + t("gold_unit") + "</p></div>" +
       "</div>" +
       "</div>" +
       "</section>" +
       '<section class="page-card">' +
-      '<div class="inline-row"><div><p class="section-eyebrow">消耗品</p><h3 class="panel-title">日常照顾用品</h3></div></div>' +
+      '<div class="inline-row"><div><p class="section-eyebrow">' + t("consumables") + '</p><h3 class="panel-title">' + t("daily_supplies") + "</h3></div></div>" +
       '<div class="shop-grid" style="margin-top: 16px;">' +
       items
         .map(function (item) {
@@ -75,7 +79,7 @@
         .join("") +
       "</div></section>" +
       '<section class="page-card">' +
-      '<div class="inline-row"><div><p class="section-eyebrow">家具</p><h3 class="panel-title">让小客厅更温馨</h3></div></div>' +
+      '<div class="inline-row"><div><p class="section-eyebrow">' + t("furniture") + '</p><h3 class="panel-title">' + t("warm_home") + "</h3></div></div>" +
       '<div class="shop-grid" style="margin-top: 16px;">' +
       furniture
         .map(function (item) {

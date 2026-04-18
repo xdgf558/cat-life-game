@@ -1,5 +1,7 @@
 (function (game) {
   var format = game.utils.format;
+  var t = game.utils.i18n.t;
+  var getText = game.utils.i18n.getDataText;
 
   function renderBar(label, value) {
     var safeValue = Math.round(value || 0);
@@ -40,49 +42,52 @@
       return task.claimed;
     }).length;
     var activeWork = player.activeWork;
+    var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
 
     return (
       '<div class="header-grid">' +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">玩家状态</p>' +
+      '<p class="section-eyebrow">' + t("player_status") + "</p>" +
       '<div class="inline-row"><div>' +
       '<h2 class="panel-title">' +
       format.escapeHtml(player.name) +
       ' · Lv.' +
       player.level +
       "</h2>" +
-      '<p class="page-copy">现实时间：<span data-live-clock>' +
+      '<p class="page-copy">' + t("realtime") + '：<span data-live-clock>' +
       format.formatGameTime() +
       "</span></p>" +
       (activeWork
-        ? '<p class="helper-text" style="margin-top: 6px;">当前打工中：' +
-          format.escapeHtml(activeWork.jobName) +
-          '，剩余 <span data-active-work-remaining>' +
+        ? '<p class="helper-text" style="margin-top: 6px;">' +
+          t("working_now") +
+          "：" +
+          format.escapeHtml(getText(activeJob, "name")) +
+          '，' +
+          t("remaining") +
+          ' <span data-active-work-remaining>' +
           format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork)) +
           "</span></p>"
         : "") +
       "</div>" +
       '<span class="pill">' +
-      (activeWork ? "打工进行中" : "今日已完成日常 " + dailyDone + "/" + state.tasks.daily.length) +
+      (activeWork ? t("work_in_progress") : t("daily_done", { done: dailyDone, total: state.tasks.daily.length })) +
       "</span></div>" +
-      renderBar("经验", format.toPercent(player.exp, expTarget)) +
-      '<p class="helper-text">经验值：' +
-      player.exp +
-      " / " +
-      expTarget +
-      "，每次升级都会恢复一些体力。</p>" +
+      renderBar(t("experience"), format.toPercent(player.exp, expTarget)) +
+      '<p class="helper-text">' +
+      t("experience_info", { current: player.exp, target: expTarget }) +
+      "</p>" +
       "</div>" +
       '<div class="resource-grid">' +
-      '<div class="resource-card"><p class="resource-label">金币</p><p class="resource-value">' +
+      '<div class="resource-card"><p class="resource-label">' + t("gold") + '</p><p class="resource-value">' +
       format.formatNumber(player.gold) +
       "</p></div>" +
-      '<div class="resource-card"><p class="resource-label">体力</p><p class="resource-value">' +
+      '<div class="resource-card"><p class="resource-label">' + t("stamina") + '</p><p class="resource-value">' +
       player.stamina +
       "</p></div>" +
-      '<div class="resource-card"><p class="resource-label">心情</p><p class="resource-value">' +
+      '<div class="resource-card"><p class="resource-label">' + t("mood") + '</p><p class="resource-value">' +
       player.mood +
       "</p></div>" +
-      '<div class="resource-card"><p class="resource-label">版本</p><p class="resource-value">v' +
+      '<div class="resource-card"><p class="resource-label">' + t("version") + '</p><p class="resource-value">v' +
       format.escapeHtml(game.config.version) +
       "</p></div>" +
       "</div>" +

@@ -1,9 +1,11 @@
 (function (game) {
   var format = game.utils.format;
+  var t = game.utils.i18n.t;
+  var getText = game.utils.i18n.getDataText;
 
   function renderTaskCard(categoryLabel, categoryKey, task) {
     var claimable = task.progress >= task.target && !task.claimed;
-    var buttonLabel = task.claimed ? "已领取" : claimable ? "领取奖励" : "未完成";
+    var buttonLabel = task.claimed ? t("task_claimed") : claimable ? t("claim_reward") : t("unfinished");
 
     return (
       '<article class="task-card ' +
@@ -13,10 +15,10 @@
       format.escapeHtml(categoryLabel) +
       "</p>" +
       '<h3 class="panel-title">' +
-      format.escapeHtml(task.title) +
+      format.escapeHtml(getText(task, "title")) +
       "</h3>" +
       '<p class="page-copy">' +
-      format.escapeHtml(task.description) +
+      format.escapeHtml(getText(task, "description")) +
       "</p>" +
       '<div class="bar-track" style="margin-top: 14px;"><div class="bar-fill ' +
       format.getBarTone(format.toPercent(task.progress, task.target)) +
@@ -27,16 +29,16 @@
       task.progress +
       " / " +
       task.target +
-      '</span><span class="task-meta">奖励：' +
+      '</span><span class="task-meta">' + t("reward") + '：' +
       (task.reward.gold || 0) +
-      " 金币 / " +
+      " " + t("gold_unit") + " / " +
       (task.reward.exp || 0) +
-      " 经验</span></div>" +
+      " " + t("exp_unit") + "</span></div>" +
       '<div class="inline-row" style="margin-top: 16px;">' +
       '<span class="status-pill ' +
       (task.claimed ? "is-success" : claimable ? "is-warning" : "") +
       '">' +
-      (task.claimed ? "已完成" : claimable ? "可领取" : "进行中") +
+      (task.claimed ? t("task_completed") : claimable ? t("task_claimable") : t("task_in_progress")) +
       "</span>" +
       '<button class="task-button ' +
       (claimable ? "is-claimable" : "") +
@@ -55,14 +57,14 @@
 
   function renderTaskSection(title, categoryKey, list) {
     var displayTitleMap = {
-      tutorial: "新手任务",
-      daily: "每日任务",
-      achievements: "成就任务",
+      tutorial: t("tutorial_tasks"),
+      daily: t("daily_tasks"),
+      achievements: t("achievement_tasks"),
     };
 
     return (
       '<section class="page-card">' +
-      '<div class="inline-row"><div><p class="section-eyebrow">任务系统</p><h3 class="panel-title">' +
+      '<div class="inline-row"><div><p class="section-eyebrow">' + t("task_system") + '</p><h3 class="panel-title">' +
       title +
       "</h3></div><span class=\"pill\">" +
       list.filter(function (task) {
@@ -85,17 +87,17 @@
     return (
       '<section class="page-header">' +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">任务页面</p>' +
-      '<h2 class="page-title">把每天的小目标做成稳定成长</h2>' +
-      '<p class="page-copy">任务会随着打工、采购和照顾猫咪自动更新，达成后记得手动领取奖励。</p>' +
+      '<p class="section-eyebrow">' + t("page_tasks") + "</p>" +
+      '<h2 class="page-title">' + t("tasks_panel_title") + "</h2>" +
+      '<p class="page-copy">' + t("tasks_panel_copy") + "</p>" +
       "</div>" +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">重置规则</p>' +
-      '<p class="page-copy">每日任务会在游戏内跨天后自动重置，教程与成就会一直保留。</p>' +
+      '<p class="section-eyebrow">' + t("reset_rules") + "</p>" +
+      '<p class="page-copy">' + t("reset_rules_copy") + "</p>" +
       "</div></section>" +
-      renderTaskSection("新手任务", "tutorial", state.tasks.tutorial) +
-      renderTaskSection("每日任务", "daily", state.tasks.daily) +
-      renderTaskSection("成就任务", "achievements", state.tasks.achievements)
+      renderTaskSection(t("tutorial_tasks"), "tutorial", state.tasks.tutorial) +
+      renderTaskSection(t("daily_tasks"), "daily", state.tasks.daily) +
+      renderTaskSection(t("achievement_tasks"), "achievements", state.tasks.achievements)
     );
   }
 

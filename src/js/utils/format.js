@@ -39,14 +39,20 @@
     var minutes = Math.floor((totalSeconds % 3600) / 60);
     var seconds = totalSeconds % 60;
     var parts = [];
+    var language = window.CatGame && window.CatGame.utils && window.CatGame.utils.i18n
+      ? window.CatGame.utils.i18n.getLanguage()
+      : "zh-CN";
+    var labels = language === "en"
+      ? { hour: "h", minute: "m", second: "s" }
+      : { hour: "小时", minute: "分", second: "秒" };
 
     if (hours > 0) {
-      parts.push(hours + "小时");
+      parts.push(hours + labels.hour);
     }
     if (minutes > 0 || hours > 0) {
-      parts.push(minutes + "分");
+      parts.push(minutes + labels.minute);
     }
-    parts.push(seconds + "秒");
+    parts.push(seconds + labels.second);
     return parts.join(" ");
   }
 
