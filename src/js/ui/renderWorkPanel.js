@@ -57,6 +57,7 @@
   function renderWorkPanel(state) {
     var activeWork = state.player.activeWork;
     var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
+    var staminaCountdown = game.systems.timeSystem.getStaminaRecoveryCountdown();
 
     return (
       '<section class="page-header">' +
@@ -84,6 +85,14 @@
       '<div class="notice-item"><p><strong>' + t("stamina") + "</strong></p><p>" +
       state.player.stamina +
       " / 100</p></div>" +
+      '<div class="notice-item"><p><strong>' + t("stamina_recovery_rule") + "</strong></p><p>" +
+      (staminaCountdown === null
+        ? t("stamina_full")
+        : t("stamina_recovery_text", { points: game.config.staminaRecoveryAmount }) +
+          ' · <span data-stamina-recovery>' +
+          format.formatDuration(staminaCountdown) +
+          "</span>") +
+      "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("current_level") + "</strong></p><p>Lv." +
       state.player.level +
       "</p></div>" +

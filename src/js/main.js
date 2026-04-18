@@ -103,6 +103,11 @@
       node.textContent = remainingText;
     });
 
+    Array.prototype.forEach.call(document.querySelectorAll("[data-stamina-recovery]"), function (node) {
+      var countdown = game.systems.timeSystem.getStaminaRecoveryCountdown();
+      node.textContent = countdown === null ? t("stamina_full") : format.formatDuration(countdown);
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll("[data-cat-stat-countdown]"), function (node) {
       var cat = game.systems.catSystem.getCat(node.dataset.catId);
       var countdown = cat ? game.systems.catSystem.getStatCountdown(cat, node.dataset.catStat) : null;

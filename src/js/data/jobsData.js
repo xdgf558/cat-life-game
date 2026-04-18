@@ -54,6 +54,24 @@
         { text: "今天工作很扎实，拿到了基础薪水。", textEn: "You worked steadily today and took home the base pay.", goldDelta: 0 },
       ],
     },
+    {
+      id: "job_it_engineer",
+      name: "IT 工程师",
+      nameEn: "IT Engineer",
+      unlockLevel: 6,
+      duration: 10,
+      durationMinutes: 10,
+      staminaCost: 30,
+      goldReward: 400,
+      expReward: 100,
+      description: "高强度脑力工作，耗时更久，但回报也非常可观。",
+      descriptionEn: "A demanding brain-heavy job that takes longer but pays extremely well.",
+      eventPool: [
+        { text: "线上事故处理得很漂亮，项目负责人给了额外奖金。", textEn: "You handled a production incident beautifully and got a bonus.", goldDelta: 60 },
+        { text: "今天需求改了三轮，但你还是按时交付。", textEn: "Requirements changed three times, but you still shipped on time.", goldDelta: 0 },
+        { text: "临时排查线上 bug 花了不少时间，奖金略少一些。", textEn: "Emergency bug fixing ate a lot of time, so the bonus was a bit smaller.", goldDelta: -30 },
+      ],
+    },
   ];
 
   game.data.jobs = jobs;

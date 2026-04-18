@@ -50,11 +50,10 @@
     while (player.exp >= player.level * 100) {
       player.exp -= player.level * 100;
       player.level += 1;
-      player.stamina = clamp(player.stamina + 20, 0, 100);
       messages.push(
         game.utils.i18n.getLanguage() === "en"
-          ? "You reached Lv." + player.level + " and recovered some stamina."
-          : "玩家升级到 Lv." + player.level + "，体力恢复了一些。"
+          ? "You reached Lv." + player.level + "."
+          : "玩家升级到 Lv." + player.level + "。"
       );
     }
 
@@ -96,7 +95,7 @@
       return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Your level is too low for this job." : "玩家等级还不够，暂时无法接这份工作。" };
     }
     if (state.player.stamina < job.staminaCost) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Not enough stamina. Rest first or wait for recovery." : "体力不足，先去陪猫或等到第二天恢复吧。" };
+      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Not enough stamina. Wait for real-time recovery first." : "体力不足，先等现实时间自然恢复吧。" };
     }
 
     event = game.utils.random.pick(job.eventPool) || { text: "今天平稳收工。", goldDelta: 0 };

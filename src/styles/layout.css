@@ -27,6 +27,15 @@ body {
   font-family:
     "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
     sans-serif;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior-y: contain;
+}
+
+button,
+input,
+select,
+textarea {
+  touch-action: manipulation;
 }
 
 .app-frame {
@@ -85,6 +94,11 @@ body {
     padding: 14px;
   }
 
+  .topbar {
+    min-height: auto;
+    padding: 16px;
+  }
+
   .layout-body {
     grid-template-columns: 1fr;
   }
@@ -93,5 +107,31 @@ body {
   .main-content,
   .quick-panel {
     min-height: auto;
+    padding: 16px;
+  }
+
+  .main-content {
+    order: 2;
+  }
+
+  .sidebar {
+    order: 1;
+  }
+
+  .quick-panel {
+    order: 3;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-frame {
+    padding: 10px;
+  }
+
+  .topbar,
+  .sidebar,
+  .main-content,
+  .quick-panel {
+    border-radius: 18px;
   }
 }

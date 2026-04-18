@@ -97,6 +97,7 @@
         playTimesToday: 0,
         furniturePurchaseCount: 0,
         hospitalVisits: 0,
+        staminaUpdatedAt: now.toISOString(),
         activeWork: null,
       },
       cats: createDefaultCats(),
@@ -200,6 +201,10 @@
 
     if (typeof normalized.player.hospitalVisits !== "number") {
       normalized.player.hospitalVisits = 0;
+    }
+
+    if (!normalized.player.staminaUpdatedAt) {
+      normalized.player.staminaUpdatedAt = normalized.meta.lastSyncAt || fresh.player.staminaUpdatedAt;
     }
 
     if (typeof normalized.inventory.toys !== "number") {

@@ -2,20 +2,18 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.4.0",
+      version: "1.5.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "逗猫棒改为消耗次数道具，用完后会自动消失。",
-          "新增猫咪年龄与疾病系统，年龄按现实时间 10 倍成长。",
-          "新增医院页面，不同疾病会有不同治疗费用。",
-          "其他猫咪现在需要金币 5000 且原始猫咪满 1 岁后解锁。",
+          "完成手机屏幕适配，按钮和导航支持触屏操作。",
+          "玩家体力改为按现实时间恢复：每小时恢复 5 点，升级不再恢复体力。",
+          "新增高级打工工作“IT 工程师”，现实时间 10 分钟，收益更高。",
         ],
         en: [
-          "Toy wands are now limited-use items and disappear when spent.",
-          "Added cat aging and disease systems with 10x real-time growth.",
-          "Added a hospital page with disease-based treatment costs.",
-          "Extra cats now unlock at 5000 gold and after the first cat turns 1 year old.",
+          "Added mobile-friendly responsive layout and touch-friendly controls.",
+          "Player stamina now restores in real time at 5 points per hour, and leveling up no longer restores stamina.",
+          "Added a high-tier job, IT Engineer, with a 10-minute real-time duration and better rewards.",
         ],
       },
       readoptCost: 80,
@@ -27,6 +25,8 @@
       },
       catAgeAcceleration: 10,
       diseaseCheckIntervalMs: 15 * 60 * 1000,
+      staminaRecoveryIntervalMs: 60 * 60 * 1000,
+      staminaRecoveryAmount: 5,
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
         clean: { intervalMs: 8 * 60 * 1000, label: "清洁" },
