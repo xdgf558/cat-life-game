@@ -1,34 +1,60 @@
 :root {
-  --bg-main: #fffaf3;
-  --bg-panel: rgba(255, 255, 255, 0.82);
-  --bg-panel-strong: #fffdf9;
-  --bg-accent: linear-gradient(135deg, #ffe1b9 0%, #ffd2cb 100%);
-  --line-soft: rgba(128, 89, 54, 0.14);
-  --line-strong: rgba(128, 89, 54, 0.24);
-  --text-main: #5d4633;
-  --text-subtle: #876b52;
-  --shadow-soft: 0 20px 40px rgba(145, 94, 41, 0.12);
-  --shadow-card: 0 10px 24px rgba(145, 94, 41, 0.08);
-  --success: #6eae77;
-  --warning: #dd9e53;
-  --danger: #d8746a;
-  --info: #79a9c9;
-  --radius-lg: 24px;
+  --bg-main: #eef7ff;
+  --bg-panel: rgba(255, 255, 255, 0.88);
+  --bg-panel-strong: #ffffff;
+  --bg-accent: linear-gradient(135deg, #ffe159 0%, #ffaf2e 40%, #f56f46 100%);
+  --line-soft: rgba(45, 84, 132, 0.14);
+  --line-strong: rgba(40, 73, 117, 0.28);
+  --text-main: #22416b;
+  --text-subtle: #4f6f96;
+  --shadow-soft: 0 22px 48px rgba(39, 83, 139, 0.16);
+  --shadow-card: 0 12px 24px rgba(29, 63, 105, 0.12);
+  --success: #40a860;
+  --warning: #cb8c21;
+  --danger: #d85c4e;
+  --info: #4287db;
+  --radius-lg: 26px;
   --radius-md: 18px;
-  --radius-sm: 12px;
+  --radius-sm: 14px;
 }
 
 body {
   background:
-    radial-gradient(circle at top left, rgba(255, 225, 185, 0.75), transparent 34%),
-    radial-gradient(circle at top right, rgba(255, 210, 203, 0.65), transparent 28%),
-    linear-gradient(180deg, #fff8ef 0%, #fffdf8 100%);
+    radial-gradient(circle at 12% 16%, rgba(255, 229, 109, 0.4), transparent 22%),
+    radial-gradient(circle at 86% 10%, rgba(80, 183, 255, 0.28), transparent 20%),
+    radial-gradient(circle at 84% 74%, rgba(255, 129, 96, 0.24), transparent 18%),
+    linear-gradient(180deg, #f4fbff 0%, #eef6ff 52%, #fef6e8 100%);
   color: var(--text-main);
   font-family:
-    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
+    "Avenir Next", "Trebuchet MS", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC",
     sans-serif;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior-y: contain;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 999px;
+  pointer-events: none;
+}
+
+body::before {
+  top: 28px;
+  left: -48px;
+  width: 180px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(255, 213, 91, 0.46) 0%, rgba(255, 213, 91, 0) 72%);
+}
+
+body::after {
+  right: -40px;
+  bottom: 80px;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle, rgba(66, 135, 219, 0.2) 0%, rgba(66, 135, 219, 0) 72%);
 }
 
 button,
@@ -48,7 +74,7 @@ textarea {
 .main-content,
 .quick-panel {
   background: var(--bg-panel);
-  border: 1px solid var(--line-soft);
+  border: 3px solid rgba(42, 90, 145, 0.16);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-soft);
   backdrop-filter: blur(10px);
@@ -58,6 +84,18 @@ textarea {
   min-height: 112px;
   margin-bottom: 18px;
   padding: 20px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.topbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent 34%),
+    repeating-linear-gradient(90deg, rgba(67, 125, 194, 0.05) 0 14px, transparent 14px 28px);
+  pointer-events: none;
 }
 
 .layout-body {

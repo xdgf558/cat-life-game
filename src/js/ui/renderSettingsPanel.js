@@ -37,12 +37,23 @@
       '<input id="setting-auto-save" class="toggle-field" type="checkbox" data-setting-key="autoSave" ' +
       (state.settings.autoSave ? "checked" : "") +
       " /></div>" +
+      '<div class="setting-row" style="margin-top: 18px;"><label for="setting-bgm-enabled">' + t("bgm_enabled") + '</label>' +
+      '<input id="setting-bgm-enabled" class="toggle-field" type="checkbox" data-setting-key="bgmEnabled" ' +
+      (state.settings.bgmEnabled ? "checked" : "") +
+      " /></div>" +
       '<div class="setting-row"><label for="setting-bgm">' + t("bgm_volume") + "</label><span>" +
       state.settings.bgmVolume +
       "</span></div>" +
       '<input id="setting-bgm" class="range-field" type="range" min="0" max="100" value="' +
       state.settings.bgmVolume +
       '" data-setting-key="bgmVolume" />' +
+      '<p class="helper-text" style="margin-top: 10px;">' +
+      t("music_hint") +
+      "<br />" +
+      t("music_now") +
+      "：" +
+      format.escapeHtml(game.systems.musicSystem.getCurrentTrackLabel()) +
+      "</p>" +
       '<div class="setting-row" style="margin-top: 16px;"><label for="setting-sfx">' + t("sfx_volume") + "</label><span>" +
       state.settings.sfxVolume +
       "</span></div>" +

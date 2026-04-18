@@ -219,6 +219,7 @@
       home: game.ui.renderHome,
       work: game.ui.renderWorkPanel,
       cats: game.ui.renderCatPanel,
+      arcade: game.ui.renderArcadePanel,
       hospital: game.ui.renderHospitalPanel,
       shop: game.ui.renderShopPanel,
       tasks: game.ui.renderTaskPanel,
@@ -230,6 +231,9 @@
     dom.main.innerHTML = renderer(game.state.game);
     dom.quick.innerHTML = renderQuickPanel();
     updateShellText();
+    if (game.systems.musicSystem) {
+      game.systems.musicSystem.syncForState(game.state.currentPage);
+    }
 
     Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
       button.classList.toggle("is-active", button.dataset.pageTarget === game.state.currentPage);
@@ -251,6 +255,10 @@
     }
 
     game.state.saveSystem.saveGame(game.state.game);
+    if (game.systems.musicSystem) {
+      game.systems.musicSystem.applyVolume();
+      game.systems.musicSystem.syncForState(game.state.currentPage);
+    }
     pushNotice(t("settings_updated"));
     render();
   }
@@ -281,6 +289,11 @@
     var releaseNoteButton = event.target.closest("[data-dismiss-release-note]");
     var readoptButton = event.target.closest("[data-readopt-cat]");
     var treatButton = event.target.closest("[data-treat-cat]");
+    var slotButton = event.target.closest("[data-slot-bet]");
+
+    if (game.systems.musicSystem) {
+      game.systems.musicSystem.unlock();
+    }
 
     if (pageButton) {
       game.state.currentPage = pageButton.dataset.pageTarget;
@@ -311,6 +324,11 @@
 
     if (treatButton) {
       handleActionResult(game.systems.hospitalSystem.treatCat(treatButton.dataset.treatCat));
+      return;
+    }
+
+    if (slotButton) {
+      handleActionResult(game.systems.arcadeSystem.spinSlot(slotButton.dataset.slotBet));
       return;
     }
 
@@ -414,16 +432,25 @@
     game.systems.homeSystem.recalculateComfort();
     game.systems.workSystem.refreshJobUnlocks();
     game.systems.taskSystem.refreshAllTasks();
+    if (game.systems.musicSystem) {
+      game.systems.musicSystem.init();
+    }
     getSelectedCat();
 
     document.addEventListener("click", handleClick);
     document.addEventListener("change", handleChange);
     window.addEventListener("focus", function () {
       syncRealtime("focus");
+      if (game.systems.musicSystem) {
+        game.systems.musicSystem.syncForState(game.state.currentPage);
+      }
     });
     document.addEventListener("visibilitychange", function () {
       if (!document.hidden) {
         syncRealtime("visibility");
+        if (game.systems.musicSystem) {
+          game.systems.musicSystem.syncForState(game.state.currentPage);
+        }
       }
     });
     window.addEventListener("beforeunload", function () {

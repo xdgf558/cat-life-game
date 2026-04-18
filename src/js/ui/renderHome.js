@@ -47,6 +47,7 @@
       '<div class="inline-row" style="margin-top:18px; flex-wrap: wrap;">' +
       '<button class="primary-button" data-page-target="work">' + t("nav_work") + "</button>" +
       '<button class="secondary-button" data-page-target="cats">' + t("nav_cats") + "</button>" +
+      '<button class="secondary-button" data-page-target="arcade">' + t("nav_arcade") + "</button>" +
       '<button class="secondary-button" data-page-target="hospital">' + t("nav_hospital") + "</button>" +
       '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
       "</div>" +

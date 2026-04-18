@@ -43,6 +43,7 @@
     }).length;
     var activeWork = player.activeWork;
     var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
+    var musicLabel = game.systems.musicSystem ? game.systems.musicSystem.getCurrentTrackLabel() : t("music_waiting");
 
     return (
       '<div class="header-grid">' +
@@ -68,6 +69,7 @@
           format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork)) +
           "</span></p>"
         : "") +
+      '<p class="helper-text" style="margin-top: 6px;">' + t("music_now") + "：" + format.escapeHtml(musicLabel) + "</p>" +
       "</div>" +
       '<span class="pill">' +
       (activeWork ? t("work_in_progress") : t("daily_done", { done: dailyDone, total: state.tasks.daily.length })) +

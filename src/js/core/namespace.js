@@ -2,18 +2,18 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.5.0",
+      version: "1.6.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "完成手机屏幕适配，按钮和导航支持触屏操作。",
-          "玩家体力改为按现实时间恢复：每小时恢复 5 点，升级不再恢复体力。",
-          "新增高级打工工作“IT 工程师”，现实时间 10 分钟，收益更高。",
+          "整体 UI 改成更明亮的掌机冒险风格，页面层次和按钮反馈更丰富。",
+          "新增多首可循环背景音乐，会随首页、打工、陪猫和游戏厅状态切换。",
+          "新增游戏厅模块和老虎机玩法，可以投入金币进行抽奖。",
         ],
         en: [
-          "Added mobile-friendly responsive layout and touch-friendly controls.",
-          "Player stamina now restores in real time at 5 points per hour, and leveling up no longer restores stamina.",
-          "Added a high-tier job, IT Engineer, with a 10-minute real-time duration and better rewards.",
+          "Refreshed the UI with a brighter handheld-adventure inspired style and richer button feedback.",
+          "Added multiple looping background music themes that switch between home, work, cat care, and arcade states.",
+          "Added an arcade module with a slot machine that lets you spend gold on spins.",
         ],
       },
       readoptCost: 80,
@@ -27,6 +27,7 @@
       diseaseCheckIntervalMs: 15 * 60 * 1000,
       staminaRecoveryIntervalMs: 60 * 60 * 1000,
       staminaRecoveryAmount: 5,
+      slotBets: [20, 50, 100],
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
         clean: { intervalMs: 8 * 60 * 1000, label: "清洁" },

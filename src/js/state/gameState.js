@@ -97,6 +97,11 @@
         playTimesToday: 0,
         furniturePurchaseCount: 0,
         hospitalVisits: 0,
+        arcadeSpins: 0,
+        arcadeJackpots: 0,
+        arcadeBestWin: 0,
+        arcadeTotalSpent: 0,
+        arcadeTotalWon: 0,
         staminaUpdatedAt: now.toISOString(),
         activeWork: null,
       },
@@ -123,12 +128,14 @@
         comfortScore: 30,
         placedFurniture: game.config.startingFurniture.slice(),
         rooms: ["小客厅"],
+        arcadeLastSpin: null,
       },
       settings: {
         bgmVolume: 60,
         sfxVolume: 70,
         autoSave: true,
         language: "zh-CN",
+        bgmEnabled: true,
       },
       flags: {
         tutorialFinished: false,
@@ -183,6 +190,10 @@
       ? normalized.home.rooms
       : fresh.home.rooms.slice();
 
+    if (!normalized.home.arcadeLastSpin || typeof normalized.home.arcadeLastSpin !== "object") {
+      normalized.home.arcadeLastSpin = fresh.home.arcadeLastSpin;
+    }
+
     if (!normalized.meta.lastSyncAt) {
       normalized.meta.lastSyncAt = fresh.meta.lastSyncAt;
     }
@@ -203,12 +214,32 @@
       normalized.player.hospitalVisits = 0;
     }
 
+    if (typeof normalized.player.arcadeSpins !== "number") {
+      normalized.player.arcadeSpins = 0;
+    }
+    if (typeof normalized.player.arcadeJackpots !== "number") {
+      normalized.player.arcadeJackpots = 0;
+    }
+    if (typeof normalized.player.arcadeBestWin !== "number") {
+      normalized.player.arcadeBestWin = 0;
+    }
+    if (typeof normalized.player.arcadeTotalSpent !== "number") {
+      normalized.player.arcadeTotalSpent = 0;
+    }
+    if (typeof normalized.player.arcadeTotalWon !== "number") {
+      normalized.player.arcadeTotalWon = 0;
+    }
+
     if (!normalized.player.staminaUpdatedAt) {
       normalized.player.staminaUpdatedAt = normalized.meta.lastSyncAt || fresh.player.staminaUpdatedAt;
     }
 
     if (typeof normalized.inventory.toys !== "number") {
       normalized.inventory.toys = fresh.inventory.toys;
+    }
+
+    if (typeof normalized.settings.bgmEnabled !== "boolean") {
+      normalized.settings.bgmEnabled = fresh.settings.bgmEnabled;
     }
 
     if (normalized.flags.toyUsesMigrated !== true) {
