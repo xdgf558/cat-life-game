@@ -16,14 +16,14 @@
 
     var dailyCards = state.tasks.daily
       .map(function (task) {
-        return game.ui.helpers.renderTaskBadge(task.title, task.progress, task.target);
+        return game.ui.helpers.renderTaskBadge(getText(task, "title"), task.progress, task.target);
       })
       .join("");
 
     var furnitureList = game.systems.homeSystem
       .getPlacedFurniture()
       .map(function (item) {
-        return '<span class="status-pill">' + format.escapeHtml(item.name) + "</span>";
+        return '<span class="status-pill">' + format.escapeHtml(getText(item, "name")) + "</span>";
       })
       .join(" ");
     var selectedCatDead = selectedCat.isAlive === false;
@@ -31,6 +31,7 @@
     var catDisease = game.systems.catSystem.getCatDisease(selectedCat);
     var sickCount = game.systems.hospitalSystem.getSickCats().length;
     var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
+    var roomStep = game.systems.homeSystem.getCurrentRoomStep();
 
     var releaseNotes = (game.config.releaseNotes[game.utils.i18n.getLanguage()] || game.config.releaseNotes["zh-CN"])
       .map(function (note) {
@@ -52,6 +53,7 @@
       '<button class="secondary-button" data-page-target="arcade">' + t("nav_arcade") + "</button>" +
       '<button class="secondary-button" data-page-target="hospital">' + t("nav_hospital") + "</button>" +
       '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
+      '<button class="ghost-button" data-page-target="save">' + t("nav_save") + "</button>" +
       "</div>" +
       "</div>" +
       '<div class="page-card">' +
@@ -139,7 +141,12 @@
       '<p class="page-copy">' + t("comfort_now", { value: state.home.comfortScore }) + "</p>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
       '<div class="notice-item"><p><strong>' + t("placed_furniture") + "</strong></p><p>" +
-      (furnitureList || "暂无") +
+      (furnitureList || t("none_text")) +
+      "</p></div>" +
+      '<div class="notice-item"><p><strong>' + t("room_upgrade_title") + "</strong></p><p>" +
+      t("room_level_text", { level: roomStep.level }) +
+      " · " +
+      t("room_capacity_text", { count: roomStep.capacity }) +
       "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("inventory_overview") + "</strong></p><p>🥣 " +
       state.inventory.food +

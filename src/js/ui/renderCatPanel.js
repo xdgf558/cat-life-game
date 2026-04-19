@@ -69,18 +69,18 @@
     return (
       '<div class="notice-item"><p><strong>' +
       label +
-      "</strong></p><p>下次下降：<span data-cat-stat-countdown data-cat-id=\"" +
+      "</strong></p><p>" + t("next_drop") + '：<span data-cat-stat-countdown data-cat-id="' +
       cat.id +
       '" data-cat-stat="' +
       statKey +
       '">' +
-      (nextDrop === null ? "已停止" : format.formatDuration(nextDrop)) +
+      (nextDrop === null ? t("stopped") : format.formatDuration(nextDrop)) +
       "</span>" +
       (showDeathEta
-        ? '<br />归零预计：<span data-cat-hunger-zero data-cat-id="' +
+        ? '<br />' + t("zero_eta") + '：<span data-cat-hunger-zero data-cat-id="' +
           cat.id +
           '">' +
-          (deathEta === null ? "已死亡" : format.formatDuration(deathEta)) +
+          (deathEta === null ? t("dead_label") : format.formatDuration(deathEta)) +
           "</span>"
         : "") +
       "</p></div>"

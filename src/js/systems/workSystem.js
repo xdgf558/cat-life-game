@@ -27,9 +27,6 @@
       if (game.state.game.inventory.furnitureOwned.indexOf(item.id) === -1) {
         game.state.game.inventory.furnitureOwned.push(item.id);
       }
-      if (game.state.game.home.placedFurniture.indexOf(item.id) === -1) {
-        game.state.game.home.placedFurniture.push(item.id);
-      }
       if (game.systems.homeSystem) {
         game.systems.homeSystem.recalculateComfort();
       }

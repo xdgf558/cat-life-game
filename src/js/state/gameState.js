@@ -278,6 +278,13 @@
       var baseCat = game.data.cats.find(function (entry) {
         return entry.id === cat.id;
       }) || {};
+      var defaultTraits = {
+        furColor: "#f3a64a",
+        patchColor: "#fff0be",
+        pattern: "tabby",
+        eyeColor: "#3f9a4d",
+        accessory: "bell",
+      };
       if (typeof cat.isAlive !== "boolean") {
         cat.isAlive = true;
       }
@@ -293,8 +300,14 @@
       if (typeof cat.ageYears !== "number") {
         cat.ageYears = typeof baseCat.initialAgeYears === "number" ? baseCat.initialAgeYears : 0.2;
       }
+      if (typeof cat.initialAgeYears !== "number") {
+        cat.initialAgeYears = typeof baseCat.initialAgeYears === "number" ? baseCat.initialAgeYears : cat.ageYears || 0.2;
+      }
       if (!cat.ageUpdatedAt) {
         cat.ageUpdatedAt = fallbackTime;
+      }
+      if (cat.gender !== "male" && cat.gender !== "female") {
+        cat.gender = baseCat.gender || "male";
       }
       if (!cat.diseaseId) {
         cat.diseaseId = null;
@@ -311,6 +324,35 @@
       if (!Array.isArray(cat.diseaseHistory)) {
         cat.diseaseHistory = [];
       }
+      if (typeof cat.isPregnant !== "boolean") {
+        cat.isPregnant = false;
+      }
+      if (!cat.pregnancyStartedAt) {
+        cat.pregnancyStartedAt = null;
+      }
+      if (!cat.pregnancyDueAt) {
+        cat.pregnancyDueAt = null;
+      }
+      if (!cat.pregnancyMateId) {
+        cat.pregnancyMateId = null;
+      }
+      if (typeof cat.pregnancyLitterSize !== "number") {
+        cat.pregnancyLitterSize = 0;
+      }
+      if (!Array.isArray(cat.parents)) {
+        cat.parents = [];
+      }
+      if (!cat.bornAt) {
+        cat.bornAt = null;
+      }
+      if (!cat.traits || typeof cat.traits !== "object") {
+        cat.traits = {};
+      }
+      cat.traits = Object.assign({}, defaultTraits, baseCat.traits || {}, cat.traits);
+      if (!cat.iconSet || typeof cat.iconSet !== "object") {
+        cat.iconSet = {};
+      }
+      cat.iconSet = Object.assign({}, baseCat.iconSet || {}, cat.iconSet);
       if (!cat.decayTracker) {
         cat.decayTracker = {};
       }

@@ -2,18 +2,18 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.8.0",
+      version: "1.9.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "房间里的家具现在可以自由拖拽摆放，位置会跟随存档一起保存。",
-          "猫咪加入性别与怀孕系统，只有公猫和母猫才能配对，孕期母猫喂食会消耗更多猫粮。",
-          "老虎机滚动动画已收紧在转轮窗口内，视觉表现更稳定。",
+          "房间加入改造功能，升级后面积更大、可容纳更多家具，房间里的猫咪尺寸也同步优化。",
+          "新增独立存档管理页，集中显示本地存档提示、手动保存、导出、导入和重置功能。",
+          "继续保持本地单机存档模式，所有进度仍保存在当前浏览器的 localStorage 中。",
         ],
         en: [
-          "Furniture can now be freely dragged around inside the room, and positions are saved with your progress.",
-          "Cats now have genders and pregnancy rules, so only male and female pairs can breed and pregnant mothers consume more food.",
-          "The slot machine spin animation is now clipped cleanly inside each reel window.",
+          "The room now supports renovations, with more floor space, higher furniture capacity, and better-scaled cats in the room scene.",
+          "Added a dedicated save management page for local save tips, manual saving, export, import, and reset actions.",
+          "The game remains fully local and browser-only, with progress stored in localStorage.",
         ],
       },
       readoptCost: 80,
@@ -26,6 +26,12 @@
       catAgeAcceleration: 10,
       pregnancyDurationMs: 30 * 60 * 1000,
       pregnancyFoodMultiplier: 2,
+      roomUpgradeSteps: [
+        { level: 1, capacity: 3, width: 620, height: 360, upgradeCost: 450 },
+        { level: 2, capacity: 4, width: 760, height: 420, upgradeCost: 900 },
+        { level: 3, capacity: 5, width: 900, height: 500, upgradeCost: 1600 },
+        { level: 4, capacity: 6, width: 1020, height: 580, upgradeCost: null },
+      ],
       diseaseCheckIntervalMs: 15 * 60 * 1000,
       staminaRecoveryIntervalMs: 60 * 60 * 1000,
       staminaRecoveryAmount: 5,

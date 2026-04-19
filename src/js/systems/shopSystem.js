@@ -4,6 +4,7 @@
     var state = game.state.game;
     var item = game.data.itemMap[itemId];
     var messages = [];
+    var placedFurnitureIds;
 
     if (!item) {
       return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "That item does not exist in the shop." : "商店里没有这个物品。" };
@@ -26,15 +27,15 @@
 
     if (item.type === "furniture") {
       state.inventory.furnitureOwned.push(item.id);
-      state.home.placedFurniture.push(item.id);
       state.player.furniturePurchaseCount += 1;
       if (game.systems.homeSystem) {
         game.systems.homeSystem.recalculateComfort();
+        placedFurnitureIds = game.state.game.home.placedFurniture;
       }
       messages.push(
-        game.utils.i18n.getLanguage() === "en"
-          ? "Purchased " + getText(item, "name") + ". It was placed in the room automatically."
-          : "买下了「" + getText(item, "name") + "」，已自动摆进小客厅。"
+        placedFurnitureIds && placedFurnitureIds.indexOf(item.id) !== -1
+          ? game.utils.i18n.t("room_auto_place_added", { name: getText(item, "name") })
+          : game.utils.i18n.t("room_auto_place_full", { name: getText(item, "name") })
       );
     } else {
       if (item.inventoryField === "toys" && item.usesPerPurchase) {

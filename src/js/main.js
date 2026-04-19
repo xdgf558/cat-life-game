@@ -278,6 +278,7 @@
       hospital: game.ui.renderHospitalPanel,
       shop: game.ui.renderShopPanel,
       tasks: game.ui.renderTaskPanel,
+      save: game.ui.renderSavePanel,
       settings: game.ui.renderSettingsPanel,
     };
     var renderer = pageRenderers[game.state.currentPage] || game.ui.renderHome;
@@ -339,6 +340,7 @@
     var taskButton = event.target.closest("[data-task-claim]");
     var exportButton = event.target.closest("[data-export-save]");
     var importButton = event.target.closest("[data-import-save]");
+    var manualSaveButton = event.target.closest("[data-manual-save]");
     var resetButton = event.target.closest("[data-reset-save]");
     var renameButton = event.target.closest("[data-rename-player]");
     var releaseNoteButton = event.target.closest("[data-dismiss-release-note]");
@@ -347,6 +349,7 @@
     var slotButton = event.target.closest("[data-slot-bet]");
     var breedButton = event.target.closest("[data-breed-cats]");
     var resetRoomLayoutButton = event.target.closest("[data-reset-room-layout]");
+    var upgradeRoomButton = event.target.closest("[data-upgrade-room]");
 
     if (game.systems.musicSystem) {
       game.systems.musicSystem.unlock();
@@ -407,6 +410,11 @@
       return;
     }
 
+    if (upgradeRoomButton) {
+      handleActionResult(game.systems.homeSystem.upgradeRoom());
+      return;
+    }
+
     if (shopButton) {
       handleActionResult(game.systems.shopSystem.purchase(shopButton.dataset.storeItem));
       return;
@@ -422,6 +430,13 @@
     if (exportButton) {
       game.state.saveSystem.downloadExport();
       pushNotice(t("export_success"));
+      render();
+      return;
+    }
+
+    if (manualSaveButton) {
+      game.state.saveSystem.saveGame(game.state.game);
+      pushNotice(t("manual_save_done"));
       render();
       return;
     }

@@ -496,6 +496,40 @@
     });
   }
 
+  function buildReadoptTemplate(cat, baseCat) {
+    var hasBaseCat = !!baseCat;
+    var source = hasBaseCat ? game.state.deepClone(baseCat) : game.state.deepClone(cat);
+    var fallbackAge = typeof source.initialAgeYears === "number"
+      ? source.initialAgeYears
+      : String(cat.id || "").indexOf("kitten_") === 0
+        ? 0.08
+        : 0.2;
+
+    return Object.assign({}, source, {
+      unlocked: true,
+      isAlive: true,
+      diedAt: null,
+      deathReason: null,
+      gender: source.gender || cat.gender || "male",
+      initialAgeYears: fallbackAge,
+      hunger: hasBaseCat ? source.hunger : 82,
+      clean: hasBaseCat ? source.clean : 76,
+      mood: hasBaseCat ? source.mood : 88,
+      health: hasBaseCat ? source.health : 92,
+      intimacy: hasBaseCat ? source.intimacy : 10,
+      energy: hasBaseCat ? source.energy : 82,
+      level: hasBaseCat ? source.level : 1,
+      diseaseId: null,
+      diseaseStartedAt: null,
+      diseaseHistory: [],
+      isPregnant: false,
+      pregnancyStartedAt: null,
+      pregnancyDueAt: null,
+      pregnancyMateId: null,
+      pregnancyLitterSize: 0,
+    });
+  }
+
   function getFoodUnitsNeeded(cat) {
     return cat && cat.gender === "female" && cat.isPregnant ? game.config.pregnancyFoodMultiplier : 1;
   }
@@ -646,8 +680,9 @@
     var baseCat = getBaseCat(catId);
     var nowIso = getNowIso();
     var adoptionCount = 0;
+    var template;
 
-    if (!cat || !baseCat || !cat.unlocked) {
+    if (!cat || !cat.unlocked) {
       return {
         ok: false,
         message: game.utils.i18n.getLanguage() === "en" ? "This cat cannot be adopted right now." : "这只猫咪当前无法重新领养。",
@@ -666,24 +701,14 @@
     state.player.gold -= game.config.readoptCost;
     state.player.totalSpend += game.config.readoptCost;
 
-    Object.assign(cat, game.state.deepClone(baseCat), {
-      unlocked: true,
-      isAlive: true,
-      diedAt: null,
-      deathReason: null,
-      ageYears: typeof baseCat.initialAgeYears === "number" ? baseCat.initialAgeYears : 0.2,
+    template = buildReadoptTemplate(cat, baseCat);
+
+    Object.assign(cat, template, {
+      ageYears: typeof template.initialAgeYears === "number" ? template.initialAgeYears : 0.2,
       ageUpdatedAt: nowIso,
-      diseaseId: null,
-      diseaseStartedAt: null,
       diseaseProgressAt: nowIso,
       diseaseCheckAt: nowIso,
-      diseaseHistory: [],
       adoptionCount: adoptionCount,
-      isPregnant: false,
-      pregnancyStartedAt: null,
-      pregnancyDueAt: null,
-      pregnancyMateId: null,
-      pregnancyLitterSize: 0,
       decayTracker: {
         hunger: nowIso,
         clean: nowIso,
