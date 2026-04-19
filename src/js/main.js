@@ -348,6 +348,7 @@
     var treatButton = event.target.closest("[data-treat-cat]");
     var slotButton = event.target.closest("[data-slot-bet]");
     var breedButton = event.target.closest("[data-breed-cats]");
+    var inspectCollectionButton = event.target.closest("[data-inspect-collection-cat]");
     var resetRoomLayoutButton = event.target.closest("[data-reset-room-layout]");
     var upgradeRoomButton = event.target.closest("[data-upgrade-room]");
 
@@ -363,6 +364,12 @@
 
     if (catSelectButton) {
       game.state.selectedCatId = catSelectButton.dataset.selectCat;
+      render();
+      return;
+    }
+
+    if (inspectCollectionButton) {
+      game.state.collectionInspectCatId = inspectCollectionButton.dataset.inspectCollectionCat;
       render();
       return;
     }

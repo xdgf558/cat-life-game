@@ -613,6 +613,10 @@
           : "你帮" + getText(cat, "name") + "整理了环境，清洁值提升了。"
       );
     } else if (actionKey === "play") {
+      if (state.inventory.toys <= 0) {
+        return { ok: false, message: t("toy_required_play") };
+      }
+      state.inventory.toys -= 1;
       cat.mood = clamp(cat.mood + 18 + comfortBonus, 0, 100);
       cat.intimacy = clamp(cat.intimacy + 8, 0, 100);
       cat.energy = clamp(cat.energy - 10, 0, 100);
@@ -625,13 +629,10 @@
           ? "You played with " + getText(cat, "name") + " for a while, and the mood lightened up."
           : "你陪" + getText(cat, "name") + "玩了好一会儿，气氛变得轻松很多。"
       );
-      if (state.inventory.toys > 0) {
-        state.inventory.toys -= 1;
-        cat.intimacy = clamp(cat.intimacy + 4, 0, 100);
-        messages.push(t("toy_bonus_used", { count: state.inventory.toys }));
-        if (state.inventory.toys <= 0) {
-          messages.push(t("toy_depleted"));
-        }
+      cat.intimacy = clamp(cat.intimacy + 4, 0, 100);
+      messages.push(t("toy_bonus_used", { count: state.inventory.toys }));
+      if (state.inventory.toys <= 0) {
+        messages.push(t("toy_depleted"));
       }
     } else if (actionKey === "rest") {
       cat.energy = clamp(cat.energy + 20 + comfortBonus, 0, 100);

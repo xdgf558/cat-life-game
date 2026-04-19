@@ -54,6 +54,40 @@
     var healthyCats = state.cats.filter(function (cat) {
       return cat.unlocked && cat.isAlive !== false && !cat.diseaseId;
     });
+    var breedableCats = game.systems.collectionSystem.getBreedableCats();
+    var pregnantCats = game.systems.collectionSystem.getPregnantCats();
+    var breedOptions = breedableCats.length
+      ? breedableCats
+          .map(function (cat) {
+            return (
+              '<option value="' +
+              cat.id +
+              '">' +
+              format.escapeHtml(getText(cat, "name")) +
+              " · " +
+              t(cat.gender === "female" ? "gender_female" : "gender_male") +
+              "</option>"
+            );
+          })
+          .join("")
+      : '<option value="">' + t("breed_pick_two") + "</option>";
+    var pregnantMarkup = pregnantCats.length
+      ? pregnantCats
+          .map(function (cat) {
+            return (
+              '<div class="notice-item"><p><strong>' +
+              format.escapeHtml(getText(cat, "name")) +
+              "</strong></p><p>" +
+              t("pregnancy_active") +
+              " · " +
+              t("pregnancy_due") +
+              " " +
+              format.formatDuration(game.systems.collectionSystem.getPregnancyCountdown(cat)) +
+              "</p></div>"
+            );
+          })
+          .join("")
+      : '<div class="notice-item"><p><strong>' + t("pregnancy_status") + "</strong></p><p>" + t("pregnancy_none") + "</p></div>";
 
     return (
       '<section class="page-header">' +
@@ -77,7 +111,24 @@
         : '<div class="empty-state">' + t("hospital_empty") + "</div>") +
       "</div>" +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("healthy_cats") + '</p><h3 class="panel-title">' + t("disease_manual") + "</h3>" +
+      '<p class="section-eyebrow">' + t("breed_panel_title") + '</p><h3 class="panel-title">' + t("breed_panel_title") + "</h3>" +
+      '<p class="page-copy" style="margin-top: 8px;">' + t("breed_panel_copy") + "</p>" +
+      '<div class="notice-list" style="margin-top: 16px;">' +
+      '<div class="notice-item"><p><strong>' + t("breed_parent_a") + '</strong></p><select id="breed-parent-a" class="field">' +
+      breedOptions +
+      "</select></div>" +
+      '<div class="notice-item"><p><strong>' + t("breed_parent_b") + '</strong></p><select id="breed-parent-b" class="field">' +
+      breedOptions +
+      "</select></div>" +
+      '<button class="primary-button" style="margin-top: 16px;" data-breed-cats ' +
+      (breedableCats.length < 2 ? "disabled" : "") +
+      ">" + t("breed_action") + "</button>" +
+      '<p class="helper-text" style="margin-top: 10px;">' + t("breed_hint") + "</p>" +
+      '<div class="notice-list" style="margin-top: 14px;">' + pregnantMarkup + "</div>" +
+      "</div></div></section>" +
+      '<section class="home-grid" style="margin-top: 18px;">' +
+      '<div class="page-card">' +
+      '<p class="section-eyebrow">' + t("healthy_cats") + '</p><h3 class="panel-title">' + t("healthy_cats") + "</h3>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
       healthyCats
         .map(function (cat) {
@@ -90,6 +141,10 @@
             "</p></div>";
         })
         .join("") +
+      "</div></div>" +
+      '<div class="page-card">' +
+      '<p class="section-eyebrow">' + t("disease_manual") + '</p><h3 class="panel-title">' + t("disease_manual") + "</h3>" +
+      '<div class="notice-list" style="margin-top: 16px;">' +
       game.data.diseases
         .map(function (disease) {
           return '<div class="notice-item"><p><strong>' +

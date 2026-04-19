@@ -2,18 +2,18 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.9.0",
+      version: "1.9.1",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "房间加入改造功能，升级后面积更大、可容纳更多家具，房间里的猫咪尺寸也同步优化。",
-          "新增独立存档管理页，集中显示本地存档提示、手动保存、导出、导入和重置功能。",
-          "继续保持本地单机存档模式，所有进度仍保存在当前浏览器的 localStorage 中。",
+          "陪玩现在必须消耗逗猫棒，没有剩余次数时将无法陪玩。",
+          "图鉴改成格子收藏展示，已获得猫咪会显示在展示格中，点击后才展开属性详情。",
+          "猫咪配对功能已从图鉴迁移到医院页面，治疗与繁育入口集中管理。",
         ],
         en: [
-          "The room now supports renovations, with more floor space, higher furniture capacity, and better-scaled cats in the room scene.",
-          "Added a dedicated save management page for local save tips, manual saving, export, import, and reset actions.",
-          "The game remains fully local and browser-only, with progress stored in localStorage.",
+          "Playtime now always consumes one toy wand use, and you cannot play when no uses remain.",
+          "The collection page is now a boxed gallery, and cat details only appear after you click a collected cat.",
+          "Cat pairing has been moved from the collection page to the hospital page so treatment and breeding are managed together.",
         ],
       },
       readoptCost: 80,
@@ -53,6 +53,7 @@
       notifications: [],
       arcadeSpin: null,
       roomDrag: null,
+      collectionInspectCatId: null,
     },
     systems: {},
     ui: {},

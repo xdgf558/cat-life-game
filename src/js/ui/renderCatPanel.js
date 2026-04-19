@@ -100,6 +100,7 @@
     var catDisease = game.systems.catSystem.getCatDisease(selectedCat);
     var diseaseCountdown = game.systems.catSystem.getDiseaseProgressCountdown(selectedCat);
     var isLocked = !selectedCat.unlocked;
+    var noToys = state.inventory.toys <= 0;
     var pregnancyCountdown = game.systems.collectionSystem && selectedCat.isPregnant
       ? game.systems.collectionSystem.getPregnancyCountdown(selectedCat)
       : null;
@@ -184,7 +185,7 @@
       (isDead || isLocked ? "disabled" : "") +
       '>' + t("clean_action") + "</button>" +
       '<button class="primary-button" data-cat-action="play" ' +
-      (isDead || isLocked ? "disabled" : "") +
+      (isDead || isLocked || noToys ? "disabled" : "") +
       '>' + t("play_action") + "</button>" +
       '<button class="chip-button" data-cat-action="rest" ' +
       (isDead || isLocked ? "disabled" : "") +
@@ -208,12 +209,18 @@
       state.inventory.litter +
       " / 🪶 " +
       state.inventory.toys +
+      " " +
       t("uses_remaining") +
       " / 🌿 " +
       state.inventory.catGrass +
       " / 💊 " +
       state.inventory.medicine +
       "</p></div>" +
+      (!isLocked
+        ? '<div class="notice-item"><p><strong>' + t("play_action") + '</strong></p><p>' +
+          (noToys ? t("toy_required_play") : t("toy_bonus_used", { count: state.inventory.toys - 1 < 0 ? 0 : state.inventory.toys - 1 })) +
+          "</p></div>"
+        : "") +
       (selectedCat.isPregnant
         ? '<div class="notice-item"><p><strong>' + t("pregnancy_status") + '</strong></p><p>' +
           t("pregnancy_food_hint", { count: game.systems.catSystem.getFoodUnitsNeeded(selectedCat) }) +

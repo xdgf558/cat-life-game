@@ -3,11 +3,39 @@
   var t = game.utils.i18n.t;
   var getText = game.utils.i18n.getDataText;
 
-  function renderCollectionCard(cat) {
+  function renderCollectionSlot(cat, selectedId) {
+    var unlocked = cat.unlocked;
+    var selected = unlocked && cat.id === selectedId;
+    var className = "collection-slot" + (selected ? " is-selected" : "") + (unlocked ? "" : " is-locked");
+
+    return (
+      '<button class="' +
+      className +
+      '" ' +
+      (unlocked ? 'data-inspect-collection-cat="' + cat.id + '"' : "disabled") +
+      ">" +
+      (unlocked
+        ? '<img class="collection-slot-art" src="' +
+          game.utils.catArt.buildCatSvg(cat, 110) +
+          '" alt="' +
+          format.escapeHtml(getText(cat, "name")) +
+          '" /><strong>' +
+          format.escapeHtml(getText(cat, "name")) +
+          '</strong><span class="helper-text">' +
+          t("collection_slot_click") +
+          "</span>"
+        : '<div class="collection-slot-placeholder">?</div><strong>' +
+          t("collection_slot_locked") +
+          '</strong><span class="helper-text">---</span>') +
+      "</button>"
+    );
+  }
+
+  function renderCollectionDetail(cat) {
     var pregnancyCountdown = game.systems.collectionSystem.getPregnancyCountdown(cat);
 
     return (
-      '<article class="cat-card">' +
+      '<article class="page-card">' +
       '<div class="item-title"><img class="cat-illustration" src="' +
       game.utils.catArt.buildCatSvg(cat, 120) +
       '" alt="' +
@@ -23,50 +51,28 @@
       "：" +
       t(cat.gender === "female" ? "gender_female" : "gender_male") +
       (pregnancyCountdown !== null ? " · " + t("pregnancy_due") + " " + format.formatDuration(pregnancyCountdown) : "") +
-      "</p></div></div></article>"
+      "</p></div></div>" +
+      '<div style="margin-top: 16px;">' +
+      game.ui.helpers.renderBar(t("hunger_label"), cat.hunger) +
+      game.ui.helpers.renderBar(t("clean_label"), cat.clean) +
+      game.ui.helpers.renderBar(t("mood_label"), cat.mood) +
+      game.ui.helpers.renderBar(t("health_label"), cat.health) +
+      game.ui.helpers.renderBar(t("energy_label"), cat.energy) +
+      "</div></article>"
     );
   }
 
   function renderCollectionPanel(state) {
     var stats = game.systems.collectionSystem.getCollectionStats();
-    var breedableCats = game.systems.collectionSystem.getBreedableCats();
-    var unlockedCats = game.systems.collectionSystem.getUnlockedCats();
-    var pregnantCats = game.systems.collectionSystem.getPregnantCats();
-    var breedOptions = breedableCats.length
-      ? breedableCats
-          .map(function (cat) {
-            return (
-              '<option value="' +
-              cat.id +
-              '">' +
-              format.escapeHtml(getText(cat, "name")) +
-              " · " +
-              t(cat.gender === "female" ? "gender_female" : "gender_male") +
-              "</option>"
-            );
-          })
-          .join("")
-      : '<option value="">' + t("breed_pick_two") + "</option>";
-    var galleryMarkup = unlockedCats.length
-      ? unlockedCats.map(renderCollectionCard).join("")
+    var allCats = state.cats.slice();
+    var selectedCat = allCats.find(function (cat) {
+      return cat.id === game.state.collectionInspectCatId && cat.unlocked;
+    }) || null;
+    var galleryMarkup = allCats.length
+      ? allCats.map(function (cat) {
+          return renderCollectionSlot(cat, selectedCat ? selectedCat.id : "");
+        }).join("")
       : '<div class="empty-state">' + t("no_cat_data") + "</div>";
-    var pregnantMarkup = pregnantCats.length
-      ? pregnantCats
-          .map(function (cat) {
-            return (
-              '<div class="notice-item"><p><strong>' +
-              format.escapeHtml(getText(cat, "name")) +
-              "</strong></p><p>" +
-              t("pregnancy_active") +
-              " · " +
-              t("pregnancy_due") +
-              " " +
-              format.formatDuration(game.systems.collectionSystem.getPregnancyCountdown(cat)) +
-              "</p></div>"
-            );
-          })
-          .join("")
-      : '<div class="notice-item"><p><strong>' + t("pregnancy_status") + "</strong></p><p>" + t("pregnancy_none") + "</p></div>";
 
     return (
       '<section class="page-header">' +
@@ -81,31 +87,26 @@
       '<div class="notice-item"><p><strong>' + t("collection_total_cats") + "</strong></p><p>" + stats.totalCats + "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("collection_unique_looks") + "</strong></p><p>" + stats.uniqueLooks + "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("collection_kittens") + "</strong></p><p>" + stats.kittens + "</p></div>" +
-      '<div class="notice-item"><p><strong>' + t("pregnancy_status") + "</strong></p><p>" + pregnantCats.length + "</p></div>" +
+      '<div class="notice-item"><p><strong>' + t("collection_slot_locked") + "</strong></p><p>" +
+      allCats.filter(function (cat) { return !cat.unlocked; }).length +
+      "</p></div>" +
       "</div></div></section>" +
-      '<section class="home-grid">' +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("breed_panel_title") + '</p><h3 class="panel-title">' + t("breed_panel_title") + "</h3>" +
-      '<p class="page-copy" style="margin-top: 8px;">' + t("breed_panel_copy") + "</p>" +
-      '<div class="notice-list" style="margin-top: 16px;">' +
-      '<div class="notice-item"><p><strong>' + t("breed_parent_a") + '</strong></p><select id="breed-parent-a" class="field">' +
-      breedOptions +
-      "</select></div>" +
-      '<div class="notice-item"><p><strong>' + t("breed_parent_b") + '</strong></p><select id="breed-parent-b" class="field">' +
-      breedOptions +
-      "</select></div>" +
-      '<button class="primary-button" style="margin-top: 16px;" data-breed-cats ' +
-      (breedableCats.length < 2 ? "disabled" : "") +
-      ">" + t("breed_action") + "</button>" +
-      '<p class="helper-text" style="margin-top: 10px;">' + t("breed_hint") + "</p>" +
-      '<div class="notice-list" style="margin-top: 14px;">' + pregnantMarkup + "</div>" +
-      "</div></div>" +
+      '<section class="collection-layout">' +
       '<div class="page-card">' +
       '<p class="section-eyebrow">' + t("collection_gallery") + '</p><h3 class="panel-title">' + t("collection_gallery") + "</h3>" +
       '<p class="page-copy" style="margin-top: 8px;">' + t("collection_gallery_copy") + "</p>" +
-      '<div class="card-grid" style="margin-top: 16px;">' +
+      '<div class="collection-grid" style="margin-top: 16px;">' +
       galleryMarkup +
       "</div></div></section>"
+      +
+      '<section class="page-card" style="margin-top: 18px;">' +
+      '<p class="section-eyebrow">' + t("collection_detail_title") + '</p><h3 class="panel-title">' + t("collection_detail_title") + "</h3>" +
+      '<p class="page-copy" style="margin-top: 8px;">' +
+      (selectedCat ? t("collection_slot_click") : t("collection_slot_hint")) +
+      "</p>" +
+      '<div style="margin-top: 16px;">' +
+      (selectedCat ? renderCollectionDetail(selectedCat) : '<div class="empty-state">' + t("collection_detail_empty") + "</div>") +
+      "</div></section>"
     );
   }
 
