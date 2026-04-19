@@ -45,8 +45,10 @@
       '<h2 class="page-title">' + t("home_panel_title") + "</h2>" +
       '<p class="page-copy">' + t("home_panel_copy") + "</p>" +
       '<div class="inline-row" style="margin-top:18px; flex-wrap: wrap;">' +
+      '<button class="primary-button" data-page-target="room">' + t("nav_room") + "</button>" +
       '<button class="primary-button" data-page-target="work">' + t("nav_work") + "</button>" +
       '<button class="secondary-button" data-page-target="cats">' + t("nav_cats") + "</button>" +
+      '<button class="secondary-button" data-page-target="collection">' + t("nav_collection") + "</button>" +
       '<button class="secondary-button" data-page-target="arcade">' + t("nav_arcade") + "</button>" +
       '<button class="secondary-button" data-page-target="hospital">' + t("nav_hospital") + "</button>" +
       '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
@@ -93,7 +95,7 @@
       '<div class="page-card">' +
       '<p class="section-eyebrow">' + t("cat_overview") + "</p>" +
       '<div class="cat-portrait">' +
-      '<div class="cat-portrait-icon">' + catVisual.icon + '</div><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
+      '<img class="cat-illustration-large" src="' + game.utils.catArt.buildCatSvg(selectedCat, 132) + '" alt="' + format.escapeHtml(getText(selectedCat, "name")) + '" /><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
       '<h3 class="panel-title">' +
       format.escapeHtml(getText(selectedCat, "name")) +
       " · " +

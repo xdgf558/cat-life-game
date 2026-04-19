@@ -16,6 +16,8 @@
         { text: "路过的上班族给了你额外小费。", textEn: "A passerby tipped you a little extra.", goldDelta: 20 },
         { text: "今天发得很顺利，没有额外状况。", textEn: "The shift went smoothly with no surprises.", goldDelta: 0 },
         { text: "风有点大，传单飞了几张，但还是顺利收工。", textEn: "A few flyers blew away in the wind, but you still finished the shift.", goldDelta: -5 },
+        { text: "你迟到了几分钟，被临时扣了 12 金币。", textEn: "You were a few minutes late and lost 12 gold.", goldDelta: -12 },
+        { text: "今天额外完成了街区推广，发了小奖金。", textEn: "You covered an extra block and earned a small bonus.", goldDelta: 26 },
       ],
     },
     {
@@ -34,6 +36,8 @@
         { text: "老板夸你手脚利落，奖励了额外奖金。", textEn: "Your boss praised your speed and gave you a bonus.", goldDelta: 30 },
         { text: "有位顾客不小心打翻饮料，忙了好一阵。", textEn: "A customer spilled a drink and cost you some time.", goldDelta: -10 },
         { text: "一切都很平稳，准时打卡下班。", textEn: "Everything stayed calm and you clocked out on time.", goldDelta: 0 },
+        { text: "你今天迟到打卡，被扣了 18 金币。", textEn: "You clocked in late and lost 18 gold.", goldDelta: -18 },
+        { text: "老板临时让你顶班，给了额外补贴。", textEn: "You covered an extra shift and got a bonus stipend.", goldDelta: 35 },
       ],
     },
     {
@@ -52,6 +56,8 @@
         { text: "店长送了你一袋普通猫粮。", textEn: "The manager gifted you one bag of basic cat food.", goldDelta: 0, itemReward: "food_basic", itemAmount: 1 },
         { text: "你帮客人挑选用品，得到了一笔奖励。", textEn: "You helped a customer choose supplies and got a reward.", goldDelta: 25 },
         { text: "今天工作很扎实，拿到了基础薪水。", textEn: "You worked steadily today and took home the base pay.", goldDelta: 0 },
+        { text: "开店准备慢了一点，被扣了 22 金币。", textEn: "You were slow during opening prep and lost 22 gold.", goldDelta: -22 },
+        { text: "宠物店今天销量很好，店长发了奖金。", textEn: "Sales were great today and the manager handed out a bonus.", goldDelta: 42 },
       ],
     },
     {
@@ -70,6 +76,8 @@
         { text: "线上事故处理得很漂亮，项目负责人给了额外奖金。", textEn: "You handled a production incident beautifully and got a bonus.", goldDelta: 60 },
         { text: "今天需求改了三轮，但你还是按时交付。", textEn: "Requirements changed three times, but you still shipped on time.", goldDelta: 0 },
         { text: "临时排查线上 bug 花了不少时间，奖金略少一些。", textEn: "Emergency bug fixing ate a lot of time, so the bonus was a bit smaller.", goldDelta: -30 },
+        { text: "早会迟到被主管点名，绩效被扣了 40 金币。", textEn: "You were late to stand-up and lost 40 gold in performance pay.", goldDelta: -40 },
+        { text: "项目提前上线成功，团队拿到了额外奖金。", textEn: "The release shipped early and the team got a bonus.", goldDelta: 88 },
       ],
     },
   ];

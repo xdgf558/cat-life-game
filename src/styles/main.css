@@ -490,6 +490,8 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  position: relative;
   border-radius: 20px;
   background: linear-gradient(180deg, #ffffff 0%, #ecf5ff 100%);
   border: 4px solid rgba(63, 114, 181, 0.14);
@@ -500,31 +502,265 @@ button:disabled {
 }
 
 .slot-window.is-animated {
-  overflow: hidden;
+  padding: 0;
+}
+
+.slot-reel-viewport {
   position: relative;
+  width: 100%;
+  height: 78px;
+  overflow: hidden;
 }
 
 .slot-reel-strip {
+  position: absolute;
+  left: 50%;
+  top: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  animation: slot-spin-roll 0.9s linear infinite;
+  gap: 4px;
+  transform: translateX(-50%);
+  animation: slot-spin-roll 0.72s linear infinite;
 }
 
 .slot-symbol {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 56px;
+  width: 100%;
+  min-height: 36px;
+  line-height: 1;
+}
+
+.cat-illustration,
+.cat-illustration-large,
+.cat-illustration-small {
+  display: block;
+  object-fit: contain;
+  image-rendering: auto;
+  filter: drop-shadow(0 10px 18px rgba(38, 77, 126, 0.18));
+}
+
+.cat-illustration {
+  width: 88px;
+  height: 88px;
+}
+
+.cat-illustration-large {
+  width: 120px;
+  height: 120px;
+}
+
+.cat-illustration-small {
+  width: 76px;
+  height: 76px;
+}
+
+.card-grid .empty-state {
+  grid-column: 1 / -1;
+}
+
+.room-scene {
+  position: relative;
+  min-height: 360px;
+  margin-top: 18px;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 4px solid rgba(59, 108, 168, 0.16);
+  box-shadow:
+    inset 0 4px 0 rgba(255, 255, 255, 0.8),
+    0 14px 28px rgba(49, 91, 140, 0.14);
+}
+
+.room-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.36) 0%, rgba(255, 255, 255, 0) 22%),
+    radial-gradient(circle at 82% 20%, rgba(255, 245, 196, 0.34) 0%, rgba(255, 255, 255, 0) 18%);
+  pointer-events: none;
+}
+
+.room-wall-art {
+  position: absolute;
+  inset: 0 0 36% 0;
+}
+
+.room-floor {
+  position: absolute;
+  inset: 64% 0 0 0;
+  border-top: 5px solid rgba(138, 91, 40, 0.15);
+}
+
+.wall-sunny .room-wall-art {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 251, 206, 0.82) 0%, rgba(255, 251, 206, 0) 22%),
+    linear-gradient(180deg, #fff2ae 0%, #ffd97c 100%);
+}
+
+.wall-mint .room-wall-art {
+  background:
+    radial-gradient(circle at 20% 22%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 18%),
+    linear-gradient(180deg, #d7f5da 0%, #a9dfba 100%);
+}
+
+.wall-starlight .room-wall-art {
+  background:
+    radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.48) 0%, rgba(255, 255, 255, 0) 14%),
+    radial-gradient(circle at 72% 22%, rgba(255, 255, 255, 0.32) 0%, rgba(255, 255, 255, 0) 10%),
+    linear-gradient(180deg, #82a3df 0%, #4f6db3 100%);
+}
+
+.floor-oak .room-floor {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(138, 89, 48, 0.12) 0 26px,
+      rgba(255, 255, 255, 0.14) 26px 30px,
+      rgba(126, 78, 42, 0.12) 30px 56px
+    ),
+    linear-gradient(180deg, #dca66c 0%, #b97b46 100%);
+}
+
+.floor-cream .room-floor {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.36)),
+    linear-gradient(90deg, rgba(217, 183, 139, 0.22) 0 2px, transparent 2px 74px),
+    linear-gradient(180deg, #fff0d8 0%, #efd1b0 100%);
+  background-size: auto, 76px 76px, auto;
+}
+
+.floor-berry .room-floor {
+  background:
+    radial-gradient(circle at 25% 40%, rgba(255, 218, 231, 0.52) 0%, rgba(255, 218, 231, 0) 18%),
+    linear-gradient(180deg, #f5a9b6 0%, #e07f94 100%);
+}
+
+.decor-plants::after,
+.decor-posters::after,
+.decor-lanterns::after {
+  content: "";
+  position: absolute;
+  top: 26px;
+  right: 24px;
+}
+
+.decor-plants::after {
+  width: 70px;
+  height: 104px;
+  border-radius: 28px 28px 16px 16px;
+  background:
+    radial-gradient(circle at 50% 18%, #9ae08a 0 16px, transparent 16px),
+    radial-gradient(circle at 22% 42%, #72c667 0 14px, transparent 14px),
+    radial-gradient(circle at 76% 44%, #85d978 0 14px, transparent 14px),
+    linear-gradient(180deg, transparent 0%, transparent 62%, #bc8b58 62%, #a56f42 100%);
+}
+
+.decor-posters::after {
+  width: 120px;
+  height: 74px;
+  border-radius: 18px;
+  border: 4px solid rgba(255, 247, 224, 0.78);
+  background:
+    linear-gradient(135deg, rgba(255, 231, 144, 0.7), rgba(255, 255, 255, 0.22)),
+    linear-gradient(180deg, #78b8ff 0%, #ffb66a 100%);
+  box-shadow: 0 6px 12px rgba(58, 95, 142, 0.12);
+}
+
+.decor-lanterns::after {
+  width: 148px;
+  height: 56px;
+  background:
+    radial-gradient(circle at 12% 50%, rgba(255, 242, 176, 0.98) 0 10px, transparent 10px),
+    radial-gradient(circle at 34% 34%, rgba(255, 226, 130, 0.94) 0 10px, transparent 10px),
+    radial-gradient(circle at 56% 54%, rgba(255, 242, 176, 0.98) 0 10px, transparent 10px),
+    radial-gradient(circle at 78% 36%, rgba(255, 226, 130, 0.94) 0 10px, transparent 10px),
+    radial-gradient(circle at 96% 50%, rgba(255, 242, 176, 0.98) 0 10px, transparent 10px);
+}
+
+.room-furniture {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  width: 74px;
+  height: 74px;
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(243, 248, 255, 0.78));
+  border: 3px solid rgba(73, 120, 184, 0.12);
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.88),
+    0 10px 16px rgba(52, 95, 146, 0.1);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.room-furniture.is-dragging {
+  cursor: grabbing;
+  z-index: 3;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.88),
+    0 18px 28px rgba(52, 95, 146, 0.2);
+}
+
+.room-furniture-icon {
+  font-size: 34px;
+}
+
+.room-cat-sprite {
+  position: absolute;
+  bottom: 34px;
+  width: 108px;
+  height: 108px;
+  transform-origin: center bottom;
+}
+
+.room-cat-path-1 {
+  animation: room-walk-1 9.5s ease-in-out infinite;
+}
+
+.room-cat-path-2 {
+  animation: room-walk-2 11s ease-in-out infinite;
+}
+
+.room-cat-path-3 {
+  animation: room-walk-3 8.6s ease-in-out infinite;
+}
+
+@keyframes room-walk-1 {
+  0% { left: 8%; transform: translateY(0) scaleX(1); }
+  35% { left: 58%; transform: translateY(-8px) scaleX(1); }
+  50% { left: 70%; transform: translateY(0) scaleX(-1); }
+  85% { left: 18%; transform: translateY(-8px) scaleX(-1); }
+  100% { left: 8%; transform: translateY(0) scaleX(1); }
+}
+
+@keyframes room-walk-2 {
+  0% { left: 62%; transform: translateY(0) scaleX(-1); }
+  28% { left: 22%; transform: translateY(-6px) scaleX(-1); }
+  52% { left: 16%; transform: translateY(0) scaleX(1); }
+  82% { left: 68%; transform: translateY(-10px) scaleX(1); }
+  100% { left: 62%; transform: translateY(0) scaleX(-1); }
+}
+
+@keyframes room-walk-3 {
+  0% { left: 28%; transform: translateY(0) scaleX(1); }
+  30% { left: 76%; transform: translateY(-6px) scaleX(1); }
+  48% { left: 78%; transform: translateY(0) scaleX(-1); }
+  76% { left: 34%; transform: translateY(-10px) scaleX(-1); }
+  100% { left: 28%; transform: translateY(0) scaleX(1); }
 }
 
 @keyframes slot-spin-roll {
   from {
-    transform: translateY(0);
+    transform: translateX(-50%) translateY(-10px);
   }
   to {
-    transform: translateY(-50%);
+    transform: translateX(-50%) translateY(-92px);
   }
 }
 
@@ -618,6 +854,27 @@ button:disabled {
   .slot-window {
     min-height: 88px;
     font-size: 34px;
+  }
+
+  .room-scene {
+    min-height: 300px;
+  }
+
+  .room-furniture {
+    width: 64px;
+    height: 64px;
+  }
+
+  .room-cat-sprite,
+  .cat-illustration-large {
+    width: 92px;
+    height: 92px;
+  }
+
+  .cat-illustration,
+  .cat-illustration-small {
+    width: 68px;
+    height: 68px;
   }
 
   .resource-grid {

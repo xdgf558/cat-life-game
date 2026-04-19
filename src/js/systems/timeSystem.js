@@ -108,6 +108,14 @@
       }
     }
 
+    if (game.systems.collectionSystem) {
+      var pregnancySyncResult = game.systems.collectionSystem.syncPregnancies(now, source);
+      if (pregnancySyncResult.changed) {
+        changed = true;
+        messages = messages.concat(pregnancySyncResult.messages || []);
+      }
+    }
+
     state.meta.lastSyncAt = now.toISOString();
 
     return {

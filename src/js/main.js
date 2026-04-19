@@ -6,6 +6,10 @@
   var liveTickId = null;
   var arcadeSpinTimerId = null;
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
   function getSelectedCat() {
     var current = game.state.game.cats.find(function (cat) {
       return cat.id === game.state.selectedCatId;
@@ -168,8 +172,11 @@
     return (
       '<section class="quick-card">' +
       '<p class="section-eyebrow">' + t("cat_overview") + "</p>" +
-      '<div class="cat-portrait"><div class="cat-portrait-icon">' +
-      game.systems.catSystem.getCatVisualState(selectedCat).icon +
+      '<div class="cat-portrait"><img class="cat-illustration-small" src="' +
+      game.utils.catArt.buildCatSvg(selectedCat, 88) +
+      '" alt="' +
+      format.escapeHtml(getText(selectedCat, "name")) +
+      '" /><div>' +
       '</div><div>' +
       '<h3 class="panel-title">' +
       format.escapeHtml(getText(selectedCat, "name")) +
@@ -263,8 +270,10 @@
   function render() {
     var pageRenderers = {
       home: game.ui.renderHome,
+      room: game.ui.renderRoomPanel,
       work: game.ui.renderWorkPanel,
       cats: game.ui.renderCatPanel,
+      collection: game.ui.renderCollectionPanel,
       arcade: game.ui.renderArcadePanel,
       hospital: game.ui.renderHospitalPanel,
       shop: game.ui.renderShopPanel,
@@ -336,6 +345,8 @@
     var readoptButton = event.target.closest("[data-readopt-cat]");
     var treatButton = event.target.closest("[data-treat-cat]");
     var slotButton = event.target.closest("[data-slot-bet]");
+    var breedButton = event.target.closest("[data-breed-cats]");
+    var resetRoomLayoutButton = event.target.closest("[data-reset-room-layout]");
 
     if (game.systems.musicSystem) {
       game.systems.musicSystem.unlock();
@@ -375,6 +386,24 @@
 
     if (slotButton) {
       startArcadeSpin(slotButton.dataset.slotBet);
+      return;
+    }
+
+    if (breedButton) {
+      handleActionResult(
+        game.systems.collectionSystem.breedCats(
+          document.getElementById("breed-parent-a") ? document.getElementById("breed-parent-a").value : "",
+          document.getElementById("breed-parent-b") ? document.getElementById("breed-parent-b").value : ""
+        )
+      );
+      return;
+    }
+
+    if (resetRoomLayoutButton) {
+      game.systems.homeSystem.resetFurnitureLayout();
+      pushNotice(t("room_layout_reset_done"));
+      persistGame(true);
+      render();
       return;
     }
 
@@ -451,6 +480,16 @@
       return;
     }
 
+    if (target.matches("[data-room-setting]")) {
+      game.state.game.home.roomScene[target.dataset.roomSetting] = target.value;
+      if (target.dataset.roomSetting === "layout") {
+        game.systems.homeSystem.resetFurnitureLayout();
+      }
+      game.state.saveSystem.saveGame(game.state.game);
+      render();
+      return;
+    }
+
     if (target.id === "save-import-file" && target.files && target.files[0]) {
       var reader = new FileReader();
       reader.onload = function () {
@@ -462,6 +501,84 @@
       };
       reader.readAsText(target.files[0], "utf-8");
     }
+  }
+
+  function updateDraggedFurniture(clientX, clientY) {
+    var drag = game.state.roomDrag;
+    var xPercent;
+    var yPercent;
+
+    if (!drag || !drag.sceneRect) {
+      return;
+    }
+
+    xPercent = clamp(((clientX - drag.sceneRect.left) / drag.sceneRect.width) * 100, 8, 92);
+    yPercent = clamp(((clientY - drag.sceneRect.top) / drag.sceneRect.height) * 100, 34, 82);
+
+    game.systems.homeSystem.setFurniturePosition(drag.furnitureId, xPercent.toFixed(2) + "%", yPercent.toFixed(2) + "%");
+
+    if (drag.element) {
+      drag.element.style.left = xPercent.toFixed(2) + "%";
+      drag.element.style.top = yPercent.toFixed(2) + "%";
+    }
+  }
+
+  function handlePointerDown(event) {
+    var furniture = event.target.closest(".room-furniture[data-furniture-id]");
+    var scene;
+
+    if (!furniture || game.state.currentPage !== "room") {
+      return;
+    }
+
+    scene = furniture.closest(".room-scene");
+    if (!scene) {
+      return;
+    }
+
+    game.state.roomDrag = {
+      furnitureId: furniture.dataset.furnitureId,
+      element: furniture,
+      sceneRect: scene.getBoundingClientRect(),
+      pointerId: event.pointerId,
+    };
+
+    furniture.classList.add("is-dragging");
+    if (furniture.setPointerCapture) {
+      furniture.setPointerCapture(event.pointerId);
+    }
+    updateDraggedFurniture(event.clientX, event.clientY);
+    event.preventDefault();
+  }
+
+  function handlePointerMove(event) {
+    if (!game.state.roomDrag || game.state.roomDrag.pointerId !== event.pointerId) {
+      return;
+    }
+
+    updateDraggedFurniture(event.clientX, event.clientY);
+    event.preventDefault();
+  }
+
+  function finishRoomDrag(event) {
+    var drag = game.state.roomDrag;
+
+    if (!drag || (event && drag.pointerId !== event.pointerId)) {
+      return;
+    }
+
+    if (drag.element) {
+      drag.element.classList.remove("is-dragging");
+      if (event && drag.element.releasePointerCapture) {
+        try {
+          drag.element.releasePointerCapture(event.pointerId);
+        } catch (error) {
+        }
+      }
+    }
+
+    game.state.roomDrag = null;
+    persistGame(true);
   }
 
   function init() {
@@ -485,6 +602,10 @@
 
     document.addEventListener("click", handleClick);
     document.addEventListener("change", handleChange);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", finishRoomDrag);
+    document.addEventListener("pointercancel", finishRoomDrag);
     window.addEventListener("focus", function () {
       syncRealtime("focus");
       if (game.systems.musicSystem) {

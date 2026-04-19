@@ -128,8 +128,15 @@
         roomLevel: 1,
         comfortScore: 30,
         placedFurniture: game.config.startingFurniture.slice(),
+        furnitureLayout: {},
         rooms: ["小客厅"],
         arcadeLastSpin: null,
+        roomScene: {
+          wall: "sunny",
+          floor: "oak",
+          decor: "plants",
+          layout: "cozy",
+        },
       },
       settings: {
         bgmVolume: 60,
@@ -187,12 +194,22 @@
       normalized.home.placedFurniture = fresh.home.placedFurniture.slice();
     }
 
+    if (!normalized.home.furnitureLayout || typeof normalized.home.furnitureLayout !== "object") {
+      normalized.home.furnitureLayout = {};
+    }
+
     normalized.home.rooms = Array.isArray(normalized.home.rooms)
       ? normalized.home.rooms
       : fresh.home.rooms.slice();
 
     if (!normalized.home.arcadeLastSpin || typeof normalized.home.arcadeLastSpin !== "object") {
       normalized.home.arcadeLastSpin = fresh.home.arcadeLastSpin;
+    }
+
+    if (!normalized.home.roomScene || typeof normalized.home.roomScene !== "object") {
+      normalized.home.roomScene = game.state.deepClone(fresh.home.roomScene);
+    } else {
+      normalized.home.roomScene = Object.assign({}, fresh.home.roomScene, normalized.home.roomScene);
     }
 
     if (!normalized.meta.lastSyncAt) {

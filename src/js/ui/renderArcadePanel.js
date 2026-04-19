@@ -67,13 +67,13 @@
           var spinColumn = activeSpin && activeSpin.columns ? activeSpin.columns[index] : null;
 
           if (spinColumn) {
-            return '<div class="slot-window is-animated"><div class="slot-reel-strip">' +
+            return '<div class="slot-window is-animated"><div class="slot-reel-viewport"><div class="slot-reel-strip">' +
               spinColumn
                 .map(function (icon) {
                   return '<span class="slot-symbol">' + icon + "</span>";
                 })
                 .join("") +
-              "</div></div>";
+              "</div></div></div>";
           }
 
           return '<div class="slot-window"><span class="slot-symbol">' + displayIcon + "</span></div>";

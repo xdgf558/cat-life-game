@@ -100,6 +100,10 @@
     var catDisease = game.systems.catSystem.getCatDisease(selectedCat);
     var diseaseCountdown = game.systems.catSystem.getDiseaseProgressCountdown(selectedCat);
     var isLocked = !selectedCat.unlocked;
+    var pregnancyCountdown = game.systems.collectionSystem && selectedCat.isPregnant
+      ? game.systems.collectionSystem.getPregnancyCountdown(selectedCat)
+      : null;
+    var genderLabel = t(selectedCat.gender === "female" ? "gender_female" : "gender_male");
 
     return (
       '<section class="page-header">' +
@@ -141,6 +145,9 @@
       '<div class="notice-list" style="margin-top: 14px;">' +
       '<div class="notice-item"><p><strong>' + t("age_label") + "</strong></p><p>" +
       format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +
+      '</p></div><div class="notice-item"><p><strong>' + t("gender_label") + "</strong></p><p>" +
+      genderLabel +
+      (selectedCat.isPregnant ? " · " + t("pregnancy_active") : "") +
       '</p></div><div class="notice-item"><p><strong>' + t("disease_label") + "</strong></p><p>" +
       (catDisease
         ? format.escapeHtml(getText(catDisease, "name")) +
@@ -207,6 +214,12 @@
       " / 💊 " +
       state.inventory.medicine +
       "</p></div>" +
+      (selectedCat.isPregnant
+        ? '<div class="notice-item"><p><strong>' + t("pregnancy_status") + '</strong></p><p>' +
+          t("pregnancy_food_hint", { count: game.systems.catSystem.getFoodUnitsNeeded(selectedCat) }) +
+          (pregnancyCountdown !== null ? "<br />" + t("pregnancy_due") + "：" + format.formatDuration(pregnancyCountdown) : "") +
+          "</p></div>"
+        : "") +
       '<div class="notice-item"><p><strong>' + t("care_tips") + "</strong></p><p>" + t("care_tips_copy") + "</p></div>" +
       (isLocked ? "" : renderCountdownItem(selectedCat, "hunger", t("hunger_next_drop"), true)) +
       (isLocked ? "" : renderCountdownItem(selectedCat, "clean", t("clean_label"), false)) +

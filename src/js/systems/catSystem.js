@@ -19,6 +19,9 @@
     var seedTime = fallbackIso || getNowIso();
     var baseCat = getBaseCat(cat.id) || {};
 
+    if (cat.gender !== "male" && cat.gender !== "female") {
+      cat.gender = baseCat.gender || (Math.random() < 0.5 ? "male" : "female");
+    }
     if (typeof cat.isAlive !== "boolean") {
       cat.isAlive = true;
     }
@@ -51,6 +54,21 @@
     }
     if (!Array.isArray(cat.diseaseHistory)) {
       cat.diseaseHistory = [];
+    }
+    if (typeof cat.isPregnant !== "boolean") {
+      cat.isPregnant = false;
+    }
+    if (!cat.pregnancyStartedAt) {
+      cat.pregnancyStartedAt = null;
+    }
+    if (!cat.pregnancyDueAt) {
+      cat.pregnancyDueAt = null;
+    }
+    if (!cat.pregnancyMateId) {
+      cat.pregnancyMateId = null;
+    }
+    if (typeof cat.pregnancyLitterSize !== "number") {
+      cat.pregnancyLitterSize = 0;
     }
     if (!cat.decayTracker) {
       cat.decayTracker = {};
@@ -161,6 +179,11 @@
     cat.deathReason = reason || "hunger_zero";
     cat.mood = 0;
     cat.energy = 0;
+    cat.isPregnant = false;
+    cat.pregnancyStartedAt = null;
+    cat.pregnancyDueAt = null;
+    cat.pregnancyMateId = null;
+    cat.pregnancyLitterSize = 0;
     messages.push(buildDeathMessage(cat, source, reason || "hunger_zero", disease));
   }
 
@@ -473,12 +496,17 @@
     });
   }
 
+  function getFoodUnitsNeeded(cat) {
+    return cat && cat.gender === "female" && cat.isPregnant ? game.config.pregnancyFoodMultiplier : 1;
+  }
+
   function performAction(catId, actionKey) {
     var state = game.state.game;
     var cat = getCat(catId);
     var messages = [];
     var comfortBonus = Math.floor(state.home.comfortScore / 20);
     var nowIso = getNowIso();
+    var foodUnitsNeeded;
 
     if (!cat || !cat.unlocked) {
       return {
@@ -497,13 +525,14 @@
     }
 
     if (actionKey === "feedBasic") {
-      if (state.inventory.food <= 0) {
+      foodUnitsNeeded = getFoodUnitsNeeded(cat);
+      if (state.inventory.food < foodUnitsNeeded) {
         return {
           ok: false,
-          message: game.utils.i18n.getLanguage() === "en" ? "You're out of basic food. Buy more in the shop." : "普通猫粮不够了，去商店补货吧。",
+          message: t("food_not_enough", { count: foodUnitsNeeded }),
         };
       }
-      state.inventory.food -= 1;
+      state.inventory.food -= foodUnitsNeeded;
       cat.hunger = clamp(cat.hunger + 25, 0, 100);
       cat.mood = clamp(cat.mood + 4, 0, 100);
       resetDecayTracker(cat, ["hunger", "mood"], nowIso);
@@ -513,11 +542,15 @@
         getText(cat, "name") +
           (game.utils.i18n.getLanguage() === "en" ? " ate happily and hunger recovered nicely." : "吃得很认真，饱腹值明显回升。")
       );
-    } else if (actionKey === "feedPremium") {
-      if (state.inventory.premiumFood <= 0) {
-        return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "You're out of premium food." : "高级猫粮用完了。" };
+      if (foodUnitsNeeded > 1) {
+        messages.push(t("pregnancy_food_bonus", { name: getText(cat, "name"), count: foodUnitsNeeded }));
       }
-      state.inventory.premiumFood -= 1;
+    } else if (actionKey === "feedPremium") {
+      foodUnitsNeeded = getFoodUnitsNeeded(cat);
+      if (state.inventory.premiumFood < foodUnitsNeeded) {
+        return { ok: false, message: t("premium_food_not_enough", { count: foodUnitsNeeded }) };
+      }
+      state.inventory.premiumFood -= foodUnitsNeeded;
       cat.hunger = clamp(cat.hunger + 45, 0, 100);
       cat.intimacy = clamp(cat.intimacy + 2, 0, 100);
       cat.mood = clamp(cat.mood + 6, 0, 100);
@@ -528,6 +561,9 @@
         getText(cat, "name") +
           (game.utils.i18n.getLanguage() === "en" ? " enjoyed the premium food and rubbed against you happily." : "吃到了高级猫粮，开心得蹭了蹭你。")
       );
+      if (foodUnitsNeeded > 1) {
+        messages.push(t("pregnancy_food_bonus", { name: getText(cat, "name"), count: foodUnitsNeeded }));
+      }
     } else if (actionKey === "clean") {
       if (state.inventory.litter <= 0) {
         return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "You're out of litter. Buy more from the shop." : "猫砂不够了，先去商店买一些。" };
@@ -643,6 +679,11 @@
       diseaseCheckAt: nowIso,
       diseaseHistory: [],
       adoptionCount: adoptionCount,
+      isPregnant: false,
+      pregnancyStartedAt: null,
+      pregnancyDueAt: null,
+      pregnancyMateId: null,
+      pregnancyLitterSize: 0,
       decayTracker: {
         hunger: nowIso,
         clean: nowIso,
@@ -674,6 +715,7 @@
     getCatAgeYears: getCatAgeYears,
     getCatDisease: getDisease,
     getUnlockStatus: getUnlockStatus,
+    getFoodUnitsNeeded: getFoodUnitsNeeded,
     readoptCat: readoptCat,
   };
 })(window.CatGame);

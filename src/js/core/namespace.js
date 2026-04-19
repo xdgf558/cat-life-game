@@ -2,18 +2,18 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.6.1",
+      version: "1.8.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "老虎机新增滚动动画效果，开转与停下更有街机感。",
-          "任务里新增老虎机累计赢取 1 万金币的成就奖励。",
-          "商店新增猫草，营养膏和猫草都可以在猫咪页直接使用。",
+          "房间里的家具现在可以自由拖拽摆放，位置会跟随存档一起保存。",
+          "猫咪加入性别与怀孕系统，只有公猫和母猫才能配对，孕期母猫喂食会消耗更多猫粮。",
+          "老虎机滚动动画已收紧在转轮窗口内，视觉表现更稳定。",
         ],
         en: [
-          "Added reel scrolling animation to the slot machine for a stronger arcade feel.",
-          "Added a new achievement for earning 10,000 gold through the slot machine.",
-          "Added cat grass to the shop, and both nutrition paste and cat grass can now be used from the cat page.",
+          "Furniture can now be freely dragged around inside the room, and positions are saved with your progress.",
+          "Cats now have genders and pregnancy rules, so only male and female pairs can breed and pregnant mothers consume more food.",
+          "The slot machine spin animation is now clipped cleanly inside each reel window.",
         ],
       },
       readoptCost: 80,
@@ -24,6 +24,8 @@
         baseAgeYears: 1,
       },
       catAgeAcceleration: 10,
+      pregnancyDurationMs: 30 * 60 * 1000,
+      pregnancyFoodMultiplier: 2,
       diseaseCheckIntervalMs: 15 * 60 * 1000,
       staminaRecoveryIntervalMs: 60 * 60 * 1000,
       staminaRecoveryAmount: 5,
@@ -44,6 +46,7 @@
       selectedCatId: "cat_001",
       notifications: [],
       arcadeSpin: null,
+      roomDrag: null,
     },
     systems: {},
     ui: {},
