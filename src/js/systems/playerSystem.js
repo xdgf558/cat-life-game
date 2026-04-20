@@ -242,6 +242,30 @@
     };
   }
 
+  function advanceLifeTime(hours) {
+    var player = getPlayer();
+    var safeHours = Math.max(0, Number(hours || 0));
+    var previousDay = Math.floor(player.currentDay || 1);
+    var currentHour = Number(player.currentHour || 0);
+    var totalHours = currentHour + safeHours;
+    var dayAdvance = Math.floor(totalHours / 24);
+    var nextHour = totalHours % 24;
+    var nextDay = previousDay + dayAdvance;
+
+    player.currentHour = roundValue(nextHour);
+    player.currentDay = nextDay;
+
+    if (game.systems.bankSystem) {
+      return game.systems.bankSystem.syncLoanInterestForDayChange(previousDay, nextDay);
+    }
+
+    return {
+      changed: dayAdvance > 0,
+      messages: [],
+      daysPassed: dayAdvance,
+    };
+  }
+
   function startSleep() {
     var player = getPlayer();
     var now = game.systems.timeSystem.getNow();
@@ -283,6 +307,8 @@
     var player = getPlayer();
     var recovery;
     var now;
+    var lifeAdvanceResult;
+    var messages = [];
 
     if (!player.activeSleep) {
       return {
@@ -297,19 +323,25 @@
     player.mood = recovery.currentMood;
     player.staminaUpdatedAt = now.toISOString();
     player.lastSleepAt = now.toISOString();
+    lifeAdvanceResult = advanceLifeTime(recovery.elapsedMs / (60 * 60 * 1000));
     player.activeSleep = null;
+
+    if (lifeAdvanceResult && lifeAdvanceResult.messages) {
+      messages = messages.concat(lifeAdvanceResult.messages);
+    }
+    messages.unshift(
+      t("sleep_summary", {
+        stamina: recovery.staminaGain,
+        mood: recovery.moodGain,
+        duration: game.utils.format.formatDuration(recovery.elapsedMs),
+      })
+    );
+    messages.unshift(t("sleep_success"));
 
     return {
       ok: true,
       forceSave: true,
-      messages: [
-        t("sleep_success"),
-        t("sleep_summary", {
-          stamina: recovery.staminaGain,
-          mood: recovery.moodGain,
-          duration: game.utils.format.formatDuration(recovery.elapsedMs),
-        }),
-      ],
+      messages: messages,
     };
   }
 
@@ -401,6 +433,7 @@
     getSleepElapsedMs: getSleepElapsedMs,
     getSleepRecovery: getSleepRecovery,
     syncPlayerState: syncPlayerState,
+    advanceLifeTime: advanceLifeTime,
     sleep: sleep,
     consumeItem: consumeItem,
   };

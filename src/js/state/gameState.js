@@ -115,6 +115,20 @@
         lastSleepAt: null,
         lastWorkResult: null,
         activeSleep: null,
+        bank: {
+          balance: 0,
+          hasActiveLoan: false,
+          principal: 0,
+          accruedInterest: 0,
+          totalDebt: 0,
+          loanStartDay: null,
+          lastInterestAccrualDay: null,
+          lastSavingsInterestDay: 1,
+          creditTier: 0,
+          goodRepaymentCount: 0,
+          lateRepaymentCount: 0,
+          currentLoanInterestDays: 0,
+        },
         activeWork: null,
       },
       cats: createDefaultCats(),
@@ -259,6 +273,15 @@
     if (!normalized.player.lastWorkResult || typeof normalized.player.lastWorkResult !== "object") {
       normalized.player.lastWorkResult = null;
     }
+    if (!normalized.player.bank || typeof normalized.player.bank !== "object") {
+      normalized.player.bank = game.state.deepClone(fresh.player.bank);
+    } else {
+      normalized.player.bank = Object.assign(
+        {},
+        game.state.deepClone(fresh.player.bank),
+        normalized.player.bank
+      );
+    }
 
     if (typeof normalized.player.hospitalVisits !== "number") {
       normalized.player.hospitalVisits = 0;
@@ -297,6 +320,72 @@
     );
     if (!normalized.player.hungerUpdatedAt) {
       normalized.player.hungerUpdatedAt = normalized.meta.lastSyncAt || fresh.player.hungerUpdatedAt;
+    }
+    normalized.player.bank.balance = Math.max(0, Number(normalized.player.bank.balance || 0));
+    normalized.player.bank.hasActiveLoan = Boolean(normalized.player.bank.hasActiveLoan);
+    normalized.player.bank.principal = Math.max(0, Number(normalized.player.bank.principal || 0));
+    normalized.player.bank.accruedInterest = Math.max(
+      0,
+      Number(normalized.player.bank.accruedInterest || 0)
+    );
+    normalized.player.bank.totalDebt = Math.max(
+      0,
+      Number(
+        normalized.player.bank.totalDebt ||
+          normalized.player.bank.principal + normalized.player.bank.accruedInterest
+      )
+    );
+    if (normalized.player.bank.loanStartDay !== null) {
+      normalized.player.bank.loanStartDay = Number(normalized.player.bank.loanStartDay || 0);
+    }
+    if (normalized.player.bank.lastInterestAccrualDay !== null) {
+      normalized.player.bank.lastInterestAccrualDay = Number(
+        normalized.player.bank.lastInterestAccrualDay || 0
+      );
+    }
+    if (normalized.player.bank.lastSavingsInterestDay !== null) {
+      normalized.player.bank.lastSavingsInterestDay = Number(
+        normalized.player.bank.lastSavingsInterestDay || 0
+      );
+    }
+    normalized.player.bank.creditTier = Math.max(
+      game.config.bank.minCreditTier,
+      Math.min(
+        game.config.bank.maxCreditTier,
+        Number(normalized.player.bank.creditTier || 0)
+      )
+    );
+    normalized.player.bank.goodRepaymentCount = Math.max(
+      0,
+      Number(normalized.player.bank.goodRepaymentCount || 0)
+    );
+    normalized.player.bank.lateRepaymentCount = Math.max(
+      0,
+      Number(normalized.player.bank.lateRepaymentCount || 0)
+    );
+    normalized.player.bank.currentLoanInterestDays = Math.max(
+      0,
+      Number(normalized.player.bank.currentLoanInterestDays || 0)
+    );
+    if (normalized.player.bank.principal <= 0 && normalized.player.bank.accruedInterest <= 0) {
+      normalized.player.bank.hasActiveLoan = false;
+      normalized.player.bank.totalDebt = 0;
+      normalized.player.bank.loanStartDay = null;
+      normalized.player.bank.lastInterestAccrualDay = null;
+      normalized.player.bank.currentLoanInterestDays = 0;
+    } else {
+      normalized.player.bank.hasActiveLoan = true;
+      normalized.player.bank.totalDebt =
+        normalized.player.bank.principal + normalized.player.bank.accruedInterest;
+      if (normalized.player.bank.loanStartDay === null) {
+        normalized.player.bank.loanStartDay = normalized.player.currentDay || 1;
+      }
+      if (normalized.player.bank.lastInterestAccrualDay === null) {
+        normalized.player.bank.lastInterestAccrualDay = normalized.player.currentDay || 1;
+      }
+    }
+    if (normalized.player.bank.lastSavingsInterestDay === null) {
+      normalized.player.bank.lastSavingsInterestDay = normalized.player.currentDay || 1;
     }
 
     if (typeof normalized.inventory.toys !== "number") {

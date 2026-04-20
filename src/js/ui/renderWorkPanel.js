@@ -99,9 +99,17 @@
       result.moodChange +
       "</p></div>" +
       '<div class="notice-item"><p><strong>' + t("gold_result") + "</strong></p><p>+" +
-      result.goldEarned +
+      (typeof result.finalCashGain === "number" ? result.finalCashGain : result.goldEarned) +
       " " + t("gold_unit") + "</p></div>" +
       "</div>" +
+      (result.loanAutoPayment > 0
+        ? '<p class="helper-text" style="margin-top: 10px;">' +
+          t("work_result_loan_auto", {
+            deducted: result.loanAutoPayment,
+            final: typeof result.finalCashGain === "number" ? result.finalCashGain : result.goldEarned,
+          }) +
+          "</p>"
+        : "") +
       (result.penaltyApplied
         ? '<p class="warning-copy" style="margin-top: 14px;">' +
           t("work_result_penalty", {

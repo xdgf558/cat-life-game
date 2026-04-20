@@ -50,10 +50,10 @@
   }
 
   function updateShellText() {
-    var brandTitle = document.querySelector(".brand-card h1");
-    var brandCopy = document.querySelector(".brand-copy");
-    var sidebarTitle = document.querySelector(".sidebar-tip .section-eyebrow");
-    var sidebarCopy = document.querySelector(".sidebar-tip p:last-child");
+    var brandTitle = document.querySelector(".shell-brand h1");
+    var brandCopy = document.querySelector(".shell-brand .brand-copy");
+    var sidebarTitle = document.querySelector(".shell-note .section-eyebrow");
+    var sidebarCopy = document.querySelector(".shell-note p:last-child");
 
     document.title = t("appTitle");
     document.documentElement.lang = game.utils.i18n.getLanguage();
@@ -191,6 +191,7 @@
     var selectedCat = getSelectedCat();
     var unlockStatus;
     var disease;
+    var bank = game.systems.bankSystem ? game.systems.bankSystem.getBank() : null;
     if (!selectedCat) {
       return '<section class="quick-card"><div class="empty-state">' + t("no_cat_data") + "</div></section>";
     }
@@ -256,6 +257,14 @@
           format.formatDuration(game.systems.workSystem.getRemainingMs(game.systems.workSystem.getActiveWork())) +
           "</span></p></section>"
         : "") +
+      (bank
+        ? '<section class="quick-card"><p class="section-eyebrow">' + t("nav_bank") + '</p><h3 class="panel-title">' +
+          t(game.systems.bankSystem.getLoanStatusKey()) +
+          '</h3><p class="page-copy">' + t("bank_balance") + "：" + format.formatNumber(bank.balance) +
+          " " + t("gold_unit") + '</p><p class="helper-text" style="margin-top:8px;">' +
+          t("bank_total_debt") + "：" + format.formatNumber(bank.totalDebt) + " " + t("gold_unit") +
+          "</p></section>"
+        : "") +
       '<section class="quick-card">' +
       '<p class="section-eyebrow">' + t("quick_log") + "</p>" +
       '<div class="notice-list">' +
@@ -314,6 +323,7 @@
       home: game.ui.renderHome,
       room: game.ui.renderRoomPanel,
       work: game.ui.renderWorkPanel,
+      bank: game.ui.renderBankPanel,
       cats: game.ui.renderCatPanel,
       collection: game.ui.renderCollectionPanel,
       arcade: game.ui.renderArcadePanel,
@@ -398,6 +408,7 @@
     var treatButton = event.target.closest("[data-treat-cat]");
     var sleepButton = event.target.closest("[data-player-sleep]");
     var usePlayerItemButton = event.target.closest("[data-use-player-item]");
+    var bankActionButton = event.target.closest("[data-bank-action]");
     var slotButton = event.target.closest("[data-slot-bet]");
     var breedButton = event.target.closest("[data-breed-cats]");
     var inspectCollectionButton = event.target.closest("[data-inspect-collection-cat]");
@@ -454,6 +465,38 @@
 
     if (usePlayerItemButton) {
       handleActionResult(game.systems.playerSystem.consumeItem(usePlayerItemButton.dataset.usePlayerItem));
+      return;
+    }
+
+    if (bankActionButton) {
+      var inputId = bankActionButton.dataset.bankInput;
+      var amountInput = inputId ? document.getElementById(inputId) : null;
+      var presetAmount = bankActionButton.dataset.bankAmount;
+      var rawValue = presetAmount !== undefined && presetAmount !== ""
+        ? presetAmount
+        : amountInput
+        ? amountInput.value
+        : "";
+      var actionKey = bankActionButton.dataset.bankAction;
+      var result = null;
+
+      if (actionKey === "deposit") {
+        result = game.systems.bankSystem.deposit(rawValue);
+      } else if (actionKey === "withdraw") {
+        result = game.systems.bankSystem.withdraw(rawValue);
+      } else if (actionKey === "loan") {
+        result = game.systems.bankSystem.takeLoan(rawValue);
+      } else if (actionKey === "repay") {
+        result = game.systems.bankSystem.repay(rawValue);
+      } else if (actionKey === "repay-full") {
+        result = game.systems.bankSystem.payOffLoan();
+      }
+
+      if (amountInput && presetAmount !== undefined && presetAmount !== "") {
+        amountInput.value = presetAmount;
+      }
+
+      handleActionResult(result);
       return;
     }
 

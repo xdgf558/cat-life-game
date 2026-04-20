@@ -2,10 +2,10 @@
   padding: 18px;
   border-radius: var(--radius-md);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.26), transparent 30%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 30%),
     var(--bg-accent);
-  color: #fff;
-  border: 3px solid rgba(255, 255, 255, 0.72);
+  color: #fffef8;
+  border: 2px solid rgba(255, 255, 255, 0.76);
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.35),
     var(--shadow-card);
@@ -53,6 +53,12 @@
   margin-top: 18px;
 }
 
+.nav-menu-top {
+  display: flex;
+  gap: 10px;
+  margin-top: 0;
+}
+
 .nav-button,
 .primary-button,
 .secondary-button,
@@ -82,27 +88,27 @@
 }
 
 .nav-button {
-  padding: 14px 16px;
-  text-align: left;
-  background: linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
-  border: 3px solid rgba(59, 110, 171, 0.12);
+  padding: 12px 16px;
+  text-align: center;
+  background: linear-gradient(180deg, #fffdf7 0%, #f6efdc 100%);
+  border: 2px solid rgba(131, 150, 103, 0.16);
   color: var(--text-main);
   font-weight: 800;
   box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.9),
-    0 8px 0 rgba(67, 111, 167, 0.08);
+    inset 0 2px 0 rgba(255, 255, 255, 0.92),
+    0 8px 0 rgba(152, 164, 114, 0.12);
 }
 
 .nav-button.is-active {
-  background: linear-gradient(180deg, #ffe866 0%, #ffbd3d 100%);
-  border-color: rgba(188, 108, 17, 0.28);
-  color: #704409;
+  background: linear-gradient(180deg, #cfeab6 0%, #8fcb7a 100%);
+  border-color: rgba(104, 143, 80, 0.28);
+  color: #35512b;
   box-shadow:
-    inset 0 2px 0 rgba(255, 253, 203, 0.9),
-    0 8px 0 rgba(206, 148, 31, 0.18);
+    inset 0 2px 0 rgba(244, 255, 231, 0.9),
+    0 8px 0 rgba(118, 165, 90, 0.18);
 }
 
-.sidebar-tip {
+.shell-note {
   margin-top: 20px;
 }
 
@@ -152,9 +158,9 @@
   padding: 18px;
   border-radius: var(--radius-md);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(249, 252, 255, 0.92)),
+    linear-gradient(180deg, rgba(255, 253, 246, 0.94), rgba(255, 250, 240, 0.96)),
     var(--bg-panel-strong);
-  border: 3px solid rgba(53, 97, 150, 0.12);
+  border: 2px solid rgba(132, 149, 103, 0.16);
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.9),
     var(--shadow-card);
@@ -173,8 +179,8 @@
 .resource-card {
   padding: 14px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, #ffffff 0%, #edf6ff 100%);
-  border: 3px solid rgba(65, 124, 192, 0.12);
+  background: linear-gradient(180deg, #fffdf6 0%, #f7f0dd 100%);
+  border: 2px solid rgba(142, 154, 110, 0.14);
 }
 
 .resource-label {
@@ -219,17 +225,17 @@
 .collection-slot {
   padding: 14px 12px;
   border-radius: 24px;
-  border: 3px solid rgba(68, 114, 176, 0.14);
-  background: linear-gradient(180deg, #ffffff 0%, #eef6ff 100%);
+  border: 2px solid rgba(138, 151, 102, 0.16);
+  background: linear-gradient(180deg, #fffef8 0%, #f8f0df 100%);
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.92),
-    0 10px 18px rgba(53, 96, 147, 0.1);
+    0 10px 18px rgba(120, 110, 74, 0.1);
   text-align: center;
 }
 
 .collection-slot.is-selected {
-  border-color: rgba(255, 181, 42, 0.44);
-  background: linear-gradient(180deg, #fff6ca 0%, #ffe29a 100%);
+  border-color: rgba(139, 182, 111, 0.44);
+  background: linear-gradient(180deg, #eff9d8 0%, #d6efb5 100%);
 }
 
 .collection-slot.is-locked {
@@ -266,14 +272,14 @@
 .cat-chip {
   padding: 14px;
   border-radius: var(--radius-md);
-  border: 3px solid transparent;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(243, 248, 255, 0.86));
+  border: 2px solid transparent;
+  background: linear-gradient(180deg, rgba(255, 253, 246, 0.98), rgba(248, 240, 223, 0.9));
   text-align: left;
 }
 
 .cat-chip.is-selected {
-  border-color: rgba(255, 176, 35, 0.44);
-  background: linear-gradient(180deg, #fff5c8 0%, #ffe39d 100%);
+  border-color: rgba(135, 180, 107, 0.44);
+  background: linear-gradient(180deg, #eef9d7 0%, #d9efb5 100%);
 }
 
 .cat-chip.is-dead {
@@ -302,11 +308,11 @@
   align-items: center;
   justify-content: center;
   border-radius: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #fff2d4 100%);
-  border: 3px solid rgba(255, 194, 70, 0.18);
+  background: linear-gradient(180deg, #fffef8 0%, #f9eed4 100%);
+  border: 2px solid rgba(164, 175, 122, 0.18);
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.92),
-    0 6px 16px rgba(50, 94, 145, 0.08);
+    0 6px 16px rgba(120, 105, 66, 0.08);
 }
 
 .cat-portrait-icon {
@@ -404,28 +410,28 @@
 .action-button,
 .store-button,
 .task-button.is-claimable {
-  background: linear-gradient(180deg, #ffeb69 0%, #ffbc2d 100%);
-  color: #774405;
-  border: 3px solid rgba(214, 139, 15, 0.18);
+  background: linear-gradient(180deg, #fde6a5 0%, #f3c96d 100%);
+  color: #6a4d16;
+  border: 2px solid rgba(179, 140, 59, 0.22);
   box-shadow:
     inset 0 2px 0 rgba(255, 252, 203, 0.92),
-    0 10px 22px rgba(255, 185, 59, 0.22);
+    0 10px 22px rgba(204, 161, 84, 0.22);
 }
 
 .secondary-button,
 .chip-button {
-  background: linear-gradient(180deg, #6ec4ff 0%, #4d8fff 100%);
-  color: #fff;
-  border: 3px solid rgba(53, 104, 176, 0.16);
+  background: linear-gradient(180deg, #bfe4af 0%, #84bf73 100%);
+  color: #fefdf8;
+  border: 2px solid rgba(98, 135, 82, 0.18);
   box-shadow:
-    inset 0 2px 0 rgba(214, 240, 255, 0.8),
-    0 10px 20px rgba(86, 142, 237, 0.18);
+    inset 0 2px 0 rgba(236, 255, 228, 0.8),
+    0 10px 20px rgba(116, 159, 99, 0.18);
 }
 
 .ghost-button,
 .task-button {
-  background: linear-gradient(180deg, #ffffff 0%, #eff5fd 100%);
-  border: 3px solid rgba(66, 117, 182, 0.14);
+  background: linear-gradient(180deg, #fffef8 0%, #f2ecdd 100%);
+  border: 2px solid rgba(140, 152, 105, 0.16);
   color: var(--text-main);
 }
 
@@ -447,11 +453,11 @@ button:disabled {
   align-items: center;
   padding: 6px 10px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #ffffff 0%, #eef5ff 100%);
+  background: linear-gradient(180deg, #fffef8 0%, #f3ecda 100%);
   color: var(--text-subtle);
   font-size: 12px;
   font-weight: 700;
-  border: 2px solid rgba(75, 123, 188, 0.1);
+  border: 2px solid rgba(144, 155, 110, 0.14);
 }
 
 .status-pill.is-success {
@@ -477,8 +483,8 @@ button:disabled {
 .notice-item {
   padding: 12px 14px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, #ffffff 0%, #f5faff 100%);
-  border: 2px solid rgba(72, 125, 191, 0.08);
+  background: linear-gradient(180deg, #fffef8 0%, #f7f1e2 100%);
+  border: 2px solid rgba(144, 155, 110, 0.1);
 }
 
 .notice-item p {
@@ -492,14 +498,15 @@ button:disabled {
 }
 
 .field,
+.text-field,
 .textarea-field,
 .range-field,
 .toggle-field {
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
-  border: 3px solid rgba(72, 123, 188, 0.14);
-  background: rgba(255, 255, 255, 0.92);
+  border: 2px solid rgba(144, 155, 110, 0.16);
+  background: rgba(255, 253, 246, 0.96);
 }
 
 .textarea-field {

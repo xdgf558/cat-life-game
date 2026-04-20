@@ -47,17 +47,30 @@ Status: next
 - Verify import/export compatibility with old saves and generated kittens
 - Tune balance for mood pressure, sleep recovery, and consumable pricing
 
+### Milestone 7: Bank And Interface Refresh
+Status: completed
+- Top navigation moved above the game shell
+- Cozy village-style UI refresh
+- Bank module with deposit, withdraw, loan, and repayment
+- Loan interest accrual by in-game day
+- Work income auto-deduction toward active loans
+- Savings-interest preview and payout visibility
+- Dynamic loan limit based on repayment behavior
+- One-tap full payoff flow
+
 ## Current Milestone
-- Current milestone: `Milestone 5: Player Condition And Life Simulation`
+- Current milestone: `Milestone 7: Bank And Interface Refresh`
 - State: `completed`
 
 ## Current Focus After This Milestone
-- Run targeted browser QA on the new player condition loop
-- Tune mood loss, work slowdown, and consumable value if playtests feel too harsh
-- Keep the cat-raising core loop stable while expanding only adjacent systems
+- Run targeted browser QA on the refreshed interface and new bank flow
+- Verify in-game day progression for sleep, work completion, savings interest, and loan interest accrual
+- Tune debt pressure, savings payout, credit-tier loan limits, hunger pacing, and player recovery values if playtests feel harsh
 
 ## Stop Conditions Before The Next Feature Batch
 - Old saves must continue loading without missing-field crashes
-- Work summary, low-mood penalties, and sleep recovery must behave correctly after reload
+- Work summary, sleep recovery, and bank auto-repayment must behave correctly after reload
 - Player consumable counts must persist correctly across save/export/import
+- Bank balances, loan principal, accrued interest, and manual repayment must persist correctly
+- Savings payout previews, loan-interest previews, and full payoff must behave correctly after reload
 - No cat-care regression should appear while testing the new player-life loop

@@ -37,6 +37,17 @@
   - low-mood money penalty chance
   - player food/drink purchases and consumption
   - player item inventory persistence
+- Top navigation has been moved above the game shell, and the overall UI has been refreshed into a softer cozy village style.
+- Bank system is now implemented:
+  - bank balance
+  - deposit and withdraw
+  - single active loan
+  - accrued daily interest by in-game day
+  - manual repayment
+  - automatic repayment from work income
+  - next savings-interest and loan-interest preview
+  - one-tap full payoff
+  - dynamic loan limit based on repayment behavior
 - Current JS syntax is valid based on `node --check`.
 
 ## What Is Partially Finished
@@ -47,10 +58,12 @@
 - Mobile support exists at the layout level, but interaction quality still needs real device verification.
 - Japanese support exists, but newly added strings may still fall back to English rather than having dedicated Japanese phrasing everywhere.
 - Player life simulation is now connected to work/shop/sleep, but balance still needs browser playtesting before treating the numbers as final.
+- The bank module is functionally integrated, but its long-term balance and its in-game day pacing still need hands-on playtesting.
+- The new bank credit-limit rules are implemented, but they still need balancing verification so the loan cap does not feel too generous or too restrictive.
 
 ## What Is Broken
 - Browser interaction testing has not been completed.
-  - Work completion after reload, sleep flow, supply consumption, room drag, and multilingual page behavior have syntax-level confidence but not a full manual browser QA pass in this review cycle.
+  - Work completion after reload, sleep flow, supply consumption, room drag, bank repayment flow, and multilingual page behavior have syntax-level confidence but not a full manual browser QA pass in this review cycle.
 
 ## What Should Be Done Next
 - Run a focused browser QA pass on the new player condition loop.
@@ -59,13 +72,22 @@
   - low-mood money penalty feedback
   - sleep recovery and follow-up save/load
   - player consumable purchase/use/save/import/export
+  - bank deposit / withdraw / loan / repay
+  - bank full payoff
+  - bank savings interest payout preview
+  - dynamic loan limit changes after quick or slow loan repayment
+  - work auto-deduction fully clearing a loan
+  - interest accrual when multiple in-game days pass at once
   - room drag on mouse
   - room drag on touch
 - Tune balance for:
   - work mood loss
   - sleep recovery strength
   - player food/drink prices and recovery values
+  - bank daily interest pressure and repayment pace
+  - savings interest payout size and credit-tier loan-cap steps
 - After QA and balancing, decide whether the next milestone should be:
   - deeper room/furniture customization
   - richer breeding/collection progression
   - broader life-sim systems around the player
+  - savings perks or richer bank progression

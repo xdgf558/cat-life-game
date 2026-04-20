@@ -183,6 +183,7 @@
       baseRewardGold: baseReward,
       eventGoldDelta: eventDelta,
       expReward: job.expReward,
+      inGameHours: job.duration || Math.max(1, Math.round((projected.durationMinutes || 1) / 2)),
       eventText: event.text,
       eventTextEn: event.textEn || event.text,
       itemReward: event.itemReward || null,
@@ -233,9 +234,22 @@
     var player = state.player;
     var job = getJob(activeWork.jobId);
     var messages = [];
+    var lifeAdvanceResult;
+    var autoRepayResult = { deducted: 0, netIncome: activeWork.rewardGold, loanCleared: false };
 
-    player.gold += activeWork.rewardGold;
-    player.totalIncome += activeWork.rewardGold;
+    if (game.systems.playerSystem) {
+      lifeAdvanceResult = game.systems.playerSystem.advanceLifeTime(activeWork.inGameHours || 0);
+      if (lifeAdvanceResult && lifeAdvanceResult.messages) {
+        messages = messages.concat(lifeAdvanceResult.messages);
+      }
+    }
+
+    if (game.systems.bankSystem) {
+      autoRepayResult = game.systems.bankSystem.autoRepayFromWork(activeWork.rewardGold);
+    }
+
+    player.gold += autoRepayResult.netIncome;
+    player.totalIncome += autoRepayResult.netIncome;
     player.workTimes += 1;
     player.workTimesToday += 1;
 
@@ -256,6 +270,8 @@
       staminaChange: -Math.abs(activeWork.staminaCost || 0),
       moodChange: -Math.abs(activeWork.moodCost || 0),
       goldEarned: activeWork.rewardGold,
+      loanAutoPayment: autoRepayResult.deducted,
+      finalCashGain: autoRepayResult.netIncome,
       penaltyApplied: Boolean(activeWork.penaltyApplied),
       penaltyAmount: activeWork.penaltyAmount || 0,
       penaltyReasonKey: activeWork.penaltyReasonKey || null,
@@ -269,7 +285,7 @@
     messages.unshift(
       t(source === "init" ? "work_finished_offline" : "work_finished_now", {
         name: getText(job || activeWork, "name"),
-        gold: activeWork.rewardGold,
+        gold: autoRepayResult.netIncome,
       })
     );
     messages.push(
@@ -280,6 +296,20 @@
         gold: activeWork.rewardGold,
       })
     );
+    if (autoRepayResult.deducted > 0) {
+      messages.push(
+        t("work_result_loan_auto", {
+          deducted: autoRepayResult.deducted,
+          final: autoRepayResult.netIncome,
+        })
+      );
+      if (autoRepayResult.loanCleared) {
+        messages.push(t("bank_loan_cleared"));
+      }
+      if (autoRepayResult.messages && autoRepayResult.messages.length) {
+        messages = messages.concat(autoRepayResult.messages);
+      }
+    }
 
     if (activeWork.durationMultiplier > 1) {
       messages.push(t("work_result_slow", { minutes: activeWork.durationMinutes }));
