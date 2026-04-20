@@ -4,15 +4,31 @@
   var getText = game.utils.i18n.getDataText;
 
   function renderShopCard(item, gold, owned) {
+    var count = item.type === "furniture" ? null : game.systems.playerSystem.getInventoryCount(item.id);
+    var sleeping = game.systems.playerSystem.hasActiveSleep();
     var buttonLabel = owned ? t("owned") : t("buy");
     var disabled = gold < item.price || owned;
+    var useButton =
+      item.type === "playerConsumable"
+        ? '<button class="secondary-button" data-use-player-item="' +
+          item.id +
+          '" ' +
+          (count <= 0 || sleeping ? "disabled" : "") +
+          ">" +
+          t("use_item") +
+          "</button>"
+        : "";
 
     return (
       '<article class="shop-card ' +
       (owned ? "is-owned" : "") +
       '">' +
       '<div class="shop-row"><div><p class="section-eyebrow">' +
-      (item.type === "furniture" ? t("furniture") : t("item")) +
+      (item.type === "furniture"
+        ? t("furniture")
+        : item.type === "playerConsumable"
+          ? t(item.category === "playerDrink" ? "player_drinks_title" : "player_foods_title")
+          : t("item")) +
       '</p><div class="item-title"><span class="item-icon">' +
       item.icon +
       "</span><h3 class=\"panel-title\">" +
@@ -27,6 +43,9 @@
       '<p class="shop-meta" style="margin-top: 10px;">' + t("effect") + '：' +
       format.escapeHtml(getText(item, "effectText")) +
       "</p>" +
+      (item.type === "playerConsumable"
+        ? '<p class="helper-text" style="margin-top: 8px;">' + t("owned_count", { count: count }) + "</p>"
+        : "") +
       '<div class="inline-row" style="margin-top: 16px;">' +
       '<span class="status-pill ' +
       (gold >= item.price ? "is-success" : "is-warning") +
@@ -39,14 +58,23 @@
       (disabled ? "disabled" : "") +
       ">" +
       buttonLabel +
-      "</button></div>" +
+      "</button>" +
+      useButton +
+      "</div>" +
       "</article>"
     );
   }
 
   function renderShopPanel(state) {
-    var items = game.data.items.filter(function (item) {
-      return item.type !== "furniture";
+    var currentHunger = game.systems.playerSystem.getCurrentHunger();
+    var catItems = game.data.items.filter(function (item) {
+      return item.type === "consumable";
+    });
+    var playerFoods = game.data.items.filter(function (item) {
+      return item.type === "playerConsumable" && item.category === "playerFood";
+    });
+    var playerDrinks = game.data.items.filter(function (item) {
+      return item.type === "playerConsumable" && item.category === "playerDrink";
     });
     var furniture = game.data.items.filter(function (item) {
       return item.type === "furniture";
@@ -66,13 +94,40 @@
       '<div class="notice-item"><p><strong>' + t("current_gold") + "</strong></p><p>" +
       state.player.gold +
       " " + t("gold_unit") + "</p></div>" +
+      '<div class="notice-item"><p><strong>' + t("stamina") + "</strong></p><p>" +
+      state.player.stamina +
+      ' / 100</p></div>' +
+      '<div class="notice-item"><p><strong>' + t("player_hunger") + "</strong></p><p>" +
+      currentHunger +
+      ' / 100</p></div>' +
+      '<div class="notice-item"><p><strong>' + t("mood") + "</strong></p><p>" +
+      state.player.mood +
+      ' / 100</p></div>' +
       "</div>" +
       "</div>" +
       "</section>" +
       '<section class="page-card">' +
       '<div class="inline-row"><div><p class="section-eyebrow">' + t("consumables") + '</p><h3 class="panel-title">' + t("daily_supplies") + "</h3></div></div>" +
       '<div class="shop-grid" style="margin-top: 16px;">' +
-      items
+      catItems
+        .map(function (item) {
+          return renderShopCard(item, state.player.gold, false);
+        })
+        .join("") +
+      "</div></section>" +
+      '<section class="page-card">' +
+      '<div class="inline-row"><div><p class="section-eyebrow">' + t("player_supplies_title") + '</p><h3 class="panel-title">' + t("player_foods_title") + "</h3></div></div>" +
+      '<div class="shop-grid" style="margin-top: 16px;">' +
+      playerFoods
+        .map(function (item) {
+          return renderShopCard(item, state.player.gold, false);
+        })
+        .join("") +
+      "</div></section>" +
+      '<section class="page-card">' +
+      '<div class="inline-row"><div><p class="section-eyebrow">' + t("player_supplies_title") + '</p><h3 class="panel-title">' + t("player_drinks_title") + "</h3></div></div>" +
+      '<div class="shop-grid" style="margin-top: 16px;">' +
+      playerDrinks
         .map(function (item) {
           return renderShopCard(item, state.player.gold, false);
         })

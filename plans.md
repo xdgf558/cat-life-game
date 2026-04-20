@@ -16,7 +16,7 @@ Status: completed
 - Cat stat decay over realtime
 
 ### Milestone 3: Midgame Systems Expansion
-Status: mostly completed
+Status: completed
 - Cat unlock conditions
 - Disease and hospital system
 - Item variety and furniture comfort loop
@@ -25,32 +25,39 @@ Status: mostly completed
 - Version update notes in UI
 
 ### Milestone 4: Room, Collection, Breeding
-Status: in progress
+Status: completed
 - Standalone room module
 - Visible room scene and roaming cats
 - Collection/encyclopedia page
 - Breeding, pregnancy, and generated kittens
 - Free furniture placement
 
-### Milestone 5: Stabilization And Content Completion
-Status: not started
-- Fix known inconsistencies and edge cases
-- Finish partial multilingual coverage
-- Resolve generated-cat lifecycle gaps
-- Add broader browser interaction verification
-- Prepare next feature batch only after stabilization
+### Milestone 5: Player Condition And Life Simulation
+Status: completed
+- Player stamina and mood are now first-class state
+- Mood affects realtime work duration and can trigger money penalties
+- Sleep restores stamina and mood
+- Shop now includes player food and drinks
+- Player consumables can be stored and used from inventory
+
+### Milestone 6: Stabilization And Browser QA
+Status: next
+- Verify room drag on desktop and touch devices
+- Verify work completion, sleep flow, and player-item consumption in browser
+- Verify import/export compatibility with old saves and generated kittens
+- Tune balance for mood pressure, sleep recovery, and consumable pricing
 
 ## Current Milestone
-- Current milestone: `Milestone 4: Room, Collection, Breeding`
+- Current milestone: `Milestone 5: Player Condition And Life Simulation`
+- State: `completed`
 
-## Current Focus Inside The Milestone
-- Stabilize room placement persistence
-- Stabilize breeding/pregnancy/rebirth lifecycle
-- Clean up UI consistency and multilingual gaps
-- Confirm all current modules behave correctly after reload/import/offline sync
+## Current Focus After This Milestone
+- Run targeted browser QA on the new player condition loop
+- Tune mood loss, work slowdown, and consumable value if playtests feel too harsh
+- Keep the cat-raising core loop stable while expanding only adjacent systems
 
-## Stop Conditions Before New Features
-- Generated cats must survive reload/import/export correctly
-- Death/readoption behavior must be defined for non-base cats
-- English mode should not fall back to raw Chinese in visible UI
-- Room interaction should be verified for both mouse and touch
+## Stop Conditions Before The Next Feature Batch
+- Old saves must continue loading without missing-field crashes
+- Work summary, low-mood penalties, and sleep recovery must behave correctly after reload
+- Player consumable counts must persist correctly across save/export/import
+- No cat-care regression should appear while testing the new player-life loop

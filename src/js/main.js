@@ -96,6 +96,12 @@
 
   function refreshLiveBindings() {
     var activeWork = game.systems.workSystem.getActiveWork();
+    var displayStats = game.systems.playerSystem.getDisplayStats();
+    var activeSleep = game.systems.playerSystem.getActiveSleep();
+    var sleepRecovery = game.systems.playerSystem.getSleepRecovery();
+    var hungerCountdown = game.systems.playerSystem.getHungerCountdown();
+    var hungerEta = game.systems.playerSystem.getHungerBlockEta();
+    var moodStatus = game.systems.playerSystem.getMoodStatus(displayStats.mood);
     var remainingText = activeWork
       ? format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork))
       : t("task_completed");
@@ -111,6 +117,42 @@
     Array.prototype.forEach.call(document.querySelectorAll("[data-stamina-recovery]"), function (node) {
       var countdown = game.systems.timeSystem.getStaminaRecoveryCountdown();
       node.textContent = countdown === null ? t("stamina_full") : format.formatDuration(countdown);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-stamina-live]"), function (node) {
+      node.textContent = Math.round(displayStats.stamina);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-mood-live]"), function (node) {
+      node.textContent = Math.round(displayStats.mood);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-hunger-live]"), function (node) {
+      node.textContent = Math.round(game.systems.playerSystem.getCurrentHunger());
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-mood-status]"), function (node) {
+      node.textContent = t(moodStatus.key);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-hunger-countdown]"), function (node) {
+      node.textContent = hungerCountdown === null ? t("stopped") : format.formatDuration(hungerCountdown);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-hunger-eta]"), function (node) {
+      node.textContent = hungerEta === null ? t("work_hunger_blocked") : format.formatDuration(hungerEta);
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-sleep-duration]"), function (node) {
+      node.textContent = activeSleep ? format.formatDuration(sleepRecovery.elapsedMs) : t("sleep_not_active");
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-sleep-stamina]"), function (node) {
+      node.textContent = activeSleep ? sleepRecovery.staminaGain : "0";
+    });
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-sleep-mood]"), function (node) {
+      node.textContent = activeSleep ? sleepRecovery.moodGain : "0";
     });
 
     Array.prototype.forEach.call(document.querySelectorAll("[data-cat-stat-countdown]"), function (node) {
@@ -354,6 +396,8 @@
     var releaseNoteButton = event.target.closest("[data-dismiss-release-note]");
     var readoptButton = event.target.closest("[data-readopt-cat]");
     var treatButton = event.target.closest("[data-treat-cat]");
+    var sleepButton = event.target.closest("[data-player-sleep]");
+    var usePlayerItemButton = event.target.closest("[data-use-player-item]");
     var slotButton = event.target.closest("[data-slot-bet]");
     var breedButton = event.target.closest("[data-breed-cats]");
     var inspectCollectionButton = event.target.closest("[data-inspect-collection-cat]");
@@ -400,6 +444,16 @@
 
     if (treatButton) {
       handleActionResult(game.systems.hospitalSystem.treatCat(treatButton.dataset.treatCat));
+      return;
+    }
+
+    if (sleepButton) {
+      handleActionResult(game.systems.playerSystem.sleep());
+      return;
+    }
+
+    if (usePlayerItemButton) {
+      handleActionResult(game.systems.playerSystem.consumeItem(usePlayerItemButton.dataset.usePlayerItem));
       return;
     }
 

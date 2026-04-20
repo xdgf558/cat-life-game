@@ -2,23 +2,23 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.10.1",
+      version: "1.12.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "新增猫咪自定义取名功能，可以在猫咪页面单独修改每只猫的名字。",
-          "背景音乐新增本地音频导入功能，可把一首本地音乐保存为当前存档的自定义BGM。",
-          "自定义BGM启用后会优先播放本地音乐；关闭后仍会回到原本的场景主题音乐。",
+          "睡觉改为按真实时间持续进行，现在可以开始睡觉并随时醒来，恢复量会根据实际睡眠时长结算。",
+          "新增玩家饥饿属性，食物改为降低饥饿感；饥饿会随现实时间逐步上升并显示倒计时。",
+          "玩家饥饿过高时将无法开始打工，必须先吃东西把状态降下来。",
         ],
         en: [
-          "Added custom cat naming so each cat can be renamed from the cat page.",
-          "Added local audio import support so one custom BGM track can be saved inside the current local save.",
-          "When custom BGM is enabled it takes priority over scene music, and disabling it restores the original dynamic soundtrack.",
+          "Sleep now runs in real time. You can start sleeping and wake up whenever you want, with recovery based on actual sleep duration.",
+          "Added a player hunger stat. Food now reduces hunger, and hunger rises over real time with visible countdowns.",
+          "Work is blocked when player hunger gets too high, so you need to eat before starting another shift.",
         ],
         ja: [
-          "猫ごとの名前変更機能を追加し、猫ページから個別に名前を付けられるようにしました。",
-          "ローカル音楽ファイルの読み込みに対応し、現在のセーブに自分だけのBGMを保存できます。",
-          "カスタムBGMを有効にするとローカル音楽が優先再生され、無効化すると元の場面別BGMへ戻ります。",
+          "睡眠が現実時間で進行するようになり、いつでも起きられるようになりました。",
+          "プレイヤーに空腹ステータスを追加し、食べ物は空腹を下げる用途に変更されました。",
+          "空腹が高すぎると仕事を始められず、先に食事が必要になります。",
         ],
       },
       readoptCost: 80,
@@ -42,6 +42,47 @@
       staminaRecoveryAmount: 5,
       customMusicMaxBytes: 2 * 1024 * 1024,
       slotBets: [20, 50, 100],
+      playerCondition: {
+        min: 0,
+        max: 100,
+        defaultStamina: 100,
+        defaultMood: 80,
+        defaultHunger: 20,
+        hungerBlockThreshold: 80,
+        hungerIncreaseIntervalMs: 15 * 60 * 1000,
+        hungerIncreaseAmount: 4,
+        sleepRecoveryPerHour: {
+          stamina: 20,
+          mood: 20,
+        },
+        workMoodThresholds: {
+          normal: 60,
+          tired: 30,
+        },
+        workMoodModifiers: {
+          normal: {
+            durationMultiplier: 1,
+            penaltyChance: 0,
+            penaltyRange: [0, 0],
+          },
+          tired: {
+            durationMultiplier: 1.25,
+            penaltyChance: 0,
+            penaltyRange: [0, 0],
+          },
+          burnedOut: {
+            durationMultiplier: 1.5,
+            penaltyChance: 0.2,
+            penaltyRange: [0.1, 0.2],
+          },
+        },
+        moodLevels: [
+          { min: 80, key: "player_mood_very_good", tone: "is-good" },
+          { min: 60, key: "player_mood_good", tone: "is-success" },
+          { min: 30, key: "player_mood_tired", tone: "is-warning" },
+          { min: 0, key: "player_mood_burned_out", tone: "is-danger" },
+        ],
+      },
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
         clean: { intervalMs: 8 * 60 * 1000, label: "清洁" },

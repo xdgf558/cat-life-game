@@ -43,6 +43,9 @@
           : game.utils.i18n.t("room_auto_place_full", { name: getText(item, "name") })
       );
     } else {
+      if (typeof state.inventory[item.inventoryField] !== "number") {
+        state.inventory[item.inventoryField] = 0;
+      }
       if (item.inventoryField === "toys" && item.usesPerPurchase) {
         state.inventory[item.inventoryField] += item.usesPerPurchase;
       } else {

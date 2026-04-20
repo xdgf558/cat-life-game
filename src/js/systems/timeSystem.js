@@ -2,6 +2,7 @@
   var t = game.utils.i18n.t;
   var STAMINA_INTERVAL = game.config.staminaRecoveryIntervalMs;
   var STAMINA_PER_INTERVAL = game.config.staminaRecoveryAmount;
+  var PLAYER_MAX = game.config.playerCondition.max;
 
   function getNow() {
     return new Date();
@@ -26,8 +27,15 @@
       };
     }
 
-    if (player.stamina >= 100) {
-      player.stamina = 100;
+    if (player.activeSleep) {
+      return {
+        changed: false,
+        messages: [],
+      };
+    }
+
+    if (player.stamina >= PLAYER_MAX) {
+      player.stamina = PLAYER_MAX;
       player.staminaUpdatedAt = now.toISOString();
       return {
         changed: false,
@@ -46,9 +54,9 @@
       };
     }
 
-    gained = Math.min(100 - player.stamina, steps * STAMINA_PER_INTERVAL);
-    player.stamina = Math.min(100, player.stamina + gained);
-    player.staminaUpdatedAt = player.stamina >= 100
+    gained = Math.min(PLAYER_MAX - player.stamina, steps * STAMINA_PER_INTERVAL);
+    player.stamina = Math.min(PLAYER_MAX, player.stamina + gained);
+    player.staminaUpdatedAt = player.stamina >= PLAYER_MAX
       ? now.toISOString()
       : new Date(lastTime + steps * STAMINA_INTERVAL).toISOString();
 
@@ -63,7 +71,7 @@
     var now = nowDate || getNow();
     var elapsed;
 
-    if (!player.staminaUpdatedAt || player.stamina >= 100) {
+    if (!player.staminaUpdatedAt || player.stamina >= PLAYER_MAX) {
       return null;
     }
 
@@ -90,6 +98,14 @@
     if (recoveryResult.changed) {
       changed = true;
       messages = messages.concat(recoveryResult.messages || []);
+    }
+
+    if (game.systems.playerSystem) {
+      var playerSyncResult = game.systems.playerSystem.syncPlayerState(now, source);
+      if (playerSyncResult.changed) {
+        changed = true;
+        messages = messages.concat(playerSyncResult.messages || []);
+      }
     }
 
     if (game.systems.workSystem) {

@@ -22,6 +22,13 @@
       .concat(extraItems);
   }
 
+  function clampStat(value, fallback) {
+    var min = game.config.playerCondition.min;
+    var max = game.config.playerCondition.max;
+    var numberValue = typeof value === "number" ? value : fallback;
+    return Math.max(min, Math.min(max, numberValue));
+  }
+
   function createTaskState(list) {
     return deepClone(list).map(function (task) {
       return Object.assign({}, task, {
@@ -82,8 +89,9 @@
         level: 1,
         exp: 0,
         gold: 200,
-        stamina: 100,
-        mood: 80,
+        stamina: game.config.playerCondition.defaultStamina,
+        mood: game.config.playerCondition.defaultMood,
+        hunger: game.config.playerCondition.defaultHunger,
         currentDay: 1,
         currentHour: 8,
         totalIncome: 0,
@@ -103,6 +111,10 @@
         arcadeTotalSpent: 0,
         arcadeTotalWon: 0,
         staminaUpdatedAt: now.toISOString(),
+        hungerUpdatedAt: now.toISOString(),
+        lastSleepAt: null,
+        lastWorkResult: null,
+        activeSleep: null,
         activeWork: null,
       },
       cats: createDefaultCats(),
@@ -113,6 +125,14 @@
         toys: 0,
         catGrass: 0,
         medicine: 0,
+        bread: 0,
+        instantNoodles: 0,
+        bento: 0,
+        dessert: 0,
+        bottledWater: 0,
+        soda: 0,
+        coffee: 0,
+        beer: 0,
         furnitureOwned: game.config.startingFurniture.slice(),
       },
       jobs: createDefaultJobs(),
@@ -230,6 +250,15 @@
     if (!normalized.player.activeWork) {
       normalized.player.activeWork = null;
     }
+    if (!normalized.player.lastSleepAt) {
+      normalized.player.lastSleepAt = null;
+    }
+    if (!normalized.player.activeSleep || typeof normalized.player.activeSleep !== "object") {
+      normalized.player.activeSleep = null;
+    }
+    if (!normalized.player.lastWorkResult || typeof normalized.player.lastWorkResult !== "object") {
+      normalized.player.lastWorkResult = null;
+    }
 
     if (typeof normalized.player.hospitalVisits !== "number") {
       normalized.player.hospitalVisits = 0;
@@ -254,6 +283,21 @@
     if (!normalized.player.staminaUpdatedAt) {
       normalized.player.staminaUpdatedAt = normalized.meta.lastSyncAt || fresh.player.staminaUpdatedAt;
     }
+    normalized.player.stamina = clampStat(
+      normalized.player.stamina,
+      game.config.playerCondition.defaultStamina
+    );
+    normalized.player.mood = clampStat(
+      normalized.player.mood,
+      game.config.playerCondition.defaultMood
+    );
+    normalized.player.hunger = clampStat(
+      normalized.player.hunger,
+      game.config.playerCondition.defaultHunger
+    );
+    if (!normalized.player.hungerUpdatedAt) {
+      normalized.player.hungerUpdatedAt = normalized.meta.lastSyncAt || fresh.player.hungerUpdatedAt;
+    }
 
     if (typeof normalized.inventory.toys !== "number") {
       normalized.inventory.toys = fresh.inventory.toys;
@@ -263,6 +307,30 @@
     }
     if (typeof normalized.inventory.medicine !== "number") {
       normalized.inventory.medicine = fresh.inventory.medicine;
+    }
+    if (typeof normalized.inventory.bread !== "number") {
+      normalized.inventory.bread = fresh.inventory.bread;
+    }
+    if (typeof normalized.inventory.instantNoodles !== "number") {
+      normalized.inventory.instantNoodles = fresh.inventory.instantNoodles;
+    }
+    if (typeof normalized.inventory.bento !== "number") {
+      normalized.inventory.bento = fresh.inventory.bento;
+    }
+    if (typeof normalized.inventory.dessert !== "number") {
+      normalized.inventory.dessert = fresh.inventory.dessert;
+    }
+    if (typeof normalized.inventory.bottledWater !== "number") {
+      normalized.inventory.bottledWater = fresh.inventory.bottledWater;
+    }
+    if (typeof normalized.inventory.soda !== "number") {
+      normalized.inventory.soda = fresh.inventory.soda;
+    }
+    if (typeof normalized.inventory.coffee !== "number") {
+      normalized.inventory.coffee = fresh.inventory.coffee;
+    }
+    if (typeof normalized.inventory.beer !== "number") {
+      normalized.inventory.beer = fresh.inventory.beer;
     }
 
     if (typeof normalized.settings.bgmEnabled !== "boolean") {
