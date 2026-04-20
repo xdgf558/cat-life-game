@@ -302,6 +302,13 @@
       return;
     }
 
+    if (key === "customMusicEnabled" && !game.state.game.settings.customMusicData) {
+      target.checked = false;
+      pushNotice(t("custom_music_missing"));
+      render();
+      return;
+    }
+
     if (target.type === "checkbox") {
       game.state.game.settings[key] = target.checked;
     } else if (target.type === "range") {
@@ -343,6 +350,7 @@
     var manualSaveButton = event.target.closest("[data-manual-save]");
     var resetButton = event.target.closest("[data-reset-save]");
     var renameButton = event.target.closest("[data-rename-player]");
+    var renameCatButton = event.target.closest("[data-rename-cat]");
     var releaseNoteButton = event.target.closest("[data-dismiss-release-note]");
     var readoptButton = event.target.closest("[data-readopt-cat]");
     var treatButton = event.target.closest("[data-treat-cat]");
@@ -351,6 +359,7 @@
     var inspectCollectionButton = event.target.closest("[data-inspect-collection-cat]");
     var resetRoomLayoutButton = event.target.closest("[data-reset-room-layout]");
     var upgradeRoomButton = event.target.closest("[data-upgrade-room]");
+    var clearCustomMusicButton = event.target.closest("[data-clear-custom-music]");
 
     if (game.systems.musicSystem) {
       game.systems.musicSystem.unlock();
@@ -486,6 +495,25 @@
       return;
     }
 
+    if (renameCatButton) {
+      var catNameInput = document.getElementById("cat-name-input");
+      handleActionResult(
+        game.systems.catSystem.renameCat(
+          renameCatButton.dataset.renameCat,
+          catNameInput ? catNameInput.value : ""
+        )
+      );
+      return;
+    }
+
+    if (clearCustomMusicButton) {
+      game.systems.musicSystem.clearCustomMusic();
+      game.state.saveSystem.saveGame(game.state.game);
+      pushNotice(t("custom_music_cleared"));
+      render();
+      return;
+    }
+
     if (releaseNoteButton) {
       game.state.game.meta.lastSeenVersion = game.config.version;
       persistGame(true);
@@ -522,6 +550,39 @@
         }
       };
       reader.readAsText(target.files[0], "utf-8");
+      return;
+    }
+
+    if (target.id === "custom-music-file" && target.files && target.files[0]) {
+      var musicFile = target.files[0];
+      var musicReader;
+      var maxBytes = game.config.customMusicMaxBytes || (2 * 1024 * 1024);
+
+      if (musicFile.size > maxBytes) {
+        pushNotice(t("custom_music_size_error", { size: (maxBytes / (1024 * 1024)).toFixed(0) }));
+        target.value = "";
+        render();
+        return;
+      }
+
+      musicReader = new FileReader();
+      musicReader.onload = function () {
+        try {
+          game.state.game.settings.customMusicData = String(musicReader.result || "");
+          game.state.game.settings.customMusicName = musicFile.name;
+          game.state.game.settings.customMusicEnabled = true;
+          game.state.saveSystem.saveGame(game.state.game);
+          pushNotice(t("custom_music_imported", { name: musicFile.name }));
+          if (game.systems.musicSystem) {
+            game.systems.musicSystem.syncForState(game.state.currentPage);
+          }
+          render();
+        } catch (error) {
+          pushNotice(t("custom_music_size_error", { size: (maxBytes / (1024 * 1024)).toFixed(0) }));
+        }
+      };
+      musicReader.readAsDataURL(musicFile);
+      target.value = "";
     }
   }
 

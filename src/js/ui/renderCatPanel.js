@@ -143,6 +143,19 @@
       '<div class="cat-portrait" style="margin-top: 14px;"><div class="cat-portrait-icon">' +
       catVisual.icon +
       '</div><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
+      (!isLocked
+        ? '<div class="notice-item" style="margin-top: 14px;"><p><strong>' + t("cat_name") + '</strong></p>' +
+          '<input id="cat-name-input" class="field" type="text" maxlength="12" value="' +
+          format.escapeHtml(getText(selectedCat, "name")) +
+          '" />' +
+          '<div class="inline-row" style="margin-top: 10px;"><button class="primary-button" data-rename-cat="' +
+          selectedCat.id +
+          '">' +
+          t("rename_cat") +
+          '</button><span class="task-meta">' +
+          t("rename_hint") +
+          "</span></div></div>"
+        : "") +
       '<div class="notice-list" style="margin-top: 14px;">' +
       '<div class="notice-item"><p><strong>' + t("age_label") + "</strong></p><p>" +
       format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +

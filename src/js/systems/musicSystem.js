@@ -4,6 +4,8 @@
   var loopTimerId = null;
   var currentTrackKey = null;
   var unlocked = false;
+  var customAudio = null;
+  var customAudioSource = null;
 
   var noteMap = {
     C3: 130.81,
@@ -69,6 +71,15 @@
     },
   };
 
+  function getSettings() {
+    return (game.state && game.state.game && game.state.game.settings) || {};
+  }
+
+  function hasCustomMusic() {
+    var settings = getSettings();
+    return !!(settings.customMusicEnabled && settings.customMusicData);
+  }
+
   function getAudioContext() {
     var AudioCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtor) {
@@ -85,26 +96,48 @@
     return audioContext;
   }
 
+  function ensureCustomAudio() {
+    if (!customAudio) {
+      customAudio = new Audio();
+      customAudio.loop = true;
+      customAudio.preload = "auto";
+    }
+    return customAudio;
+  }
+
   function getVolumeLevel() {
-    var settings = game.state.game && game.state.game.settings;
+    var settings = getSettings();
     if (!settings || settings.bgmEnabled === false) {
       return 0;
     }
-    return Math.max(0, Math.min(1, (settings.bgmVolume || 0) / 100)) * 0.18;
-  }
-
-  function applyVolume() {
-    if (!masterGain || !audioContext) {
-      return;
-    }
-    masterGain.gain.cancelScheduledValues(audioContext.currentTime);
-    masterGain.gain.linearRampToValueAtTime(getVolumeLevel(), audioContext.currentTime + 0.12);
+    return Math.max(0, Math.min(1, (settings.bgmVolume || 0) / 100));
   }
 
   function stopLoop() {
     if (loopTimerId) {
       window.clearTimeout(loopTimerId);
       loopTimerId = null;
+    }
+  }
+
+  function stopCustomAudio() {
+    if (!customAudio) {
+      return;
+    }
+    customAudio.pause();
+    customAudio.currentTime = 0;
+  }
+
+  function applyVolume() {
+    var volume = getVolumeLevel();
+
+    if (masterGain && audioContext) {
+      masterGain.gain.cancelScheduledValues(audioContext.currentTime);
+      masterGain.gain.linearRampToValueAtTime(volume * 0.18, audioContext.currentTime + 0.12);
+    }
+
+    if (customAudio) {
+      customAudio.volume = volume;
     }
   }
 
@@ -185,6 +218,45 @@
     return "home";
   }
 
+  function playCustomTrack() {
+    var settings = getSettings();
+    var audio = ensureCustomAudio();
+
+    stopLoop();
+    currentTrackKey = null;
+    applyVolume();
+
+    if (!unlocked || !settings.customMusicData || getVolumeLevel() <= 0) {
+      stopCustomAudio();
+      return;
+    }
+
+    if (customAudioSource !== settings.customMusicData) {
+      customAudioSource = settings.customMusicData;
+      audio.src = settings.customMusicData;
+    }
+
+    audio.play().catch(function () {
+    });
+  }
+
+  function clearCustomMusic() {
+    var settings = getSettings();
+
+    if (settings) {
+      settings.customMusicEnabled = false;
+      settings.customMusicData = "";
+      settings.customMusicName = "";
+    }
+
+    customAudioSource = null;
+    if (customAudio) {
+      customAudio.pause();
+      customAudio.removeAttribute("src");
+      customAudio.load();
+    }
+  }
+
   function syncForState(page) {
     var ctx = getAudioContext();
     var trackKey = getRecommendedTrack(page || game.state.currentPage);
@@ -198,6 +270,13 @@
     }
 
     applyVolume();
+
+    if (hasCustomMusic()) {
+      playCustomTrack();
+      return;
+    }
+
+    stopCustomAudio();
 
     if (getVolumeLevel() <= 0) {
       stopLoop();
@@ -225,11 +304,19 @@
   }
 
   function getCurrentTrackLabel() {
+    var settings = getSettings();
+
+    if (hasCustomMusic()) {
+      return settings.customMusicName || game.utils.i18n.t("custom_music_source_custom");
+    }
+
     return currentTrackKey ? game.utils.i18n.t(tracks[currentTrackKey].labelKey) : game.utils.i18n.t("music_waiting");
   }
 
   function init() {
     getAudioContext();
+    ensureCustomAudio();
+    applyVolume();
   }
 
   game.systems.musicSystem = {
@@ -238,5 +325,7 @@
     syncForState: syncForState,
     applyVolume: applyVolume,
     getCurrentTrackLabel: getCurrentTrackLabel,
+    hasCustomMusic: hasCustomMusic,
+    clearCustomMusic: clearCustomMusic,
   };
 })(window.CatGame);

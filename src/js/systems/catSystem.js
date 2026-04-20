@@ -733,6 +733,31 @@
     };
   }
 
+  function renameCat(catId, nextName) {
+    var cat = getCat(catId);
+    var trimmedName = String(nextName || "").trim();
+    var previousName;
+
+    if (!cat || !cat.unlocked) {
+      return { ok: false, message: t("rename_cat_locked") };
+    }
+    if (!trimmedName) {
+      return { ok: false, message: t("rename_cat_empty") };
+    }
+
+    previousName = getText(cat, "name");
+    cat.name = trimmedName;
+
+    return {
+      ok: true,
+      forceSave: true,
+      message: t("rename_cat_success", {
+        oldName: previousName,
+        newName: trimmedName,
+      }),
+    };
+  }
+
   game.systems.catSystem = {
     getCat: getCat,
     performAction: performAction,
@@ -747,5 +772,6 @@
     getUnlockStatus: getUnlockStatus,
     getFoodUnitsNeeded: getFoodUnitsNeeded,
     readoptCat: readoptCat,
+    renameCat: renameCat,
   };
 })(window.CatGame);

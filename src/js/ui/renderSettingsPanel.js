@@ -64,6 +64,31 @@
       '" data-setting-key="sfxVolume" />' +
       "</div>" +
       '<div class="settings-card">' +
+      '<p class="section-eyebrow">' + t("custom_music_title") + "</p>" +
+      '<p class="page-copy">' + t("custom_music_copy") + "</p>" +
+      '<div class="setting-row" style="margin-top: 18px;"><label for="setting-custom-music-enabled">' + t("custom_music_enabled") + '</label>' +
+      '<input id="setting-custom-music-enabled" class="toggle-field" type="checkbox" data-setting-key="customMusicEnabled" ' +
+      ((state.settings.customMusicEnabled && state.settings.customMusicData) ? "checked" : "") +
+      " " +
+      (state.settings.customMusicData ? "" : "disabled") +
+      " /></div>" +
+      '<div class="notice-list" style="margin-top: 16px;">' +
+      '<div class="notice-item"><p><strong>' + t("custom_music_file_label") + "</strong></p><p>" +
+      format.escapeHtml(state.settings.customMusicName || t("custom_music_none")) +
+      "</p></div>" +
+      '<div class="notice-item"><p><strong>' + t("custom_music_active") + "</strong></p><p>" +
+      (state.settings.customMusicEnabled && state.settings.customMusicData
+        ? t("custom_music_source_custom")
+        : t("custom_music_source_synth")) +
+      "</p></div></div>" +
+      '<div class="inline-row" style="margin-top: 14px; flex-wrap: wrap;">' +
+      '<label class="secondary-button" for="custom-music-file">' + t("custom_music_import") + "</label>" +
+      '<button class="ghost-button" data-clear-custom-music ' +
+      (state.settings.customMusicData ? "" : "disabled") +
+      '>' + t("custom_music_clear") + "</button>" +
+      '<input id="custom-music-file" type="file" accept="audio/*" style="display:none;" />' +
+      "</div></div>" +
+      '<div class="settings-card">' +
       '<p class="section-eyebrow">' + t("export_save") + "</p>" +
       '<button class="primary-button" data-export-save>' + t("export_json") + "</button>" +
       '<p class="helper-text" style="margin-top: 12px;">' + t("export_copy_hint") + "</p>" +

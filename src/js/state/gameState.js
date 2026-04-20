@@ -144,6 +144,9 @@
         autoSave: true,
         language: "zh-CN",
         bgmEnabled: true,
+        customMusicEnabled: false,
+        customMusicData: "",
+        customMusicName: "",
       },
       flags: {
         tutorialFinished: false,
@@ -264,6 +267,19 @@
 
     if (typeof normalized.settings.bgmEnabled !== "boolean") {
       normalized.settings.bgmEnabled = fresh.settings.bgmEnabled;
+    }
+    if (typeof normalized.settings.customMusicEnabled !== "boolean") {
+      normalized.settings.customMusicEnabled = fresh.settings.customMusicEnabled;
+    }
+    if (typeof normalized.settings.customMusicData !== "string") {
+      normalized.settings.customMusicData = fresh.settings.customMusicData;
+    }
+    if (typeof normalized.settings.customMusicName !== "string") {
+      normalized.settings.customMusicName = fresh.settings.customMusicName;
+    }
+    if (!normalized.settings.customMusicData) {
+      normalized.settings.customMusicEnabled = false;
+      normalized.settings.customMusicName = "";
     }
 
     if (normalized.flags.toyUsesMigrated !== true) {

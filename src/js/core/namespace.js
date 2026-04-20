@@ -2,23 +2,23 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.10.0",
+      version: "1.10.1",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "新增日语语言选项，界面文案会优先显示日语，不足部分自动回退到英文。",
-          "三只主猫现在改用你提供的贴图资源，并按页面与房间场景自动缩放显示。",
-          "后续出生的小猫会在橘猫、奶牛猫、蓝猫这三种贴图毛色中随机变化。",
+          "新增猫咪自定义取名功能，可以在猫咪页面单独修改每只猫的名字。",
+          "背景音乐新增本地音频导入功能，可把一首本地音乐保存为当前存档的自定义BGM。",
+          "自定义BGM启用后会优先播放本地音乐；关闭后仍会回到原本的场景主题音乐。",
         ],
         en: [
-          "Added Japanese as a new language option, with English fallback for untranslated dynamic text.",
-          "The three main cats now use the provided art sprites and scale automatically for each game scene.",
-          "Future kittens now randomize their coat art between the orange tabby, cow cat, and blue cat variants.",
+          "Added custom cat naming so each cat can be renamed from the cat page.",
+          "Added local audio import support so one custom BGM track can be saved inside the current local save.",
+          "When custom BGM is enabled it takes priority over scene music, and disabling it restores the original dynamic soundtrack.",
         ],
         ja: [
-          "日本語を追加し、未翻訳の動的テキストは英語へ自動フォールバックします。",
-          "3匹のメイン猫は提供された画像スプライトに差し替え、各画面に合わせて自動縮尺します。",
-          "これから生まれる子猫は茶トラ、ハチワレ、ブルーの3種類の毛色画像からランダムに変化します。",
+          "猫ごとの名前変更機能を追加し、猫ページから個別に名前を付けられるようにしました。",
+          "ローカル音楽ファイルの読み込みに対応し、現在のセーブに自分だけのBGMを保存できます。",
+          "カスタムBGMを有効にするとローカル音楽が優先再生され、無効化すると元の場面別BGMへ戻ります。",
         ],
       },
       readoptCost: 80,
@@ -40,6 +40,7 @@
       diseaseCheckIntervalMs: 15 * 60 * 1000,
       staminaRecoveryIntervalMs: 60 * 60 * 1000,
       staminaRecoveryAmount: 5,
+      customMusicMaxBytes: 2 * 1024 * 1024,
       slotBets: [20, 50, 100],
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
