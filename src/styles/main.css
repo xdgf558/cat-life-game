@@ -593,6 +593,8 @@ button:disabled {
 .cat-illustration-small {
   display: block;
   object-fit: contain;
+  object-position: center;
+  border-radius: 18px;
   image-rendering: auto;
   filter: drop-shadow(0 10px 18px rgba(38, 77, 126, 0.18));
 }
@@ -787,6 +789,8 @@ button:disabled {
   bottom: 22px;
   width: 72px;
   height: 72px;
+  object-fit: contain;
+  border-radius: 16px;
   transform-origin: center bottom;
 }
 

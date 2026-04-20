@@ -3,6 +3,10 @@
   var t = game.utils.i18n.t;
   var getText = game.utils.i18n.getDataText;
 
+  function useEnglishFallback() {
+    return game.utils.i18n.getLanguage() !== "zh-CN";
+  }
+
   function getJob(jobId) {
     return game.state.game.jobs.find(function (job) {
       return job.id === jobId;
@@ -48,7 +52,7 @@
       player.exp -= player.level * 100;
       player.level += 1;
       messages.push(
-        game.utils.i18n.getLanguage() === "en"
+        useEnglishFallback()
           ? "You reached Lv." + player.level + "."
           : "玩家升级到 Lv." + player.level + "。"
       );
@@ -83,16 +87,16 @@
     var messages = [];
 
     if (!job) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "That job could not be found." : "没有找到这个工作。" };
+      return { ok: false, message: useEnglishFallback() ? "That job could not be found." : "没有找到这个工作。" };
     }
     if (state.player.activeWork) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "A job is already in progress. Wait for it to finish first." : "已经有一份工作在进行中了，先等它结束吧。" };
+      return { ok: false, message: useEnglishFallback() ? "A job is already in progress. Wait for it to finish first." : "已经有一份工作在进行中了，先等它结束吧。" };
     }
     if (!job.unlocked) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Your level is too low for this job." : "玩家等级还不够，暂时无法接这份工作。" };
+      return { ok: false, message: useEnglishFallback() ? "Your level is too low for this job." : "玩家等级还不够，暂时无法接这份工作。" };
     }
     if (state.player.stamina < job.staminaCost) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Not enough stamina. Wait for real-time recovery first." : "体力不足，先等现实时间自然恢复吧。" };
+      return { ok: false, message: useEnglishFallback() ? "Not enough stamina. Wait for real-time recovery first." : "体力不足，先等现实时间自然恢复吧。" };
     }
 
     event = game.utils.random.pick(job.eventPool) || { text: "今天平稳收工。", goldDelta: 0 };
@@ -118,7 +122,7 @@
     };
 
     messages.push(
-      game.utils.i18n.getLanguage() === "en"
+      useEnglishFallback()
         ? "Started " +
           getText(job, "name") +
           ". It will finish in about " +
@@ -131,7 +135,7 @@
           " 分钟后结算，期间退出页面也会继续计时。"
     );
     messages.push(
-      game.utils.i18n.getLanguage() === "en"
+      useEnglishFallback()
         ? job.staminaCost + " stamina was deducted immediately."
         : "已先扣除 " + job.staminaCost + " 点体力。"
     );
@@ -173,7 +177,7 @@
     }
 
     messages.unshift(
-      game.utils.i18n.getLanguage() === "en"
+      useEnglishFallback()
         ? (source === "init" ? "A job finished while you were away: " : "Job complete: ") +
           getText(job || activeWork, "name") +
           ", " +
@@ -187,16 +191,16 @@
           " 金币。"
     );
     messages.push(
-      game.utils.i18n.getLanguage() === "en" && activeWork.eventTextEn ? activeWork.eventTextEn : activeWork.eventText
+      useEnglishFallback() && activeWork.eventTextEn ? activeWork.eventTextEn : activeWork.eventText
     );
 
     if (activeWork.itemReward) {
       messages.push(
-        (game.utils.i18n.getLanguage() === "en" ? "Bonus item: " : "额外获得：") +
+        (useEnglishFallback() ? "Bonus item: " : "额外获得：") +
           getText(game.data.itemMap[activeWork.itemReward], "name") +
           " x" +
           (activeWork.itemAmount || 1) +
-          (game.utils.i18n.getLanguage() === "en" ? "." : "。")
+          (useEnglishFallback() ? "." : "。")
       );
     }
 

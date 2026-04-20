@@ -44,6 +44,8 @@
       : "zh-CN";
     var labels = language === "en"
       ? { hour: "h", minute: "m", second: "s" }
+      : language === "ja"
+      ? { hour: "時間", minute: "分", second: "秒" }
       : { hour: "小时", minute: "分", second: "秒" };
 
     if (hours > 0) {
@@ -65,7 +67,7 @@
     var language = window.CatGame && window.CatGame.utils && window.CatGame.utils.i18n
       ? window.CatGame.utils.i18n.getLanguage()
       : "zh-CN";
-    return amount.toFixed(2) + (language === "en" ? " y" : " 岁");
+    return amount.toFixed(2) + (language === "en" ? " y" : language === "ja" ? " 歳" : " 岁");
   }
 
   function escapeHtml(text) {

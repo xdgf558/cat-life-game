@@ -5,6 +5,10 @@
   var getText = game.utils.i18n.getDataText;
   var YEAR_MS = 365 * 24 * 60 * 60 * 1000;
 
+  function useEnglishFallback() {
+    return game.utils.i18n.getLanguage() !== "zh-CN";
+  }
+
   function getNowIso() {
     return game.systems.timeSystem.getNow().toISOString();
   }
@@ -146,19 +150,19 @@
 
     if (reason === "disease_zero" && disease) {
       return source === "init"
-        ? lang === "en"
+        ? lang !== "zh-CN"
           ? name + " passed away from untreated " + getText(disease, "name") + " while you were away."
           : "离线期间，" + name + "因" + getText(disease, "name") + "未及时治疗而去世。"
-        : lang === "en"
+        : lang !== "zh-CN"
           ? name + " passed away from untreated " + getText(disease, "name") + "."
           : name + "因" + getText(disease, "name") + "未及时治疗而去世。";
     }
 
     return source === "init"
-      ? lang === "en"
+      ? lang !== "zh-CN"
         ? name + "'s hunger reached zero while you were away, and the cat died."
         : "离线期间，" + name + "的饱腹感归零，已经死亡。"
-      : lang === "en"
+      : lang !== "zh-CN"
         ? name + "'s hunger reached zero and the cat died."
         : name + "的饱腹感归零，已经死亡。";
   }
@@ -545,7 +549,7 @@
     if (!cat || !cat.unlocked) {
       return {
         ok: false,
-        message: game.utils.i18n.getLanguage() === "en" ? "This cat has not been unlocked yet." : "这只猫咪还没有解锁。",
+        message: useEnglishFallback() ? "This cat has not been unlocked yet." : "这只猫咪还没有解锁。",
       };
     }
     ensureCatRuntimeFields(cat, nowIso);
@@ -554,7 +558,7 @@
         ok: false,
         message:
           getText(cat, "name") +
-          (game.utils.i18n.getLanguage() === "en" ? " has died and can no longer interact." : "已经死亡，无法继续互动。"),
+          (useEnglishFallback() ? " has died and can no longer interact." : "已经死亡，无法继续互动。"),
       };
     }
 
@@ -574,7 +578,7 @@
       state.player.feedTimesToday += 1;
       messages.push(
         getText(cat, "name") +
-          (game.utils.i18n.getLanguage() === "en" ? " ate happily and hunger recovered nicely." : "吃得很认真，饱腹值明显回升。")
+          (useEnglishFallback() ? " ate happily and hunger recovered nicely." : "吃得很认真，饱腹值明显回升。")
       );
       if (foodUnitsNeeded > 1) {
         messages.push(t("pregnancy_food_bonus", { name: getText(cat, "name"), count: foodUnitsNeeded }));
@@ -593,14 +597,14 @@
       state.player.feedTimesToday += 1;
       messages.push(
         getText(cat, "name") +
-          (game.utils.i18n.getLanguage() === "en" ? " enjoyed the premium food and rubbed against you happily." : "吃到了高级猫粮，开心得蹭了蹭你。")
+          (useEnglishFallback() ? " enjoyed the premium food and rubbed against you happily." : "吃到了高级猫粮，开心得蹭了蹭你。")
       );
       if (foodUnitsNeeded > 1) {
         messages.push(t("pregnancy_food_bonus", { name: getText(cat, "name"), count: foodUnitsNeeded }));
       }
     } else if (actionKey === "clean") {
       if (state.inventory.litter <= 0) {
-        return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "You're out of litter. Buy more from the shop." : "猫砂不够了，先去商店买一些。" };
+        return { ok: false, message: useEnglishFallback() ? "You're out of litter. Buy more from the shop." : "猫砂不够了，先去商店买一些。" };
       }
       state.inventory.litter -= 1;
       cat.clean = clamp(cat.clean + 30, 0, 100);
@@ -608,7 +612,7 @@
       resetDecayTracker(cat, ["clean", "health"], nowIso);
       state.player.cleanTimes += 1;
       messages.push(
-        game.utils.i18n.getLanguage() === "en"
+        useEnglishFallback()
           ? "You cleaned up for " + getText(cat, "name") + " and cleanliness improved."
           : "你帮" + getText(cat, "name") + "整理了环境，清洁值提升了。"
       );
@@ -625,7 +629,7 @@
       state.player.playTimesToday += 1;
       state.player.mood = clamp(state.player.mood + 4, 0, 100);
       messages.push(
-        game.utils.i18n.getLanguage() === "en"
+        useEnglishFallback()
           ? "You played with " + getText(cat, "name") + " for a while, and the mood lightened up."
           : "你陪" + getText(cat, "name") + "玩了好一会儿，气氛变得轻松很多。"
       );
@@ -641,7 +645,7 @@
       resetDecayTracker(cat, ["energy", "health", "mood"], nowIso);
       messages.push(
         getText(cat, "name") +
-          (game.utils.i18n.getLanguage() === "en" ? " took a comfortable rest in the cat bed." : "在猫窝里舒舒服服地休息了一会儿。")
+          (useEnglishFallback() ? " took a comfortable rest in the cat bed." : "在猫窝里舒舒服服地休息了一会儿。")
       );
     } else if (actionKey === "catGrass") {
       if (state.inventory.catGrass <= 0) {
@@ -662,7 +666,7 @@
       resetDecayTracker(cat, ["health", "mood"], nowIso);
       messages.push(t("medicine_used", { name: getText(cat, "name") }));
     } else {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Unknown cat interaction." : "未知的猫咪互动。" };
+      return { ok: false, message: useEnglishFallback() ? "Unknown cat interaction." : "未知的猫咪互动。" };
     }
 
     if (game.systems.taskSystem) {
@@ -686,7 +690,7 @@
     if (!cat || !cat.unlocked) {
       return {
         ok: false,
-        message: game.utils.i18n.getLanguage() === "en" ? "This cat cannot be adopted right now." : "这只猫咪当前无法重新领养。",
+        message: useEnglishFallback() ? "This cat cannot be adopted right now." : "这只猫咪当前无法重新领养。",
       };
     }
 

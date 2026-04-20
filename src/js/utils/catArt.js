@@ -1,4 +1,10 @@
 (function (game) {
+  var spriteFiles = {
+    orange_tabby: "orange-tabby.png",
+    cow_cat: "cow-cat.png",
+    blue_cat: "blue-cat.png",
+  };
+
   function escapeSvg(text) {
     return encodeURIComponent(String(text || ""))
       .replace(/'/g, "%27")
@@ -41,10 +47,38 @@
       '<circle cx="76" cy="98" r="6" fill="#ffd45f" stroke="#d28a1f" stroke-width="2"/>';
   }
 
+  function inferArtKeyFromTraits(traits) {
+    var fur = traits && traits.furColor ? String(traits.furColor).toLowerCase() : "";
+    var patch = traits && traits.patchColor ? String(traits.patchColor).toLowerCase() : "";
+
+    if (traits && traits.artKey && spriteFiles[traits.artKey]) {
+      return traits.artKey;
+    }
+    if (fur === "#2c3647" || patch === "#f8f8f8") {
+      return "cow_cat";
+    }
+    if (fur === "#8a8fc2" || fur === "#86a4c4" || fur === "#6f8398" || fur === "#f4f2f7") {
+      return "blue_cat";
+    }
+    return "orange_tabby";
+  }
+
+  function getCatSpriteUrl(cat) {
+    var artKey = inferArtKeyFromTraits((cat && cat.traits) || {});
+    var fileName = spriteFiles[artKey];
+
+    if (!fileName) {
+      return null;
+    }
+
+    return new URL("src/assets/cats/" + fileName, document.baseURI).href;
+  }
+
   function buildCatSvg(cat, size) {
     var traits = (cat && cat.traits) || {};
     var fur = traits.furColor || "#f3a64a";
     var eyes = traits.eyeColor || "#4b9ed2";
+    var spriteUrl = getCatSpriteUrl(cat);
     var svg =
       '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 152 152">' +
       '<rect width="152" height="152" rx="28" fill="#f7fbff"/>' +
@@ -64,10 +98,12 @@
       getAccessoryMarkup(traits) +
       "</svg>";
 
-    return "data:image/svg+xml;charset=utf-8," + escapeSvg(svg);
+    return spriteUrl || ("data:image/svg+xml;charset=utf-8," + escapeSvg(svg));
   }
 
   game.utils.catArt = {
     buildCatSvg: buildCatSvg,
+    inferArtKeyFromTraits: inferArtKeyFromTraits,
+    getCatSpriteUrl: getCatSpriteUrl,
   };
 })(window.CatGame);

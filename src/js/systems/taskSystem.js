@@ -2,6 +2,10 @@
   var clamp = game.utils.format.clamp;
   var t = game.utils.i18n.t;
 
+  function useEnglishFallback() {
+    return game.utils.i18n.getLanguage() !== "zh-CN";
+  }
+
   function metricValue(metric) {
     var state = game.state.game;
     var maxIntimacy = state.cats.reduce(function (maxValue, cat) {
@@ -69,19 +73,19 @@
     var messages = [];
 
     if (!task) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "Task not found." : "没有找到这个任务。" };
+      return { ok: false, message: useEnglishFallback() ? "Task not found." : "没有找到这个任务。" };
     }
     if (task.claimed) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "This reward has already been claimed." : "这个任务奖励已经领取过了。" };
+      return { ok: false, message: useEnglishFallback() ? "This reward has already been claimed." : "这个任务奖励已经领取过了。" };
     }
     if (task.progress < task.target) {
-      return { ok: false, message: game.utils.i18n.getLanguage() === "en" ? "This task is not complete yet." : "任务还没有完成，继续努力一下吧。" };
+      return { ok: false, message: useEnglishFallback() ? "This task is not complete yet." : "任务还没有完成，继续努力一下吧。" };
     }
 
     task.claimed = true;
     game.state.game.player.gold += task.reward.gold || 0;
     messages.push(
-      game.utils.i18n.getLanguage() === "en"
+      useEnglishFallback()
         ? "Task reward claimed: " + (task.reward.gold || 0) + " gold."
         : "领取任务奖励：" + (task.reward.gold || 0) + " 金币。"
     );
@@ -89,7 +93,7 @@
     if (task.reward.exp) {
       messages = messages.concat(game.systems.workSystem.addExp(task.reward.exp));
       messages.push(
-        game.utils.i18n.getLanguage() === "en"
+        useEnglishFallback()
           ? "Bonus EXP: " + task.reward.exp + "."
           : "额外获得经验 " + task.reward.exp + "。"
       );

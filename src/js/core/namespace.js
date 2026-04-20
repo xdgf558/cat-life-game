@@ -2,18 +2,23 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.9.1",
+      version: "1.10.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "陪玩现在必须消耗逗猫棒，没有剩余次数时将无法陪玩。",
-          "图鉴改成格子收藏展示，已获得猫咪会显示在展示格中，点击后才展开属性详情。",
-          "猫咪配对功能已从图鉴迁移到医院页面，治疗与繁育入口集中管理。",
+          "新增日语语言选项，界面文案会优先显示日语，不足部分自动回退到英文。",
+          "三只主猫现在改用你提供的贴图资源，并按页面与房间场景自动缩放显示。",
+          "后续出生的小猫会在橘猫、奶牛猫、蓝猫这三种贴图毛色中随机变化。",
         ],
         en: [
-          "Playtime now always consumes one toy wand use, and you cannot play when no uses remain.",
-          "The collection page is now a boxed gallery, and cat details only appear after you click a collected cat.",
-          "Cat pairing has been moved from the collection page to the hospital page so treatment and breeding are managed together.",
+          "Added Japanese as a new language option, with English fallback for untranslated dynamic text.",
+          "The three main cats now use the provided art sprites and scale automatically for each game scene.",
+          "Future kittens now randomize their coat art between the orange tabby, cow cat, and blue cat variants.",
+        ],
+        ja: [
+          "日本語を追加し、未翻訳の動的テキストは英語へ自動フォールバックします。",
+          "3匹のメイン猫は提供された画像スプライトに差し替え、各画面に合わせて自動縮尺します。",
+          "これから生まれる子猫は茶トラ、ハチワレ、ブルーの3種類の毛色画像からランダムに変化します。",
         ],
       },
       readoptCost: 80,

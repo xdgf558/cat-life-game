@@ -32,7 +32,9 @@
       (state.settings.language === "zh-CN" ? "selected" : "") +
       '>中文</option><option value="en" ' +
       (state.settings.language === "en" ? "selected" : "") +
-      '>English</option></select></div>' +
+      '>English</option><option value="ja" ' +
+      (state.settings.language === "ja" ? "selected" : "") +
+      '>日本語</option></select></div>' +
       '<div class="setting-row" style="margin-top: 18px;"><label for="setting-auto-save">' + t("auto_save") + '</label>' +
       '<input id="setting-auto-save" class="toggle-field" type="checkbox" data-setting-key="autoSave" ' +
       (state.settings.autoSave ? "checked" : "") +

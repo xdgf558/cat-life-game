@@ -8,6 +8,7 @@
     pattern: ["tabby", "mask", "fluffy"],
     eyeColor: ["#3f9a4d", "#ffcc52", "#5aa6d8", "#7d64d8"],
     accessory: ["bell", "scarf", "flower"],
+    artKey: ["orange_tabby", "cow_cat", "blue_cat"],
   };
   var pregnancyDurationMs = game.config.pregnancyDurationMs;
 
@@ -53,14 +54,17 @@
       pattern: mixTrait("pattern", parentA, parentB),
       eyeColor: mixTrait("eyeColor", parentA, parentB),
       accessory: mixTrait("accessory", parentA, parentB),
+      artKey: mixTrait("artKey", parentA, parentB),
     };
 
     return {
       id: "kitten_" + Date.now() + "_" + kittenIndex,
       name: "小猫" + kittenIndex,
       nameEn: "Kitten " + kittenIndex,
+      nameJa: "こねこ " + kittenIndex,
       breed: "混色小猫",
       breedEn: "Mixed Kitten",
+      breedJa: "ミックス子猫",
       rarity: "稀有",
       initialAgeYears: 0.08,
       gender: Math.random() < 0.5 ? "male" : "female",
@@ -260,7 +264,7 @@
 
     cats.forEach(function (cat) {
       var traits = cat.traits || {};
-      uniqueLooks[(traits.furColor || "") + "|" + (traits.pattern || "") + "|" + (traits.eyeColor || "")] = true;
+      uniqueLooks[(traits.artKey || traits.furColor || "") + "|" + (traits.pattern || "") + "|" + (traits.eyeColor || "")] = true;
     });
 
     return {

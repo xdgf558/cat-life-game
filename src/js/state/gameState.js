@@ -279,6 +279,7 @@
         return entry.id === cat.id;
       }) || {};
       var defaultTraits = {
+        artKey: "orange_tabby",
         furColor: "#f3a64a",
         patchColor: "#fff0be",
         pattern: "tabby",
@@ -349,6 +350,9 @@
         cat.traits = {};
       }
       cat.traits = Object.assign({}, defaultTraits, baseCat.traits || {}, cat.traits);
+      if (!cat.traits.artKey) {
+        cat.traits.artKey = game.utils.catArt.inferArtKeyFromTraits(cat.traits);
+      }
       if (!cat.iconSet || typeof cat.iconSet !== "object") {
         cat.iconSet = {};
       }
