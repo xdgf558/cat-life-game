@@ -2,7 +2,7 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.13.2",
+      version: "1.14.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
@@ -12,6 +12,8 @@
           "银行页现在会显示下次存款利息与贷款利息的结算时间和预计金额，并支持一键还清贷款。",
           "贷款可借上限会根据以往还款表现动态变化，按时还清会更容易获得更高额度。",
           "新增提前一次性还清贷款手续费，刚贷款时最高为贷款本金的 10%，到第 10 天降为 0%。",
+          "各页面介绍区域已缩小，让主要功能内容更靠上、更省空间。",
+          "商店新增晚间 20:00-22:00 随机限时折扣，库存卖完后会恢复原价。",
         ],
         en: [
           "The UI now uses a softer cozy village look, and major feature modules have been moved into a top navigation bar.",
@@ -20,6 +22,8 @@
           "The Bank page now shows the next savings payout and loan interest charge preview, and adds one-tap full payoff.",
           "Future loan limits now change based on how responsibly previous loans were repaid.",
           "Early full loan payoff now has a fee that starts at 10% and fades to 0% by day 10.",
+          "Large page introductions have been scaled down so the main content appears sooner.",
+          "The shop now runs random limited evening discounts from 20:00 to 22:00, and sold-out deals return to normal price.",
         ],
         ja: [
           "UI全体をよりかわいい田園風デザインに刷新し、主要機能のナビゲーションを上部へ移動しました。",
@@ -28,6 +32,8 @@
           "銀行ページに次回の預金利息・ローン利息の予定表示と、一括返済ボタンを追加しました。",
           "返済状況に応じて次回の借入上限が上下するようになりました。",
           "ローン直後の一括返済には手数料がかかり、10日目で 0% まで下がるようになりました。",
+          "各ページの紹介エリアを縮小し、主要な機能がより上に見えるようにしました。",
+          "ショップに 20:00-22:00 のランダム夜間セールを追加し、売り切れ後は通常価格に戻ります。",
         ],
       },
       readoptCost: 80,
@@ -107,6 +113,14 @@
         maxCreditTier: 3,
         strongRepayInterestDays: 2,
         highRiskInterestDays: 6,
+      },
+      shop: {
+        discountStartHour: 20,
+        discountEndHour: 22,
+        dailyOfferCount: 3,
+        discountRates: [0.15, 0.2, 0.25, 0.3, 0.35],
+        consumableStockRange: [2, 5],
+        furnitureStockRange: [1, 1],
       },
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },

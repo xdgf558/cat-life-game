@@ -134,15 +134,19 @@
 
 .page-header {
   grid-template-columns: 1.35fr 0.9fr;
-  margin-bottom: 22px;
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
 .page-title {
-  font-size: 30px;
+  font-size: clamp(24px, 3vw, 30px);
+  line-height: 1.14;
 }
 
 .page-copy {
-  margin-top: 8px;
+  margin-top: 6px;
+  font-size: 15px;
+  line-height: 1.5;
 }
 
 .page-card,
@@ -164,6 +168,24 @@
   box-shadow:
     inset 0 2px 0 rgba(255, 255, 255, 0.9),
     var(--shadow-card);
+}
+
+.page-header .page-card {
+  padding: 14px 16px;
+}
+
+.page-header .section-eyebrow {
+  margin-bottom: 6px;
+  font-size: 11px;
+}
+
+.page-header .page-title {
+  font-size: clamp(22px, 2.7vw, 26px);
+}
+
+.page-header .page-copy {
+  font-size: 13px;
+  line-height: 1.46;
 }
 
 .header-grid {
@@ -365,6 +387,31 @@
 .shop-meta {
   color: var(--text-subtle);
   font-size: 14px;
+}
+
+.price-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.pill.is-sale {
+  background: linear-gradient(180deg, #ffe59f 0%, #ffca63 100%);
+  color: #7a4d00;
+  border-color: rgba(188, 130, 30, 0.18);
+}
+
+.price-old {
+  font-size: 12px;
+  color: var(--text-subtle);
+  text-decoration: line-through;
+}
+
+.sale-copy {
+  color: #b05d2b;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .bar-track {

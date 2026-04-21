@@ -116,6 +116,14 @@
       }
     }
 
+    if (game.systems.shopSystem) {
+      var shopSyncResult = game.systems.shopSystem.syncDailyDiscount(now, source);
+      if (shopSyncResult.changed) {
+        changed = true;
+        messages = messages.concat(shopSyncResult.messages || []);
+      }
+    }
+
     if (game.systems.catSystem) {
       var catSyncResult = game.systems.catSystem.syncCatState(now, source);
       if (catSyncResult.changed) {

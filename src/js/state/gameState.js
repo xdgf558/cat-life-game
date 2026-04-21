@@ -172,6 +172,10 @@
           layout: "cozy",
         },
       },
+      shop: {
+        flashSaleDateKey: "",
+        offers: [],
+      },
       settings: {
         bgmVolume: 60,
         sfxVolume: 70,
@@ -219,6 +223,7 @@
           : fresh.jobs,
       tasks: normalizeTaskBlock(saveData.tasks || {}, fresh.tasks),
       home: Object.assign({}, fresh.home, saveData.home || {}),
+      shop: Object.assign({}, fresh.shop, saveData.shop || {}),
       settings: Object.assign({}, fresh.settings, saveData.settings || {}),
       flags: Object.assign({}, fresh.flags, saveData.flags || {}),
     };
@@ -247,6 +252,33 @@
       normalized.home.roomScene = game.state.deepClone(fresh.home.roomScene);
     } else {
       normalized.home.roomScene = Object.assign({}, fresh.home.roomScene, normalized.home.roomScene);
+    }
+
+    if (!normalized.shop || typeof normalized.shop !== "object") {
+      normalized.shop = game.state.deepClone(fresh.shop);
+    } else {
+      normalized.shop = Object.assign({}, fresh.shop, normalized.shop);
+    }
+
+    if (typeof normalized.shop.flashSaleDateKey !== "string") {
+      normalized.shop.flashSaleDateKey = "";
+    }
+    if (!Array.isArray(normalized.shop.offers)) {
+      normalized.shop.offers = [];
+    } else {
+      normalized.shop.offers = normalized.shop.offers
+        .filter(function (offer) {
+          return offer && typeof offer.itemId === "string";
+        })
+        .map(function (offer) {
+          return {
+            itemId: offer.itemId,
+            discountRate: Math.max(0, Math.min(0.9, Number(offer.discountRate || 0))),
+            discountedPrice: Math.max(1, Number(offer.discountedPrice || 1)),
+            remainingStock: Math.max(0, Number(offer.remainingStock || 0)),
+            totalStock: Math.max(0, Number(offer.totalStock || 0)),
+          };
+        });
     }
 
     if (!normalized.meta.lastSyncAt) {
