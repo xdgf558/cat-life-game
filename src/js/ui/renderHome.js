@@ -25,7 +25,6 @@
   }
 
   function renderHome(state) {
-    var isNewVersion = state.meta.lastSeenVersion !== game.config.version;
     var selectedCat =
       state.cats.find(function (cat) {
         return cat.id === game.state.selectedCatId && cat.unlocked;
@@ -63,12 +62,6 @@
     var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
     var roomStep = game.systems.homeSystem.getCurrentRoomStep();
 
-    var releaseNotes = (game.config.releaseNotes[game.utils.i18n.getLanguage()] || game.config.releaseNotes["zh-CN"])
-      .map(function (note) {
-        return "<p>• " + format.escapeHtml(note) + "</p>";
-      })
-      .join("");
-
     return (
       '<section class="page-header">' +
       '<div class="page-card">' +
@@ -84,23 +77,28 @@
       '<button class="secondary-button" data-page-target="arcade">' + t("nav_arcade") + "</button>" +
       '<button class="secondary-button" data-page-target="hospital">' + t("nav_hospital") + "</button>" +
       '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
+      '<button class="ghost-button" data-page-target="version">' + t("nav_version") + "</button>" +
       '<button class="ghost-button" data-page-target="save">' + t("nav_save") + "</button>" +
       "</div>" +
       "</div>" +
       '<div class="page-card">' +
-      '<p class="section-eyebrow">' +
-      (isNewVersion ? t("release_update") : t("release_current")) +
+      '<p class="section-eyebrow">' + t("todays_focus") + "</p>" +
+      '<h3 class="panel-title">' + (activeWork ? format.escapeHtml(getText(activeJob, "name")) : t("idle_now")) + "</h3>" +
+      '<p class="page-copy">' +
+      (activeWork
+        ? t("expected_finish") + "：" + format.escapeHtml(format.formatRealDateTime(activeWork.endsAt))
+        : t("home_today_copy")) +
       "</p>" +
-      '<h3 class="panel-title">v' +
-      format.escapeHtml(game.config.version) +
-      (isNewVersion ? " " + t("release_updated") : " " + t("release_content")) +
-      "</h3>" +
-      '<div class="helper-text" style="margin-top: 10px;">' +
-      releaseNotes +
+      '<div class="notice-list" style="margin-top: 16px;">' +
+      '<div class="notice-item"><p><strong>' + t("room_upgrade_title") + '</strong></p><p>' +
+      t("room_level_text", { level: roomStep.level }) +
+      " · " +
+      t("room_capacity_text", { count: roomStep.capacity }) +
+      "</p></div>" +
+      '<div class="notice-item"><p><strong>' + t("hospital_alert") + '</strong></p><p>' +
+      (sickCount > 0 ? t("hospital_alert_copy", { count: sickCount }) : t("hospital_empty_copy")) +
+      "</p></div>" +
       "</div>" +
-      (isNewVersion
-        ? '<div class="inline-row" style="margin-top: 16px;"><span class="status-pill is-warning">' + t("release_update") + '</span><button class="secondary-button" data-dismiss-release-note>' + t("release_ack") + "</button></div>"
-        : "") +
       "</div>" +
       "</section>" +
       '<section class="home-grid">' +

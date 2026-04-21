@@ -313,6 +313,7 @@
     }
 
     player.gold += validation.amount;
+    bank.totalBorrowed = Math.max(0, Number(bank.totalBorrowed || 0)) + validation.amount;
     bank.hasActiveLoan = true;
     bank.principal = validation.amount;
     bank.accruedInterest = 0;

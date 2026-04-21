@@ -330,6 +330,7 @@
       hospital: game.ui.renderHospitalPanel,
       shop: game.ui.renderShopPanel,
       tasks: game.ui.renderTaskPanel,
+      version: game.ui.renderVersionPanel,
       save: game.ui.renderSavePanel,
       settings: game.ui.renderSettingsPanel,
     };

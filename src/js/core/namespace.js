@@ -2,7 +2,7 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.14.0",
+      version: "1.14.1",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
@@ -14,6 +14,8 @@
           "新增提前一次性还清贷款手续费，刚贷款时最高为贷款本金的 10%，到第 10 天降为 0%。",
           "各页面介绍区域已缩小，让主要功能内容更靠上、更省空间。",
           "商店新增晚间 20:00-22:00 随机限时折扣，库存卖完后会恢复原价。",
+          "任务系统新增银行相关成就，分别对应存款达 1 万和累计贷款达 2 万。",
+          "打工新增 Lv.10 解锁职业「猫咖管理员」，30 分钟高收益高消耗。",
         ],
         en: [
           "The UI now uses a softer cozy village look, and major feature modules have been moved into a top navigation bar.",
@@ -24,6 +26,8 @@
           "Early full loan payoff now has a fee that starts at 10% and fades to 0% by day 10.",
           "Large page introductions have been scaled down so the main content appears sooner.",
           "The shop now runs random limited evening discounts from 20:00 to 22:00, and sold-out deals return to normal price.",
+          "New bank achievements now reward you for reaching 10,000 in savings and 20,000 in total borrowing.",
+          "Added the level 10 job 'Cat Cafe Manager' with higher cost and higher reward.",
         ],
         ja: [
           "UI全体をよりかわいい田園風デザインに刷新し、主要機能のナビゲーションを上部へ移動しました。",
@@ -34,6 +38,8 @@
           "ローン直後の一括返済には手数料がかかり、10日目で 0% まで下がるようになりました。",
           "各ページの紹介エリアを縮小し、主要な機能がより上に見えるようにしました。",
           "ショップに 20:00-22:00 のランダム夜間セールを追加し、売り切れ後は通常価格に戻ります。",
+          "銀行関連の実績を追加し、預金 1 万と累計借入 2 万で報酬を獲得できるようになりました。",
+          "Lv.10 で解放される新しい仕事「猫カフェ管理人」を追加しました。",
         ],
       },
       readoptCost: 80,

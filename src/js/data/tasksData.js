@@ -105,6 +105,26 @@
         target: 10000,
         reward: { gold: 2000, exp: 200 },
       },
+      {
+        id: "achievement_bank_savings_10000",
+        title: "理财小能手",
+        titleEn: "Savings Keeper",
+        description: "银行存款达到 10000 金币。",
+        descriptionEn: "Reach 10000 gold in bank savings.",
+        metric: "bankBalance",
+        target: 10000,
+        reward: { gold: 2000, exp: 200 },
+      },
+      {
+        id: "achievement_bank_borrowed_20000",
+        title: "贷款老手",
+        titleEn: "Loan Veteran",
+        description: "累计银行贷款达到 20000 金币。",
+        descriptionEn: "Reach a total of 20000 gold borrowed from the bank.",
+        metric: "bankTotalBorrowed",
+        target: 20000,
+        reward: { gold: 2000, exp: 200 },
+      },
     ],
   };
 })(window.CatGame);

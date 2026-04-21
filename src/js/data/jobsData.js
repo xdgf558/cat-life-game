@@ -84,6 +84,27 @@
         { text: "项目提前上线成功，团队拿到了额外奖金。", textEn: "The release shipped early and the team got a bonus.", goldDelta: 88 },
       ],
     },
+    {
+      id: "job_cat_cafe_manager",
+      name: "猫咖管理员",
+      nameEn: "Cat Cafe Manager",
+      unlockLevel: 10,
+      duration: 12,
+      durationMinutes: 30,
+      staminaCost: 50,
+      moodCost: 20,
+      goldReward: 800,
+      expReward: 200,
+      description: "要同时照顾客人、猫咪和营业节奏，压力很大，但收入也非常亮眼。",
+      descriptionEn: "You juggle guests, cats, and the entire cafe rhythm. It is stressful, but the pay is excellent.",
+      eventPool: [
+        { text: "今天猫咖爆满，老板给了你一笔营业奖金。", textEn: "The cafe was packed today, so the boss gave you a business bonus.", goldDelta: 120 },
+        { text: "你把营业和猫咪照顾都安排得很顺，稳稳拿到完整工资。", textEn: "You handled both customers and cats smoothly and secured the full pay.", goldDelta: 0 },
+        { text: "有位客人不小心打翻甜品，你忙着善后少拿了一点奖金。", textEn: "A customer knocked over a dessert, and cleanup cut into your bonus.", goldDelta: -60 },
+        { text: "开店准备晚了些，被店长扣了 90 金币。", textEn: "Opening prep ran late and the manager docked you 90 gold.", goldDelta: -90 },
+        { text: "你安抚了一只紧张的猫，还带动了店里销量，额外多拿了奖励。", textEn: "You calmed a nervous cat and boosted sales, earning an extra reward.", goldDelta: 160 },
+      ],
+    },
   ];
 
   game.data.jobs = jobs;

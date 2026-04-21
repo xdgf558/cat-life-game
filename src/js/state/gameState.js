@@ -117,6 +117,7 @@
         activeSleep: null,
         bank: {
           balance: 0,
+          totalBorrowed: 0,
           hasActiveLoan: false,
           principal: 0,
           accruedInterest: 0,
@@ -354,6 +355,10 @@
       normalized.player.hungerUpdatedAt = normalized.meta.lastSyncAt || fresh.player.hungerUpdatedAt;
     }
     normalized.player.bank.balance = Math.max(0, Number(normalized.player.bank.balance || 0));
+    normalized.player.bank.totalBorrowed = Math.max(
+      0,
+      Number(normalized.player.bank.totalBorrowed || 0)
+    );
     normalized.player.bank.hasActiveLoan = Boolean(normalized.player.bank.hasActiveLoan);
     normalized.player.bank.principal = Math.max(0, Number(normalized.player.bank.principal || 0));
     normalized.player.bank.accruedInterest = Math.max(
