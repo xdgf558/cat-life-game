@@ -94,6 +94,29 @@
     render();
   }
 
+  function scheduleLotteryResolve(source) {
+    if (!game.systems.lotterySystem) {
+      return;
+    }
+
+    game.systems.lotterySystem.resolvePendingDraws(source).then(function (result) {
+      if (!result) {
+        return;
+      }
+
+      if (result.messages && result.messages.length) {
+        result.messages.forEach(pushNotice);
+      }
+
+      if (result.changed) {
+        persistGame(true);
+        render();
+      } else if (game.state.currentPage === "arcade") {
+        render();
+      }
+    });
+  }
+
   function refreshLiveBindings() {
     var activeWork = game.systems.workSystem.getActiveWork();
     var displayStats = game.systems.playerSystem.getDisplayStats();
@@ -155,6 +178,12 @@
       node.textContent = activeSleep ? sleepRecovery.moodGain : "0";
     });
 
+    Array.prototype.forEach.call(document.querySelectorAll("[data-lottery-next-draw-countdown]"), function (node) {
+      node.textContent = game.systems.lotterySystem
+        ? format.formatDuration(game.systems.lotterySystem.getNextDrawInfo().countdownMs)
+        : t("stopped");
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll("[data-cat-stat-countdown]"), function (node) {
       var cat = game.systems.catSystem.getCat(node.dataset.catId);
       var countdown = cat ? game.systems.catSystem.getStatCountdown(cat, node.dataset.catStat) : null;
@@ -181,10 +210,13 @@
       game.systems.taskSystem.refreshAllTasks();
       persistGame(true);
       render();
-      return;
+    } else {
+      refreshLiveBindings();
     }
 
-    refreshLiveBindings();
+    if (result.lotteryNeedsResolve || source === "init" || source === "focus" || source === "visibility") {
+      scheduleLotteryResolve(source);
+    }
   }
 
   function renderQuickPanel() {
@@ -410,6 +442,7 @@
     var sleepButton = event.target.closest("[data-player-sleep]");
     var usePlayerItemButton = event.target.closest("[data-use-player-item]");
     var bankActionButton = event.target.closest("[data-bank-action]");
+    var lotteryActionButton = event.target.closest("[data-lottery-action]");
     var slotButton = event.target.closest("[data-slot-bet]");
     var breedButton = event.target.closest("[data-breed-cats]");
     var inspectCollectionButton = event.target.closest("[data-inspect-collection-cat]");
@@ -424,6 +457,9 @@
     if (pageButton) {
       game.state.currentPage = pageButton.dataset.pageTarget;
       render();
+      if (pageButton.dataset.pageTarget === "arcade") {
+        scheduleLotteryResolve("arcade-page");
+      }
       return;
     }
 
@@ -499,6 +535,32 @@
 
       handleActionResult(result);
       return;
+    }
+
+    if (lotteryActionButton) {
+      var lotteryAction = lotteryActionButton.dataset.lotteryAction;
+
+      if (lotteryAction === "randomize") {
+        game.systems.lotterySystem.randomizeDraft();
+        render();
+        return;
+      }
+      if (lotteryAction === "buy-current") {
+        handleActionResult(game.systems.lotterySystem.purchaseTicket(game.systems.lotterySystem.getDraftNumber()));
+        return;
+      }
+      if (lotteryAction === "buy-random") {
+        handleActionResult(
+          game.systems.lotterySystem.purchaseRandomTickets(
+            Number(lotteryActionButton.dataset.lotteryCount || 1)
+          )
+        );
+        return;
+      }
+      if (lotteryAction === "retry") {
+        scheduleLotteryResolve("lottery-retry");
+        return;
+      }
     }
 
     if (slotButton) {
@@ -634,6 +696,12 @@
         game.systems.homeSystem.resetFurnitureLayout();
       }
       game.state.saveSystem.saveGame(game.state.game);
+      render();
+      return;
+    }
+
+    if (target.matches("[data-lottery-digit-index]")) {
+      game.systems.lotterySystem.setDraftDigit(target.dataset.lotteryDigitIndex, target.value);
       render();
       return;
     }
@@ -811,6 +879,7 @@
     syncRealtime("init");
     pushNotice(t("storage_loaded"));
     render();
+    scheduleLotteryResolve("init");
     game.state.saveSystem.saveGame(game.state.game);
 
     if (liveTickId) {

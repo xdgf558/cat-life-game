@@ -58,14 +58,23 @@ Status: completed
 - Dynamic loan limit based on repayment behavior
 - One-tap full payoff flow
 
+### Milestone 8: Arcade Lottery Expansion
+Status: completed
+- Local single-player lottery added inside the Arcade
+- Manual 6-digit ticket entry and random ticket generation
+- UTC daily draw handling and pending draw states
+- Bitcoin block-hash-based winning number resolution
+- Jackpot rollover, reset, and prize-tier payouts
+- Lottery save/load compatibility for old saves
+
 ## Current Milestone
-- Current milestone: `Milestone 7: Bank And Interface Refresh`
+- Current milestone: `Milestone 8: Arcade Lottery Expansion`
 - State: `completed`
 
 ## Current Focus After This Milestone
-- Run targeted browser QA on the refreshed interface and new bank flow
-- Verify in-game day progression for sleep, work completion, savings interest, and loan interest accrual
-- Tune debt pressure, savings payout, credit-tier loan limits, hunger pacing, and player recovery values if playtests feel harsh
+- Run targeted browser QA on the refreshed interface, bank flow, and new lottery flow
+- Verify UTC date rollover and delayed draw resolution behavior for the lottery system
+- Tune debt pressure, savings payout, credit-tier loan limits, lottery excitement, hunger pacing, and player recovery values if playtests feel harsh
 
 ## Stop Conditions Before The Next Feature Batch
 - Old saves must continue loading without missing-field crashes
@@ -73,4 +82,5 @@ Status: completed
 - Player consumable counts must persist correctly across save/export/import
 - Bank balances, loan principal, accrued interest, and manual repayment must persist correctly
 - Savings payout previews, loan-interest previews, and full payoff must behave correctly after reload
+- Lottery tickets, pending draws, history, and jackpot pool must persist correctly across reload and import/export
 - No cat-care regression should appear while testing the new player-life loop

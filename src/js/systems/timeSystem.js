@@ -85,6 +85,7 @@
     var todayKey = game.utils.format.formatDateKey(now);
     var messages = [];
     var changed = false;
+    var lotteryNeedsResolve = false;
 
     if (game.systems.taskSystem && state.tasks.lastResetDate !== todayKey) {
       game.systems.taskSystem.resetDailyTasks(todayKey);
@@ -124,6 +125,15 @@
       }
     }
 
+    if (game.systems.lotterySystem) {
+      var lotterySyncResult = game.systems.lotterySystem.syncCurrentDrawDate(now, source);
+      if (lotterySyncResult.changed) {
+        changed = true;
+        messages = messages.concat(lotterySyncResult.messages || []);
+      }
+      lotteryNeedsResolve = lotteryNeedsResolve || Boolean(lotterySyncResult.needsResolve);
+    }
+
     if (game.systems.catSystem) {
       var catSyncResult = game.systems.catSystem.syncCatState(now, source);
       if (catSyncResult.changed) {
@@ -145,6 +155,7 @@
     return {
       changed: changed,
       messages: messages,
+      lotteryNeedsResolve: lotteryNeedsResolve,
     };
   }
 

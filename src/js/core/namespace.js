@@ -2,7 +2,7 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.14.1",
+      version: "1.15.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
@@ -16,6 +16,8 @@
           "商店新增晚间 20:00-22:00 随机限时折扣，库存卖完后会恢复原价。",
           "任务系统新增银行相关成就，分别对应存款达 1 万和累计贷款达 2 万。",
           "打工新增 Lv.10 解锁职业「猫咖管理员」，30 分钟高收益高消耗。",
+          "游戏厅新增本地单机彩票玩法，可手选或随机购买 6 位号码彩票。",
+          "彩票每天按 UTC 日期开奖，开奖结果基于比特币区块哈希，并支持奖池滚存。",
         ],
         en: [
           "The UI now uses a softer cozy village look, and major feature modules have been moved into a top navigation bar.",
@@ -28,6 +30,8 @@
           "The shop now runs random limited evening discounts from 20:00 to 22:00, and sold-out deals return to normal price.",
           "New bank achievements now reward you for reaching 10,000 in savings and 20,000 in total borrowing.",
           "Added the level 10 job 'Cat Cafe Manager' with higher cost and higher reward.",
+          "Added a local single-player lottery feature inside the Arcade, with manual and random 6-digit tickets.",
+          "The lottery resolves by UTC date, derives results from Bitcoin block hashes, and supports jackpot rollover.",
         ],
         ja: [
           "UI全体をよりかわいい田園風デザインに刷新し、主要機能のナビゲーションを上部へ移動しました。",
@@ -40,6 +44,8 @@
           "ショップに 20:00-22:00 のランダム夜間セールを追加し、売り切れ後は通常価格に戻ります。",
           "銀行関連の実績を追加し、預金 1 万と累計借入 2 万で報酬を獲得できるようになりました。",
           "Lv.10 で解放される新しい仕事「猫カフェ管理人」を追加しました。",
+          "ゲームセンターにローカル単機用の宝くじ機能を追加し、手動またはランダムで 6 桁の券を購入できます。",
+          "宝くじは UTC 日付ごとに抽選され、ビットコインのブロックハッシュから当選番号を生成し、ジャックポット繰り越しにも対応します。",
         ],
       },
       readoptCost: 80,
@@ -128,6 +134,18 @@
         consumableStockRange: [2, 5],
         furnitureStockRange: [1, 1],
       },
+      lottery: {
+        ticketPrice: 20,
+        jackpotBase: 1000000,
+        drawDigits: 6,
+        retryCooldownMs: 30000,
+        prizeRewards: {
+          second_prize: 20000,
+          third_prize: 2000,
+          fourth_prize: 200,
+          fifth_prize: 20,
+        },
+      },
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
         clean: { intervalMs: 8 * 60 * 1000, label: "清洁" },
@@ -146,6 +164,7 @@
       arcadeSpin: null,
       roomDrag: null,
       collectionInspectCatId: null,
+      lotteryDraftDigits: ["0", "0", "0", "0", "0", "0"],
     },
     systems: {},
     ui: {},

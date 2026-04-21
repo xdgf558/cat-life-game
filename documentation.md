@@ -28,6 +28,13 @@
 - Pregnancy exists and produces kittens after realtime delay.
 - Slot machine arcade exists with animated reel display and payouts.
 - Background music exists with built-in scene music plus local custom BGM import.
+- Arcade now includes a local lottery system:
+  - manual 6-digit ticket selection
+  - random ticket generation
+  - UTC daily draw dates
+  - jackpot rollover and reset
+  - Bitcoin block-hash-based winning numbers
+  - cached draw history and pending resolution states
 - Chinese, English, and Japanese language modes exist, with Japanese falling back to English when needed.
 - Player condition system is now implemented:
   - player stamina
@@ -60,10 +67,11 @@
 - Player life simulation is now connected to work/shop/sleep, but balance still needs browser playtesting before treating the numbers as final.
 - The bank module is functionally integrated, but its long-term balance and its in-game day pacing still need hands-on playtesting.
 - The new bank credit-limit rules are implemented, but they still need balancing verification so the loan cap does not feel too generous or too restrictive.
+- The lottery system is now fully wired into Arcade, but its browser-side API fetch flow and long-gap unresolved-draw handling still need hands-on verification.
 
 ## What Is Broken
 - Browser interaction testing has not been completed.
-  - Work completion after reload, sleep flow, supply consumption, room drag, bank repayment flow, and multilingual page behavior have syntax-level confidence but not a full manual browser QA pass in this review cycle.
+  - Work completion after reload, sleep flow, supply consumption, room drag, bank repayment flow, lottery draw fetch flow, and multilingual page behavior have syntax-level confidence but not a full manual browser QA pass in this review cycle.
 
 ## What Should Be Done Next
 - Run a focused browser QA pass on the new player condition loop.
@@ -76,6 +84,11 @@
   - bank full payoff
   - bank savings interest payout preview
   - dynamic loan limit changes after quick or slow loan repayment
+  - lottery ticket purchase and current-draw persistence
+  - lottery UTC date rollover behavior
+  - lottery pending resolution retry flow when blockchain API is unavailable
+  - lottery payout accuracy for first to fifth prize
+  - jackpot rollover / reset after a first-prize hit
   - work auto-deduction fully clearing a loan
   - interest accrual when multiple in-game days pass at once
   - room drag on mouse
@@ -86,8 +99,11 @@
   - player food/drink prices and recovery values
   - bank daily interest pressure and repayment pace
   - savings interest payout size and credit-tier loan-cap steps
+  - lottery ticket price versus prize excitement
+  - jackpot base and payout feel as a side activity
 - After QA and balancing, decide whether the next milestone should be:
   - deeper room/furniture customization
   - richer breeding/collection progression
   - broader life-sim systems around the player
   - savings perks or richer bank progression
+  - lottery polish, history depth, and result presentation

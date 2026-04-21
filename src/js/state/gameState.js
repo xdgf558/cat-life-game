@@ -73,8 +73,17 @@
     });
   }
 
+  function formatUtcDateKey(dateValue) {
+    var date = dateValue ? new Date(dateValue) : new Date();
+    var year = date.getUTCFullYear();
+    var month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    var day = String(date.getUTCDate()).padStart(2, "0");
+    return year + "-" + month + "-" + day;
+  }
+
   function createNewGame() {
     var now = new Date();
+    var currentUtcDate = formatUtcDateKey(now);
     return {
       version: game.config.version,
       meta: {
@@ -177,6 +186,23 @@
         flashSaleDateKey: "",
         offers: [],
       },
+      lottery: {
+        jackpotPool: game.config.lottery.jackpotBase,
+        currentDrawDate: currentUtcDate,
+        tickets: [],
+        drawHistory: [],
+        unresolvedDrawDates: [],
+        drawStates: [
+          {
+            drawDate: currentUtcDate,
+            openingJackpot: game.config.lottery.jackpotBase,
+            ticketSales: 0,
+            resolved: false,
+            jackpotWasHit: false,
+          },
+        ],
+        lastResultSummary: null,
+      },
       settings: {
         bgmVolume: 60,
         sfxVolume: 70,
@@ -225,6 +251,7 @@
       tasks: normalizeTaskBlock(saveData.tasks || {}, fresh.tasks),
       home: Object.assign({}, fresh.home, saveData.home || {}),
       shop: Object.assign({}, fresh.shop, saveData.shop || {}),
+      lottery: Object.assign({}, fresh.lottery, saveData.lottery || {}),
       settings: Object.assign({}, fresh.settings, saveData.settings || {}),
       flags: Object.assign({}, fresh.flags, saveData.flags || {}),
     };
@@ -261,6 +288,12 @@
       normalized.shop = Object.assign({}, fresh.shop, normalized.shop);
     }
 
+    if (!normalized.lottery || typeof normalized.lottery !== "object") {
+      normalized.lottery = game.state.deepClone(fresh.lottery);
+    } else {
+      normalized.lottery = Object.assign({}, fresh.lottery, normalized.lottery);
+    }
+
     if (typeof normalized.shop.flashSaleDateKey !== "string") {
       normalized.shop.flashSaleDateKey = "";
     }
@@ -280,6 +313,91 @@
             totalStock: Math.max(0, Number(offer.totalStock || 0)),
           };
         });
+    }
+
+    if (typeof normalized.lottery.currentDrawDate !== "string" || !normalized.lottery.currentDrawDate) {
+      normalized.lottery.currentDrawDate = fresh.lottery.currentDrawDate;
+    }
+    normalized.lottery.jackpotPool = Math.max(
+      game.config.lottery.jackpotBase,
+      Number(normalized.lottery.jackpotPool || game.config.lottery.jackpotBase)
+    );
+    if (!Array.isArray(normalized.lottery.tickets)) {
+      normalized.lottery.tickets = [];
+    } else {
+      normalized.lottery.tickets = normalized.lottery.tickets
+        .filter(function (ticket) {
+          return ticket && typeof ticket.id === "string";
+        })
+        .map(function (ticket) {
+          return {
+            id: ticket.id,
+            drawDate: String(ticket.drawDate || normalized.lottery.currentDrawDate),
+            numbers: String(ticket.numbers || "").padStart(game.config.lottery.drawDigits, "0").slice(0, game.config.lottery.drawDigits),
+            purchaseUtcTime: ticket.purchaseUtcTime || fresh.meta.createdAt,
+            status: ticket.status || "pending",
+            payout: Math.max(0, Number(ticket.payout || 0)),
+            resolved: Boolean(ticket.resolved),
+          };
+        });
+    }
+    if (!Array.isArray(normalized.lottery.drawHistory)) {
+      normalized.lottery.drawHistory = [];
+    } else {
+      normalized.lottery.drawHistory = normalized.lottery.drawHistory
+        .filter(function (entry) {
+          return entry && typeof entry.drawDate === "string";
+        })
+        .map(function (entry) {
+          return {
+            drawDate: entry.drawDate,
+            winningNumber: String(entry.winningNumber || ""),
+            sourceBlockHash: String(entry.sourceBlockHash || ""),
+            sourceBlockHeight:
+              entry.sourceBlockHeight === null || entry.sourceBlockHeight === undefined
+                ? null
+                : Number(entry.sourceBlockHeight || 0),
+            resolvedAtUtc: entry.resolvedAtUtc || fresh.meta.createdAt,
+            firstPrizeWinners: Math.max(0, Number(entry.firstPrizeWinners || 0)),
+            jackpotPayoutPerTicket: Math.max(0, Number(entry.jackpotPayoutPerTicket || 0)),
+            jackpotWasHit: Boolean(entry.jackpotWasHit),
+          };
+        });
+    }
+    if (!Array.isArray(normalized.lottery.unresolvedDrawDates)) {
+      normalized.lottery.unresolvedDrawDates = [];
+    } else {
+      normalized.lottery.unresolvedDrawDates = normalized.lottery.unresolvedDrawDates
+        .filter(function (dateValue) {
+          return typeof dateValue === "string" && dateValue;
+        });
+    }
+    if (!Array.isArray(normalized.lottery.drawStates)) {
+      normalized.lottery.drawStates = game.state.deepClone(fresh.lottery.drawStates);
+    } else {
+      normalized.lottery.drawStates = normalized.lottery.drawStates
+        .filter(function (drawState) {
+          return drawState && typeof drawState.drawDate === "string";
+        })
+        .map(function (drawState) {
+          return {
+            drawDate: drawState.drawDate,
+            openingJackpot: Math.max(
+              game.config.lottery.jackpotBase,
+              Number(drawState.openingJackpot || game.config.lottery.jackpotBase)
+            ),
+            ticketSales: Math.max(0, Number(drawState.ticketSales || 0)),
+            resolved: Boolean(drawState.resolved),
+            jackpotWasHit: Boolean(drawState.jackpotWasHit),
+          };
+        });
+    }
+    if (!normalized.lottery.lastResultSummary || typeof normalized.lottery.lastResultSummary !== "object") {
+      normalized.lottery.lastResultSummary = null;
+    }
+    if (!normalized.lottery.drawStates.some(function (drawState) { return drawState.drawDate === normalized.lottery.currentDrawDate; })) {
+      normalized.lottery.drawStates.push(game.state.deepClone(fresh.lottery.drawStates[0]));
+      normalized.lottery.drawStates[normalized.lottery.drawStates.length - 1].drawDate = normalized.lottery.currentDrawDate;
     }
 
     if (!normalized.meta.lastSyncAt) {

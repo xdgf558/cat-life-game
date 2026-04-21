@@ -654,6 +654,19 @@ button:disabled {
   line-height: 1;
 }
 
+.lottery-digit-row {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.lottery-digit-select {
+  text-align: center;
+  font-size: 22px;
+  font-weight: 800;
+  min-height: 60px;
+}
+
 .cat-illustration,
 .cat-illustration-large,
 .cat-illustration-small {
@@ -1011,6 +1024,10 @@ button:disabled {
   .slot-window {
     min-height: 88px;
     font-size: 34px;
+  }
+
+  .lottery-digit-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .room-scene {
