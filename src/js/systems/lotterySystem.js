@@ -430,6 +430,46 @@
       .slice(0, 6);
   }
 
+  function getTicketHistoryDrawDates() {
+    var seen = {};
+
+    return getLottery().tickets
+      .map(function (ticket) {
+        return String(ticket.drawDate || "");
+      })
+      .filter(function (drawDate) {
+        if (!drawDate || seen[drawDate]) {
+          return false;
+        }
+        seen[drawDate] = true;
+        return true;
+      })
+      .sort(function (left, right) {
+        return right.localeCompare(left);
+      });
+  }
+
+  function getTicketHistoryDetails(drawDate) {
+    var safeDrawDate = drawDate || "";
+    var historyEntry = getHistoryEntry(safeDrawDate);
+    var currentDrawDate = getLottery().currentDrawDate;
+
+    return {
+      drawDate: safeDrawDate,
+      tickets: getTicketsForDraw(safeDrawDate)
+        .slice()
+        .sort(function (left, right) {
+          return right.purchaseUtcTime.localeCompare(left.purchaseUtcTime);
+        }),
+      historyEntry: historyEntry,
+      isCurrentDraw: safeDrawDate === currentDrawDate,
+      isPending: !historyEntry && safeDrawDate !== currentDrawDate,
+      winningNumber: historyEntry ? historyEntry.winningNumber : "",
+      sourceBlockHash: historyEntry ? historyEntry.sourceBlockHash : "",
+      sourceBlockHeight: historyEntry ? historyEntry.sourceBlockHeight : null,
+    };
+  }
+
   function getPrizeRules() {
     return [
       { key: "first_prize", matches: 6, reward: "jackpot" },
@@ -654,6 +694,8 @@
     getCurrentDrawTickets: getCurrentDrawTickets,
     getPendingPastDrawDates: getPendingPastDrawDates,
     getRecentHistory: getRecentHistory,
+    getTicketHistoryDrawDates: getTicketHistoryDrawDates,
+    getTicketHistoryDetails: getTicketHistoryDetails,
     getPrizeRules: getPrizeRules,
     purchaseTicket: purchaseTicket,
     purchaseRandomTickets: purchaseRandomTickets,

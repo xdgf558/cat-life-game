@@ -5,6 +5,7 @@
   var dom = {};
   var liveTickId = null;
   var arcadeSpinTimerId = null;
+  var lotteryCelebrationTimerId = null;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -100,6 +101,9 @@
     }
 
     game.systems.lotterySystem.resolvePendingDraws(source).then(function (result) {
+      var latestSummary;
+      var celebrationKey;
+
       if (!result) {
         return;
       }
@@ -109,6 +113,27 @@
       }
 
       if (result.changed) {
+        latestSummary = game.state.game.lottery.lastResultSummary;
+        if (latestSummary && latestSummary.totalPayout > 0) {
+          celebrationKey = [latestSummary.drawDate, latestSummary.winningNumber, latestSummary.totalPayout].join(":");
+          game.state.lotteryCelebration = {
+            key: celebrationKey,
+            endsAt: Date.now() + 5200,
+          };
+
+          if (lotteryCelebrationTimerId) {
+            window.clearTimeout(lotteryCelebrationTimerId);
+          }
+          lotteryCelebrationTimerId = window.setTimeout(function () {
+            if (game.state.lotteryCelebration && game.state.lotteryCelebration.key === celebrationKey) {
+              game.state.lotteryCelebration = null;
+              if (game.state.currentPage === "arcade") {
+                render();
+              }
+            }
+          }, 5300);
+        }
+
         persistGame(true);
         render();
       } else if (game.state.currentPage === "arcade") {
@@ -702,6 +727,12 @@
 
     if (target.matches("[data-lottery-digit-index]")) {
       game.systems.lotterySystem.setDraftDigit(target.dataset.lotteryDigitIndex, target.value);
+      render();
+      return;
+    }
+
+    if (target.matches("[data-lottery-history-draw]")) {
+      game.state.lotteryHistoryDrawDate = target.value || null;
       render();
       return;
     }

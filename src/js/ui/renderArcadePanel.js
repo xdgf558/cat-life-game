@@ -18,6 +18,15 @@
       .join("");
   }
 
+  function renderWinningDigits(numbers) {
+    return String(numbers || "")
+      .split("")
+      .map(function (digit) {
+        return '<span class="lottery-winning-digit">' + format.escapeHtml(digit) + "</span>";
+      })
+      .join("");
+  }
+
   function renderArcadePanel(state) {
     var lastSpin = state.home.arcadeLastSpin;
     var activeSpin = game.state.arcadeSpin;
@@ -27,8 +36,25 @@
     var currentTickets = game.systems.lotterySystem.getCurrentDrawTickets();
     var pendingDrawDates = game.systems.lotterySystem.getPendingPastDrawDates();
     var recentHistory = game.systems.lotterySystem.getRecentHistory();
+    var ticketHistoryDrawDates = game.systems.lotterySystem.getTicketHistoryDrawDates();
     var prizeRules = game.systems.lotterySystem.getPrizeRules();
     var lastSummary = lottery.lastResultSummary;
+    var selectedHistoryDrawDate = ticketHistoryDrawDates.indexOf(game.state.lotteryHistoryDrawDate) >= 0
+      ? game.state.lotteryHistoryDrawDate
+      : (ticketHistoryDrawDates[0] || "");
+    var historyDetails = selectedHistoryDrawDate
+      ? game.systems.lotterySystem.getTicketHistoryDetails(selectedHistoryDrawDate)
+      : null;
+    var hasPendingHistory = pendingDrawDates.length > 0;
+    var latestWinningKey = lastSummary
+      ? [lastSummary.drawDate, lastSummary.winningNumber, lastSummary.totalPayout].join(":")
+      : "";
+    var isCelebrating = Boolean(
+      lastSummary &&
+      game.state.lotteryCelebration &&
+      game.state.lotteryCelebration.key === latestWinningKey &&
+      game.state.lotteryCelebration.endsAt > Date.now()
+    );
     var bets = game.config.slotBets
       .map(function (bet) {
         return (
@@ -110,6 +136,71 @@
           })
           .join("")
       : '<div class="empty-state">' + t("lottery_no_history") + "</div>";
+    var ticketHistoryOptions = ticketHistoryDrawDates.length
+      ? ticketHistoryDrawDates
+          .map(function (drawDate) {
+            return (
+              '<option value="' +
+              format.escapeHtml(drawDate) +
+              '" ' +
+              (drawDate === selectedHistoryDrawDate ? "selected" : "") +
+              ">" +
+              format.escapeHtml(drawDate) +
+              " UTC</option>"
+            );
+          })
+          .join("")
+      : "";
+    var ticketHistoryList = historyDetails && historyDetails.tickets.length
+      ? historyDetails.tickets
+          .map(function (ticket) {
+            var statusKey = ticket.resolved
+              ? ("lottery_" + ticket.status)
+              : "lottery_history_status_pending";
+
+            return (
+              '<div class="notice-item"><p><strong>' +
+              format.escapeHtml(ticket.numbers) +
+              '</strong></p><p>' +
+              t("lottery_ticket_time", { time: format.formatRealDateTime(ticket.purchaseUtcTime) }) +
+              '</p><p class="helper-text" style="margin-top: 6px;">' +
+              t("lottery_history_ticket_status", { status: t(statusKey) }) +
+              '</p>' +
+              (ticket.resolved
+                ? '<p class="helper-text" style="margin-top: 4px;">' +
+                  t("lottery_history_ticket_payout", { amount: ticket.payout || 0 }) +
+                  "</p>"
+                : '<p class="helper-text" style="margin-top: 4px;">' +
+                  t("lottery_history_ticket_pending") +
+                  "</p>") +
+              "</div>"
+            );
+          })
+          .join("")
+      : '<div class="empty-state">' + t(historyDetails ? "lottery_history_ticket_empty" : "lottery_history_query_empty") + "</div>";
+    var ticketHistoryMeta = historyDetails
+      ? '<div class="notice-list" style="margin-top: 16px;">' +
+        '<div class="notice-item"><p><strong>' + t("lottery_current_draw") + '</strong></p><p>' +
+        format.escapeHtml(historyDetails.drawDate) + " UTC</p></div>" +
+        '<div class="notice-item"><p><strong>' + t("lottery_result_summary_title") + '</strong></p><p>' +
+        t(
+          historyDetails.isCurrentDraw
+            ? "lottery_history_status_current"
+            : historyDetails.historyEntry
+            ? "lottery_history_status_resolved"
+            : "lottery_history_status_pending"
+        ) +
+        "</p></div>" +
+        (historyDetails.historyEntry
+          ? '<div class="notice-item"><p><strong>' + t("lottery_winning_number", { numbers: historyDetails.winningNumber }) + '</strong></p><p>' +
+            t("lottery_history_block", {
+              hash: format.escapeHtml(String(historyDetails.sourceBlockHash || "").slice(0, 18)),
+              height: historyDetails.sourceBlockHeight === null ? "?" : historyDetails.sourceBlockHeight,
+            }) +
+            "</p></div>"
+          : "") +
+        "</div>"
+      : "";
     var prizeRuleList = prizeRules
       .map(function (rule) {
         return (
@@ -192,6 +283,32 @@
       '<div class="page-card">' +
       '<p class="section-eyebrow">' + t("lottery_title") + '</p><h3 class="panel-title">' + t("lottery_panel_title") + "</h3>" +
       '<p class="page-copy">' + t("lottery_panel_copy") + "</p>" +
+      '<div class="lottery-latest-card' + (isCelebrating ? " is-celebrating" : "") + '" style="margin-top: 16px;">' +
+      '<div class="inline-row" style="justify-content: space-between; align-items: flex-start; gap: 12px;">' +
+      '<div><p class="section-eyebrow">' + t("lottery_latest_result_title") + '</p><h4 class="panel-title">' +
+      (lastSummary
+        ? t("lottery_latest_result_draw", { date: lastSummary.drawDate })
+        : t("lottery_latest_result_title")) +
+      '</h4></div>' +
+      (isCelebrating
+        ? '<span class="status-pill is-warning">' + t("lottery_win_flash") + "</span>"
+        : "") +
+      "</div>" +
+      (lastSummary
+        ? '<div class="lottery-winning-number">' +
+          renderWinningDigits(lastSummary.winningNumber) +
+          '</div><p class="helper-text" style="margin-top: 10px;">' +
+          t("lottery_latest_result_copy") +
+          '</p><p class="helper-text" style="margin-top: 8px;">' +
+          t("lottery_history_block", {
+            hash: format.escapeHtml(String(lastSummary.sourceBlockHash || "").slice(0, 18)),
+            height: lastSummary.sourceBlockHeight === null ? "?" : lastSummary.sourceBlockHeight,
+          }) +
+          "</p>"
+        : '<div class="empty-state" style="margin-top: 12px;">' +
+          t(hasPendingHistory ? "lottery_latest_result_pending" : "lottery_latest_result_empty") +
+          "</div>") +
+      "</div>" +
       '<div class="notice-list" style="margin-top: 16px;">' +
       '<div class="notice-item"><p><strong>' + t("lottery_current_draw") + '</strong></p><p>' + format.escapeHtml(lottery.currentDrawDate) + " UTC</p></div>" +
       '<div class="notice-item"><p><strong>' + t("lottery_next_draw") + '</strong></p><p>' + format.escapeHtml(nextDrawInfo.nextDrawDate) + ' UTC · <span data-lottery-next-draw-countdown>' + format.formatDuration(nextDrawInfo.countdownMs) + "</span></p></div>" +
@@ -237,7 +354,7 @@
       '<div class="page-card">' +
       '<p class="section-eyebrow">' + t("lottery_result_summary_title") + '</p><h3 class="panel-title">' + t("lottery_result_summary_title") + "</h3>" +
       (lastSummary
-        ? '<div class="notice-list" style="margin-top: 16px;">' +
+        ? '<div class="notice-list' + (isCelebrating ? " lottery-summary-celebrate" : "") + '" style="margin-top: 16px;">' +
           '<div class="notice-item"><p><strong>' + format.escapeHtml(lastSummary.drawDate) + ' UTC</strong></p><p>' +
           t("lottery_winning_number", { numbers: lastSummary.winningNumber }) +
           '</p><p style="margin-top: 6px;">' + t("lottery_payout_total", { amount: lastSummary.totalPayout }) + "</p></div>" +
@@ -255,6 +372,20 @@
               })) +
           "</p></div></div>"
         : '<div class="empty-state" style="margin-top: 16px;">' + t("lottery_no_summary") + "</div>") +
+      "</div></section>" +
+      '<section class="home-grid">' +
+      '<div class="page-card">' +
+      '<p class="section-eyebrow">' + t("lottery_ticket_history") + '</p><h3 class="panel-title">' + t("lottery_ticket_history_title") + "</h3>" +
+      '<p class="page-copy">' + t("lottery_ticket_history_copy") + "</p>" +
+      (ticketHistoryDrawDates.length
+        ? '<label class="field-label" style="margin-top: 16px; display: block;">' + t("lottery_history_select_label") + '</label>' +
+          '<select class="field" data-lottery-history-draw style="margin-top: 8px;">' + ticketHistoryOptions + "</select>" +
+          ticketHistoryMeta
+        : '<div class="empty-state" style="margin-top: 16px;">' + t("lottery_history_query_empty") + "</div>") +
+      "</div>" +
+      '<div class="page-card">' +
+      '<p class="section-eyebrow">' + t("lottery_ticket_history") + '</p><h3 class="panel-title">' + t("lottery_ticket_list_title") + "</h3>" +
+      '<div class="notice-list" style="margin-top: 16px;">' + ticketHistoryList + "</div>" +
       "</div></section>" +
       '<section class="page-card">' +
       '<p class="section-eyebrow">' + t("slot_paytable") + '</p><h3 class="panel-title">' + t("slot_rules_title") + "</h3>" +
