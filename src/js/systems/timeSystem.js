@@ -134,6 +134,14 @@
       lotteryNeedsResolve = lotteryNeedsResolve || Boolean(lotterySyncResult.needsResolve);
     }
 
+    if (game.systems.communitySystem) {
+      var communitySyncResult = game.systems.communitySystem.syncDailyState();
+      if (communitySyncResult.changed) {
+        changed = true;
+        messages = messages.concat(communitySyncResult.messages || []);
+      }
+    }
+
     if (game.systems.catSystem) {
       var catSyncResult = game.systems.catSystem.syncCatState(now, source);
       if (catSyncResult.changed) {

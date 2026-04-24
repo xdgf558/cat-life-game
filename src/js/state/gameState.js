@@ -73,6 +73,30 @@
     });
   }
 
+  function createDefaultCommunity() {
+    var relationships = {};
+
+    (game.data.community && game.data.community.neighbors ? game.data.community.neighbors : []).forEach(function (npc) {
+      relationships[npc.id] = {
+        friendship: 0,
+        lastVisitedDay: null,
+        lastGiftDay: null,
+        lastExchangeDay: null,
+        giftsGivenToday: 0,
+        exchangesToday: 0,
+        lastDialogue: "",
+      };
+    });
+
+    return {
+      unlocked: true,
+      lastResetDay: 1,
+      relationships: relationships,
+      visitHistory: [],
+      exchangeHistory: [],
+    };
+  }
+
   function formatUtcDateKey(dateValue) {
     var date = dateValue ? new Date(dateValue) : new Date();
     var year = date.getUTCFullYear();
@@ -157,6 +181,12 @@
         soda: 0,
         coffee: 0,
         beer: 0,
+        catSnack: 0,
+        toyMaterial: 0,
+        softBlanketMaterial: 0,
+        decorationMaterial: 0,
+        moonCharm: 0,
+        catSupply: 0,
         furnitureOwned: game.config.startingFurniture.slice(),
       },
       jobs: createDefaultJobs(),
@@ -203,6 +233,7 @@
         ],
         lastResultSummary: null,
       },
+      community: createDefaultCommunity(),
       settings: {
         bgmVolume: 60,
         sfxVolume: 70,
@@ -252,6 +283,7 @@
       home: Object.assign({}, fresh.home, saveData.home || {}),
       shop: Object.assign({}, fresh.shop, saveData.shop || {}),
       lottery: Object.assign({}, fresh.lottery, saveData.lottery || {}),
+      community: Object.assign({}, fresh.community, saveData.community || {}),
       settings: Object.assign({}, fresh.settings, saveData.settings || {}),
       flags: Object.assign({}, fresh.flags, saveData.flags || {}),
     };
@@ -292,6 +324,12 @@
       normalized.lottery = game.state.deepClone(fresh.lottery);
     } else {
       normalized.lottery = Object.assign({}, fresh.lottery, normalized.lottery);
+    }
+
+    if (!normalized.community || typeof normalized.community !== "object") {
+      normalized.community = game.state.deepClone(fresh.community);
+    } else {
+      normalized.community = Object.assign({}, game.state.deepClone(fresh.community), normalized.community);
     }
 
     if (typeof normalized.shop.flashSaleDateKey !== "string") {
@@ -398,6 +436,56 @@
     if (!normalized.lottery.drawStates.some(function (drawState) { return drawState.drawDate === normalized.lottery.currentDrawDate; })) {
       normalized.lottery.drawStates.push(game.state.deepClone(fresh.lottery.drawStates[0]));
       normalized.lottery.drawStates[normalized.lottery.drawStates.length - 1].drawDate = normalized.lottery.currentDrawDate;
+    }
+
+    if (!normalized.community.relationships || typeof normalized.community.relationships !== "object") {
+      normalized.community.relationships = {};
+    }
+    (game.data.community && game.data.community.neighbors ? game.data.community.neighbors : []).forEach(function (npc) {
+      var savedRelationship = normalized.community.relationships[npc.id] || {};
+      normalized.community.relationships[npc.id] = Object.assign(
+        {},
+        fresh.community.relationships[npc.id],
+        savedRelationship
+      );
+      normalized.community.relationships[npc.id].friendship = Math.max(
+        0,
+        Math.min(100, Number(normalized.community.relationships[npc.id].friendship || 0))
+      );
+      normalized.community.relationships[npc.id].giftsGivenToday = Math.max(
+        0,
+        Number(normalized.community.relationships[npc.id].giftsGivenToday || 0)
+      );
+      normalized.community.relationships[npc.id].exchangesToday = Math.max(
+        0,
+        Number(normalized.community.relationships[npc.id].exchangesToday || 0)
+      );
+      if (normalized.community.relationships[npc.id].lastVisitedDay !== null) {
+        normalized.community.relationships[npc.id].lastVisitedDay = Number(
+          normalized.community.relationships[npc.id].lastVisitedDay || 0
+        );
+      }
+      if (normalized.community.relationships[npc.id].lastGiftDay !== null) {
+        normalized.community.relationships[npc.id].lastGiftDay = Number(
+          normalized.community.relationships[npc.id].lastGiftDay || 0
+        );
+      }
+      if (normalized.community.relationships[npc.id].lastExchangeDay !== null) {
+        normalized.community.relationships[npc.id].lastExchangeDay = Number(
+          normalized.community.relationships[npc.id].lastExchangeDay || 0
+        );
+      }
+      if (typeof normalized.community.relationships[npc.id].lastDialogue !== "string") {
+        normalized.community.relationships[npc.id].lastDialogue = "";
+      }
+    });
+    normalized.community.unlocked = true;
+    normalized.community.lastResetDay = Math.max(1, Number(normalized.community.lastResetDay || 1));
+    if (!Array.isArray(normalized.community.visitHistory)) {
+      normalized.community.visitHistory = [];
+    }
+    if (!Array.isArray(normalized.community.exchangeHistory)) {
+      normalized.community.exchangeHistory = [];
     }
 
     if (!normalized.meta.lastSyncAt) {
@@ -576,6 +664,11 @@
     if (typeof normalized.inventory.beer !== "number") {
       normalized.inventory.beer = fresh.inventory.beer;
     }
+    ["catSnack", "toyMaterial", "softBlanketMaterial", "decorationMaterial", "moonCharm", "catSupply"].forEach(function (field) {
+      if (typeof normalized.inventory[field] !== "number") {
+        normalized.inventory[field] = fresh.inventory[field] || 0;
+      }
+    });
 
     if (typeof normalized.settings.bgmEnabled !== "boolean") {
       normalized.settings.bgmEnabled = fresh.settings.bgmEnabled;

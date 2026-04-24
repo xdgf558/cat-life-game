@@ -378,7 +378,8 @@
   function render() {
     var pageRenderers = {
       home: game.ui.renderHome,
-      room: game.ui.renderRoomPanel,
+      room: game.ui.renderCommunityPanel,
+      community: game.ui.renderCommunityPanel,
       work: game.ui.renderWorkPanel,
       bank: game.ui.renderBankPanel,
       cats: game.ui.renderCatPanel,
@@ -468,6 +469,12 @@
     var usePlayerItemButton = event.target.closest("[data-use-player-item]");
     var bankActionButton = event.target.closest("[data-bank-action]");
     var lotteryActionButton = event.target.closest("[data-lottery-action]");
+    var communityHomeButton = event.target.closest("[data-community-home]");
+    var communityBackButton = event.target.closest("[data-community-back]");
+    var communityNeighborButton = event.target.closest("[data-community-neighbor]");
+    var communityVisitButton = event.target.closest("[data-community-visit]");
+    var communityGiftButton = event.target.closest("[data-community-gift]");
+    var communityExchangeButton = event.target.closest("[data-community-exchange]");
     var slotButton = event.target.closest("[data-slot-bet]");
     var breedButton = event.target.closest("[data-breed-cats]");
     var inspectCollectionButton = event.target.closest("[data-inspect-collection-cat]");
@@ -481,10 +488,61 @@
 
     if (pageButton) {
       game.state.currentPage = pageButton.dataset.pageTarget;
+      if (game.state.currentPage === "room") {
+        game.state.currentPage = "community";
+      }
+      if (game.state.currentPage === "community") {
+        game.state.communityView = "main";
+        game.state.selectedCommunityNpcId = null;
+      }
       render();
       if (pageButton.dataset.pageTarget === "arcade") {
         scheduleLotteryResolve("arcade-page");
       }
+      return;
+    }
+
+    if (communityHomeButton) {
+      game.state.currentPage = "community";
+      game.state.communityView = "player_home";
+      game.state.selectedCommunityNpcId = null;
+      render();
+      return;
+    }
+
+    if (communityBackButton) {
+      game.state.currentPage = "community";
+      game.state.communityView = "main";
+      game.state.selectedCommunityNpcId = null;
+      render();
+      return;
+    }
+
+    if (communityNeighborButton) {
+      game.state.currentPage = "community";
+      game.state.communityView = "npc_home";
+      game.state.selectedCommunityNpcId = communityNeighborButton.dataset.communityNeighbor;
+      render();
+      return;
+    }
+
+    if (communityVisitButton) {
+      handleActionResult(game.systems.communitySystem.visitNpc(communityVisitButton.dataset.communityVisit));
+      return;
+    }
+
+    if (communityGiftButton) {
+      handleActionResult(
+        game.systems.communitySystem.giveGift(
+          communityGiftButton.dataset.communityNpc,
+          communityGiftButton.dataset.communityGift
+        )
+      );
+      return;
+    }
+
+    if (communityExchangeButton) {
+      handleActionResult(game.systems.communitySystem.performExchange(communityExchangeButton.dataset.communityExchange));
       return;
     }
 
@@ -807,7 +865,7 @@
     var furniture = event.target.closest(".room-furniture[data-furniture-id]");
     var scene;
 
-    if (!furniture || game.state.currentPage !== "room") {
+    if (!furniture || (game.state.currentPage !== "room" && !(game.state.currentPage === "community" && game.state.communityView === "player_home"))) {
       return;
     }
 

@@ -5,7 +5,7 @@
 - Save creation, autosave, export, import, and reset are implemented with `localStorage`.
 - Main page flow exists:
   - Home
-  - Room
+  - Community
   - Work
   - Cats
   - Collection
@@ -22,7 +22,23 @@
 - Cat diseases, worsening, contagious spread checks, and hospital treatment are implemented.
 - Item and furniture shop loops are implemented.
 - Furniture affects comfort and is visible in the room scene.
-- Room module exists with room themes and draggable furniture placement.
+- Room functionality is preserved inside Community as Player Home, including room themes, renovation, draggable furniture placement, and roaming player cats.
+- Community module is implemented:
+  - Player Home
+  - NPC neighbors
+  - clickable Cat Town map
+  - NPC homes
+  - NPC cats
+  - visiting
+  - gifting
+  - item exchange
+  - NPC relationship growth
+- Community v1 NPCs are:
+  - Mira
+  - Ken
+  - Luna
+  - Grace
+- NPC cats use the imported cat sticker sheet at `src/assets/community/npc-cat-sprites.png`, with different sprite positions and color filters to create varied coats.
 - Base cat art now uses imported sprite assets, and generated kittens inherit randomized sprite/color variants from the existing cat art pool.
 - Cat collection and breeding systems exist.
 - Pregnancy exists and produces kittens after realtime delay.
@@ -68,12 +84,28 @@
 - The bank module is functionally integrated, but its long-term balance and its in-game day pacing still need hands-on playtesting.
 - The new bank credit-limit rules are implemented, but they still need balancing verification so the loan cap does not feel too generous or too restrictive.
 - The lottery system is now fully wired into Arcade, but its browser-side API fetch flow and long-gap unresolved-draw handling still need hands-on verification.
+- Community v1 now has a visual town map, but it is still CSS-based rather than a fully illustrated custom map asset.
+- NPC cats are display and interaction content only; they are not part of the player's owned cat roster.
+- Gift and exchange materials are intentionally simple placeholders so the feature can be balanced later.
 
 ## What Is Broken
 - Browser interaction testing has not been completed.
-  - Work completion after reload, sleep flow, supply consumption, room drag, bank repayment flow, lottery draw fetch flow, and multilingual page behavior have syntax-level confidence but not a full manual browser QA pass in this review cycle.
+  - Work completion after reload, sleep flow, supply consumption, room drag, bank repayment flow, lottery draw fetch flow, community visiting/gifting/exchange, and multilingual page behavior have syntax-level confidence but not a full manual browser QA pass in this review cycle.
 
 ## What Should Be Done Next
+- Run a focused browser QA pass on Community:
+  - Community navigation from the former Room entry
+  - Cat Town map click targets on desktop and mobile
+  - Player Home room access
+  - furniture drag while inside Community > Player Home
+  - first NPC visit friendship gain once per in-game day
+  - repeat visit behavior on the same day
+  - gifting inventory removal and friendship gain
+  - gift daily limit
+  - exchange inventory checks
+  - exchange relationship level locks
+  - exchange daily limit
+  - save/reload after visiting, gifting, and exchange
 - Run a focused browser QA pass on the new player condition loop.
 - Verify browser-level behavior for:
   - work duration changes at different mood ranges
@@ -94,6 +126,9 @@
   - room drag on mouse
   - room drag on touch
 - Tune balance for:
+  - NPC visit friendship gain
+  - NPC favorite gift values
+  - community exchange costs and rewards
   - work mood loss
   - sleep recovery strength
   - player food/drink prices and recovery values
@@ -102,6 +137,9 @@
   - lottery ticket price versus prize excitement
   - jackpot base and payout feel as a side activity
 - After QA and balancing, decide whether the next milestone should be:
+  - visual community map and NPC portraits
+  - deeper neighbor dialogue and story events
+  - furniture crafting using community materials
   - deeper room/furniture customization
   - richer breeding/collection progression
   - broader life-sim systems around the player

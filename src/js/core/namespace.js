@@ -2,23 +2,23 @@
   window.CatGame = window.CatGame || {
     config: {
       storageKey: "catGameSaveV1",
-      version: "1.15.2",
+      version: "1.17.0",
       startingFurniture: ["bed_basic", "bowl_basic"],
       releaseNotes: {
         "zh-CN": [
-          "彩票系统新增历史购票查询，可按每一期查看当时买过的全部号码与中奖结果。",
-          "历史购票查询会同时显示当前期、待开奖期和已开奖期，方便回看每次下注记录。",
-          "版本说明继续保持只显示当前版本内容，避免旧版本文案持续堆积。",
+          "社区主页从卡片列表升级为完整猫咪镇地图，可直接点击玩家小家和邻居小屋。",
+          "NPC 猫咪改用新的猫咪贴图合集，并通过不同姿势和毛色滤镜区分每只猫。",
+          "玩家小家仍保留原房间、家具摆放、改造和猫咪走动功能。",
         ],
         en: [
-          "The Lottery system now includes a ticket history query so you can review every number bought for each draw.",
-          "Ticket history shows current, pending, and resolved draw periods, along with ticket outcomes when available.",
-          "The Version page still keeps only the current release notes so old notes do not keep piling up.",
+          "Community now uses a full Cat Town map instead of a card list, with clickable player and neighbor homes.",
+          "NPC cats now use the new cat sticker sheet with varied poses and color filters.",
+          "Player Home still preserves the old room, furniture placement, renovation, and roaming cats.",
         ],
         ja: [
-          "宝くじに購入履歴検索を追加し、各抽選回で買った番号をまとめて確認できるようになりました。",
-          "購入履歴では現在の回、保留中の回、確定済みの回をまとめて確認できます。",
-          "バージョンページは引き続き現在の更新内容だけを表示し、古い説明が増え続けないようにしています。",
+          "コミュニティをカード一覧からクリック可能な猫の町マップに更新しました。",
+          "NPC猫は新しい猫ステッカー画像を使い、ポーズと色違いで表示します。",
+          "自宅の部屋、家具配置、改装、猫の移動機能は引き続き残っています。",
         ],
       },
       readoptCost: 80,
@@ -119,6 +119,10 @@
           fifth_prize: 20,
         },
       },
+      community: {
+        maxGiftsPerNpcPerDay: 3,
+        maxExchangesPerNpcPerDay: 2,
+      },
       catDecayRules: {
         hunger: { intervalMs: 12 * 60 * 1000, label: "饱腹" },
         clean: { intervalMs: 8 * 60 * 1000, label: "清洁" },
@@ -140,6 +144,8 @@
       lotteryDraftDigits: ["0", "0", "0", "0", "0", "0"],
       lotteryCelebration: null,
       lotteryHistoryDrawDate: null,
+      selectedCommunityNpcId: null,
+      communityView: "main",
     },
     systems: {},
     ui: {},

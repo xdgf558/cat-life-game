@@ -69,7 +69,7 @@
       '<h2 class="page-title">' + t("home_panel_title") + "</h2>" +
       '<p class="page-copy">' + t("home_panel_copy") + "</p>" +
       '<div class="inline-row" style="margin-top:18px; flex-wrap: wrap;">' +
-      '<button class="primary-button" data-page-target="room">' + t("nav_room") + "</button>" +
+      '<button class="primary-button" data-page-target="community">' + t("nav_community") + "</button>" +
       '<button class="primary-button" data-page-target="work">' + t("nav_work") + "</button>" +
       '<button class="primary-button" data-page-target="bank">' + t("nav_bank") + "</button>" +
       '<button class="secondary-button" data-page-target="cats">' + t("nav_cats") + "</button>" +

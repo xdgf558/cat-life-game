@@ -67,17 +67,37 @@ Status: completed
 - Jackpot rollover, reset, and prize-tier payouts
 - Lottery save/load compatibility for old saves
 
+### Milestone 9: Community And NPC Neighbors
+Status: completed
+- Former Room entry upgraded into Community
+- Player Home preserves the existing room scene, renovation, furniture placement, and roaming player cats
+- Community main screen upgraded from a card list into a clickable Cat Town map
+- Four NPC neighbors added:
+  - Mira
+  - Ken
+  - Luna
+  - Grace
+- NPC homes display each neighbor's personality, home style, and cats
+- NPC cats now use the imported cat sticker sheet with different poses and color-filtered coat variants
+- Visiting NPC homes gives first-visit daily friendship once per in-game day
+- NPC gifting supports favorite, neutral, and unwanted gift reactions
+- NPC item exchange supports relationship requirements, inventory requirements, and daily limits
+- Community state saves and loads through the existing localStorage save object
+
 ## Current Milestone
-- Current milestone: `Milestone 8: Arcade Lottery Expansion`
+- Current milestone: `Milestone 9: Community And NPC Neighbors`
 - State: `completed`
 
 ## Current Focus After This Milestone
+- Run targeted browser QA on Community navigation, Player Home access, gifting, exchange, and daily visit limits
 - Run targeted browser QA on the refreshed interface, bank flow, and new lottery flow
 - Verify UTC date rollover and delayed draw resolution behavior for the lottery system
-- Tune debt pressure, savings payout, credit-tier loan limits, lottery excitement, hunger pacing, and player recovery values if playtests feel harsh
+- Tune debt pressure, savings payout, credit-tier loan limits, lottery excitement, hunger pacing, player recovery values, and community friendship pacing if playtests feel harsh
 
 ## Stop Conditions Before The Next Feature Batch
 - Old saves must continue loading without missing-field crashes
+- Existing home, room, and furniture layout data must remain intact after Room becomes Community
+- Community relationship values, visit limits, gift counts, and exchange counts must persist correctly
 - Work summary, sleep recovery, and bank auto-repayment must behave correctly after reload
 - Player consumable counts must persist correctly across save/export/import
 - Bank balances, loan principal, accrued interest, and manual repayment must persist correctly

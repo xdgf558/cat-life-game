@@ -287,6 +287,350 @@
   font-weight: 800;
 }
 
+.community-card {
+  min-height: 100%;
+}
+
+.community-town-intro {
+  padding-bottom: 24px;
+}
+
+.community-town-card {
+  overflow: hidden;
+}
+
+.community-town-heading {
+  position: relative;
+  z-index: 2;
+}
+
+.community-town-map {
+  position: relative;
+  min-height: 560px;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 4px solid rgba(126, 151, 92, 0.2);
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.78) 0 5%, transparent 5.4%),
+    radial-gradient(circle at 82% 22%, rgba(255, 255, 255, 0.7) 0 4%, transparent 4.5%),
+    radial-gradient(circle at 12% 82%, rgba(255, 236, 160, 0.44) 0 9%, transparent 9.6%),
+    linear-gradient(135deg, rgba(168, 217, 137, 0.86), rgba(239, 229, 157, 0.76) 52%, rgba(151, 204, 142, 0.82));
+  box-shadow:
+    inset 0 0 0 8px rgba(255, 255, 255, 0.35),
+    inset 0 -18px 34px rgba(99, 138, 91, 0.14),
+    0 18px 34px rgba(104, 94, 58, 0.13);
+}
+
+.community-town-map::before {
+  content: "";
+  position: absolute;
+  inset: 9% 6%;
+  border-radius: 45% 55% 48% 52%;
+  background:
+    radial-gradient(circle at 16% 24%, rgba(98, 151, 81, 0.22) 0 5px, transparent 6px),
+    radial-gradient(circle at 30% 78%, rgba(98, 151, 81, 0.18) 0 6px, transparent 7px),
+    radial-gradient(circle at 82% 72%, rgba(98, 151, 81, 0.18) 0 6px, transparent 7px),
+    linear-gradient(90deg, rgba(255, 247, 206, 0.26), rgba(255, 255, 255, 0.18));
+  pointer-events: none;
+}
+
+.community-landmark,
+.community-path {
+  position: absolute;
+  pointer-events: none;
+}
+
+.community-landmark.is-pond {
+  left: 58%;
+  top: 43%;
+  width: 190px;
+  height: 104px;
+  border: 5px solid rgba(255, 255, 255, 0.76);
+  border-radius: 52% 48% 58% 42%;
+  background:
+    radial-gradient(circle at 26% 24%, rgba(255, 255, 255, 0.7) 0 9px, transparent 10px),
+    linear-gradient(135deg, #92d7e8, #62b8d6);
+  box-shadow: inset 0 -12px 24px rgba(56, 132, 166, 0.24);
+}
+
+.community-landmark.is-garden {
+  left: 10%;
+  top: 56%;
+  width: 90px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 28px;
+  background: rgba(255, 238, 184, 0.72);
+  font-size: 32px;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.48);
+}
+
+.community-landmark.is-market {
+  right: 10%;
+  top: 10%;
+  width: 94px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border-radius: 28px 28px 34px 34px;
+  background: linear-gradient(180deg, #ffe8a7, #ffc873);
+  font-size: 30px;
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.52), 0 12px 22px rgba(98, 90, 58, 0.12);
+}
+
+.community-path {
+  left: 18%;
+  top: 46%;
+  width: 66%;
+  height: 86px;
+  border-radius: 999px;
+  background: rgba(250, 225, 155, 0.76);
+  transform: rotate(-6deg);
+  box-shadow: inset 0 0 0 4px rgba(255, 255, 255, 0.24);
+}
+
+.community-path.is-path-two {
+  left: 43%;
+  top: 18%;
+  width: 90px;
+  height: 58%;
+  transform: rotate(8deg);
+}
+
+.community-path.is-path-three {
+  left: 22%;
+  top: 20%;
+  width: 88px;
+  height: 62%;
+  transform: rotate(-20deg);
+}
+
+.community-map-marker {
+  --marker-x: 50%;
+  --marker-y: 50%;
+  --house-color: #f1c27d;
+  position: absolute;
+  left: var(--marker-x);
+  top: var(--marker-y);
+  z-index: 3;
+  display: grid;
+  justify-items: center;
+  width: 178px;
+  min-height: 164px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-main);
+  text-align: center;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+
+.community-map-marker:hover {
+  transform: translate(-50%, -54%) scale(1.03);
+  filter: drop-shadow(0 14px 14px rgba(91, 82, 50, 0.16));
+}
+
+.community-map-marker:focus-visible {
+  outline: 4px solid rgba(115, 160, 83, 0.38);
+  outline-offset: 6px;
+  border-radius: 28px;
+}
+
+.community-house {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 104px;
+  height: 90px;
+  margin-top: 10px;
+}
+
+.community-house-roof {
+  position: absolute;
+  top: 0;
+  width: 86px;
+  height: 72px;
+  border-radius: 24px 24px 18px 18px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.42), var(--house-color) 34%, var(--house-color));
+  transform: rotate(45deg);
+  box-shadow: inset 5px 5px 0 rgba(255, 255, 255, 0.28), 0 8px 14px rgba(100, 82, 52, 0.16);
+}
+
+.community-house-body {
+  position: absolute;
+  bottom: 0;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 64px;
+  border: 4px solid rgba(255, 255, 255, 0.72);
+  border-radius: 24px 24px 20px 20px;
+  background: linear-gradient(180deg, #fff8df, #f6d89b);
+  font-size: 30px;
+  box-shadow: inset 0 -8px 0 rgba(133, 92, 53, 0.08);
+}
+
+.community-house.is-player-house {
+  --house-color: #ffd770;
+}
+
+.community-marker-label {
+  min-width: 112px;
+  margin-top: 8px;
+  padding: 7px 14px;
+  border: 3px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.9);
+  box-shadow: 0 8px 16px rgba(91, 82, 50, 0.12);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.community-marker-meta {
+  max-width: 172px;
+  margin-top: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: rgba(93, 113, 70, 0.76);
+  color: #fffef8;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.community-marker-cats {
+  position: absolute;
+  top: 2px;
+  right: 12px;
+  display: flex;
+  gap: 0;
+  transform: rotate(4deg);
+}
+
+.community-cat-sprite {
+  display: block;
+  flex: 0 0 auto;
+  width: 58px;
+  height: 90px;
+  background-image: url("../assets/community/npc-cat-sprites.png");
+  background-repeat: no-repeat;
+  background-size: 500% 400%;
+  transform: translateZ(0);
+}
+
+.community-cat-sprite.is-map-cat {
+  width: 44px;
+  height: 68px;
+  margin-left: -16px;
+  filter: inherit;
+}
+
+.community-cat-sprite.is-small {
+  width: 42px;
+  height: 66px;
+}
+
+.community-cat-sprite.is-large {
+  width: 82px;
+  height: 128px;
+}
+
+.community-map-help {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.community-map-help span {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 253, 246, 0.76);
+  color: var(--text-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.community-cat-list {
+  display: grid;
+  gap: 10px;
+}
+
+.community-cat {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 18px;
+  background: rgba(255, 253, 246, 0.72);
+  border: 2px solid rgba(132, 149, 103, 0.12);
+}
+
+.community-cat.is-large {
+  grid-template-columns: 88px minmax(0, 1fr);
+  padding: 14px;
+}
+
+.community-cat-dot {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 14px rgba(91, 82, 50, 0.14);
+}
+
+.community-cat.is-large .community-cat-dot {
+  width: 52px;
+  height: 52px;
+}
+
+@media (max-width: 760px) {
+  .community-town-map {
+    min-height: 720px;
+  }
+
+  .community-map-marker {
+    width: 142px;
+    min-height: 146px;
+  }
+
+  .community-house {
+    width: 88px;
+    height: 78px;
+  }
+
+  .community-house-roof {
+    width: 72px;
+    height: 60px;
+  }
+
+  .community-house-body {
+    width: 82px;
+    height: 56px;
+    font-size: 25px;
+  }
+
+  .community-marker-meta {
+    max-width: 138px;
+    font-size: 10px;
+  }
+
+  .community-cat-sprite.is-map-cat {
+    width: 36px;
+    height: 56px;
+    margin-left: -14px;
+  }
+
+  .community-landmark.is-pond {
+    width: 136px;
+    height: 84px;
+  }
+}
+
 .cat-list {
   align-content: start;
 }
