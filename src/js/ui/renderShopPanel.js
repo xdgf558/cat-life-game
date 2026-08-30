@@ -23,15 +23,15 @@
       '<article class="shop-card ' +
       (owned ? "is-owned" : "") +
       '">' +
+      '<div class="shop-art"><img src="' + format.escapeHtml(item.image) + '" alt="' +
+      format.escapeHtml(getText(item, "name")) + '" width="800" height="600" loading="lazy" /></div>' +
       '<div class="shop-row"><div><p class="section-eyebrow">' +
       (item.type === "furniture"
         ? t("furniture")
         : item.type === "playerConsumable"
           ? t(item.category === "playerDrink" ? "player_drinks_title" : "player_foods_title")
           : t("item")) +
-      '</p><div class="item-title"><span class="item-icon">' +
-      item.icon +
-      "</span><h3 class=\"panel-title\">" +
+      '</p><div class="item-title"><h3 class="panel-title">' +
       format.escapeHtml(getText(item, "name")) +
       "</h3></div></div>" +
       '<div class="price-stack">' +

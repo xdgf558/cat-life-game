@@ -6,6 +6,8 @@
   var liveTickId = null;
   var arcadeSpinTimerId = null;
   var lotteryCelebrationTimerId = null;
+  var toastTimerId = null;
+  var activeToastId = null;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -40,6 +42,40 @@
     });
 
     game.state.notifications = game.state.notifications.slice(0, 8);
+    renderToast();
+  }
+
+  function renderToast() {
+    var notice;
+    if (!dom.toast) {
+      return;
+    }
+
+    notice = game.state.notifications[0];
+    if (!notice) {
+      dom.toast.innerHTML = "";
+      dom.toast.hidden = true;
+      return;
+    }
+
+    dom.toast.hidden = false;
+    dom.toast.innerHTML = '<div class="news-toast"><span>' + t("toast_kicker") + '</span><p>' +
+      format.escapeHtml(notice.text) + '</p></div>';
+
+    if (activeToastId === notice.id) {
+      return;
+    }
+    activeToastId = notice.id;
+    if (toastTimerId) {
+      window.clearTimeout(toastTimerId);
+    }
+    toastTimerId = window.setTimeout(function () {
+      if (dom.toast) {
+        dom.toast.hidden = true;
+        dom.toast.innerHTML = "";
+      }
+      activeToastId = null;
+    }, 3200);
   }
 
   function persistGame(force) {
@@ -51,30 +87,8 @@
   }
 
   function updateShellText() {
-    var brandTitle = document.querySelector(".shell-brand h1");
-    var brandCopy = document.querySelector(".shell-brand .brand-copy");
-    var sidebarTitle = document.querySelector(".shell-note .section-eyebrow");
-    var sidebarCopy = document.querySelector(".shell-note p:last-child");
-
     document.title = t("appTitle");
     document.documentElement.lang = game.utils.i18n.getLanguage();
-
-    if (brandTitle) {
-      brandTitle.textContent = t("brandTitle");
-    }
-    if (brandCopy) {
-      brandCopy.textContent = t("brandCopy");
-    }
-    if (sidebarTitle) {
-      sidebarTitle.textContent = t("sidebar_tip_title");
-    }
-    if (sidebarCopy) {
-      sidebarCopy.textContent = t("sidebar_tip_copy");
-    }
-
-    Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
-      button.textContent = t("nav_" + button.dataset.pageTarget);
-    });
   }
 
   function handleActionResult(result) {
@@ -391,19 +405,38 @@
       version: game.ui.renderVersionPanel,
       save: game.ui.renderSavePanel,
       settings: game.ui.renderSettingsPanel,
+      more: game.ui.renderMorePanel,
     };
     var renderer = pageRenderers[game.state.currentPage] || game.ui.renderHome;
 
     dom.header.innerHTML = game.ui.renderHeader(game.state.game);
     dom.main.innerHTML = renderer(game.state.game);
-    dom.quick.innerHTML = renderQuickPanel();
+    dom.navigation.innerHTML = game.ui.renderDesktopNavigation(game.state.game);
+    dom.mobileNavigation.innerHTML = game.ui.renderMobileNavigation(game.state.game);
     updateShellText();
+    renderToast();
     if (game.systems.musicSystem) {
       game.systems.musicSystem.syncForState(game.state.currentPage);
     }
 
     Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
       button.classList.toggle("is-active", button.dataset.pageTarget === game.state.currentPage);
+      if (button.dataset.pageTarget === game.state.currentPage) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".mobile-nav-button[data-page-target]"), function (button) {
+      var mainPages = ["home", "work", "cats", "community"];
+      var isActive = button.dataset.pageTarget === game.state.currentPage ||
+        (button.dataset.pageTarget === "more" && mainPages.indexOf(game.state.currentPage) === -1);
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
     });
   }
 
@@ -487,6 +520,9 @@
     }
 
     if (pageButton) {
+      if (pageButton.dataset.selectCat) {
+        game.state.selectedCatId = pageButton.dataset.selectCat;
+      }
       game.state.currentPage = pageButton.dataset.pageTarget;
       if (game.state.currentPage === "room") {
         game.state.currentPage = "community";
@@ -496,6 +532,7 @@
         game.state.selectedCommunityNpcId = null;
       }
       render();
+      window.scrollTo(0, 0);
       if (pageButton.dataset.pageTarget === "arcade") {
         scheduleLotteryResolve("arcade-page");
       }
@@ -564,6 +601,9 @@
     }
 
     if (catActionButton) {
+      if (catActionButton.dataset.catId) {
+        game.state.selectedCatId = catActionButton.dataset.catId;
+      }
       handleActionResult(game.systems.catSystem.performAction(game.state.selectedCatId, catActionButton.dataset.catAction));
       return;
     }
@@ -923,6 +963,9 @@
     dom.header = document.getElementById("app-header");
     dom.main = document.getElementById("app-main");
     dom.quick = document.getElementById("app-quick");
+    dom.navigation = document.getElementById("app-navigation");
+    dom.mobileNavigation = document.getElementById("app-mobile-navigation");
+    dom.toast = document.getElementById("app-toast");
 
     game.state.game = game.state.saveSystem.loadOrCreateGame();
 
