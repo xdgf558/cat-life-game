@@ -45,7 +45,7 @@ input,
 select,
 textarea {
   color: var(--color-text);
-  font-family: "Source Serif 4", "Noto Serif SC", "Songti SC", Georgia, serif;
+  font-family: ui-serif, Georgia, "Songti SC", STSong, SimSun, serif;
   letter-spacing: 0;
 }
 
@@ -53,11 +53,6 @@ body {
   background: var(--color-bg);
   min-width: 320px;
   text-wrap: pretty;
-}
-
-body::before,
-body::after {
-  display: none;
 }
 
 button,
@@ -185,10 +180,16 @@ textarea:focus-visible {
   gap: 14px 22px;
 }
 
+.statusbar-tools {
+  align-items: flex-start;
+  display: grid;
+  flex: 0 1 250px;
+  gap: 8px;
+}
+
 .statusbar-note {
   color: var(--color-neutral-700);
   display: grid;
-  flex: 0 1 250px;
   font-size: 13px;
   gap: 4px;
   line-height: 1.4;
@@ -197,6 +198,18 @@ textarea:focus-visible {
 .statusbar-note strong {
   color: var(--color-accent-800);
   font-variant-numeric: tabular-nums;
+}
+
+.sleep-control {
+  min-height: 36px;
+  padding: 7px 12px;
+  width: 100%;
+}
+
+.sleep-live-copy {
+  color: var(--color-neutral-700);
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .stat-row { min-width: 0; }
@@ -313,8 +326,7 @@ textarea:focus-visible {
 .page-intro,
 .page-header,
 .page-card,
-.settings-card,
-.quick-card {
+.settings-card {
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -722,7 +734,10 @@ select {
   .cash-block { flex-basis: auto; }
   .cash-block strong { font-size: 25px; }
   .statusbar-stats { grid-column: 2; grid-row: 1 / span 2; grid-template-columns: 1fr; gap: 8px; }
+  .statusbar-tools { align-content: start; grid-column: 1; min-width: 0; }
   .statusbar-note { display: none; }
+  .sleep-control { font-size: 13px; }
+  .sleep-live-copy { font-size: 11px; }
   .layout-body { display: block; }
   .desktop-navigation { display: none; }
   .main-content { min-height: 480px; }

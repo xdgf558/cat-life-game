@@ -16,6 +16,7 @@
       { page: "collection", meta: t("more_collection_meta", { current: unlockedCats, total: totalCats }) },
       { page: "arcade", meta: t("more_arcade_meta") },
       { page: "tasks", meta: t("more_tasks_meta", { current: dailyDone, total: state.tasks.daily.length }) },
+      { page: "version", meta: t("more_version_meta", { version: game.config.version }) },
       { page: "save", meta: t("more_save_meta") },
       { page: "settings", meta: t("more_settings_meta", { language: language }) },
     ];

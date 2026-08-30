@@ -157,7 +157,6 @@
 .cat-card,
 .shop-card,
 .settings-card,
-.quick-card,
 .card-soft {
   padding: 18px;
   border-radius: var(--radius-md);
@@ -907,7 +906,6 @@ button:disabled {
   line-height: 1.6;
 }
 
-.quick-panel .quick-card + .quick-card,
 .main-content .page-card + .page-card {
   margin-top: 18px;
 }
@@ -1424,7 +1422,6 @@ button:disabled {
   .cat-card,
   .shop-card,
   .settings-card,
-  .quick-card,
   .card-soft {
     padding: 16px;
   }

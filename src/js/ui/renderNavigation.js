@@ -6,10 +6,17 @@
     { label: "nav_group_life", pages: ["home", "work", "bank", "shop"] },
     { label: "nav_group_cats", pages: ["cats", "hospital", "collection"] },
     { label: "nav_group_town", pages: ["community", "arcade", "tasks"] },
-    { label: "nav_group_system", pages: ["save", "settings"] },
+    { label: "nav_group_system", pages: ["version", "save", "settings"] },
   ];
 
   var mobilePages = ["home", "work", "cats", "community", "more"];
+  var mobileMarks = {
+    home: "⌂",
+    work: "◆",
+    cats: "●",
+    community: "▦",
+    more: "•••",
+  };
 
   function getCounts(state) {
     var needy = state.cats.filter(function (cat) {
@@ -63,7 +70,7 @@
       var isMoreActive = page === "more" && ["home", "work", "cats", "community"].indexOf(game.state.currentPage) === -1;
       return (
         '<button class="mobile-nav-button" data-page-target="' + page + '" aria-label="' + format.escapeHtml(t("nav_" + page)) + '">' +
-        '<span class="mobile-nav-mark" aria-hidden="true">' + (page === "more" ? "•••" : page === "home" ? "⌂" : page === "work" ? "¥" : page === "cats" ? "猫" : "町") + "</span>" +
+        '<span class="mobile-nav-mark" aria-hidden="true">' + mobileMarks[page] + "</span>" +
         '<span>' + t("nav_" + page) + "</span>" +
         (page === "cats" ? renderBadge("cats", state, counts) : "") +
         (isMoreActive ? '<span class="mobile-current-dot" aria-hidden="true"></span>' : "") +
