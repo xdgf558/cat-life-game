@@ -6,6 +6,8 @@
   var liveTickId = null;
   var arcadeSpinTimerId = null;
   var lotteryCelebrationTimerId = null;
+  var toastTimerId = null;
+  var activeToastId = null;
 
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
@@ -33,13 +35,52 @@
       return;
     }
 
-    game.state.notifications.unshift({
+    game.state.notifications.push({
       id: Date.now() + Math.random(),
       text: text,
       time: format.formatGameTime(game.state.game.player),
     });
 
-    game.state.notifications = game.state.notifications.slice(0, 8);
+    renderToast();
+  }
+
+  function renderToast() {
+    var notice;
+    if (!dom.toast) {
+      return;
+    }
+
+    if (activeToastId !== null) {
+      return;
+    }
+
+    notice = game.state.notifications[0];
+    if (!notice) {
+      dom.toast.innerHTML = "";
+      dom.toast.hidden = true;
+      return;
+    }
+
+    dom.toast.hidden = false;
+    dom.toast.innerHTML = '<div class="news-toast"><span>' + t("toast_kicker") + '</span><p>' +
+      format.escapeHtml(notice.text) + '</p></div>';
+
+    activeToastId = notice.id;
+    if (toastTimerId) {
+      window.clearTimeout(toastTimerId);
+    }
+    toastTimerId = window.setTimeout(function () {
+      game.state.notifications = game.state.notifications.filter(function (queuedNotice) {
+        return queuedNotice.id !== notice.id;
+      });
+      if (dom.toast) {
+        dom.toast.hidden = true;
+        dom.toast.innerHTML = "";
+      }
+      activeToastId = null;
+      toastTimerId = null;
+      renderToast();
+    }, 3200);
   }
 
   function persistGame(force) {
@@ -51,30 +92,14 @@
   }
 
   function updateShellText() {
-    var brandTitle = document.querySelector(".shell-brand h1");
-    var brandCopy = document.querySelector(".shell-brand .brand-copy");
-    var sidebarTitle = document.querySelector(".shell-note .section-eyebrow");
-    var sidebarCopy = document.querySelector(".shell-note p:last-child");
-
     document.title = t("appTitle");
     document.documentElement.lang = game.utils.i18n.getLanguage();
-
-    if (brandTitle) {
-      brandTitle.textContent = t("brandTitle");
+    if (dom.navigation) {
+      dom.navigation.setAttribute("aria-label", t("main_navigation"));
     }
-    if (brandCopy) {
-      brandCopy.textContent = t("brandCopy");
+    if (dom.mobileNavigation) {
+      dom.mobileNavigation.setAttribute("aria-label", t("mobile_navigation"));
     }
-    if (sidebarTitle) {
-      sidebarTitle.textContent = t("sidebar_tip_title");
-    }
-    if (sidebarCopy) {
-      sidebarCopy.textContent = t("sidebar_tip_copy");
-    }
-
-    Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
-      button.textContent = t("nav_" + button.dataset.pageTarget);
-    });
   }
 
   function handleActionResult(result) {
@@ -154,6 +179,20 @@
       ? format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork))
       : t("task_completed");
 
+    function refreshStat(valueSelector, barSelector, value, inverseTone) {
+      var safeValue = Math.max(0, Math.min(100, Math.round(value || 0)));
+      var isDanger = inverseTone ? safeValue >= 70 : safeValue <= 25;
+
+      Array.prototype.forEach.call(document.querySelectorAll(valueSelector), function (node) {
+        node.textContent = safeValue;
+      });
+      Array.prototype.forEach.call(document.querySelectorAll(barSelector), function (node) {
+        node.style.width = safeValue + "%";
+        node.classList.toggle("is-danger", isDanger);
+        node.classList.toggle("is-normal", !isDanger);
+      });
+    }
+
     Array.prototype.forEach.call(document.querySelectorAll("[data-live-clock]"), function (node) {
       node.textContent = format.formatGameTime();
     });
@@ -167,16 +206,17 @@
       node.textContent = countdown === null ? t("stamina_full") : format.formatDuration(countdown);
     });
 
-    Array.prototype.forEach.call(document.querySelectorAll("[data-player-stamina-live]"), function (node) {
-      node.textContent = Math.round(displayStats.stamina);
-    });
+    refreshStat("[data-player-stamina-live]", "[data-player-stamina-bar]", displayStats.stamina, false);
+    refreshStat("[data-player-mood-live]", "[data-player-mood-bar]", displayStats.mood, false);
+    refreshStat("[data-player-hunger-live]", "[data-player-hunger-bar]", game.systems.playerSystem.getCurrentHunger(), true);
 
-    Array.prototype.forEach.call(document.querySelectorAll("[data-player-mood-live]"), function (node) {
-      node.textContent = Math.round(displayStats.mood);
-    });
-
-    Array.prototype.forEach.call(document.querySelectorAll("[data-player-hunger-live]"), function (node) {
-      node.textContent = Math.round(game.systems.playerSystem.getCurrentHunger());
+    Array.prototype.forEach.call(document.querySelectorAll("[data-player-condition-copy]"), function (node) {
+      var hungerBlockThreshold = game.config.playerCondition.hungerBlockThreshold;
+      node.textContent = displayStats.mood < 35
+        ? t("work_low_mood_warning")
+        : game.systems.playerSystem.getCurrentHunger() >= hungerBlockThreshold
+        ? t("work_hunger_warning")
+        : t("player_status_copy");
     });
 
     Array.prototype.forEach.call(document.querySelectorAll("[data-player-mood-status]"), function (node) {
@@ -244,92 +284,6 @@
     }
   }
 
-  function renderQuickPanel() {
-    var selectedCat = getSelectedCat();
-    var unlockStatus;
-    var disease;
-    var bank = game.systems.bankSystem ? game.systems.bankSystem.getBank() : null;
-    if (!selectedCat) {
-      return '<section class="quick-card"><div class="empty-state">' + t("no_cat_data") + "</div></section>";
-    }
-    unlockStatus = game.systems.catSystem.getUnlockStatus(selectedCat);
-    disease = game.systems.catSystem.getCatDisease(selectedCat);
-
-    var notices = game.state.notifications.length
-      ? game.state.notifications
-          .map(function (notice) {
-            return (
-              '<div class="notice-item"><p><strong>' +
-              format.escapeHtml(notice.time) +
-              "</strong></p><p>" +
-              format.escapeHtml(notice.text) +
-              "</p></div>"
-            );
-          })
-          .join("")
-      : '<div class="empty-state">' + t("notices_empty") + "</div>";
-
-    return (
-      '<section class="quick-card">' +
-      '<p class="section-eyebrow">' + t("cat_overview") + "</p>" +
-      '<div class="cat-portrait"><img class="cat-illustration-small" src="' +
-      game.utils.catArt.buildCatSvg(selectedCat, 88) +
-      '" alt="' +
-      format.escapeHtml(getText(selectedCat, "name")) +
-      '" /><div>' +
-      '</div><div>' +
-      '<h3 class="panel-title">' +
-      format.escapeHtml(getText(selectedCat, "name")) +
-      "</h3>" +
-      '<p class="page-copy">' +
-      format.escapeHtml(getText(selectedCat, "breed")) +
-      (!selectedCat.unlocked
-        ? " · " + t("later_unlock")
-        : selectedCat.isAlive === false
-        ? " · " + t("dead_label")
-        : " · " + t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
-      "</p><p class=\"helper-text\" style=\"margin-top:8px;\">" +
-      (selectedCat.unlocked
-        ? t("age_label") + "：" + format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +
-          (disease ? " · " + t("disease_label") + "：" + format.escapeHtml(getText(disease, "name")) : "")
-        : t("unlock_gold_condition", { current: unlockStatus.currentGold, target: unlockStatus.requiredGold })) +
-      "</p></div></div>" +
-      (selectedCat.unlocked
-        ? '<div style="margin-top: 14px;">' +
-          game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
-          game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
-          game.ui.helpers.renderBar(t("mood_label"), selectedCat.mood) +
-          "</div>"
-        : "") +
-      "</section>" +
-      (game.systems.workSystem.hasActiveWork()
-        ? '<section class="quick-card"><p class="section-eyebrow">' + t("current_work") + '</p><h3 class="panel-title">' +
-          format.escapeHtml(
-            getText(
-              game.data.jobMap[game.systems.workSystem.getActiveWork().jobId] || game.systems.workSystem.getActiveWork(),
-              "name"
-            )
-          ) +
-          '</h3><p class="page-copy">' + t("remaining") + '：<span data-active-work-remaining>' +
-          format.formatDuration(game.systems.workSystem.getRemainingMs(game.systems.workSystem.getActiveWork())) +
-          "</span></p></section>"
-        : "") +
-      (bank
-        ? '<section class="quick-card"><p class="section-eyebrow">' + t("nav_bank") + '</p><h3 class="panel-title">' +
-          t(game.systems.bankSystem.getLoanStatusKey()) +
-          '</h3><p class="page-copy">' + t("bank_balance") + "：" + format.formatNumber(bank.balance) +
-          " " + t("gold_unit") + '</p><p class="helper-text" style="margin-top:8px;">' +
-          t("bank_total_debt") + "：" + format.formatNumber(bank.totalDebt) + " " + t("gold_unit") +
-          "</p></section>"
-        : "") +
-      '<section class="quick-card">' +
-      '<p class="section-eyebrow">' + t("quick_log") + "</p>" +
-      '<div class="notice-list">' +
-      notices +
-      "</div></section>"
-    );
-  }
-
   function buildArcadeSpinColumns() {
     var symbolIcons = game.systems.arcadeSystem.symbols.map(function (symbol) {
       return symbol.icon;
@@ -391,19 +345,38 @@
       version: game.ui.renderVersionPanel,
       save: game.ui.renderSavePanel,
       settings: game.ui.renderSettingsPanel,
+      more: game.ui.renderMorePanel,
     };
     var renderer = pageRenderers[game.state.currentPage] || game.ui.renderHome;
 
     dom.header.innerHTML = game.ui.renderHeader(game.state.game);
     dom.main.innerHTML = renderer(game.state.game);
-    dom.quick.innerHTML = renderQuickPanel();
+    dom.navigation.innerHTML = game.ui.renderDesktopNavigation(game.state.game);
+    dom.mobileNavigation.innerHTML = game.ui.renderMobileNavigation(game.state.game);
     updateShellText();
+    renderToast();
     if (game.systems.musicSystem) {
       game.systems.musicSystem.syncForState(game.state.currentPage);
     }
 
     Array.prototype.forEach.call(document.querySelectorAll(".nav-button[data-page-target]"), function (button) {
       button.classList.toggle("is-active", button.dataset.pageTarget === game.state.currentPage);
+      if (button.dataset.pageTarget === game.state.currentPage) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".mobile-nav-button[data-page-target]"), function (button) {
+      var mainPages = ["home", "work", "cats", "community"];
+      var isActive = button.dataset.pageTarget === game.state.currentPage ||
+        (button.dataset.pageTarget === "more" && mainPages.indexOf(game.state.currentPage) === -1);
+      button.classList.toggle("is-active", isActive);
+      if (isActive) {
+        button.setAttribute("aria-current", "page");
+      } else {
+        button.removeAttribute("aria-current");
+      }
     });
   }
 
@@ -487,6 +460,9 @@
     }
 
     if (pageButton) {
+      if (pageButton.dataset.selectCat) {
+        game.state.selectedCatId = pageButton.dataset.selectCat;
+      }
       game.state.currentPage = pageButton.dataset.pageTarget;
       if (game.state.currentPage === "room") {
         game.state.currentPage = "community";
@@ -496,6 +472,7 @@
         game.state.selectedCommunityNpcId = null;
       }
       render();
+      window.scrollTo(0, 0);
       if (pageButton.dataset.pageTarget === "arcade") {
         scheduleLotteryResolve("arcade-page");
       }
@@ -564,6 +541,9 @@
     }
 
     if (catActionButton) {
+      if (catActionButton.dataset.catId) {
+        game.state.selectedCatId = catActionButton.dataset.catId;
+      }
       handleActionResult(game.systems.catSystem.performAction(game.state.selectedCatId, catActionButton.dataset.catAction));
       return;
     }
@@ -922,7 +902,9 @@
   function init() {
     dom.header = document.getElementById("app-header");
     dom.main = document.getElementById("app-main");
-    dom.quick = document.getElementById("app-quick");
+    dom.navigation = document.getElementById("app-navigation");
+    dom.mobileNavigation = document.getElementById("app-mobile-navigation");
+    dom.toast = document.getElementById("app-toast");
 
     game.state.game = game.state.saveSystem.loadOrCreateGame();
 

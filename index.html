@@ -7,40 +7,17 @@
     <link rel="stylesheet" href="./src/styles/reset.css" />
     <link rel="stylesheet" href="./src/styles/layout.css" />
     <link rel="stylesheet" href="./src/styles/main.css" />
+    <link rel="stylesheet" href="./src/styles/broadsheet.css" />
   </head>
   <body>
-    <div class="app-frame">
-      <header class="shell-header">
-        <div class="brand-card shell-brand">
-          <p class="brand-kicker">Single Player Cozy Life Sim</p>
-          <h1>打工养猫日记</h1>
-          <p class="brand-copy">为了把猫养得更幸福，今天也要认真打工。</p>
-        </div>
-        <nav class="nav-menu nav-menu-top" aria-label="主导航">
-          <button class="nav-button is-active" data-page-target="home">首页</button>
-          <button class="nav-button" data-page-target="community">社区</button>
-          <button class="nav-button" data-page-target="work">打工</button>
-          <button class="nav-button" data-page-target="bank">银行</button>
-          <button class="nav-button" data-page-target="cats">猫咪</button>
-          <button class="nav-button" data-page-target="collection">图鉴</button>
-          <button class="nav-button" data-page-target="arcade">游戏厅</button>
-          <button class="nav-button" data-page-target="hospital">医院</button>
-          <button class="nav-button" data-page-target="shop">商店</button>
-          <button class="nav-button" data-page-target="tasks">任务</button>
-          <button class="nav-button" data-page-target="version">版本</button>
-          <button class="nav-button" data-page-target="save">存档</button>
-          <button class="nav-button" data-page-target="settings">设置</button>
-        </nav>
-        <div class="shell-note card-soft">
-          <p class="section-eyebrow">Local Save</p>
-          <p>所有进度会保存在本地浏览器中，关键行为后会自动存档。</p>
-        </div>
-      </header>
-      <header id="app-header" class="topbar"></header>
+    <div class="app-frame broadsheet-shell">
+      <header id="app-header" class="newspaper-header"></header>
       <div class="layout-body">
+        <nav id="app-navigation" class="desktop-navigation" aria-label="主导航"></nav>
         <main id="app-main" class="main-content"></main>
-        <aside id="app-quick" class="quick-panel"></aside>
       </div>
+      <nav id="app-mobile-navigation" class="mobile-navigation" aria-label="移动导航"></nav>
+      <div id="app-toast" class="toast-region" aria-live="polite" aria-atomic="true"></div>
     </div>
 
     <script src="./src/js/core/namespace.js"></script>
@@ -77,6 +54,8 @@
     <script src="./src/js/systems/hospitalSystem.js"></script>
 
     <script src="./src/js/ui/renderHeader.js"></script>
+    <script src="./src/js/ui/renderNavigation.js"></script>
+    <script src="./src/js/ui/renderMorePanel.js"></script>
     <script src="./src/js/ui/renderHome.js"></script>
     <script src="./src/js/ui/renderRoomPanel.js"></script>
     <script src="./src/js/ui/renderCommunityPanel.js"></script>

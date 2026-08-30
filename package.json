@@ -1,0 +1,7 @@
+{
+  "name": "cat-life-game",
+  "private": true,
+  "scripts": {
+    "test": "node scripts/check-ui-regressions.mjs"
+  }
+}

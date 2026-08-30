@@ -3,253 +3,147 @@
   var t = game.utils.i18n.t;
   var getText = game.utils.i18n.getDataText;
 
-  function renderPlayerSupplyButtons(items, sleeping) {
-    return items
-      .map(function (item) {
-        var count = game.systems.playerSystem.getInventoryCount(item.id);
-        return (
-          '<button class="chip-button" data-use-player-item="' +
-          item.id +
-          '" ' +
-          (count <= 0 || sleeping ? "disabled" : "") +
-          ">" +
-          item.icon +
-          " " +
-          format.escapeHtml(getText(item, "name")) +
-          " ×" +
-          count +
-          "</button>"
-        );
-      })
-      .join("");
+  function getUnlockedCats(state) {
+    return state.cats.filter(function (cat) {
+      return cat.unlocked && cat.isAlive !== false;
+    });
+  }
+
+  function getNeedyCats(state) {
+    return getUnlockedCats(state).filter(function (cat) {
+      return cat.hunger <= 30 || cat.clean <= 30 || game.systems.catSystem.getCatDisease(cat);
+    });
+  }
+
+  function getHeadline(state) {
+    var cats = getUnlockedCats(state);
+    var sick = cats.find(function (cat) { return game.systems.catSystem.getCatDisease(cat); });
+    var hungry = cats.filter(function (cat) { return cat.hunger <= 30; }).sort(function (a, b) { return a.hunger - b.hunger; })[0];
+    var dirty = cats.filter(function (cat) { return cat.clean <= 30; }).sort(function (a, b) { return a.clean - b.clean; })[0];
+    var playerHunger = game.systems.playerSystem.getCurrentHunger();
+    var hungerBlockThreshold = game.config.playerCondition.hungerBlockThreshold;
+    var work = state.player.activeWork;
+    var job = work ? game.data.jobMap[work.jobId] || work : null;
+
+    if (sick) {
+      return {
+        title: t("headline_sick_title", { name: getText(sick, "name") }),
+        copy: t("headline_sick_copy", { health: sick.health }),
+        button: t("go_hospital"), page: "hospital",
+      };
+    }
+    if (hungry) {
+      if (state.inventory.food <= 0) {
+        return {
+          title: t("headline_hungry_title", { name: getText(hungry, "name") }),
+          copy: t("headline_hungry_empty_copy", { value: hungry.hunger }),
+          button: t("headline_buy_cat_food"), page: "shop",
+        };
+      }
+      return {
+        title: t("headline_hungry_title", { name: getText(hungry, "name") }),
+        copy: t("headline_hungry_copy", { value: hungry.hunger }),
+        button: t("headline_feed_now"), action: "feedBasic", catId: hungry.id,
+      };
+    }
+    if (dirty) {
+      if (state.inventory.litter <= 0) {
+        return {
+          title: t("headline_dirty_title", { name: getText(dirty, "name") }),
+          copy: t("headline_dirty_empty_copy", { value: dirty.clean }),
+          button: t("headline_buy_litter"), page: "shop",
+        };
+      }
+      return {
+        title: t("headline_dirty_title", { name: getText(dirty, "name") }),
+        copy: t("headline_dirty_copy", { value: dirty.clean }),
+        button: t("headline_clean_now"), action: "clean", catId: dirty.id,
+      };
+    }
+    if (playerHunger >= hungerBlockThreshold) {
+      return { title: t("headline_player_hungry_title"), copy: t("headline_player_hungry_copy"), button: t("headline_buy_food"), page: "shop" };
+    }
+    if (work) {
+      return {
+        title: t("headline_work_title", { job: getText(job, "name") }),
+        copy: t("headline_work_copy"), button: t("headline_view_work"), page: "work",
+      };
+    }
+    return { title: t("headline_calm_title"), copy: t("headline_calm_copy"), button: t("headline_go_work"), page: "work" };
+  }
+
+  function renderHeadlineAction(headline) {
+    if (headline.action) {
+      return '<button class="primary-button" data-cat-action="' + format.escapeHtml(headline.action) + '" data-cat-id="' +
+        format.escapeHtml(headline.catId) + '">' + format.escapeHtml(headline.button) + '</button>';
+    }
+    return '<button class="primary-button" data-page-target="' + format.escapeHtml(headline.page) + '">' +
+      format.escapeHtml(headline.button) + '</button>';
+  }
+
+  function getCatState(cat) {
+    if (game.systems.catSystem.getCatDisease(cat)) {
+      return { label: t("cat_state_sick"), className: "is-alert", copy: t("cat_state_sick_copy"), page: "hospital" };
+    }
+    if (cat.hunger <= 30) {
+      return { label: t("cat_state_hungry"), className: "is-alert", copy: t("cat_state_hungry_copy", { value: cat.hunger }), action: "feedBasic" };
+    }
+    if (cat.clean <= 30) {
+      return { label: t("cat_state_dirty"), className: "is-cyan", copy: t("cat_state_dirty_copy", { value: cat.clean }), action: "clean" };
+    }
+    return { label: t("cat_state_well"), className: "", copy: t("cat_state_well_copy"), action: "play" };
+  }
+
+  function renderCatCareCard(cat, state) {
+    var condition = getCatState(cat);
+    var needsShop = (condition.action === "feedBasic" && state.inventory.food <= 0) ||
+      (condition.action === "clean" && state.inventory.litter <= 0);
+    var shopLabel = condition.action === "clean" ? t("headline_buy_litter") : t("headline_buy_cat_food");
+    var mainAction = condition.page
+      ? '<button class="secondary-button" data-page-target="' + condition.page + '">' + t("go_hospital") + '</button>'
+      : needsShop
+      ? '<button class="secondary-button" data-page-target="shop">' + shopLabel + '</button>'
+      : '<button class="secondary-button" data-cat-action="' + format.escapeHtml(condition.action) + '" data-cat-id="' +
+        format.escapeHtml(cat.id) + '">' +
+        t(condition.action === "feedBasic" ? "headline_feed_now" : condition.action === "clean" ? "headline_clean_now" : "play_action") + '</button>';
+
+    return (
+      '<article class="care-card"><div class="cat-news-photo halftone"><img src="' + game.utils.catArt.buildCatSvg(cat, 144) +
+      '" alt="' + format.escapeHtml(getText(cat, "name")) + '" /></div><div class="care-card-copy"><div class="care-card-title"><h4>' +
+      format.escapeHtml(getText(cat, "name")) + '</h4><span class="tag ' + condition.className + '">' + format.escapeHtml(condition.label) +
+      '</span></div><p>' + format.escapeHtml(condition.copy) + '</p><div class="compact-actions">' + mainAction +
+      '<button class="ghost-button" data-page-target="cats" data-select-cat="' + format.escapeHtml(cat.id) + '">' + t("cat_details") +
+      '</button></div></div></article>'
+    );
   }
 
   function renderHome(state) {
-    var selectedCat =
-      state.cats.find(function (cat) {
-        return cat.id === game.state.selectedCatId && cat.unlocked;
-      }) ||
-      state.cats.find(function (cat) {
-        return cat.unlocked;
-      });
+    var headline = getHeadline(state);
+    var needy = getNeedyCats(state);
+    var careCats = (needy.length ? needy : getUnlockedCats(state)).slice(0, 3);
     var activeWork = state.player.activeWork;
-    var displayStats = game.systems.playerSystem.getDisplayStats();
-    var currentHunger = game.systems.playerSystem.getCurrentHunger();
-    var moodStatus = game.systems.playerSystem.getMoodStatus(displayStats.mood);
-    var activeSleep = game.systems.playerSystem.getActiveSleep();
-    var sleepRecovery = game.systems.playerSystem.getSleepRecovery();
-    var hungerCountdown = game.systems.playerSystem.getHungerCountdown();
-    var hungerBlockEta = game.systems.playerSystem.getHungerBlockEta();
-    var playerFoods = game.systems.playerSystem.getPlayerConsumablesByCategory("playerFood");
-    var playerDrinks = game.systems.playerSystem.getPlayerConsumablesByCategory("playerDrink");
-
-    var dailyCards = state.tasks.daily
-      .map(function (task) {
-        return game.ui.helpers.renderTaskBadge(getText(task, "title"), task.progress, task.target);
-      })
-      .join("");
-
-    var furnitureList = game.systems.homeSystem
-      .getPlacedFurniture()
-      .map(function (item) {
-        return '<span class="status-pill">' + format.escapeHtml(getText(item, "name")) + "</span>";
-      })
-      .join(" ");
-    var selectedCatDead = selectedCat.isAlive === false;
-    var catVisual = game.systems.catSystem.getCatVisualState(selectedCat);
-    var catDisease = game.systems.catSystem.getCatDisease(selectedCat);
-    var sickCount = game.systems.hospitalSystem.getSickCats().length;
     var activeJob = activeWork ? game.data.jobMap[activeWork.jobId] || activeWork : null;
-    var roomStep = game.systems.homeSystem.getCurrentRoomStep();
+    var furniture = game.systems.homeSystem.getPlacedFurniture();
 
     return (
-      '<section class="page-header">' +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("page_home") + "</p>" +
-      '<h2 class="page-title">' + t("home_panel_title") + "</h2>" +
-      '<p class="page-copy">' + t("home_panel_copy") + "</p>" +
-      '<div class="inline-row" style="margin-top:18px; flex-wrap: wrap;">' +
-      '<button class="primary-button" data-page-target="community">' + t("nav_community") + "</button>" +
-      '<button class="primary-button" data-page-target="work">' + t("nav_work") + "</button>" +
-      '<button class="primary-button" data-page-target="bank">' + t("nav_bank") + "</button>" +
-      '<button class="secondary-button" data-page-target="cats">' + t("nav_cats") + "</button>" +
-      '<button class="secondary-button" data-page-target="collection">' + t("nav_collection") + "</button>" +
-      '<button class="secondary-button" data-page-target="arcade">' + t("nav_arcade") + "</button>" +
-      '<button class="secondary-button" data-page-target="hospital">' + t("nav_hospital") + "</button>" +
-      '<button class="ghost-button" data-page-target="shop">' + t("nav_shop") + "</button>" +
-      '<button class="ghost-button" data-page-target="version">' + t("nav_version") + "</button>" +
-      '<button class="ghost-button" data-page-target="save">' + t("nav_save") + "</button>" +
-      "</div>" +
-      "</div>" +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("todays_focus") + "</p>" +
-      '<h3 class="panel-title">' + (activeWork ? format.escapeHtml(getText(activeJob, "name")) : t("idle_now")) + "</h3>" +
-      '<p class="page-copy">' +
-      (activeWork
-        ? t("expected_finish") + "：" + format.escapeHtml(format.formatRealDateTime(activeWork.endsAt))
-        : t("home_today_copy")) +
-      "</p>" +
-      '<div class="notice-list" style="margin-top: 16px;">' +
-      '<div class="notice-item"><p><strong>' + t("room_upgrade_title") + '</strong></p><p>' +
-      t("room_level_text", { level: roomStep.level }) +
-      " · " +
-      t("room_capacity_text", { count: roomStep.capacity }) +
-      "</p></div>" +
-      '<div class="notice-item"><p><strong>' + t("hospital_alert") + '</strong></p><p>' +
-      (sickCount > 0 ? t("hospital_alert_copy", { count: sickCount }) : t("hospital_empty_copy")) +
-      "</p></div>" +
-      "</div>" +
-      "</div>" +
-      "</section>" +
-      '<section class="home-grid">' +
-      '<div class="page-card">' +
-      '<div class="inline-row"><div><p class="section-eyebrow">' + t("player_life_title") + '</p><h3 class="panel-title">' +
-      t("player_status") +
-      '</h3></div><span class="status-pill ' + moodStatus.tone + '">' + t(moodStatus.key) + "</span></div>" +
-      '<div style="margin-top: 14px;">' +
-      game.ui.helpers.renderBar(t("stamina"), displayStats.stamina) +
-      game.ui.helpers.renderBar(t("mood"), displayStats.mood) +
-      game.ui.helpers.renderBar(t("player_hunger"), currentHunger, { inverseTone: true }) +
-      "</div>" +
-      '<p class="helper-text" style="margin-top: 10px;">' + t("player_status_copy") + "</p>" +
-      '<p class="helper-text" style="margin-top: 8px;">' +
-      t("player_hunger_next_rise") + '：<span data-player-hunger-countdown>' +
-      (hungerCountdown === null ? t("stopped") : format.formatDuration(hungerCountdown)) +
-      '</span>' +
-      (hungerBlockEta !== null
-        ? " · " + t("work_hunger_eta") + '：<span data-player-hunger-eta>' + format.formatDuration(hungerBlockEta) + "</span>"
-        : "") +
-      "</p>" +
-      (activeSleep
-        ? '<div class="notice-list" style="margin-top: 14px;">' +
-          '<div class="notice-item"><p><strong>' + t("sleeping_now") + "</strong></p><p>" + t("sleep_started_at") + "：" +
-          format.escapeHtml(format.formatRealDateTime(activeSleep.startedAt)) +
-          '</p></div><div class="notice-item"><p><strong>' + t("sleep_elapsed") + '</strong></p><p><span data-player-sleep-duration>' +
-          format.formatDuration(sleepRecovery.elapsedMs) +
-          '</span></p></div><div class="notice-item"><p><strong>' + t("sleep_recovery_live") + '</strong></p><p>' +
-          t("sleep_live_prefix_stamina") + ' <span data-player-sleep-stamina>' + sleepRecovery.staminaGain + '</span> / ' +
-          t("sleep_live_prefix_mood") + ' <span data-player-sleep-mood>' + sleepRecovery.moodGain + "</span>" +
-          '</p></div></div>'
-        : "") +
-      (displayStats.mood < game.config.playerCondition.workMoodThresholds.tired
-        ? '<p class="warning-copy" style="margin-top: 10px;">' + t("work_low_mood_warning") + "</p>"
-        : "") +
-      (currentHunger >= game.config.playerCondition.hungerBlockThreshold
-        ? '<p class="warning-copy" style="margin-top: 10px;">' + t("work_hunger_warning") + "</p>"
-        : "") +
-      '<div class="inline-row" style="margin-top: 16px;">' +
-      '<button class="primary-button" data-player-sleep>' + t(activeSleep ? "wake_action" : "sleep_action") + "</button>" +
-      '<button class="secondary-button" data-page-target="shop">' + t("buy_recovery_supplies") + "</button>" +
-      "</div>" +
-      "</div>" +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("todays_focus") + "</p>" +
-      '<p class="page-copy">' + t("today_task_reward") + "</p>" +
-      '<div class="notice-list" style="margin-top: 16px;">' +
-      dailyCards +
-      "</div>" +
-      "</div>" +
-      "</section>" +
-      '<section class="home-grid">' +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("player_supplies_title") + "</p>" +
-      '<h3 class="panel-title">' + t("player_foods_title") + "</h3>" +
-      '<div class="button-cloud" style="margin-top: 14px;">' +
-      renderPlayerSupplyButtons(playerFoods, Boolean(activeSleep)) +
-      "</div>" +
-      '<h3 class="panel-title" style="margin-top: 18px;">' + t("player_drinks_title") + "</h3>" +
-      '<div class="button-cloud" style="margin-top: 14px;">' +
-      renderPlayerSupplyButtons(playerDrinks, Boolean(activeSleep)) +
-      "</div>" +
-      "</div>" +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("current_work") + "</p>" +
-      (activeWork
-        ? '<h3 class="panel-title">' +
-          format.escapeHtml(getText(activeJob, "name")) +
-          '</h3><p class="page-copy">' + t("expected_finish") + '：' +
-          format.escapeHtml(format.formatRealDateTime(activeWork.endsAt)) +
-          '</p><p class="helper-text" style="margin-top: 10px;">' + t("remaining") + '：<span data-active-work-remaining>' +
-          format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork)) +
-          "</span></p>"
-        : '<h3 class="panel-title">' + t("idle_now") + '</h3><p class="page-copy">' + t("start_realtime_work") + "</p>") +
-      "</div>" +
-      "</section>" +
-      '<section class="home-grid">' +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("cat_overview") + "</p>" +
-      '<div class="cat-portrait">' +
-      '<img class="cat-illustration-large" src="' + game.utils.catArt.buildCatSvg(selectedCat, 132) + '" alt="' + format.escapeHtml(getText(selectedCat, "name")) + '" /><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
-      '<h3 class="panel-title">' +
-      format.escapeHtml(getText(selectedCat, "name")) +
-      " · " +
-      format.escapeHtml(getText(selectedCat, "breed")) +
-      "</h3>" +
-      '<p class="page-copy">' +
-      (selectedCatDead
-        ? t("status_dead")
-        : t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
-      "</p>" +
-      '<p class="helper-text" style="margin-top: 8px;">' +
-      t("age_label") + "：" +
-      format.escapeHtml(format.formatAgeYears(game.systems.catSystem.getCatAgeYears(selectedCat))) +
-      (catDisease
-        ? " · " + t("disease_label") + "：" + format.escapeHtml(getText(catDisease, "name"))
-        : " · " + t("disease_none")) +
-      "</p>" +
-      '<div style="margin-top: 14px;">' +
-      game.ui.helpers.renderBar(t("hunger_label"), selectedCat.hunger) +
-      game.ui.helpers.renderBar(t("clean_label"), selectedCat.clean) +
-      game.ui.helpers.renderBar(t("mood_label"), selectedCat.mood) +
-      game.ui.helpers.renderBar(t("energy_label"), selectedCat.energy) +
-      "</div>" +
-      '<p class="helper-text" style="margin-top: 10px;">' +
-      (selectedCatDead
-        ? t("cat_unavailable")
-        : t("hunger_next_drop") + '：<span data-cat-stat-countdown data-cat-id="' +
-          selectedCat.id +
-          '" data-cat-stat="hunger">' +
-          format.formatDuration(game.systems.catSystem.getStatCountdown(selectedCat, "hunger")) +
-          '</span>，' + t("hunger_zero_eta") + '：<span data-cat-hunger-zero data-cat-id="' +
-          selectedCat.id +
-          '">' +
-          format.formatDuration(game.systems.catSystem.getHungerDeathEta(selectedCat)) +
-          "</span>") +
-      "</p>" +
-      "</div>" +
-      '<div class="page-card">' +
-      '<p class="section-eyebrow">' + t("home_status") + "</p>" +
-      '<h3 class="panel-title">' + t("living_room") + "</h3>" +
-      '<p class="page-copy">' + t("comfort_now", { value: state.home.comfortScore }) + "</p>" +
-      '<div class="notice-list" style="margin-top: 16px;">' +
-      '<div class="notice-item"><p><strong>' + t("placed_furniture") + "</strong></p><p>" +
-      (furnitureList || t("none_text")) +
-      "</p></div>" +
-      '<div class="notice-item"><p><strong>' + t("room_upgrade_title") + "</strong></p><p>" +
-      t("room_level_text", { level: roomStep.level }) +
-      " · " +
-      t("room_capacity_text", { count: roomStep.capacity }) +
-      "</p></div>" +
-      '<div class="notice-item"><p><strong>' + t("inventory_overview") + "</strong></p><p>🥣 " +
-      state.inventory.food +
-      " / 🍗 " +
-      state.inventory.premiumFood +
-      " / 🧺 " +
-      state.inventory.litter +
-      " / 🪶 " +
-      state.inventory.toys +
-      " " +
-      t("uses_remaining") +
-      '</p></div><div class="notice-item"><p><strong>' +
-      t("hospital_alert") +
-      "</strong></p><p>" +
-      (sickCount > 0
-        ? t("hospital_alert_copy", { count: sickCount })
-        : t("hospital_empty_copy")) +
-      "</p></div>" +
-      "</div>" +
-      "</div>" +
-      "</section>"
+      '<section class="headline"><p class="section-eyebrow">' + t("today_headline") + '</p><h2>' + format.escapeHtml(headline.title) +
+      '</h2><p class="headline-deck">' + format.escapeHtml(headline.copy) + '</p><div class="headline-actions">' + renderHeadlineAction(headline) +
+      '<button class="ghost-button" data-page-target="cats">' + t("headline_all_cats") + '</button></div></section>' +
+      '<div class="editorial-divider"></div>' +
+      '<section class="dashboard-grid"><div><div class="section-heading"><h3>' + t("care_list_title") + '</h3><span>' +
+      (needy.length ? t("care_list_need", { count: needy.length }) : t("care_list_clear")) + '</span></div><div class="care-list">' +
+      careCats.map(function (cat) { return renderCatCareCard(cat, state); }).join("") + '</div></div>' +
+      '<aside class="dashboard-rail"><section><div class="section-heading"><h3>' + t("today_tasks_title") + '</h3></div><div class="task-brief-list">' +
+      state.tasks.daily.map(function (task) { return game.ui.helpers.renderTaskBadge(getText(task, "title"), task.progress, task.target); }).join("") +
+      '</div><button class="text-link" data-page-target="tasks">' + t("go_tasks_claim") + ' →</button></section>' +
+      '<section><div class="section-heading"><h3>' + t("current_work") + '</h3></div>' +
+      (activeWork ? '<p class="rail-number" data-active-work-remaining>' + format.formatDuration(game.systems.workSystem.getRemainingMs(activeWork)) +
+        '</p><p>' + format.escapeHtml(getText(activeJob, "name")) + '</p>' : '<p>' + t("home_no_work_copy") + '</p>') +
+      '<button class="text-link" data-page-target="work">' + t("headline_view_work") + ' →</button></section>' +
+      '<section><div class="section-heading"><h3>' + t("home_status") + '</h3></div><dl class="home-facts"><div><dt>' + t("comfort_label") +
+      '</dt><dd>' + state.home.comfortScore + '</dd></div><div><dt>' + t("placed_furniture") + '</dt><dd>' + furniture.length +
+      '</dd></div><div><dt>' + t("bag_inventory") + '</dt><dd>' + state.inventory.food + ' / ' + state.inventory.litter + ' / ' + state.inventory.toys +
+      '</dd></div></dl></section></aside></section>'
     );
   }
 

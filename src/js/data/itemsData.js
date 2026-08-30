@@ -415,6 +415,38 @@
     },
   ];
 
+  var shopImages = {
+    food_basic: "src/assets/shop/shop-food.jpg",
+    food_premium: "src/assets/shop/shop-premium.jpg",
+    litter_basic: "src/assets/shop/shop-litter.jpg",
+    toy_wand: "src/assets/shop/shop-toys.jpg",
+    medicine_basic: "src/assets/shop/shop-med.jpg",
+    cat_grass: "src/assets/shop/shop-grass.jpg",
+    bread: "src/assets/shop/shop-bread.jpg",
+    instant_noodles: "src/assets/shop/shop-noodle.jpg",
+    bento: "src/assets/shop/shop-rice.jpg",
+    dessert: "src/assets/shop/shop-dessert.jpg",
+    bottled_water: "src/assets/shop/shop-water.jpg",
+    soda: "src/assets/shop/shop-energy.jpg",
+    coffee: "src/assets/shop/shop-coffee.jpg",
+    beer: "src/assets/shop/shop-beer.jpg",
+    cat_snack: "src/assets/shop/shop-premium.jpg",
+    toy_material: "src/assets/shop/shop-toys.jpg",
+    soft_blanket_material: "src/assets/shop/shop-rug.jpg",
+    decoration_material: "src/assets/shop/shop-lamp.jpg",
+    moon_charm: "src/assets/shop/shop-lamp.jpg",
+    cat_supply: "src/assets/shop/shop-food.jpg",
+    bed_basic: "src/assets/shop/shop-bed.jpg",
+    bowl_basic: "src/assets/shop/shop-bowl.jpg",
+    carpet_warm: "src/assets/shop/shop-rug.jpg",
+    climbing_tree: "src/assets/shop/shop-tree.jpg",
+    window_perch: "src/assets/shop/shop-window.jpg",
+  };
+
+  items.forEach(function (item) {
+    item.image = shopImages[item.id] || "src/assets/shop/shop-food.jpg";
+  });
+
   game.data.items = items;
   game.data.itemMap = items.reduce(function (map, item) {
     map[item.id] = item;

@@ -140,9 +140,10 @@
           ? t("later_unlock")
           : t("friendship_health", { intimacy: selectedCat.intimacy, health: selectedCat.health })) +
       "</span></div>" +
-      '<div class="cat-portrait" style="margin-top: 14px;"><div class="cat-portrait-icon">' +
-      catVisual.icon +
-      '</div><div><p class="mini-label">' + t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
+      '<div class="cat-portrait" style="margin-top: 14px;"><div class="cat-detail-photo halftone"><img src="' +
+      game.utils.catArt.buildCatSvg(selectedCat, 260) +
+      '" alt="' + format.escapeHtml(getText(selectedCat, "name")) + '" /></div><div><p class="mini-label">' +
+      t("cat_portrait") + '</p><p class="page-copy">' + t(catVisual.labelKey) + "</p></div></div>" +
       (!isLocked
         ? '<div class="notice-item" style="margin-top: 14px;"><p><strong>' + t("cat_name") + '</strong></p>' +
           '<input id="cat-name-input" class="field" type="text" maxlength="12" value="' +
