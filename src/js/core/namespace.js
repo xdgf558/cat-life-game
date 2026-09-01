@@ -139,6 +139,8 @@
       selectedCatId: "cat_001",
       notifications: [],
       arcadeSpin: null,
+      arcadeView: "slot",
+      arcadeBet: 20,
       roomDrag: null,
       collectionInspectCatId: null,
       lotteryDraftDigits: ["0", "0", "0", "0", "0", "0"],
