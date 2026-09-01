@@ -4,10 +4,10 @@ Final result: passed
 
 ## Visual truth and comparison inputs
 
-- Source visual truth: [design-reference-arcade-floor.png](design-reference-arcade-floor.png) — 用户选择的第二个 “Arcade Floor” 方向。
-- Final implementation capture: [design-qa-arcade-floor-final-clean.png](design-qa-arcade-floor-final-clean.png)。
-- Same-input comparison: [design-qa-arcade-floor-comparison.png](design-qa-arcade-floor-comparison.png)，左侧为视觉参考，右侧为最终实现。
-- Responsive focused capture: [design-qa-arcade-floor-mobile.png](design-qa-arcade-floor-mobile.png)。
+- Source visual truth: [design-reference-arcade-floor.png](docs/arcade-floor/design-reference-arcade-floor.png) — 用户选择的第二个 “Arcade Floor” 方向。
+- Final implementation capture: [design-qa-arcade-floor-final-clean.png](docs/arcade-floor/design-qa-arcade-floor-final-clean.png)。
+- Same-input comparison: [design-qa-arcade-floor-comparison.png](docs/arcade-floor/design-qa-arcade-floor-comparison.png)，左侧为视觉参考，右侧为最终实现。
+- Responsive focused capture: [design-qa-arcade-floor-mobile.png](docs/arcade-floor/design-qa-arcade-floor-mobile.png)。视觉证据集中在 `docs/arcade-floor/`，不属于运行时资源。
 
 ## Viewport, density, and state
 
@@ -18,7 +18,9 @@ Final result: passed
 
 ## Full-view comparison evidence
 
-通过同一张对比输入检查了整体层级：页面标题与金币状态 → “老虎机 / 本地彩票”玩法切换 → 主老虎机舞台 → 彩票奖池快照 → 我的记录。实现沿用原项目的报纸式站点外壳和导航，同时把游戏厅内部重构为橙色主动作、鼠尾草绿色信息轨、奶油色卡片的 Arcade Floor。真实老虎机柜图片位于 `src/assets/arcade/slot-machine-cabinet.png`，其上只叠加真实游戏转轮和状态信息。
+通过同一张对比输入检查了整体层级：页面标题与金币状态 → “老虎机 / 本地彩票”玩法切换 → 主老虎机舞台 → 彩票奖池快照 → 我的记录。实现沿用原项目的报纸式站点外壳和导航，同时把游戏厅内部重构为橙色主动作、鼠尾草绿色信息轨、奶油色卡片的 Arcade Floor。真实老虎机柜图片位于 `src/assets/arcade/slot-machine-cabinet.webp`，其上只叠加真实游戏转轮和状态信息。
+
+机柜资源已按最大展示尺寸压缩为 `1000 × 637` WebP，最终文件约 `66 KB`；`img` 同步声明了 `width` / `height`，避免图片加载期间发生布局跳动。
 
 ## Focused-region comparison evidence
 
@@ -28,7 +30,9 @@ Final result: passed
 
 - 点击 `50 金币` 后，下注按钮变为 `aria-pressed="true"`，主 CTA 更新为“开始转动 · 投入 50 金币”。
 - 点击主 CTA 后，转轮进入动画状态，结算后金额和“我的记录”按原游戏系统更新。
+- 点击“我的记录”卡片中的“查看全部”后，会打开并聚焦下方“查看规则与完整记录”，不会错误跳到彩票页。
 - 切换到本地彩票后，当前开奖、倒计时、奖池、六位选号和购票动作可用；将第一位选择为 `7` 后号码预览更新为 `700000`。
+- 已开奖未中奖票使用 `lottery_lost` 翻译键，中文显示“未中奖”，英文显示“No prize”。
 - “查看规则与完整记录”可展开，保留老虎机赔率、彩票奖级、待结算、历史开奖、票据与按期查询。
 - 使用语义化 `tablist / tab / tabpanel`、`aria-selected`、`aria-pressed`、选号 `label` 与 `aria-label`；浏览器错误日志为 0。
 

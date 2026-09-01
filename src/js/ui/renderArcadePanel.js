@@ -176,7 +176,7 @@
     var hasRecords = Boolean(Number(state.player.arcadeSpins || 0) || currentTickets.length || recentHistory.length || lastSpin);
     var lastSpinReels = lastSpin && Array.isArray(lastSpin.reels) ? lastSpin.reels : [];
     return '<section class="arcade-rail-card arcade-records-card"><div class="arcade-card-heading"><div><span class="arcade-card-label">' +
-      t("arcade_recent_activity") + '</span><h3>' + t("arcade_my_records") + '</h3></div><button class="arcade-link-button" data-arcade-view="lottery">' +
+      t("arcade_recent_activity") + '</span><h3>' + t("arcade_my_records") + '</h3></div><button class="arcade-link-button" data-arcade-details>' +
       t("arcade_view_all") + "</button></div>" +
       (hasRecords
         ? '<div class="arcade-record-list">' +
@@ -223,7 +223,7 @@
       '<div class="arcade-play-heading"><div><span class="arcade-card-label">' + t("slot_machine") +
       '</span><h3>' + t("slot_machine_title") + '</h3></div><span class="arcade-play-meta">' + t("slot_special_bonus") + "</span></div>" +
       '<div class="slot-machine-scene' + (activeSpin ? " is-spinning" : "") + '"><img class="slot-machine-art" src="' +
-      getArcadeAssetUrl("src/assets/arcade/slot-machine-cabinet.png") + '" alt=""><div class="slot-reels">' +
+      getArcadeAssetUrl("src/assets/arcade/slot-machine-cabinet.webp") + '" alt="" width="1000" height="637" decoding="async"><div class="slot-reels">' +
       [0, 1, 2].map(function (index) { return renderSlotReel(index, data.lastSpin, activeSpin); }).join("") +
       '</div><div class="slot-machine-status" aria-live="polite"><span class="slot-status-dot"></span><span><strong>' + statusLabel +
       '</strong> ' + statusCopy + "</span></div></div>" +
