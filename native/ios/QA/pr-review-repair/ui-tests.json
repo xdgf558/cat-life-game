@@ -1,0 +1,79 @@
+{
+  "executions": 9,
+  "passed": 8,
+  "historicalFailures": 1,
+  "distinctMethods": 8,
+  "newMethods": 2,
+  "runs": [
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "initial targeted batch",
+      "test": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+      "result": "passed",
+      "seconds": 129.532
+    },
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "initial targeted batch",
+      "test": "testCarePlansRunOffMainThreadAndConsumeSuppliesOnce",
+      "result": "passed",
+      "seconds": 67.114
+    },
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "initial targeted batch",
+      "test": "testInterruptedCarePlanningResumesAndPreservesQueuedFeed",
+      "result": "passed",
+      "seconds": 99.307
+    },
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "initial targeted batch",
+      "test": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+      "result": "passed",
+      "seconds": 51.513
+    },
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "initial targeted batch",
+      "test": "testWelcomeEntryPreservesProgressAcrossRelaunch",
+      "result": "passed",
+      "seconds": 62.363
+    },
+    {
+      "device": "iPhone SE simulator",
+      "phase": "initial targeted batch",
+      "test": "testFailedCatRestEndRetriesOriginalPartialRecoveryWithoutAwardingPastWake",
+      "result": "failed",
+      "seconds": 52.036
+    },
+    {
+      "device": "iPhone SE simulator",
+      "phase": "initial targeted batch",
+      "test": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+      "result": "passed",
+      "seconds": 72.708
+    },
+    {
+      "device": "iPhone SE simulator",
+      "phase": "initial targeted batch",
+      "test": "testOfflineCareerSettlementRetriesSaveThenPersistsLevelAndSingleReward",
+      "result": "passed",
+      "seconds": 134.008
+    },
+    {
+      "device": "iPhone SE simulator",
+      "phase": "final cancelled-touch retry regression",
+      "test": "testFailedCatRestEndRetriesOriginalPartialRecoveryWithoutAwardingPastWake",
+      "result": "passed",
+      "seconds": 54.312
+    }
+  ],
+  "failure": "The first synthetic bed touch was explicitly cancelled before entering rest or reaching fault injection. The test now permits one retry only if all room state/resources remain unchanged and no rest/session/alert exists. The full retry/reward/cold-launch assertions were retained and passed.",
+  "rawLogSHA256": {
+    "cat-pr3-pro-ui": "82953190a3077532ca4509c20eefcd3e72d0f37d9018e93a7b69adb91e0febed",
+    "cat-pr3-se-ui": "aea1805967834274f00f353de57778972a2548c776bb1be3134017833ccc0618",
+    "cat-pr3-se-rest-final": "36a1e789c0ac564c7a1d66b8b11b263acbbd4e4000e0f1fb87edd6d9634bda94"
+  },
+  "testMethodsInSuite": 51
+}

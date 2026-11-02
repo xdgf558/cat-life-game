@@ -1,0 +1,25 @@
+{
+  "bundle": "cat23-pro-validated.xcresult",
+  "warning_count": 2,
+  "warnings": [
+    {
+      "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+      "message": "AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread.",
+      "stack_frame_count": 34,
+      "all_addresses_zero": true,
+      "has_symbol_names": false,
+      "attachment_count": 0
+    },
+    {
+      "test": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+      "message": "AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread.",
+      "stack_frame_count": 34,
+      "all_addresses_zero": true,
+      "has_symbol_names": false,
+      "attachment_count": 0
+    }
+  ],
+  "conclusion": "The completed result bundle records the warning but cannot identify its caller: all 34 frames in each warning contain address 0, without symbols, source locations or attachments. Do not claim a verified SDK-only origin or a measured UI hang. Explicit session mutations are off MainActor; AVAudioPlayer implicit session activation remains a plausible documented source. No production changes made during extraction.",
+  "documented_possible_path": "AVAudioPlayer.prepareToPlay activates the audio session; play implicitly prepares an unprepared player.",
+  "apple_reference": "https://developer.apple.com/documentation/avfaudio/avaudioplayer/preparetoplay%28%29"
+}

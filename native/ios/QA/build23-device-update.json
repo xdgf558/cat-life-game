@@ -1,0 +1,41 @@
+{
+  "date": "2026-11-02",
+  "version": "0.5.0",
+  "build": 23,
+  "deviceClass": "iPhone Air",
+  "installation": {
+    "result": "installed in place",
+    "installedVersionVerified": true,
+    "uninstalledOrReset": false
+  },
+  "savePreservation": {
+    "bytes": 4545,
+    "sha256": "0e0d9b6648315e9b73f21c6c95ff98652db70eec6bd3559d3bf261d83bdd94b0",
+    "byteIdenticalBeforeFirstLaunch": true,
+    "ordinarySaveEdited": false,
+    "comparison": "Valid earlier pre-install backup compared to freshly copied post-install save; immediate-preinstall temporary copy was overwritten by a command receipt filename collision, so not used."
+  },
+  "launch": {
+    "normalCLI": "passed",
+    "newInstallProcessVerified": true,
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build23-source-manifest.json",
+    "inputCount": 135,
+    "sha256": "0a96bfcf06ab521470a81cde72b28f2d49103a5579ccdecbe6e1909047e28239",
+    "allInputsMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "log": "audio-build23/build-logs/cat23-device-delivery-build.log",
+    "codesign": "passed on host",
+    "executableSHA256": "023ec39cc3117a28a506f1eb9c0fdb6a3581bbef0ae405c1613d84840d33a4ad",
+    "assetsSHA256": "c999ffcf2bff102ad3d4f59029f443e74649d98b12f1ef838d9d2029cb8db41b",
+    "infoSHA256": "37ceff97f6c79335d43ad27fe35d673b7cc47e2b55c870a6112a8bd45e7db2bc",
+    "audioFiles": 15,
+    "allBundledAudioHashesMatchSource": true
+  },
+  "privacy": "Device, signing, process and installation identifiers omitted. Actual saves and raw device receipts remain outside the repository.",
+  "userAcceptance": "Normal startup verified; subjective listening, physical silent-mode/call/headphone behavior and full gameplay acceptance await user feedback."
+}

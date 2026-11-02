@@ -1,0 +1,126 @@
+{
+  "environment": "Standalone macOS Swift -Onone probe; 402x560 scene; 1024x1536 artwork. Geometry CPU cost only; excludes SpriteKit rendering and touch/SwiftUI overhead. Release solver executed synchronously in this measurement program to measure its CPU work, while the app executes it in Task.detached.",
+  "trajectory": "31 points: source artwork (0.76,0.79) to (0.70,0.50), build6 per-drag cache preserved",
+  "before": {
+    "meanMS": 131.0918266451613,
+    "worstMS": 590.060042,
+    "newCandidates": 42,
+    "routeCalls": 135,
+    "gridBuilds": 135
+  },
+  "afterFirst31": {
+    "meanMS": 0.022248645161290322,
+    "worstMS": 0.04125,
+    "routeCalls": 0,
+    "gridBuilds": 0
+  },
+  "afterRepeatedPreview": {
+    "count": 1550,
+    "gridBuilds": 0,
+    "label": "preview-summary",
+    "meanMS": 0.02113233419354836,
+    "points": 665,
+    "routeCalls": 0,
+    "worstMS": 0.0775
+  },
+  "releaseScenarios": [
+    {
+      "name": "release-upper",
+      "samples": 3,
+      "meanMS": 664.5909026666667,
+      "worstMS": 720.262458,
+      "candidates": 8,
+      "routeCalls": 22,
+      "gridBuilds": 9,
+      "chosenCentersMatchIntermediate": true
+    },
+    {
+      "name": "release-wall",
+      "samples": 3,
+      "meanMS": 1773.141236,
+      "worstMS": 1815.535875,
+      "candidates": 35,
+      "routeCalls": 55,
+      "gridBuilds": 26,
+      "chosenCentersMatchIntermediate": true
+    },
+    {
+      "name": "release-high-wall",
+      "samples": 3,
+      "meanMS": 2772.2038193333333,
+      "worstMS": 2796.69,
+      "candidates": 76,
+      "routeCalls": 83,
+      "gridBuilds": 40,
+      "chosenCentersMatchIntermediate": true
+    },
+    {
+      "name": "release-lower",
+      "samples": 3,
+      "meanMS": 45.76979133333333,
+      "worstMS": 46.38375,
+      "candidates": 1,
+      "routeCalls": 1,
+      "gridBuilds": 2,
+      "chosenCentersMatchIntermediate": true
+    }
+  ],
+  "intermediate": {
+    "afterFirst31": {
+      "meanMS": 0.024828032258064518,
+      "worstMS": 0.0445,
+      "routeCalls": 0,
+      "gridBuilds": 0
+    },
+    "afterRepeatedPreview": {
+      "count": 1550,
+      "gridBuilds": 0,
+      "label": "preview-summary",
+      "meanMS": 0.04589680967741942,
+      "points": 665,
+      "routeCalls": 0,
+      "worstMS": 13.34675
+    },
+    "releaseScenarios": [
+      {
+        "name": "release-upper",
+        "meanMS": 1303.278028,
+        "worstMS": 1617.367834,
+        "candidates": 8,
+        "routeCalls": 22,
+        "gridBuilds": 23
+      },
+      {
+        "name": "release-wall",
+        "meanMS": 2826.3697223333334,
+        "worstMS": 3286.85175,
+        "candidates": 35,
+        "routeCalls": 68,
+        "gridBuilds": 56
+      },
+      {
+        "name": "release-high-wall",
+        "meanMS": 3945.183666666667,
+        "worstMS": 4020.56325,
+        "candidates": 76,
+        "routeCalls": 91,
+        "gridBuilds": 84
+      },
+      {
+        "name": "release-lower",
+        "meanMS": 47.055500333333335,
+        "worstMS": 47.692667,
+        "candidates": 1,
+        "routeCalls": 1,
+        "gridBuilds": 2
+      }
+    ],
+    "note": "First Task.detached release solver, before reusing a candidate navigation grid across stages."
+  },
+  "finalNote": "Candidate navigator becomes eager only when a valid stage requires a detour; the eager grid is then reused across all remaining stages for the same candidate. Cancellation is checked at each firstReachable stage.",
+  "sources": {
+    "before": "<TMP>/cat-drag-perf-build6/debug-results.jsonl",
+    "intermediate": "<TMP>/cat-drag-perf-after/debug-results.jsonl",
+    "final": "<TMP>/cat-drag-perf-final/debug-results.jsonl"
+  }
+}

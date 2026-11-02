@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (6)",
+  "xcode": "27.2 (27B52)",
+  "scope": "Allow food bowl placement on the exposed floor below the wall pictures while preserving wall/furniture collision, reachable feeding and saved layout.",
+  "changes": [
+    "Expanded the artwork floor polygon along cabinet/wall/bed/tree boundaries",
+    "Uniformly scaled each cat pose and the bowl to about 64% of build 5 size, preserving their relative proportions so the upper passage can fit both",
+    "Removed the 36-candidate drag cutoff; select the nearest reachable floor placement with a per-drag reachability cache",
+    "Deferred navigation grid construction for candidate/docking geometry checks; obstacle routes retain their full semantics"
+  ],
+  "coreTests": {
+    "result": "passed",
+    "count": 43,
+    "suites": 4,
+    "failures": 0,
+    "newCoverage": [
+      "Deferred grid collision checks match eager geometry checks",
+      "Deferred routes match straight, routed and unreachable results with independent swept collision assertions"
+    ],
+    "scratchPath": "<TMP>/cat-life-deferred-navigation-20261031"
+  },
+  "uiTests": {
+    "passedRuns": 4,
+    "failures": 0,
+    "runs": [
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testBowlCanMoveToFloorBelowWallPicturesAndPersist",
+            "seconds": 93.756
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 90.761
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build6-pro.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testBowlCanMoveToFloorBelowWallPicturesAndPersist",
+            "seconds": 71.364
+          },
+          {
+            "name": "testNavigationCanResumeAfterCancellingMealAtBowl",
+            "seconds": 30.173
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build6-se.xcresult"
+      }
+    ],
+    "coverage": [
+      "Drag toward artwork position (0.70,0.50), within 0.06 per axis and at least 0.10 upward; save, cold launch and feed again",
+      "Every meal must complete and sample real mouth-to-food contact; zero cumulative collision or food-contact violations",
+      "Wall drop remains rejected/projected; left-side feeding and pounce still complete",
+      "Cancelling a real bite restores a safe position and permits another meal"
+    ]
+  },
+  "visualReview": {
+    "result": "passed",
+    "screenshots": [
+      "upper-floor-placed-iphone-pro.png",
+      "upper-floor-restored-iphone-pro.png",
+      "upper-floor-feeding-iphone-pro.png",
+      "upper-floor-placed-iphone-se.png",
+      "upper-floor-feeding-iphone-se.png"
+    ],
+    "recording": "cat-upper-floor-build6-preview.mp4",
+    "checks": [
+      "Food bowl reaches the wood floor directly beneath the wall pictures",
+      "Cat passes between the bed and bowl, eats at the food and returns",
+      "Wall, cabinet, bed and tree remain solid excluded areas",
+      "Both screen sizes render the smaller cat and bowl with the same proportions"
+    ]
+  },
+  "physicalDevice": {
+    "appPath": "<TMP>/cat-life-ios-device-build/Build/Products/Debug-iphoneos/CatLife.app",
+    "bundleIdentifier": "com.stationcat.catlife.native",
+    "appVersion": "0.1.0 (6)",
+    "binarySHA256": "f5262333ac1675ca785e52ae9e851bb7363618ddc515ea2e08972698572a97c3",
+    "sourceTimestampCheck": "passed",
+    "signatureVerification": "passed",
+    "installation": "passed; existing application updated in place",
+    "lastInstalledVersion": "0.1.0 (6)",
+    "uninstallOrSaveResetPerformed": false,
+    "launch": "passed; application activated with no test or reset arguments",
+    "runningProcessVerified": true,
+    "date": "2026-10-31",
+    "evidence": "build6-device-update.json",
+    "saveHandling": "Existing application updated in place; no uninstall, test-save reset, or normal-save reset was performed. Save contents were not inspected."
+  },
+  "limitations": [
+    "Build 6 installation and launch verified; full physical-device interaction and long-running performance validation remain pending.",
+    "Only the food bowl is a movable furnishing in this native prototype; the rest remain background artwork."
+  ]
+}

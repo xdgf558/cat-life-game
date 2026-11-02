@@ -1,0 +1,9 @@
+Tool: built-in image_gen
+Reference: docs/ios-room-home/room-home-refined-v2.png
+Output: native/ios/ArtSource/icon-home.png
+Transparent background: true
+
+Use case: background-extraction / game UI asset.
+Create ONE isolated transparent icon matching the MINT-GREEN HOUSE in the bottom-left 家 navigation tab of the attached selected iOS cat-game mockup. Extract/redraw only the small house symbol, not its tab background or label. Same cozy cream miniature-toy art direction: simple friendly house silhouette, chunky rounded triangular roof, rounded mint/turquoise walls, a single small cream-white rounded doorway, very subtle 3D bevel and soft top-left light. Clean confident form, readable at a native 31-point icon size. No windows or architectural complexity needed. No cat, no surrounding vegetation, no extra props.
+
+Square canvas roughly 768 x 768, house centered and occupying ~85% of canvas, balanced transparent margin. Genuine transparent alpha background. NO pale-green rounded tab background, no circle, no border, no frame, no text, no 家 character, no underline, no floor or large cast-shadow patch. Preserve the original simple green house design and palette rather than inventing a different building. One icon only.

@@ -1,0 +1,35 @@
+{
+  "info": {
+    "arguments": [
+      "devicectl",
+      "device",
+      "install",
+      "app",
+      "--device",
+      "<DEVICE_UDID_8>",
+      "<TMP>/cat-life-ios-device-build/Build/Products/Debug-iphoneos/CatLife.app",
+      "--json-output",
+      "<TMP>/cat-step-build11-device-install.json"
+    ],
+    "commandType": "devicectl.device.install.app",
+    "environment": {
+      "TERM": "dumb"
+    },
+    "jsonVersion": 5,
+    "outcome": "success",
+    "version": "651.32"
+  },
+  "result": {
+    "deviceIdentifier": "00000000-0000-0000-0000-000000000010",
+    "installedApplications": [
+      {
+        "bundleID": "com.stationcat.catlife.native",
+        "databaseSequenceNumber": 1864,
+        "databaseUUID": "00000000-0000-0000-0000-000000000011",
+        "installationURL": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000021/CatLife.app/",
+        "launchServicesIdentifier": "unknown",
+        "options": {}
+      }
+    ]
+  }
+}

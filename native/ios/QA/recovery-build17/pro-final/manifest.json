@@ -1,0 +1,230 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "349232FB-0261-498C-AB42-BDF48888E8C6.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — the real cat profile shows the recovered energy_0_108C2180-B0FB-4996-8622-C9CB9455454D.png",
+        "timestamp": 1793543541.325
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "90F0115B-89E4-4313-8734-953E2968E785.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — one background rest reaches its cap and ends_0_ABF46990-BD8A-471C-9945-C7CFA6D0961B.png",
+        "timestamp": 1793543534.555
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "6E44A077-CCBA-45F6-A6DB-8BB119B9D339.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — one background rest reaches its cap and ends_0_A8F8A9FF-D7AE-4D78-8FA0-324D60FB7491.txt",
+        "timestamp": 1793543534.425
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "FD03ECE5-4F01-42A1-B7CE-0D0B1BB6561A.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest contact — catBed_0_294E41A6-39C9-4CB4-B6E5-954123785888.txt",
+        "timestamp": 1793543516.407
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "4A62015F-5EB7-41E0-AE13-7F86ADC01235.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — early wake pays only part and feeds once_0_5D232402-923B-4592-88D2-4DFBB8B7721D.png",
+        "timestamp": 1793543493.265
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "083BF7C9-A4CA-49E4-9AEA-8DDDF00F39D1.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — early wake pays only part and feeds once_0_728A6DA1-2639-4324-A038-4D88501105F5.txt",
+        "timestamp": 1793543493.11
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testCatRestRecoversPartiallyWhenFedAndCapsAfterBackgroundCompletion()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testCatRestRecoversPartiallyWhenFedAndCapsAfterBackgroundCompletion"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "CC0A826D-08FE-4079-BA0B-E73A5102569C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — old cat rest remains ended after a second cold launch_0_ACD8DC93-63B1-4A10-B83C-2DFFDB4EE9F5.png",
+        "timestamp": 1793543604.343
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "0D9B7485-09F1-4D06-B9BC-06D8B59DF41D.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — old cat rest remains ended after a second cold launch_0_3C3DDCAC-07E2-4C33-9373-89F5FABFE376.txt",
+        "timestamp": 1793543604.216
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testColdLaunchSettlesAnActiveCatRestWithoutReplayingOrAwardingTwice()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testColdLaunchSettlesAnActiveCatRestWithoutReplayingOrAwardingTwice"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "31B261D6-12C7-4B0A-8FEC-1E70969972CC.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Cat bed step — another full climb and rest succeeds after mid-step interruption_0_EFD31D2C-4790-4C18-93FD-963F6EA05A47.png",
+        "timestamp": 1793543657.169
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "B2B4B9AA-8A9B-4966-A71A-6CE0302E5AC8.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest contact — catBed_0_E5A94A21-3B85-49A6-A0DA-ACCAAB376CA6.txt",
+        "timestamp": 1793543657.036
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "F16D2785-7D22-4A58-9F97-0C894EA9EEDB.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Cat bed step — interrupted entry exits safely and reaches actual food_0_1B420D87-3F9E-4533-A845-A0A9DACDFA06.png",
+        "timestamp": 1793543633.119
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "712C5812-332D-4489-AC00-C210C7A3FB9C.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Cat bed step — observed entry and actual feed interruption_0_60F41FFD-9C6B-4176-9DD1-D3A7427DD48B.txt",
+        "timestamp": 1793543624.859
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "D8F33A53-9FFD-427A-A6A9-5B9FF0D02237.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Cushion step — another full climb and rest succeeds after mid-step interruption_0_606DFADF-E44E-4EE2-80D1-E74CBD93ED02.png",
+        "timestamp": 1793543742.074
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "BB8FB5FC-7CFF-4721-BA36-15A42E92D6DF.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest contact — floorCushion_0_013818C0-886A-4073-A7FD-15EDA44B467F.txt",
+        "timestamp": 1793543741.951
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "6803C14F-710F-4584-BAD5-16A866DCEF9E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Cushion step — interrupted entry exits safely and reaches actual food_0_681DEF1A-CFEC-4A08-BD3E-9695BEC64706.png",
+        "timestamp": 1793543723.123
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "3C0A7E29-B05A-4751-BFB6-625A97B57CA8.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Cushion step — observed entry and actual feed interruption_0_743998E2-6F59-42AB-AA0C-3B4D1FC5F9FE.txt",
+        "timestamp": 1793543715.69
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testFeedingDuringCushionStepExitsSafelyAndCanRestAgain()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testFeedingDuringCushionStepExitsSafelyAndCanRestAgain"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "B1E0573E-747F-4360-B716-51F00A200AD3.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — active work prevents a second simultaneous activity_0_29E406F7-43AF-445E-8E90-F9863B1F536D.png",
+        "timestamp": 1793543864.665
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "28EA0E86-AFF4-4CE1-AD5A-8A9097FCEE06.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after starting the two-minute work shift_0_B8C2BEE2-258A-4DBC-990B-CE15BCAF6139.txt",
+        "timestamp": 1793543857.723
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "070381A1-FE32-4A6D-8ADA-689BD83CD30D.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after restoring sleep on cold launch_0_1C2F67F8-1E64-4F5E-B95F-7ACF856EA5B0.txt",
+        "timestamp": 1793543834.728
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "426586E7-53D4-4A45-A61E-1E6E86A631ED.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after returning to the foreground_0_82892273-4524-48E1-AC1E-8E527A4A8FE5.txt",
+        "timestamp": 1793543810.148
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "4BE58ADD-C23B-4084-8E14-531AAE0B5388.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — player sleeping with work unavailable_0_A3BF529E-A999-44F2-B1AA-42159FABA5EF.png",
+        "timestamp": 1793543803.315
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "7399D489-7265-47FE-B225-6960F47FA4DE.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after starting sleep_0_FDB5FB22-F8EB-4D03-B923-A3FC7AFEC3B9.txt",
+        "timestamp": 1793543802.978
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork"
+  }
+]

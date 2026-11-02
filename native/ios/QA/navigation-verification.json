@@ -1,0 +1,151 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.3 (16)",
+  "scope": "Horizontal bottom navigation; move Arrange and Settings into the same strip",
+  "sourceManifest": {
+    "path": "build16-source-manifest.json",
+    "inputCount": 91,
+    "sha256": "5c0cd04ca4d90db89c58e800fecfd826195d711848362d3129c0ec25e237daab"
+  },
+  "uiTestSourceSHA256": "bd906aae0e68caf5f647d57859fa35f7c3c681e85bb24cfb91ee74333394daa0",
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "<TMP>/cat-nav16-build-sim.log",
+      "version": "0.1.3",
+      "build": "16",
+      "executableSHA256": "817dae6a737a27ba2b772fb5b101bf5d4f9b703a80cc9df7ca887cd6c60f9690",
+      "infoSHA256": "26f407e60ee13966c5e15c9bee34fa2d59756af0a3064995456a2cd905368aed"
+    },
+    "device": {
+      "result": "passed",
+      "log": "<TMP>/cat-nav16-build-device.log",
+      "version": "0.1.3",
+      "build": "16",
+      "executableSHA256": "985333120fad491d0d5e066c3e71112a80460ca1b1fa780b01751217f5b82c57",
+      "infoSHA256": "30f6d011c200aef35ef07a0cf5ede869467abae152a7f36c5b63b2312588f6d0",
+      "codesign": "passed --verify --deep --strict"
+    }
+  },
+  "uiTests": {
+    "status": "passed",
+    "executed": 5,
+    "passed": 5,
+    "failed": 0,
+    "distinctMethods": 4,
+    "newMethods": 1,
+    "runs": [
+      {
+        "device": "pro",
+        "result": "passed",
+        "cases": [
+          {
+            "test": "testHorizontalHomeNavigationScrollsWithoutActivatingAndKeepsRoomStable",
+            "result": "passed",
+            "seconds": 88.795
+          },
+          {
+            "test": "testSettingsDismissalResumesAnInProgressMeal",
+            "result": "passed",
+            "seconds": 75.427
+          }
+        ],
+        "log": "navigation-build16/pro-tests.log",
+        "resultBundle": "<TMP>/cat-nav16-pro-final.xcresult"
+      },
+      {
+        "device": "se",
+        "result": "passed",
+        "cases": [
+          {
+            "test": "testHorizontalHomeNavigationScrollsWithoutActivatingAndKeepsRoomStable",
+            "result": "passed",
+            "seconds": 83.475
+          },
+          {
+            "test": "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+            "result": "passed",
+            "seconds": 296.581
+          },
+          {
+            "test": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 43.938
+          }
+        ],
+        "log": "navigation-build16/se-tests.log",
+        "resultBundle": "<TMP>/cat-nav16-se-final.xcresult"
+      }
+    ]
+  },
+  "visualReview": {
+    "status": "passed",
+    "directory": "navigation-build16",
+    "screenshots": [
+      "pro-left.png",
+      "pro-right.png",
+      "pro-english.png",
+      "se-left.png",
+      "se-right.png",
+      "se-english.png",
+      "se-traditional.png"
+    ],
+    "findings": "Actual simulator captures reviewed: original five icons retained, Arrange/Settings use the original SF symbols in the bottom strip, top duplicates removed, complete labels when scrolled into view. Native strip swipes without activating buttons.",
+    "homeFrames": {
+      "pro": [
+        0,
+        62,
+        402,
+        567
+      ],
+      "se": [
+        0,
+        20,
+        375,
+        436
+      ]
+    },
+    "controlFrames": {
+      "proButtonPoints": "79.3–79.7 by 55",
+      "seButtonPoints": "73.5–74 by 55",
+      "logicalNavigationHeight": 70,
+      "careAndNavigationHeight": 231,
+      "note": "Pro accessibility scroll viewport also includes the existing 34pt bottom safe area."
+    }
+  },
+  "device": {
+    "status": "installed and normally launched; new process verified",
+    "version": "0.1.3 (16)",
+    "evidence": "build16-device-update.json",
+    "normalSaveByteIdentical": true,
+    "runningProcessVerified": true
+  },
+  "coreTests": {
+    "rerun": false,
+    "reason": "No production CatGameCore changes; 77 tests in 8 suites are historical build13 evidence"
+  },
+  "preservedRoomInputs": {
+    "path": "home-layout-build14/preserved-scene-and-assets.json",
+    "count": 66,
+    "allHashesMatch": true
+  },
+  "limits": [
+    "Physical-device interaction acceptance is distinct from install and running-process verification."
+  ],
+  "initialUI": {
+    "executed": 2,
+    "passed": 0,
+    "failed": 2,
+    "cause": "XCTest attempted hittability on an offscreen button; visibility helper now checks viewport geometry before querying hittability. Production app unchanged.",
+    "cases": [
+      {
+        "device": "SE",
+        "seconds": 39.124
+      },
+      {
+        "device": "Pro",
+        "seconds": 48.779
+      }
+    ]
+  }
+}

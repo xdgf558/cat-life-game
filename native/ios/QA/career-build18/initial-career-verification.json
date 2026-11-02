@@ -1,0 +1,111 @@
+{
+  "date": "2026-11-02",
+  "appVersion": "0.3.0 (18)",
+  "scope": "Five careers, player level/experience and durable already-paid work summaries",
+  "sourceManifest": {
+    "path": "build18-source-manifest.json",
+    "inputCount": 93,
+    "sha256": "fe18a28a35e6b76a9b0578a5c30c23a1f324451be85233598d502307d38f7657"
+  },
+  "uiTestSourceSHA256": "8e23c9c401cbfc316a04c30dce54be21ab3064f75df54426fc1eb5955966c169",
+  "coreTests": {
+    "result": "passed",
+    "count": 111,
+    "suites": 10,
+    "newTests": 16,
+    "log": "career-build18/cat-career18-core-tests.log"
+  },
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "career-build18/cat-career18-build-sim-final.log",
+      "executableSHA256": "eeb1b13496bd28ea8c0044e7482a2ef4608a22c3fc8d99c7895b866f5e654678",
+      "infoSHA256": "27d6b724cddc2f884d4688737a819143d77bd050241e9423d2ac4d91984b64d7"
+    },
+    "device": {
+      "result": "passed",
+      "log": "career-build18/cat-career18-build-device-final.log",
+      "executableSHA256": "0154237f5de01715366ba58bd51c4cb9982cae1433bcad46aadc2c6d79fc96ed",
+      "infoSHA256": "655a0b4c1e337d47f38a5bae24e489c2adcf98fb83d0dd70e5a2ed9fa9f1eb59",
+      "codesign": "passed"
+    }
+  },
+  "uiTests": {
+    "status": "running",
+    "projectUniqueMethods": 41,
+    "newMethods": 4
+  },
+  "device": {
+    "status": "not installed yet",
+    "lastInstalledVersion": "0.2.0 (17)"
+  },
+  "rules": {
+    "jobIDs": [
+      "job_flyer",
+      "job_store",
+      "job_petshop",
+      "job_it_engineer",
+      "job_cat_cafe_manager"
+    ],
+    "unlockLevels": [
+      1,
+      2,
+      4,
+      6,
+      10
+    ],
+    "durationMinutes": [
+      2,
+      3,
+      4,
+      10,
+      30
+    ],
+    "staminaCosts": [
+      10,
+      15,
+      20,
+      30,
+      50
+    ],
+    "moodCosts": [
+      5,
+      8,
+      12,
+      12,
+      20
+    ],
+    "goldRewards": [
+      60,
+      100,
+      160,
+      400,
+      800
+    ],
+    "experienceRewards": [
+      22,
+      35,
+      52,
+      100,
+      200
+    ],
+    "levelRequirement": "current level * 100 experience",
+    "legacy": "Missing level/experience default to 1/0. Already-completed legacy jobs are not credited again. In-flight jobs keep their deadline/gold and gain their catalog experience on completion.",
+    "summary": "Latest work receipt is saved in the same state as its already-applied rewards. Reopening it never awards anything."
+  },
+  "limits": [
+    "Web work random events, hunger and mood-dependent duration/penalties are separate later work.",
+    "No task/achievement system in this release.",
+    "Physical-device player acceptance remains distinct from automated tests."
+  ],
+  "changedProductionInputs": [
+    "CatGameCore/Sources/CatGameCore/GameEngine.swift",
+    "CatGameCore/Sources/CatGameCore/GameSnapshot.swift",
+    "CatGameCore/Sources/CatGameCore/WorkCatalog.swift",
+    "CatLife/Info.plist",
+    "CatLife/Localization/GameStrings.swift",
+    "CatLife/Store/GameStore.swift",
+    "CatLife/Views/HomeDestinationSheet.swift",
+    "CatLife/Views/SettingsView.swift"
+  ]
+}

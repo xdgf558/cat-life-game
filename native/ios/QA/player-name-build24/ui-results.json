@@ -1,0 +1,61 @@
+{
+  "version": "0.5.1",
+  "build": 24,
+  "executions": 5,
+  "passed": 4,
+  "historicalFailed": 1,
+  "finalPassed": 2,
+  "finalFailed": 0,
+  "distinctMethods": 3,
+  "newMethods": 2,
+  "runs": [
+    {
+      "device": "iPhone SE (3rd generation) simulator",
+      "phase": "initial",
+      "test": "testPlayerNamePersistsAndPreservesAppearanceAndProgress",
+      "result": "failed",
+      "reason": "First Shop navigation left the unchanged Home screen before any name editing; test setup now allows a single evidence-guarded navigation retry."
+    },
+    {
+      "device": "iPhone SE (3rd generation) simulator",
+      "phase": "initial",
+      "test": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+      "result": "passed"
+    },
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "initial",
+      "test": "testPlayerNameRemainsUntranslatedAcrossLanguages",
+      "result": "passed"
+    },
+    {
+      "device": "iPhone SE (3rd generation) simulator",
+      "phase": "final frozen runtime",
+      "test": "testPlayerNamePersistsAndPreservesAppearanceAndProgress",
+      "result": "passed",
+      "durationSeconds": 529.488
+    },
+    {
+      "device": "iPhone Pro simulator",
+      "phase": "final frozen runtime",
+      "test": "testPlayerNameRemainsUntranslatedAcrossLanguages",
+      "result": "passed",
+      "durationSeconds": 371.638
+    }
+  ],
+  "sourceManifest": {
+    "path": "build24-source-manifest.json",
+    "inputCount": 136,
+    "sha256": "1403c2670d58e3b9faebec0ab786e63bac974b41ffe15e07d302596e6665b627",
+    "allInputsMatch": true
+  },
+  "newTestSourceSHA256": "c2930e4c6b46c40896f0f8b1bf1380770a76f941fb2b7e8a788de43ae8aa5fb9",
+  "testHostSourceSHA256": "46f4116c5c5a65f9d144474084a4e8a09e084f57523933b0bfb9bd2415e4ebbd",
+  "rawLogSHA256": {
+    "cat24-se": "6e79a8705a31e87a9c84da90206167afd823bd792485d139a096a83d3b7b71b8",
+    "cat24-pro": "1173990dd388b97c0289658eaf6fd50e470b4d27517ab4808d2a86047aff9156",
+    "cat24-se-final": "365f51e4289d7166da83a778ac08dd65618833c9480a6d95b914611cf3cc9808",
+    "cat24-pro-final": "49239bb3a8d05745ca6795238e5b946e21055e89df5e524ccc2e73e252466ae4"
+  },
+  "privacy": "Only compact counts, method names and hashes retained; full raw logs and result bundles stay outside the repository."
+}

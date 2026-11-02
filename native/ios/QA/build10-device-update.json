@@ -1,0 +1,29 @@
+{
+  "date": "2026-10-31",
+  "device": "iPhone Air",
+  "os": "iOS 27.2",
+  "appVersion": "0.1.0 (10)",
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "binarySHA256": "992408e82cdb43e5dd1fbbc79adc83d58165fe71c7319e194401b4e6d2377e94",
+  "launcherSHA256": "407bf9982df3ee9388e7de99290563d22fef175e77f022cd642fe34b3a6f6d8a",
+  "preparedBuildMatchesCurrentSources": true,
+  "sourceManifest": "build10-source-manifest.json",
+  "signatureValidation": "passed",
+  "installation": "passed; existing app updated in place",
+  "launch": "passed; activated with no test or reset arguments",
+  "runningProcessVerified": true,
+  "processIdentifier": 0,
+  "uninstallOrSaveResetPerformed": false,
+  "saveVerification": {
+    "result": "byte-for-byte identical before and after installation",
+    "beforeSHA256": "7b354aabd4529c8138de038ade814aa9a2486b653949f0c18d6c0f2cc8d56432",
+    "afterSHA256": "7b354aabd4529c8138de038ade814aa9a2486b653949f0c18d6c0f2cc8d56432",
+    "normalSaveEdited": false
+  },
+  "physicalGameplayValidation": "pending user acceptance of the new rest interactions",
+  "launchArguments": [],
+  "installationEvidence": "<TMP>/cat-rest-build10-device-install.json",
+  "launchEvidence": "<TMP>/cat-rest-build10-device-launch.json",
+  "processEvidence": "<TMP>/cat-rest-build10-device-processes.json",
+  "physicalUITests": "not attempted; main-app startup is verified, prior runner trust limitation remains"
+}

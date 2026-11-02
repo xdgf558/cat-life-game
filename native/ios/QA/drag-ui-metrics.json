@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Drag metrics — background placement pending before cancellation",
+    "values": {
+      "samples": "69",
+      "maxMoveMilliseconds": "0.33",
+      "resolving": "true",
+      "bowl": "0.586,0.404"
+    }
+  },
+  {
+    "name": "Drag metrics — placement validation completed",
+    "values": {
+      "samples": "26",
+      "maxMoveMilliseconds": "0.33",
+      "resolving": "false",
+      "bowl": "0.717,0.501"
+    }
+  }
+]

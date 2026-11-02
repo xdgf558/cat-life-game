@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-30",
+  "uniqueTests": 7,
+  "passedRuns": 11,
+  "failures": 0,
+  "evidence": "animation-test-results.txt",
+  "runs": [
+    {
+      "name": "Pro initial care review",
+      "passed": 1,
+      "failures": 0,
+      "testCases": [
+        {
+          "name": "testCareAnimationsFinishWithoutRepeatingResourceCosts",
+          "seconds": 34.956
+        }
+      ],
+      "runnerFinalization": "completed"
+    },
+    {
+      "name": "SE complete regression",
+      "passed": 7,
+      "failures": 0,
+      "testCases": [
+        {
+          "name": "testCareAnimationsFinishWithoutRepeatingResourceCosts",
+          "seconds": 31.624
+        },
+        {
+          "name": "testEmptyFoodRoutesToShopAndPurchaseUpdatesBalance",
+          "seconds": 42.09
+        },
+        {
+          "name": "testFeedingPersistsAcrossRelaunch",
+          "seconds": 23.993
+        },
+        {
+          "name": "testQueuedCareCanBeCancelledByRoomArrangement",
+          "seconds": 22.998
+        },
+        {
+          "name": "testReducedMotionSettlesPromptlyAndConsumesFoodOnce",
+          "seconds": 14.092
+        },
+        {
+          "name": "testRoomArrangementCanSaveAndCancel",
+          "seconds": 30.224
+        },
+        {
+          "name": "testWorkStartsAndRemainsInProgressAfterRelaunch",
+          "seconds": 31.155
+        }
+      ],
+      "runnerFinalization": "stalled after XCTest reported passed; task-owned xcodebuild stopped during log packaging"
+    },
+    {
+      "name": "Pro final registration and resize regression",
+      "passed": 3,
+      "failures": 0,
+      "testCases": [
+        {
+          "name": "testCareAnimationsFinishWithoutRepeatingResourceCosts",
+          "seconds": 33.422
+        },
+        {
+          "name": "testQueuedCareCanBeCancelledByRoomArrangement",
+          "seconds": 22.164
+        },
+        {
+          "name": "testRoomArrangementCanSaveAndCancel",
+          "seconds": 32.297
+        }
+      ],
+      "runnerFinalization": "stalled after XCTest reported passed; task-owned xcodebuild stopped during log packaging"
+    }
+  ]
+}

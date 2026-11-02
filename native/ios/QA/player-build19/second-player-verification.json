@@ -1,0 +1,103 @@
+{
+  "date": "2026-11-02",
+  "appVersion": "0.4.0 (19)",
+  "sourceManifest": {
+    "path": "build19-source-manifest.json",
+    "inputCount": 115,
+    "sha256": "03507483cd2f123e409c871afc8a07214c14a6e2fbe84a432527a720e24b395f"
+  },
+  "uiTestSourceSHA256": "b3e0108354e7cb76f2558204d48fdbb336f12834f61a3aa1f128f5dc3ee48fb2",
+  "coreTests": {
+    "passed": 129,
+    "suites": 11,
+    "newTests": 18,
+    "log": "player-build19/cat-player19-core.log",
+    "initialFixtureFailure": "One new test used a 13-character home name, exceeding the established 12-character rule. Fixture corrected; original log retained. All original 111 tests passed."
+  },
+  "uiTests": {
+    "status": "five targeted final cases running, including unchanged single-tap welcome regression",
+    "projectUniqueMethods": 44,
+    "newMethods": 3,
+    "initial": {
+      "executions": 6,
+      "passed": 2,
+      "failed": 4,
+      "runs": [
+        {
+          "device": "iPhone SE (3rd generation)",
+          "cases": [
+            {
+              "method": "testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice",
+              "result": "failed",
+              "seconds": 131.685
+            },
+            {
+              "method": "testHorizontalHomeNavigationScrollsWithoutActivatingAndKeepsRoomStable",
+              "result": "passed",
+              "seconds": 92.043
+            },
+            {
+              "method": "testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch",
+              "result": "failed",
+              "seconds": 48.711
+            },
+            {
+              "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+              "result": "passed",
+              "seconds": 46.823
+            }
+          ],
+          "log": "player-build19/cat-player19-se.log",
+          "resultBundle": "<TMP>/cat-player19-se.xcresult"
+        },
+        {
+          "device": "<DEVICE_NAME_29>",
+          "cases": [
+            {
+              "method": "testEquippedWorkKeepsCapturedTermsAndSettlesOnce",
+              "result": "failed",
+              "seconds": 34.866
+            },
+            {
+              "method": "testPlayerProfileAndEquipmentTranslateInAllThreeLanguages",
+              "result": "failed",
+              "seconds": 270.95
+            }
+          ],
+          "log": "player-build19/cat-player19-pro.log",
+          "resultBundle": "<TMP>/cat-player19-pro.xcresult"
+        }
+      ],
+      "sourceManifest": "player-build19/initial-build19-source-manifest.json",
+      "testSourceSHA256": "2864a2668e9cd1305cd3e5fbc33839e655850aab5fcc077988f31bd1b41fe0ae"
+    }
+  },
+  "device": {
+    "status": "reconnected, not yet installed"
+  },
+  "limits": [
+    "Avatar illustrations have baseline clothes; equipped items are shown in wardrobe slots with real gameplay effects, not layered onto bodies.",
+    "Future purchasable gear not added; this release grants a free basic set and provides extensible catalogs.",
+    "Physical user acceptance remains separate from simulator tests."
+  ],
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "executableSHA256": "49086eeae2fb9acb8a697378eab4f9aa9795ea53c1991c18a79748e84e70688d",
+      "infoSHA256": "71628ae632dfe093b71c18c9ad6f7f8018cad887f207883ba176cdb41f36195e",
+      "log": "player-build19/cat-player19-build-sim-final.log"
+    },
+    "device": {
+      "result": "passed",
+      "executableSHA256": "518864b5d3a058370fadcd4d0b8a60f11e9cacf24cebfa0f74e53e54d8edbc0e",
+      "infoSHA256": "141d3f701b3e9381418cd9ef71e68ea2ae2a57af4ecf78f93a4406709bcac224",
+      "log": "player-build19/cat-player19-build-device-final.log",
+      "codesign": "passed"
+    }
+  },
+  "resolvedDuringQA": [
+    "Numeric accessibility values use literal strings so 1800 is not localized as 1,800.",
+    "Precise bounded test drags bring targets into the actual unobscured viewport without full-page overshoot.",
+    "Ready welcome page stayed after one recorded in-bounds initial tap. General helper records this and allows one conditional center retry only while the same ready page remains; dedicated welcome single-tap regression is unchanged."
+  ]
+}

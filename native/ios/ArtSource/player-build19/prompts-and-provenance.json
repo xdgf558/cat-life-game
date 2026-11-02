@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-02",
+  "mode": "built-in image_gen",
+  "assets": [
+    {
+      "id": "male-sunny",
+      "assetName": "player-male-sunny",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-f38cf7e2-f214-4ad5-99b2-1d88c35ff4aa.png",
+      "prompt": "Edit this game character only. Keep the same friendly adult male identity, brown hair, sunny smile, cream top with apricot collar, honey casual pants and cream sneakers, premium soft matte 3D cartoon style, lighting, material and transparent background. Change proportions to distinctly cute CHIBI: an oversized head that takes one third of total figure height, compact torso and much shorter compact legs, total standing figure about THREE HEADS TALL. Keep adult face styling, not a baby. Full body front slight three-quarter pose, arms resting at sides, both hands and shoes completely visible. Center in a SQUARE 1024x1024 canvas with top of hair at 10% and shoes at 90%, generous transparent margins; no ground, shadow, props, text, border or watermark. Preserve true alpha transparency. Do not make a tall realistic body.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "male-forest",
+      "assetName": "player-male-forest",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-87a8c58e-1cdf-4309-97ff-ba7192bae771.png",
+      "prompt": "Use the supplied image ONLY as the exact style, rendering, chibi proportions, pose, framing and canvas reference for a NEW distinct selectable player in the same cozy cat-life game. Generate ONE character: a friendly young adult man, calm forest theme, warm medium skin, dark brown eyes, short neatly layered dark chocolate hair, gentle closed-mouth smile. Wear a pale sage green soft crew-neck sweatshirt, light oatmeal casual trousers, plain cream sneakers. The person is an adult styled as a cute premium three-heads-tall game character, not a toddler; same oversized head, compact torso and short legs as reference. No hats, glasses, hair accessories, earrings, jewelry, bags, props, handheld objects, animals, text, logo or watermark. Both hands relaxed at the sides. Full body almost front-facing, very slight three-quarter orientation matching reference. Soft refined 3D cartoon, velvety matte fabric and warm clean lighting, readable silhouette, anatomically coherent. Copy the reference's head-top and shoe-bottom positions and overall silhouette scale so all six characters align when displayed in a character selector. Complete body visible with generous transparent margins. True alpha background, no ground plane, no cast shadow, no environment. Keep aspect and canvas size identical to the reference.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "male-scholarly",
+      "assetName": "player-male-scholarly",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-4ce18b73-8225-4777-8fa2-e8424e1ff9f6.png",
+      "prompt": "Use the supplied image ONLY as the exact style, rendering, chibi proportions, pose, framing and canvas reference for a NEW distinct selectable player in the same cozy cat-life game. Generate ONE character: a friendly young adult man, quiet scholarly theme, warm fair skin, dark brown eyes, tidy side-parted dark brown hair, thoughtful relaxed smile. Wear a muted dusty-blue knit pullover over a small ivory shirt collar, soft beige casual trousers and plain cream sneakers. The person is an adult styled as a cute premium three-heads-tall game character, not a toddler; same oversized head, compact torso and short legs as reference. No hats, glasses, hair accessories, earrings, jewelry, bags, props, handheld objects, animals, text, logo or watermark. Both hands relaxed at the sides. Full body almost front-facing, very slight three-quarter orientation matching reference. Soft refined 3D cartoon, velvety matte fabric and warm clean lighting, readable silhouette, anatomically coherent. Copy the reference's head-top and shoe-bottom positions and overall silhouette scale so all six characters align when displayed in a character selector. Complete body visible with generous transparent margins. True alpha background, no ground plane, no cast shadow, no environment. Keep aspect and canvas size identical to the reference.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "female-sunny",
+      "assetName": "player-female-sunny",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-4b2d88cb-ea8b-4cab-8161-e9030fd4fa63.png",
+      "prompt": "Use the supplied image ONLY as the exact style, rendering, chibi proportions, pose, framing and canvas reference for a NEW distinct selectable player in the same cozy cat-life game. Generate ONE character: a friendly young adult woman, sunny theme, warm fair skin, warm brown eyes, short fluffy chestnut bob with side swept fringe, bright relaxed smile. Wear a warm ivory short sleeve top with a pale apricot collar, soft honey-orange relaxed trousers and plain cream sneakers. The person is an adult styled as a cute premium three-heads-tall game character, not a toddler; same oversized head, compact torso and short legs as reference. No hats, glasses, hair accessories, earrings, jewelry, bags, props, handheld objects, animals, text, logo or watermark. Both hands relaxed at the sides. Full body almost front-facing, very slight three-quarter orientation matching reference. Soft refined 3D cartoon, velvety matte fabric and warm clean lighting, readable silhouette, anatomically coherent. Copy the reference's head-top and shoe-bottom positions and overall silhouette scale so all six characters align when displayed in a character selector. Complete body visible with generous transparent margins. True alpha background, no ground plane, no cast shadow, no environment. Keep aspect and canvas size identical to the reference.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "female-forest",
+      "assetName": "player-female-forest",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-4eafdbc0-a0c8-4562-b41e-e0c6bd47f0f4.png",
+      "prompt": "Use the supplied image ONLY as the exact style, rendering, chibi proportions, pose, framing and canvas reference for a NEW distinct selectable player in the same cozy cat-life game. Generate ONE character: a friendly young adult woman, calm forest theme, warm medium skin, dark brown eyes, dark chocolate hair in one relaxed low ponytail, a few soft face framing strands, gentle smile. Wear a pale sage green crew-neck sweatshirt, light oatmeal casual trousers and plain cream sneakers. The person is an adult styled as a cute premium three-heads-tall game character, not a toddler; same oversized head, compact torso and short legs as reference. No hats, glasses, hair accessories, earrings, jewelry, bags, props, handheld objects, animals, text, logo or watermark. Both hands relaxed at the sides. Full body almost front-facing, very slight three-quarter orientation matching reference. Soft refined 3D cartoon, velvety matte fabric and warm clean lighting, readable silhouette, anatomically coherent. Copy the reference's head-top and shoe-bottom positions and overall silhouette scale so all six characters align when displayed in a character selector. Complete body visible with generous transparent margins. True alpha background, no ground plane, no cast shadow, no environment. Keep aspect and canvas size identical to the reference.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "female-scholarly",
+      "assetName": "player-female-scholarly",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-50f94edc-d3cc-4165-8a30-1d4722c32ed6.png",
+      "prompt": "Use the supplied image ONLY as the exact style, rendering, chibi proportions, pose, framing and canvas reference for a NEW distinct selectable player in the same cozy cat-life game. Generate ONE character: a friendly young adult woman, quiet scholarly theme, warm fair skin, dark brown eyes, smooth shoulder-length dark brown hair with soft side part and a tucked strand, thoughtful relaxed smile. Wear a muted dusty-blue knit pullover over a small ivory collar, soft beige trousers and plain cream sneakers. The person is an adult styled as a cute premium three-heads-tall game character, not a toddler; same oversized head, compact torso and short legs as reference. No hats, glasses, hair accessories, earrings, jewelry, bags, props, handheld objects, animals, text, logo or watermark. Both hands relaxed at the sides. Full body almost front-facing, very slight three-quarter orientation matching reference. Soft refined 3D cartoon, velvety matte fabric and warm clean lighting, readable silhouette, anatomically coherent. Copy the reference's head-top and shoe-bottom positions and overall silhouette scale so all six characters align when displayed in a character selector. Complete body visible with generous transparent margins. True alpha background, no ground plane, no cast shadow, no environment. Keep aspect and canvas size identical to the reference.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "starter-cap",
+      "assetName": "gear-starter-cap",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-5ca99bd7-3a72-4f9b-8e63-975f1964ec4b.png",
+      "prompt": "Use case: stylized-concept. Asset type: one independent equipment inventory icon for a premium cozy cat-life native iOS game. Subject: one light comfortable baseball cap, cream fabric crown with pale mint green curved brim and mint button. Small raised warm mint paw-print emblem on the front, only a simple paw shape, no letters. The cap is turned slightly three-quarter toward viewer and clearly readable. Style: refined soft 3D cartoon toy rendering, velvety matte fabric, rounded friendly geometry, delicate stitching and soft clean highlights, warm cream and mint palette consistent with charming three-heads-tall cozy game characters. Not photorealistic, not vector line art. Composition: centered whole object in a square 1024x1024 canvas, subject fills roughly 72% of canvas with generous transparent margins, no cropping. Genuinely transparent alpha background; no backdrop, ground plane, pedestal, floor, cast shadow, text, watermark, UI frame or extra objects. Beautiful at small inventory-icon sizes.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "starter-jacket",
+      "assetName": "gear-starter-jacket",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-2535ff10-0280-44cd-a275-dbb25c0448c1.png",
+      "prompt": "Use case: stylized-concept. Asset type: one independent equipment inventory icon for a premium cozy cat-life native iOS game. Subject: one lightweight casual work jacket as a neatly presented 3D clothing item, creamy ivory body, pale mint green collar cuffs and pocket trim, two rounded patch pockets, small tan buttons, sleeves relaxed slightly apart, front three-quarter view. No wearer, no head, no mannequin, no hanger, no badge or text. Style: refined soft 3D cartoon toy rendering, velvety matte fabric, rounded friendly geometry, delicate stitching and soft clean highlights, warm cream and mint palette consistent with charming three-heads-tall cozy game characters. Not photorealistic, not vector line art. Composition: centered whole object in a square 1024x1024 canvas, subject fills roughly 72% of canvas with generous transparent margins, no cropping. Genuinely transparent alpha background; no backdrop, ground plane, pedestal, floor, cast shadow, text, watermark, UI frame or extra objects. Beautiful at small inventory-icon sizes.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "starter-sneakers",
+      "assetName": "gear-starter-sneakers",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-1da8afa4-3aef-4ee7-aa3e-a0092e0eb0ce.png",
+      "prompt": "Use case: stylized-concept. Asset type: one independent equipment inventory icon for a premium cozy cat-life native iOS game. Subject: one pair of lightweight comfortable sneakers, creamy ivory uppers with pale mint green panels and rounded mint heel tabs, thick soft ivory rubber soles, ivory laces. Both shoes visible and arranged beside one another at a slightly offset three-quarter angle. No brand stripes, logo or lettering. Style: refined soft 3D cartoon toy rendering, velvety matte fabric, rounded friendly geometry, delicate stitching and soft clean highlights, warm cream and mint palette consistent with charming three-heads-tall cozy game characters. Not photorealistic, not vector line art. Composition: centered whole object in a square 1024x1024 canvas, subject fills roughly 72% of canvas with generous transparent margins, no cropping. Genuinely transparent alpha background; no backdrop, ground plane, pedestal, floor, cast shadow, text, watermark, UI frame or extra objects. Beautiful at small inventory-icon sizes.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    },
+    {
+      "id": "starter-charm",
+      "assetName": "gear-starter-charm",
+      "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-d88a7f7a-a553-48ef-a9ce-866ddcf707e4.png",
+      "prompt": "Use case: stylized-concept. Asset type: one independent equipment inventory icon for a premium cozy cat-life native iOS game. Subject: one cheerful small cat paw keychain charm, warm orange plush paw outline with creamy ivory palm pad and toe beans, a short mint braided strap and one simple brushed warm-gold rounded ring. Compact friendly silhouette, three-quarter front view, no lettering or other objects. Style: refined soft 3D cartoon toy rendering, velvety matte fabric, rounded friendly geometry, delicate stitching and soft clean highlights, warm cream and mint palette consistent with charming three-heads-tall cozy game characters. Not photorealistic, not vector line art. Composition: centered whole object in a square 1024x1024 canvas, subject fills roughly 72% of canvas with generous transparent margins, no cropping. Genuinely transparent alpha background; no backdrop, ground plane, pedestal, floor, cast shadow, text, watermark, UI frame or extra objects. Beautiful at small inventory-icon sizes.",
+      "mode": "built-in image_gen",
+      "transparentBackground": true
+    }
+  ],
+  "styleReference": {
+    "sourcePath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-ab69a713-0394-47e0-8b8c-c6b9013fd829.png",
+    "prompt": "Use case: stylized-concept. Asset type: native iOS cozy cat-life game selectable player character, one individual cutout. Create a friendly young adult man in a refined soft 3D cartoon toy style, about three heads tall with a pleasantly oversized head, warm fair skin, brown eyes, short tousled warm chestnut hair and a relaxed sunny smile. Full body standing, facing almost forward with a very slight three-quarter turn, arms relaxed visibly apart from torso, two hands and two feet anatomically coherent. Simple cream short-sleeved sweatshirt with pale apricot collar, muted honey-orange casual trousers, plain cream low shoes. This is the SUNNY male look; no hat, glasses, jewelry, bag, handheld object, companion, text, lettering or watermark. Rounded forms, velvety matte fabric, soft clean highlights, beautiful polished casual mobile game asset, warm ivory and mint room-compatible palette. Square canvas with full figure centered, head around y=10%, soles at y=90%, plenty of transparent clearance all around, figure width about 48% of canvas. No environment, floor plane, pedestal, backdrop or cast shadow; genuinely transparent alpha background. Match a high-quality warm cozy miniature game, not photorealistic, not anime line art.",
+    "note": "Initial sunny male concept had a taller body; the final male-sunny edit shortened it to the common chibi proportion. Other characters used that final image as style/proportion reference."
+  }
+}

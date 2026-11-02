@@ -1,0 +1,116 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "6F0057EE-5313-48B9-A762-C8D7B0193A3C.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_D9CF5B2D-ECD6-4CA9-AE3B-61762660A407.txt",
+        "timestamp": 1793589538.228
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "45409C8D-42F0-47CE-8767-B479867E8536.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — the free starter set occupies four distinct slots_0_64225374-7FAA-4515-9CDE-A75DAEEB06E8.png",
+        "timestamp": 1793589431.112
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "43E0D13D-22BA-4F81-8F9D-F0CFC2F0FE9B.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — selected female_scholarly profile portrait_0_190E9854-8C33-415A-801B-DDC1B079C98F.png",
+        "timestamp": 1793589378.858
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "AB019F29-FF1C-4B6B-8F04-B94DB8590B29.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — three female appearances with a saved selection_0_4A5D32E5-0581-4D90-9153-53B12E2C658F.png",
+        "timestamp": 1793589346.736
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "3ED2453F-FCC0-4557-80AF-A530864D415D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card female_scholarly_0_95DC87EE-C231-45FC-80DA-9773E4F2AF7C.png",
+        "timestamp": 1793589339.664
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "0B3C9017-A865-4D7E-8957-3E00C3458DC5.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card female_forest_0_E607FDF6-D396-4A57-A98D-F007E112DABC.png",
+        "timestamp": 1793589337.368
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "0D5D8F42-76FA-47A4-ACF3-1E1F6D70F2B7.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card female_sunny_0_776F273C-C81C-49CF-A11D-5E03D550C4C5.png",
+        "timestamp": 1793589335.012
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "087AC507-A762-4A08-8D02-FB0612F04A60.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — three male appearances with a saved selection_0_CE066184-F1E3-4E42-8B92-CF4CC2094957.png",
+        "timestamp": 1793589329.662
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "26FB4DF4-F80F-4041-87A5-9C7C63F6DEE8.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card male_scholarly_0_66353174-4EE3-4305-9B6D-62C0116DA4D9.png",
+        "timestamp": 1793589322.943
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "ABBD6E8F-3489-48CA-A865-E7D7F5FFE773.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card male_forest_0_55C443D4-F172-422E-9DC7-171AF6A26C36.png",
+        "timestamp": 1793589320.528
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "FE5224CD-4DE9-4F07-950E-67A00138A730.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card male_sunny_0_F8F4120D-071C-4988-9278-3F6A39E7660B.png",
+        "timestamp": 1793589318.006
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "93E0365F-E2F7-4443-9F95-4D5EEFB496C3.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_35CB706D-58CA-4AB7-A9B8-012B1D4690AC.txt",
+        "timestamp": 1793589272.196
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch"
+  }
+]

@@ -1,0 +1,116 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "F8A46967-E4B2-456F-8DEE-06358BFD1F8F.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_4A8B3490-A7AA-4926-97BB-07435710553C.txt",
+        "timestamp": 1793581553.813
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "EE105682-FD5C-408A-9FF9-E7F1766B8BA7.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — the same saved result is readable in zh-Hans_0_57447F58-99C9-4308-865C-B0E2AEC97A52.png",
+        "timestamp": 1793581546.761
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "BC736304-1116-450D-AA8B-06038E97DD80.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career result date — zh-Hans_0_0E837292-3869-4CA1-9145-E722B8195999.txt",
+        "timestamp": 1793581544.919
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "6B623CC0-1C77-42D0-9E9B-BC2E18738A84.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — translated job list in zh-Hans_0_761E9AF5-D72F-427E-B144-38B375CB617D.png",
+        "timestamp": 1793581528.481
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "749EA395-65DF-41AD-B44A-B25B2387EAB2.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_BCAB2503-086D-458E-A878-2784A08D0279.txt",
+        "timestamp": 1793581484.354
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "D5CD06AC-898D-4EDF-92D6-8E7D9A9B47D9.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — the same saved result is readable in zh-Hant_0_647AF5AE-27A4-40C4-AC46-E2DE343C3080.png",
+        "timestamp": 1793581477.214
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "F9EBF1C0-BD86-4993-8BA9-EE861C18AA03.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career result date — zh-Hant_0_5CB10AED-1F5F-455C-80C7-FACDFF2354ED.txt",
+        "timestamp": 1793581475.395
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "6F206C0C-283F-4887-A693-C20C78B7D578.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — translated job list in zh-Hant_0_00837C94-4A87-4AA6-9DB6-6D608E0BFEB8.png",
+        "timestamp": 1793581458.598
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "F946ED54-184C-4BC8-BFA6-4875D0AA0595.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_9826C31E-5931-4316-AB57-E202BB723E4F.txt",
+        "timestamp": 1793581413.462
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "9FA9A1EA-1091-4385-ADD2-0FC30A20768E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — the same saved result is readable in en_0_07F7ACB1-AF5B-4BF1-B582-3562F86B6DD2.png",
+        "timestamp": 1793581406.17
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "0B2FA341-2384-43D0-A89B-435E4DBF5F63.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career result date — en_0_8ECC7DC5-1A17-4AB9-991F-E7BB5673600A.txt",
+        "timestamp": 1793581404.293
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "C90A8589-CA07-48C2-A315-E503BEFAE05C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — translated job list in en_0_4F5357AB-1A5C-4047-8801-BDA6F6F6F1F2.png",
+        "timestamp": 1793581387.67
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testCareerSelectionAndSavedResultTranslateInAllThreeLanguages()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testCareerSelectionAndSavedResultTranslateInAllThreeLanguages"
+  }
+]

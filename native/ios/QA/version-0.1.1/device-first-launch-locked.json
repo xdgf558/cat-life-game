@@ -1,0 +1,72 @@
+{
+  "error": {
+    "code": 10002,
+    "domain": "com.apple.dt.CoreDeviceError",
+    "userInfo": {
+      "BundleIdentifier": {
+        "string": "com.stationcat.catlife.native"
+      },
+      "NSLocalizedDescription": {
+        "string": "The application failed to launch."
+      },
+      "NSUnderlyingError": {
+        "error": {
+          "code": 1,
+          "domain": "FBSOpenApplicationServiceErrorDomain",
+          "userInfo": {
+            "BSErrorCodeDescription": {
+              "string": "RequestDenied"
+            },
+            "FBSOpenApplicationRequestID": {
+              "string": "0x5ab1"
+            },
+            "NSLocalizedDescription": {
+              "string": "The request to open \"com.stationcat.catlife.native\" failed."
+            },
+            "NSLocalizedFailureReason": {
+              "string": "The request was denied by service delegate (SBMainWorkspace) for reason: Locked (\"Unable to launch com.stationcat.catlife.native because the device was not, or could not be, unlocked\")."
+            },
+            "NSUnderlyingError": {
+              "error": {
+                "code": 7,
+                "domain": "FBSOpenApplicationErrorDomain",
+                "userInfo": {
+                  "BSErrorCodeDescription": {
+                    "string": "Locked"
+                  },
+                  "NSLocalizedFailureReason": {
+                    "string": "Unable to launch com.stationcat.catlife.native because the device was not, or could not be, unlocked."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "errorSignature": "(com.apple.dt.CoreDeviceError 10002 (FBSOpenApplicationServiceErrorDomain 1 (FBSOpenApplicationErrorDomain 7)))",
+  "info": {
+    "arguments": [
+      "devicectl",
+      "--timeout",
+      "20",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "<DEVICE_UDID_8>",
+      "--terminate-existing",
+      "com.stationcat.catlife.native",
+      "--json-output",
+      "<TMP>/cat-0-1-1-device-launch.json"
+    ],
+    "commandType": "devicectl.device.process.launch",
+    "environment": {
+      "TERM": "dumb"
+    },
+    "jsonVersion": 5,
+    "outcome": "failed",
+    "version": "651.32"
+  }
+}

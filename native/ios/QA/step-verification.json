@@ -1,0 +1,238 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (11)",
+  "problem": "Build 10 moved onto furniture with the ordinary walk atlas and only 0.01 cat widths of cushion elevation, creating a slide through the visible cushion side.",
+  "changes": [
+    "Dedicated eight-pose step atlas: reach, forepaw support pause, hind-leg push, stable support, and separate step-down poses",
+    "Entry prefers a safe diagonal and keeps its actual facing through settling; constrained centered fallback turns to the selected facing before entry",
+    "Cushion support elevation increased from 0.01 to 0.14 cat widths; bed resting registration retained",
+    "Ground movement is staged around paw support; front-leg mesh adapts to the surface height while head and body scale stay stable",
+    "Surface shadow follows the support height; standing-to-lying registration is released continuously",
+    "An unfinished climb reverses the attained poses at its current position and height before any feeding or layout action",
+    "Diagnostics use actual source paw landmarks and runtime mesh transforms; interruption records the phase when input actually arrives",
+    "Bed foreground rim appears only after full support; it cannot slice across a partially entering or exiting cat."
+  ],
+  "coreTests": {
+    "result": "passed",
+    "tests": 64,
+    "suites": 6,
+    "log": "step-build11-core-tests.txt"
+  },
+  "geometry": {
+    "result": "passed",
+    "reachableTargets": 10,
+    "canvasSizes": [
+      [
+        375,
+        400
+      ],
+      [
+        375,
+        435
+      ],
+      [
+        375,
+        436
+      ],
+      [
+        402,
+        560
+      ],
+      [
+        420,
+        600
+      ]
+    ],
+    "evidence": "step-build11-geometry.jsonl"
+  },
+  "pawGeometry": {
+    "result": "passed",
+    "samples": 4040,
+    "evidence": "step-build11-paw-span-check.txt",
+    "scope": "Numerical source-landmark and mesh audit, not a replacement for rendered-frame review"
+  },
+  "uiTests": {
+    "executed": 7,
+    "passed": 6,
+    "failures": 1,
+    "finalExecuted": 2,
+    "finalPassed": 2,
+    "finalFailures": 0,
+    "cases": [
+      {
+        "case": "testFeedingDuringCushionStepExitsSafelyAndCanRestAgain",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "initial test fixture",
+        "executed": 1,
+        "result": "failed",
+        "passed": 0,
+        "failures": 1,
+        "seconds": 90.021,
+        "log": "step-build11-test-logs/cat-step-build11-pro-interrupt.log",
+        "resultBundle": "<TMP>/cat-step-build11-pro-interrupt.xcresult"
+      },
+      {
+        "case": "testFeedingDuringCushionStepExitsSafelyAndCanRestAgain",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "before final bed-rim correction",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 82.556,
+        "log": "step-build11-test-logs/cat-step-build11-pro-interrupt-final.log",
+        "resultBundle": "<TMP>/cat-step-build11-pro-interrupt-final.xcresult"
+      },
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "before final bed-rim correction",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 95.189,
+        "log": "step-build11-test-logs/cat-step-build11-pro-rest-final.log",
+        "resultBundle": "<TMP>/cat-step-build11-pro-rest-final.xcresult"
+      },
+      {
+        "case": "testFeedingWakesRestingCatBeforeWalkingToBowl",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "before final bed-rim correction",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 56.594,
+        "log": "step-build11-test-logs/cat-step-build11-se-testFeedingWakesRestingCatBeforeWalkingToBowl.log",
+        "resultBundle": "<TMP>/cat-step-build11-se-testFeedingWakesRestingCatBeforeWalkingToBowl.xcresult"
+      },
+      {
+        "case": "testDecoratingWakesSleepingCatBeforeBedStorageAndPersists",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "before final bed-rim correction",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 58.777,
+        "log": "step-build11-test-logs/cat-step-build11-se-testDecoratingWakesSleepingCatBeforeBedStorageAndPersists.log",
+        "resultBundle": "<TMP>/cat-step-build11-se-testDecoratingWakesSleepingCatBeforeBedStorageAndPersists.xcresult"
+      },
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "final",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 93.049,
+        "log": "step-build11-test-logs/cat-step-build11-pro-rim-final.log",
+        "resultBundle": "<TMP>/cat-step-build11-pro-rim-final.xcresult"
+      },
+      {
+        "case": "testDecoratingWakesSleepingCatBeforeBedStorageAndPersists",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "final",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 59.286,
+        "log": "step-build11-test-logs/cat-step-build11-se-rim-final.log",
+        "resultBundle": "<TMP>/cat-step-build11-se-rim-final.xcresult"
+      }
+    ]
+  },
+  "initialFailure": {
+    "finding": "The new test moved a cushion behind the standing cat and tapped the cat instead; video shows the cat-profile sheet. No climb occurred.",
+    "correction": "Only this test fixture moved to an unobstructed floor position; product hit testing and interruption/clearance assertions were not relaxed.",
+    "evidence": [
+      "step-build11-pro/initial-test-cushion-overlapped-cat.png",
+      "step-build11-pro/initial-test-tap-opened-cat-sheet.png",
+      "step-build11-pro/initial-test-target-hit-cat.mp4"
+    ]
+  },
+  "midStepInterruption": {
+    "result": "passed",
+    "receivedPhase": "entering / lifting",
+    "receivedProgress": 0.4912533,
+    "restCompletedBeforeFeed": false,
+    "mealCompleted": 1,
+    "foodAfter": 2,
+    "repeatRestSucceeded": true,
+    "collisionViolations": 0,
+    "stepClearanceViolations": 0,
+    "evidence": "step-build11-pro/mid-step-interruption-diagnostics.txt"
+  },
+  "visualReview": {
+    "result": "passed",
+    "method": "Actual simulator recording extracted at 0.2-second intervals; root and independent agent reviewed the rendered paws, torso, rim and supported pose.",
+    "frames": [
+      "step-build11-pro/cushion-step-raise-front-paw.png",
+      "step-build11-pro/cushion-step-front-paws-support.png",
+      "step-build11-pro/cushion-step-body-rises.png",
+      "step-build11-pro/cushion-step-rear-paw-crosses-edge.png",
+      "step-build11-pro/cushion-step-all-paws-supported.png",
+      "step-build11-pro/cushion-step-settles-on-surface.png"
+    ],
+    "finding": "Front paws reach the near rim while rear paws remain on the floor; rear legs follow over the edge, then the cat settles on the surface. The reviewed entry no longer uses a flat walk through the cushion side.",
+    "scope": "Cushion ascent; before the bed-only rim correction. Dedicated post-correction bed review is recorded separately."
+  },
+  "art": {
+    "method": "Built-in image_gen.imagegen",
+    "source": "ArtSource/Animation/cat-step.png",
+    "prompt": "ArtSource/Animation/cat-step.prompt.txt",
+    "metadata": "ArtSource/Animation/cat-step.metadata.json",
+    "size": [
+      1774,
+      887
+    ],
+    "grid": "4 columns x 2 rows",
+    "sha256": "63e194750db77ac0355a7c108dc8f2ed0fc5e326b3313fc3fc4b4263152a30a2",
+    "pixelEditingPerformed": false
+  },
+  "build": {
+    "simulator": "passed final bed-rim source",
+    "signedDevice": "passed final bed-rim source",
+    "signature": "passed",
+    "sourceManifest": "build11-source-manifest.json",
+    "sourceInputCount": 84
+  },
+  "deviceEvidence": "build11-device-update.json",
+  "limits": [
+    "New motion still awaits user acceptance on the physical iPhone",
+    "This remains a 2D sprite animation, not a skeletal or 3D rig",
+    "Full lifecycle/reduced-motion matrix and long-session physical performance were not run in this pass"
+  ],
+  "webFilesChanged": false,
+  "saveSchemaChanged": false,
+  "bedRimReview": {
+    "initialResult": "failed rendered-frame review despite passing functional test",
+    "finding": "The foreground bed rim covered the chest while the cat was still entering from the floor.",
+    "correction": "Draw the cropped front rim only during the supported phase, after all paws reach the mattress; hide during entry and step-down.",
+    "initialEvidence": [
+      "step-build11-pro/bed-entry-overlay-obscures-chest.png",
+      "step-build11-pro/bed-entry-overlay-before-support.png",
+      "step-build11-pro/cat-bed-entry-visual-review.mp4"
+    ],
+    "finalResult": "passed for reviewed final entry, supported rest, wake stretch and step-down frames",
+    "method": "Final Pro simulator recording; root and independent agent reviewed actual rendered frames.",
+    "finalEvidence": [
+      "step-build11-final/bed-entry-body-clear.png",
+      "step-build11-final/bed-all-paws-supported.png",
+      "step-build11-final/bed-wake-stretch-clear.png",
+      "step-build11-final/bed-step-down-clear.png",
+      "step-build11-final/bed-back-on-floor.png"
+    ],
+    "findingAfterFix": "The foreground rim no longer crosses the chest or abdomen during ascent; the wake stretch stays above the near edge and step-down clears the floor. This is a visual frame review, not a claim of 3D physical simulation."
+  },
+  "deviceInstallation": "passed 2026-11-01; build 11 installed in place with identical save",
+  "deviceLaunch": "passed; game process verified after normal launch",
+  "followUpIssue": {
+    "date": "2026-11-01",
+    "finding": "Bed rim layering is fixed, but the .06 cat-width offset still placed the held front paws below the visible mattress edge. Build 12 corrects support geometry and tests actual rim contact.",
+    "evidence": "bed-step-verification.json"
+  }
+}

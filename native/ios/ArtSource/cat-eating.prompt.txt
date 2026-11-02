@@ -1,0 +1,11 @@
+Tool: built-in image_gen
+Reference: native/ios/ArtSource/cat-idle.png
+Output: native/ios/ArtSource/cat-eating.png
+Transparent background: true
+
+Use case: identity-preserve sprite pose edit.
+The attached transparent orange-tabby sprite is the exact canonical character. Create ONE matching transparent sprite of the SAME cat in a gentle feeding pose, meant to alternate with the reference as one animation beat. Preserve the same orange stripe layout impression, plush short fur, amber eyes, cream chest/muzzle/paws, warm brown tied bow/collar, rounded body, curled tail to viewer's left, soft warm light and original cozy miniature-game art style.
+
+CHANGE ONLY THE POSE of head/upper body: lower the cat's head and turn it slightly toward the viewer's lower-right, as if leaning toward an unseen food bowl placed just in front of its right paw. Nose and mouth should be visibly lower than in the upright reference. Eyes softly relaxed and focused downward, mouth delicately licking or nibbling, not wide open or shouting. Keep the cat seated, forelegs and hindquarters stable, front paws and tail fully visible. This is a small natural lean and downward head bow, not a new side-profile cat, standing cat, crouched all-fours cat or completely different silhouette. Maintain its recognizable face. DO NOT include the food bowl or any food; those are separate scene nodes.
+
+Composition: same approximately 1086 x 1448 portrait transparent canvas as reference, same character scale, body position and feet floor/contact baseline near y=1335. A lowered head naturally leaves extra transparent space above. Do not enlarge the head to refill this space. Preserve natural body dimensions and foot positions so switching sprites does not make the character jump. Full ears, whiskers, tail and paws, no clipping. Use true transparent alpha background with clean fur edges. No ground, room, shadow patch, UI, text, frame, avatar circle, checkerboard drawn into pixels, or props. Return one isolated game character sprite only.

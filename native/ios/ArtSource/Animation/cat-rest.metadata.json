@@ -1,0 +1,141 @@
+{
+  "generator": "built-in image_gen.imagegen",
+  "initialOutput": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-bda48390-373b-46a1-8116-a9b37ec9f87d.png",
+  "selectedOutput": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-f53bacd8-6848-4469-976d-2c41c63a043e.png",
+  "width": 887,
+  "height": 1774,
+  "mode": "RGBA",
+  "sha256": "ce85290d327c6fca74ce57d1a70cdbeb3e7b8c4f70a25b30080ebd8628ecb87a",
+  "columns": 2,
+  "rows": 4,
+  "runtimeRowCuts": [
+    0,
+    0.285,
+    0.515,
+    0.725,
+    1
+  ],
+  "note": "Original generated PNG bytes copied unchanged. UV row cuts follow transparent gaps rather than geometric quarters so neighboring paws or stretch tail cannot leak. Frame scale uses standing frame 0 reference height; lying poses are not scaled up.",
+  "frames": [
+    {
+      "index": 0,
+      "cell": [
+        0,
+        0,
+        443,
+        505
+      ],
+      "alpha128BoundsInCell": [
+        66,
+        108,
+        402,
+        442
+      ]
+    },
+    {
+      "index": 1,
+      "cell": [
+        443,
+        0,
+        887,
+        505
+      ],
+      "alpha128BoundsInCell": [
+        58,
+        175,
+        405,
+        443
+      ]
+    },
+    {
+      "index": 2,
+      "cell": [
+        0,
+        505,
+        443,
+        913
+      ],
+      "alpha128BoundsInCell": [
+        42,
+        76,
+        412,
+        336
+      ]
+    },
+    {
+      "index": 3,
+      "cell": [
+        443,
+        505,
+        887,
+        913
+      ],
+      "alpha128BoundsInCell": [
+        57,
+        61,
+        402,
+        337
+      ]
+    },
+    {
+      "index": 4,
+      "cell": [
+        0,
+        913,
+        443,
+        1286
+      ],
+      "alpha128BoundsInCell": [
+        47,
+        81,
+        416,
+        318
+      ]
+    },
+    {
+      "index": 5,
+      "cell": [
+        443,
+        913,
+        887,
+        1286
+      ],
+      "alpha128BoundsInCell": [
+        42,
+        86,
+        402,
+        316
+      ]
+    },
+    {
+      "index": 6,
+      "cell": [
+        0,
+        1286,
+        443,
+        1774
+      ],
+      "alpha128BoundsInCell": [
+        52,
+        115,
+        405,
+        389
+      ]
+    },
+    {
+      "index": 7,
+      "cell": [
+        443,
+        1286,
+        887,
+        1774
+      ],
+      "alpha128BoundsInCell": [
+        48,
+        40,
+        412,
+        393
+      ]
+    }
+  ]
+}

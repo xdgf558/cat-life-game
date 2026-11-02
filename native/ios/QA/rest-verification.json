@@ -1,0 +1,246 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (10)",
+  "scope": "Cat-bed sleep and floor-cushion rest with safe approach, wake and exit",
+  "implemented": [
+    "Tap a placed bed or cushion to approach, enter, settle, rest, stretch and leave; tap the resting cat to wake it",
+    "Occasional autonomous rest between idle strolls; only placed, owned furniture can be used",
+    "Approach avoids every obstacle; only entry/rest/exit may overlap the selected furniture footprint",
+    "Feeding queues behind a safe rest exit; arrangement waits for exit before moving or storing furniture",
+    "Moved or replaced resting furniture must retain a reachable entrance and exit",
+    "Rest is transient presentation: no resource cost, new save fields or stat reward",
+    "Size changes keep furniture and navigation in the old coordinate system until safe exit; background pauses the scene",
+    "Reduced motion suppresses autonomous movement, breath and gait deformation while keeping necessary manual furniture entry/exit"
+  ],
+  "coreTests": {
+    "result": "passed",
+    "tests": 62,
+    "suites": 6,
+    "newRestPlannerTests": 8,
+    "log": "rest-core-tests.txt"
+  },
+  "geometry": {
+    "result": "passed",
+    "defaultTargetsPassed": 8,
+    "canvasSizes": [
+      [
+        375,
+        400
+      ],
+      [
+        375,
+        435
+      ],
+      [
+        402,
+        560
+      ],
+      [
+        420,
+        600
+      ]
+    ],
+    "evidence": "rest-default-geometry.jsonl",
+    "seHeightSweep": "rest-se-height-geometry.jsonl",
+    "seHeightSweepRange": "375x420...450 inclusive, including Float-rounded SpriteKit positions; all 31 reachable"
+  },
+  "uiTests": {
+    "executed": 10,
+    "passed": 8,
+    "failures": 2,
+    "finalSourceExecuted": 4,
+    "finalSourcePassed": 4,
+    "finalSourceFailures": 0,
+    "cases": [
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "initial integration",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 125.679,
+        "log": "rest-build10-test-logs/cat-rest-build10-pro-first.log",
+        "resultBundle": "<TMP>/cat-rest-build10-pro-first.xcresult"
+      },
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "before frozen-world and input diagnostics",
+        "result": "failed",
+        "executed": 1,
+        "passed": 0,
+        "failures": 1,
+        "seconds": 184.626,
+        "log": "rest-build10-test-logs/cat-rest-build10-pro-final-1.log",
+        "resultBundle": "<TMP>/cat-rest-build10-pro-final-1.xcresult"
+      },
+      {
+        "case": "testDecoratingWakesSleepingCatBeforeBedStorageAndPersists",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "frozen-world behavior; before input diagnostics",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 89.597,
+        "log": "rest-build10-test-logs/cat-rest-build10-pro-final-2.log",
+        "resultBundle": "<TMP>/cat-rest-build10-pro-final-2.xcresult"
+      },
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "before final diagnostics",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 89.245,
+        "log": "rest-build10-test-logs/cat-rest-build10-se-testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies.log",
+        "resultBundle": "<TMP>/cat-rest-build10-se-testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies.xcresult"
+      },
+      {
+        "case": "testDecoratingWakesSleepingCatBeforeBedStorageAndPersists",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "before final diagnostics",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 84.886,
+        "log": "rest-build10-test-logs/cat-rest-build10-se-testDecoratingWakesSleepingCatBeforeBedStorageAndPersists.log",
+        "resultBundle": "<TMP>/cat-rest-build10-se-testDecoratingWakesSleepingCatBeforeBedStorageAndPersists.xcresult"
+      },
+      {
+        "case": "testFeedingWakesRestingCatBeforeWalkingToBowl",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "before final diagnostics",
+        "result": "failed",
+        "executed": 1,
+        "passed": 0,
+        "failures": 1,
+        "seconds": 73.669,
+        "log": "rest-build10-test-logs/cat-rest-build10-se-testFeedingWakesRestingCatBeforeWalkingToBowl.log",
+        "resultBundle": "<TMP>/cat-rest-build10-se-testFeedingWakesRestingCatBeforeWalkingToBowl.xcresult"
+      },
+      {
+        "case": "testFeedingWakesRestingCatBeforeWalkingToBowl",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "final source",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 59.89,
+        "log": "rest-build10-test-logs/cat-rest-build10-se-tap-probe.log",
+        "resultBundle": "<TMP>/cat-rest-build10-se-tap-probe.xcresult"
+      },
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "final source",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 95.207,
+        "log": "rest-build10-test-logs/cat-rest-build10-pro-release-1.log",
+        "resultBundle": "<TMP>/cat-rest-build10-pro-release-1.xcresult"
+      },
+      {
+        "case": "testFeedingWakesRestingCatBeforeWalkingToBowl",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "final source",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 91.413,
+        "log": "rest-build10-test-logs/cat-rest-build10-pro-release-3.log",
+        "resultBundle": "<TMP>/cat-rest-build10-pro-release-3.xcresult"
+      },
+      {
+        "case": "testBowlDragRespondsAndCancelledValidationCannotOverwriteLayout",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "final source",
+        "result": "passed",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "seconds": 72.501,
+        "log": "rest-build10-test-logs/cat-rest-build10-pro-release-drag.log",
+        "resultBundle": "<TMP>/cat-rest-build10-pro-release-drag.xcresult"
+      }
+    ]
+  },
+  "earlierFailures": [
+    {
+      "case": "Pro bed/moved-cushion run",
+      "result": "failed assertion retained",
+      "evidence": "cat-rest-build10-pro-final-1.xcresult",
+      "finding": "Snapshot stalls exceeded the 9-second cushion hold. Final diagnostics showed one completed rest, one safe exit, 289 contact samples and zero collisions; the assertion missed the transient resting phase."
+    },
+    {
+      "case": "SE default-cushion feed run",
+      "result": "failed assertion retained",
+      "evidence": "cat-rest-build10-se-testFeedingWakesRestingCatBeforeWalkingToBowl.xcresult",
+      "finding": "One tap produced no observed rest or contact. Exact-size/Float geometry and hit-rectangle checks passed. Added input diagnostics only; the unchanged test passed when rerun alone. Original missed-input cause remains unconfirmed; no route or hit area was relaxed."
+    }
+  ],
+  "art": {
+    "method": "Built-in image_gen.imagegen; initial generation plus one layout correction",
+    "source": "ArtSource/Animation/cat-rest.png",
+    "prompts": [
+      "ArtSource/Animation/cat-rest.prompt.txt",
+      "ArtSource/Animation/cat-rest-layout-correction.prompt.txt"
+    ],
+    "metadata": "ArtSource/Animation/cat-rest.metadata.json",
+    "poses": 8,
+    "image": "887x1774 RGBA",
+    "sha256": "ce85290d327c6fca74ce57d1a70cdbeb3e7b8c4f70a25b30080ebd8628ecb87a",
+    "sourceAndPackagedAssetIdentical": true,
+    "pixelEditingPerformed": false
+  },
+  "visualReview": {
+    "result": "passed",
+    "evidenceDirectories": [
+      "rest-build10-pro",
+      "rest-build10-se"
+    ],
+    "checks": [
+      "cat visibly rests inside the bed and on the moved cushion",
+      "bed front rim overlays the lower body",
+      "SE awakened cat reaches the actual food surface"
+    ],
+    "video": "rest-build10-pro/rest-wake-feed.mp4",
+    "videoReview": "43-second actual simulator recording; AVFoundation decoding and extracted keyframes verified"
+  },
+  "build": {
+    "simulator": "passed",
+    "signedDevice": "passed",
+    "signature": "passed",
+    "inputs": "build10-source-manifest.json"
+  },
+  "deviceEvidence": "build10-device-update.json",
+  "limits": [
+    "Physical-device rest interaction awaits user acceptance",
+    "Original SE missed-input attempt was not reproduced; cause unconfirmed",
+    "Resize/background and reduced-motion rest were code-reviewed, not a complete automated lifecycle matrix",
+    "Cat-tree climbing/scratching, audio and extended thermal/performance checks remain later work"
+  ],
+  "webFilesChanged": false,
+  "saveSchemaChanged": false,
+  "dragRegression": {
+    "result": "passed",
+    "pendingMoveSamples": 109,
+    "maximumCallbackMS": 0.208,
+    "measurementScope": "Simulator touch callback computation only; not end-to-end device latency"
+  },
+  "device": {
+    "installation": "passed; in-place update",
+    "launch": "passed; normal startup and running process confirmed",
+    "savePreservation": "byte-for-byte identical before/after install",
+    "manualAcceptance": "pending"
+  }
+}

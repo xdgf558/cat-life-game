@@ -1,0 +1,9 @@
+Use case: stylized-concept
+Asset type: Small native iOS game care-action icon, a square transparent PNG.
+Primary request: One adorable small cleaning brush with a warm natural light-wood handle and dense cream-white bristles, matching a premium cozy cream toy-house cartoon game.
+Style/medium: Polished three-dimensional cartoon illustration, rounded toy-like forms, softly beveled wood, simple chunky silhouette, gentle warm studio shading. The light wooden handle is the upper part and the cream-white bristle head is the lower part; show enough of both that the object is clearly a brush.
+Composition/framing: A single brush centered in a square, seen at a modest three-quarter angle and tilted slightly diagonally. The complete brush occupies about 85 percent of the canvas and stays inside all edges. Use broad, uncluttered shapes and a few clear bristle divisions so it remains recognizable at 30 points.
+Background: Genuinely transparent alpha across the entire empty canvas; isolate only the brush. No opaque fill or baked checkerboard.
+Constraints: Exactly one cleaning brush. No text, lettering, numbers, watermark, logo, background, room, surface, pedestal, colored tile, circle, rounded rectangle, border, frame, shadow floating behind the object, sparkles, or extra objects. Keep the wooden handle and cream-white bristles visually distinct. No photorealistic grime.
+
+Generated with the built-in image_gen tool, transparent_background: true.

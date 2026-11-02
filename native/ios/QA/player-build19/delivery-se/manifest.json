@@ -1,0 +1,143 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "2DEBF024-D310-4CCF-B21B-3070C1F3D583.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_93F093BC-791E-4D8D-A29F-D0212A19E583.txt",
+        "timestamp": 1793586607.087
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "ED6DEA03-F080-48C4-9C77-4A62FAF4BFDB.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated equipped item and removal action in zh-Hans_0_46FD1C44-6DB3-4799-A5CB-D9A1847BFCCD.png",
+        "timestamp": 1793586602.064
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "BE99220A-CEC1-4D7E-91FF-34820E25337A.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — actual equipment bonuses in zh-Hans_0_D0776602-6D85-4EF0-8F3A-D4EA8A589CA9.png",
+        "timestamp": 1793586588.738
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7AF299EB-2CDE-4FB5-9545-FD899281DC07.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated six-appearance gallery in zh-Hans_0_2A7590E2-FF6A-46B8-894E-9AF4DFFBDF88.png",
+        "timestamp": 1793586545.066
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "5B2E279F-9538-40C8-9645-1D5B274920BE.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated profile portrait in zh-Hans_0_688F3840-93ED-40E1-BF40-5CC5F036D899.png",
+        "timestamp": 1793586514.282
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "D3D5B23D-3FBA-4393-9564-40E521B19DA3.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_900C718C-C991-4F3A-A775-C25E476E756A.txt",
+        "timestamp": 1793586495.097
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B5B6F98E-D28E-417A-AE13-DB292D026BE4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated equipped item and removal action in zh-Hant_0_B2FF6B6C-15CE-4F45-8C5A-6D6DB9C2C3B8.png",
+        "timestamp": 1793586490.034
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "6C12114F-D4EB-4B90-A3AC-3D21A6308EBB.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — actual equipment bonuses in zh-Hant_0_494E779A-5A2D-4308-A88D-EF70E37AF682.png",
+        "timestamp": 1793586476.403
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B56439AA-60F5-4784-90A0-1871307847BE.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated six-appearance gallery in zh-Hant_0_D88B670C-E72A-4A47-8809-F38A1237D6BB.png",
+        "timestamp": 1793586432.093
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "872C09CA-6A8C-4F63-AA60-B3DE081EE15C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated profile portrait in zh-Hant_0_3A2AEC90-33E5-49EA-9197-F92FA9E381BE.png",
+        "timestamp": 1793586401.054
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "6AC6D2D1-4AE0-46FF-8CC3-629CDB30CAC8.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_3FAF1A45-1891-45FF-9FA7-8D30C48B8E25.txt",
+        "timestamp": 1793586381.718
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "44D409B4-70D7-47A7-9CB8-D09E406732F4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated equipped item and removal action in en_0_63976107-8DBC-4D41-92AC-F68440E79EDE.png",
+        "timestamp": 1793586376.74
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E713B21B-B5BB-40B8-ACBE-BB34C26908FA.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — actual equipment bonuses in en_0_F085C51D-1651-4911-BAE7-E6C79CEDB75D.png",
+        "timestamp": 1793586363.158
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "57DA0C4E-A680-48A0-B6FA-D9D52BF8882D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated six-appearance gallery in en_0_2DDD751C-E2D6-4CBD-A9D4-2BDCBEAF7E29.png",
+        "timestamp": 1793586319.29
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B0317C23-0675-4EF1-9CDF-7219D6CEFF1A.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — translated profile portrait in en_0_E6682D23-C822-40DD-A655-1FACE745FAD3.png",
+        "timestamp": 1793586288.228
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerProfileAndEquipmentTranslateInAllThreeLanguages()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerProfileAndEquipmentTranslateInAllThreeLanguages"
+  }
+]

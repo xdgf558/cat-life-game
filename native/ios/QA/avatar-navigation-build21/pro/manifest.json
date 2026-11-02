@@ -1,0 +1,170 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "2C947E8B-8C0F-4BAD-AE7E-C3810E2A3AD1.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — female_scholarly retained after cold launch_0_FEEB507E-33AD-426B-A19C-FE13224FC976.png",
+        "timestamp": 1793602389.305
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "A63CED2B-4CB7-49D0-AD17-8FDE5C058426.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_296AF457-8225-493A-9B54-C245176877CC.txt",
+        "timestamp": 1793602389.176
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "C6FD582B-602E-43C1-8C34-1A4D06C04B1E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait female_scholarly_0_0DF9E51D-1A47-4256-9DBD-05ACD76F871F.png",
+        "timestamp": 1793602365.094
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "3A81BBDB-69A3-4E02-B1F8-5F38779DBB63.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_1147B03D-C563-4057-9613-119C378943E8.txt",
+        "timestamp": 1793602364.958
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "54BA3E5B-DABE-4DD3-8038-0FE7C135844B.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait female_forest_0_9963C972-2AA7-4311-89CE-B3A4F2088A9C.png",
+        "timestamp": 1793602344.972
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "F061BD79-E9A6-4403-86C1-1FCFCA4B4021.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_6320E84E-1E0C-4A42-9A5E-87F5309B5256.txt",
+        "timestamp": 1793602344.833
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "865F271F-0E66-4B0A-96C8-3CF1891CA2CD.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait female_sunny_0_FB234359-A893-426D-A810-58EB36547A0E.png",
+        "timestamp": 1793602324.485
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "AB214BF5-DC0C-4183-91BD-0462CE2CA43C.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_E05E5C91-F8B5-4BEE-B567-8F75965FD249.txt",
+        "timestamp": 1793602324.343
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "8F973D08-FDAB-4E0A-964B-27711C75EE85.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_scholarly_0_839DC6F3-4CF2-40BF-83B4-2CEEE826CDBD.png",
+        "timestamp": 1793602306.701
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "E14FEE51-8A33-487D-8F22-2BE1587E3186.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_D675B9FC-C829-416E-A7D5-C8C8EB05C238.txt",
+        "timestamp": 1793602306.493
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "AEFF9FDD-5E51-4B21-BB58-CBA98AE1AF5D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_forest_0_6CABC27A-12CC-46A5-8F08-C9507C5FC878.png",
+        "timestamp": 1793602286.398
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "8E4714EB-8EB9-4C2A-9F54-964896912D20.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_7A42C978-ECD3-4ADB-8004-4E36781ECAAA.txt",
+        "timestamp": 1793602286.133
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "7619C40D-0B7B-45FF-B0F6-39DB92C4E670.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_sunny_0_C157F7D0-0CFD-4684-9AEB-337127EBFE7F.png",
+        "timestamp": 1793602262.497
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "E6282324-ABC6-481E-A92E-B654487838A9.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_7EA680DF-78D0-43F3-8620-BDDAD758F072.txt",
+        "timestamp": 1793602262.194
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "032078F8-AA5B-4290-B882-B8BA1D55DF94.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — unselected fallback on the real home bar_0_4E05FDF6-C5C4-43C9-BE15-07DB3010332A.png",
+        "timestamp": 1793602240.64
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "C50FA07C-9002-4DCA-9D1A-E101B1BE1E49.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_5784F118-CEF5-43B2-8320-A80010B92CB3.txt",
+        "timestamp": 1793602236.487
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "E804F5DE-55C6-445F-ABEA-F66DA0695A7E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Welcome — unchanged ready state before one retry_0_2E0D639E-1D7F-4A08-80D9-BDCE1287ED08.png",
+        "timestamp": 1793602230.437
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "024AAD12-2F1A-4F82-B20C-2791DD9697C4.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Welcome — initial tap left unchanged ready screen_0_2AA26218-75AD-4CBA-9406-1D7A7FC9D83E.txt",
+        "timestamp": 1793602230.289
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerNavigationPortraitFollowsSelectionAndRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerNavigationPortraitFollowsSelectionAndRelaunch"
+  }
+]

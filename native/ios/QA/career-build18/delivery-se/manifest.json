@@ -1,0 +1,62 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "D208CADD-2B36-40A9-8E6B-C637C1110000.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_2182B50C-9568-4C8B-AF8F-CCC6A3D2FA40.txt",
+        "timestamp": 1793581469.549
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "4C5FD0E8-48EC-4744-BBE2-38BD975FD443.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — the cafe shift uses thirty real minutes_0_0236966D-C8A4-45CA-AC7F-1F4765FF6A47.txt",
+        "timestamp": 1793581436.058
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "BC79AB91-15BB-4A92-B56A-2C491C090F2D.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — level ten can select the thirty-minute cat cafe job_0_F3455E06-D890-4E66-89D9-00D8F8D70DBC.png",
+        "timestamp": 1793581429.689
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "73D98F25-3877-40EB-BF56-CC90B1444E9B.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — the selected flyer job counts down_0_9526E740-101D-4BB6-BD38-B8DB09EF83F0.txt",
+        "timestamp": 1793581371.394
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FBB7BFAC-ACE4-4E66-A862-F3879194F474.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — future jobs show their real level requirements_0_3E35F31E-ADDA-4645-A7D7-6200F6A09274.png",
+        "timestamp": 1793581356.127
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "D8E982B6-9285-4C2B-B9A3-CCC49196D86E.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_A6A45CD9-8CEB-4586-8E35-519E7B87E19B.txt",
+        "timestamp": 1793581327.394
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice"
+  }
+]

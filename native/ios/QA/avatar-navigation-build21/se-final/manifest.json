@@ -1,0 +1,152 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "8B19DFED-28A2-49AA-967D-6446052613EC.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — female_scholarly retained after cold launch_0_DD122A4A-36FD-4934-8909-A030BC8059C3.png",
+        "timestamp": 1793603514.51
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7D1FF34B-8F77-4BC8-A8A7-301FE5C96BE3.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_8A3341E2-1620-4AB5-A006-F8DA682ACCC6.txt",
+        "timestamp": 1793603514.447
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "85A778FF-41AC-41A2-B0EE-356C7AC0DA27.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait female_scholarly_0_9B6A8B89-32AC-4C74-9DE3-02E494DCD3D2.png",
+        "timestamp": 1793603499.446
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B7D8AB20-925F-45EF-A5B0-352AF571C8A0.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_27074D8A-DEB4-41D4-80F5-112A5FA8A9AF.txt",
+        "timestamp": 1793603499.39
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "2D7F4FC8-215B-4801-9C55-1D0BB165D3EC.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait female_forest_0_66CC67C3-1CF9-4C0F-8F00-040B388BD9AD.png",
+        "timestamp": 1793603464.391
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "F7655D0A-01DC-4133-8DD6-28E1791D1C82.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_F6888417-4FA4-4FAB-B58A-C563FC4E3D88.txt",
+        "timestamp": 1793603464.322
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "5D74E778-2785-461C-AECD-7211CC67C68C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait female_sunny_0_E78C56A0-4B89-432E-8881-2D004D6FFC73.png",
+        "timestamp": 1793603428.99
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "2B9AA556-7A3E-4232-A6B3-9ADD321B222E.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_935E8C90-F71A-4738-AE2B-FC3E071B5430.txt",
+        "timestamp": 1793603428.923
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "A7E4EEE0-F781-4671-A4E8-D89E782D0A7E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_scholarly_0_85A907CC-F115-4769-9E98-F96D9A66EDAE.png",
+        "timestamp": 1793603396.983
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FDA9610F-3D77-49BD-83A6-5216B8970149.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_3F258B1C-BB39-441E-86C2-5C13141B5512.txt",
+        "timestamp": 1793603396.914
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "4C437DCC-6105-4B4A-AFC9-14953F5B7AC4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_forest_0_3FB33FFA-1DAF-4E58-AEBE-70B9287EF8E8.png",
+        "timestamp": 1793603364.561
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "126F3014-AD4D-49A5-A385-F0BD335CE109.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_07A81951-9603-4F04-9CE8-DD8E6401B759.txt",
+        "timestamp": 1793603364.493
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "01317709-744A-4F3E-915E-B7D146DCE538.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_sunny_0_F1975510-7C26-4963-85F0-3755B76D8128.png",
+        "timestamp": 1793603342.239
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "EC9CA4EA-17F2-4960-A215-E1F4FD7C815F.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_BC53962B-F7C3-4C58-B0C9-CDC4D511F3D1.txt",
+        "timestamp": 1793603342.173
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "174D6F6F-62E0-4DA9-8529-FB8437C18CD4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — unselected fallback on the real home bar_0_94A8210A-934E-4317-94C9-EF26EE272194.png",
+        "timestamp": 1793603319.944
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "9D4AAE62-FCE5-4698-9599-F7EA3DFBECC4.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_69AFE9B6-500F-411A-9CE1-5754EE28D160.txt",
+        "timestamp": 1793603315.928
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerNavigationPortraitFollowsSelectionAndRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerNavigationPortraitFollowsSelectionAndRelaunch"
+  }
+]

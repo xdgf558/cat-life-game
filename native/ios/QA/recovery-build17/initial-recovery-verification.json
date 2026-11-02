@@ -1,0 +1,47 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.2.0 (17)",
+  "scope": "Persisted player sleep and time-based cat energy recovery",
+  "sourceManifest": {
+    "path": "build17-source-manifest.json",
+    "inputCount": 92,
+    "sha256": "54f742104843a64fdaa4d7d30b79f44d5942a409fca640905bb63a500751fa2f"
+  },
+  "uiTestSourceSHA256": "4dbd0f16bbcfd9f0059a2d5fc9ee1a041289a369450a52eac3ad7ee4c9af827e",
+  "coreTests": {
+    "result": "passed",
+    "count": 95,
+    "suites": 9,
+    "newTests": 18,
+    "log": "recovery-build17/cat-rest17-core-final.log"
+  },
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "recovery-build17/cat-rest17-build-sim.log",
+      "executableSHA256": "817dae6a737a27ba2b772fb5b101bf5d4f9b703a80cc9df7ca887cd6c60f9690",
+      "infoSHA256": "c8e1f14f1d124c33d533f7f7fc7e8a9987b45721ebf10b3beb25239f6bc28718"
+    },
+    "device": {
+      "result": "passed",
+      "log": "recovery-build17/cat-rest17-build-device-final.log",
+      "executableSHA256": "18dbd1a181936d522211ec852d9ceccbf81f6c65ac543ac66569d8f657961a94",
+      "infoSHA256": "2887b0e46096cee47292ad8b4df7bcb630c20bcfbe1e8d2b137e032356f9bbe6",
+      "codesign": "passed"
+    }
+  },
+  "uiTests": {
+    "status": "running"
+  },
+  "device": {
+    "status": "not installed yet"
+  },
+  "rules": {
+    "player": "20 stamina and 20 mood per real hour; no extra passive recovery during sleep; active until waking",
+    "cat": "Starts only after settled in placed bed/cushion; 12/9 seconds, proportional energy up to 20+floor(comfort/20); stop and settle on early wake; cold launch settles old interval without replay"
+  },
+  "limitations": [
+    "Only cat energy is recovered by furniture rest in this version.",
+    "Physical-device interaction acceptance remains distinct from build/install/process checks."
+  ]
+}

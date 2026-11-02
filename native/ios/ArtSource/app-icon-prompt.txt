@@ -1,0 +1,10 @@
+Use case: precise-object-edit
+Asset type: iOS app icon, a square 1024 x 1024 image.
+Input image: the provided cat-avatar.png is the character and art-style reference.
+Primary request: Turn this orange tabby kitten portrait into a finished app icon for a cozy native iOS cat care game. Preserve the reference kitten's recognizable round face, orange tabby markings, cream-white cheeks and muzzle, large amber eyes, pink nose, pink inner ears, and cheerful open-mouth expression. Change the bow tie to soft mint green.
+Style/medium: Premium three-dimensional cartoon illustration in a warm cream toy-house aesthetic, soft rounded plush-like forms, carefully groomed fluffy fur, polished but friendly.
+Scene/backdrop: Simple warm pale cream opaque background covering the entire square. Very soft warm studio light and gentle shading.
+Composition/framing: Head centered and large, facing the viewer, with the mint bow tie visible below the chin. Keep both complete ears within the image with a comfortable margin. Face and ears should form a clear silhouette at small app-icon size. Crop below the chest; no full body. The whole canvas must be square and fully filled with opaque color.
+Constraints: Exactly one orange tabby kitten. No text, letters, numbers, watermark, logo, border, frame, rounded-corner tile, phone mockup, circle, or decorative objects. Do not bake rounded corners into the image. No transparency. No black background.
+
+Generated with the built-in image_gen tool. Reference: cat-avatar.png.

@@ -1,0 +1,125 @@
+{
+  "date": "2026-10-30",
+  "appVersion": "0.1.0 (4)",
+  "problem": "Cat moved along unchecked straight segments, ignored its full footprint, and could retain an old bowl obstacle after a drag.",
+  "changes": [
+    "Source-art floor polygon follows the exact aspect-fill transform and excludes furniture, walls, foreground props and offscreen ground.",
+    "Cat uniformly resized to min(0.22*sceneWidth,0.27*sceneHeight), about two-thirds of its prior displayed size.",
+    "Swept footprint collision checks and obstacle-aware routes cover the entire approach, stroll, pounce and return paths; no unsafe straight fallback.",
+    "Regular footprint width/height 1.36/0.25 times cat width; pounce uses 1.60/0.28.",
+    "Bowl dragging keeps a reachable eating side and protects the cat; accepted drags always rebuild navigation and cancelled touches restore the draft.",
+    "Legacy invalid bowl locations are projected for rendering without rewriting the original save.",
+    "Depth sorting uses cat feet and bowl ground anchor, not fixed layer numbers."
+  ],
+  "coreTests": {
+    "passed": 37,
+    "newNavigationCases": 10,
+    "failures": 0,
+    "sourceLog": "<TMP>/cat-room-nav-tests.log"
+  },
+  "uiTests": {
+    "uniqueCasesInThisPass": 5,
+    "passedRuns": 10,
+    "finalImplementationPassedRuns": 5,
+    "failures": 0,
+    "runs": [
+      {
+        "device": "Pro intermediate",
+        "stage": "before final obstacle-cache synchronization and independent audit fixes",
+        "passed": 5,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+            "seconds": 48.574
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 56.405
+          },
+          {
+            "name": "testQueuedCareCanBeCancelledByRoomArrangement",
+            "seconds": 23.309
+          },
+          {
+            "name": "testReducedMotionSettlesPromptlyAndConsumesFoodOnce",
+            "seconds": 16.816
+          },
+          {
+            "name": "testRoomArrangementCanSaveAndCancel",
+            "seconds": 32.245
+          }
+        ],
+        "runner": "completed; xcresult finalized"
+      },
+      {
+        "device": "SE final",
+        "stage": "final implementation with actual meal/pounce completion assertions",
+        "passed": 3,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+            "seconds": 45.727
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 58.008
+          },
+          {
+            "name": "testRoomArrangementCanSaveAndCancel",
+            "seconds": 30.597
+          }
+        ],
+        "runner": "completed; xcresult finalized"
+      },
+      {
+        "device": "Pro final",
+        "stage": "final implementation with actual meal/pounce completion assertions",
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+            "seconds": 48.338
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 57.773
+          }
+        ],
+        "runner": "completed; xcresult finalized"
+      }
+    ],
+    "evidence": "collision-test-results.txt"
+  },
+  "runtimeAssertions": [
+    "Cumulative footprint violations remained zero against both the navigation floor and the currently visible bowl.",
+    "Each tested feeding completed real meal poses, and each tested play completed a real pounce; stationary fallback cannot satisfy these assertions.",
+    "Care returned to its starting floor point and consumed resources once.",
+    "Real drag attempts to both sides of the cat and onto the wall retained safe, usable bowl positions."
+  ],
+  "build": {
+    "simulator": "passed",
+    "signedIphoneOS": "passed",
+    "localSignatureValidation": "passed"
+  },
+  "physicalDevice": {
+    "device": "iPhone Air",
+    "installation": "passed; existing application updated in place",
+    "existingSave": "retained; no uninstall or reset performed",
+    "userActionRequested": "Unlock the phone and open the installed game.",
+    "date": "2026-10-31",
+    "launch": "blocked by automatic device lock screen",
+    "evidence": "build4-device-update.json"
+  },
+  "visualEvidence": [
+    "collision-home-iphone-pro.png",
+    "collision-feeding-iphone-pro.png",
+    "cat-collision-preview.mp4"
+  ],
+  "limits": [
+    "Build 4 is installed; physical launch verification was blocked by the lock screen and full physical gameplay validation remains pending.",
+    "Navigation is a conservative 2D floor model, not a 3D physics simulation."
+  ]
+}

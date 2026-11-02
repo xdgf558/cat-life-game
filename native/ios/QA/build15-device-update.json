@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-01",
+  "version": "0.1.2",
+  "build": 15,
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "installation": "passed, in place; no uninstall or reset",
+  "installedVersionQueried": true,
+  "normalSave": {
+    "beforePath": "<TMP>/cat-welcome15-save-before.json",
+    "afterPath": "<TMP>/cat-welcome15-save-after.json",
+    "bytes": 2912,
+    "sha256": "0cb22e5a5be3980d349f43384f47118e33fdc90d8d84029e1b58b354f67c242b",
+    "byteIdentical": true,
+    "comparisonMoment": "after installation and before first new launch"
+  },
+  "launch": {
+    "initialCLIResult": "denied because device locked",
+    "userConfirmedManualOpen": true,
+    "newInstallProcessVerified": true,
+    "pid": 0,
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000013/CatLife.app/CatLife",
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build15-source-manifest.json",
+    "sha256": "52b14c012f1c2ae6c425c09855439d7fa5c691837005f235a6ea9ffc6be8f885",
+    "inputCount": 91,
+    "currentFilesMatch": true
+  },
+  "rawReceipts": [
+    "<TMP>/cat-welcome15-device-install.json",
+    "<TMP>/cat-welcome15-device-apps-after.json",
+    "<TMP>/cat-welcome15-device-process-after.json"
+  ],
+  "limits": "Running process and user-confirmed opening verified; full physical-device interaction acceptance is not inferred."
+}

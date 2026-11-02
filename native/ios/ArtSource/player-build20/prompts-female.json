@@ -1,0 +1,124 @@
+{
+  "date": "2026-11-02",
+  "reference": "<USER_HOME>/Downloads/IMG_1160.jpg",
+  "assets": [
+    {
+      "id": "player-female-sunny",
+      "target": "RIGHT COLUMN, TOP ROW, labeled 晴日女生",
+      "details": "Keep her long chestnut high ponytail swept toward the viewer's left, loose bangs and curls, cheerful open-mouth smile, white short-sleeve T-shirt, warm yellow short dungaree overalls with the original pocket/strap hardware and rolled hems, both hands tucked behind her back, relaxed tilted head, one leg angled sideways onto a toe, cream high-top sneakers with pink accents, short white socks. Preserve the exact asymmetric standing pose.",
+      "prompt": "Use case: background-extraction / identity-preserve. Input image is the user's exact six-character reference sheet, an edit target, not a loose inspiration. Extract ONLY the specified female character into one polished game sprite, with genuine transparent alpha background. Preserve her exact face, eye shape, facial expression, hairstyle, hair strands, proportions, clothing cut, colors, footwear, accessories and body pose from the sheet. Do not redesign or invent details. The existing soft warm premium 3D animated-cartoon rendering, realistic cloth texture, soft light and friendly expression must remain faithful. Output square PNG 1024x1024; character centered horizontally, complete full body at approximately 90% of canvas height, around 5% transparent margin above hair and below soles. Remove all other characters, all Chinese labels/text, beige sheet background, floor, ground shadows, gradients, border and watermark. Do not add any environment, new prop, decorative motif or separate shadow. Keep all hair and shoes fully inside the canvas.\nTarget: RIGHT COLUMN, TOP ROW, labeled 晴日女生.\nIdentity and clothing invariants: Keep her long chestnut high ponytail swept toward the viewer's left, loose bangs and curls, cheerful open-mouth smile, white short-sleeve T-shirt, warm yellow short dungaree overalls with the original pocket/strap hardware and rolled hems, both hands tucked behind her back, relaxed tilted head, one leg angled sideways onto a toe, cream high-top sneakers with pink accents, short white socks. Preserve the exact asymmetric standing pose.",
+      "source": "<USER_HOME>/Downloads/IMG_1160.jpg",
+      "tool": "built-in image_gen.imagegen",
+      "status": "generated, visually checked and copied unchanged",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a199e8-7957-7ca2-8ba6-b4f022fbf986/exec-994f1d14-e06f-458f-8da7-0d79adcbeb38.png",
+      "artSourcePath": "<REPO>/native/ios/ArtSource/player-build20/player-female-sunny.png",
+      "runtimePath": "<REPO>/native/ios/CatLife/Assets.xcassets/player-female-sunny.imageset/player-female-sunny.png",
+      "sha256": "936938457580c7189bcbcecc1ad09424a134aeaebc809d1c9be614b38f94e3d6",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "fullyTransparentPixels": 1166273,
+      "fullyTransparentFraction": 0.74166,
+      "visibleBoundsAlphaOver16": [
+        330,
+        24,
+        907,
+        1213
+      ],
+      "lowAlphaNote": "Some extremely faint alpha<=16 speckles outside the visible character; no pixel postprocessing applied.",
+      "visualCheck": "Face, hair, outfit, colors, pose and complete hair/shoes match the selected right-column reference; no labels, scene or floor. Scholarly character retains reference wide-leg cropped trousers.",
+      "alphaBounds": [
+        17,
+        19,
+        1251,
+        1254
+      ],
+      "review": "Child and root both visually checked identity, clothes, colors, hairstyle and pose against the right-column reference. Cream-background in-game review remains part of integration QA."
+    },
+    {
+      "id": "player-female-forest",
+      "target": "RIGHT COLUMN, MIDDLE ROW, labeled 森系女生",
+      "details": "Keep her chestnut brown side braid falling over the viewer's left shoulder with loose wavy framing strands, gentle closed-mouth smile, cream collared blouse with sleeves rolled to the elbows, olive green buttoned pinafore dress with its original waist and long flared skirt, hands loosely clasped together in front of the waist, dark brown lace-up ankle boots, light socks. Preserve the exact calm standing pose and original outfit.",
+      "prompt": "Use case: background-extraction / identity-preserve. Input image is the user's exact six-character reference sheet, an edit target, not a loose inspiration. Extract ONLY the specified female character into one polished game sprite, with genuine transparent alpha background. Preserve her exact face, eye shape, facial expression, hairstyle, hair strands, proportions, clothing cut, colors, footwear, accessories and body pose from the sheet. Do not redesign or invent details. The existing soft warm premium 3D animated-cartoon rendering, realistic cloth texture, soft light and friendly expression must remain faithful. Output square PNG 1024x1024; character centered horizontally, complete full body at approximately 90% of canvas height, around 5% transparent margin above hair and below soles. Remove all other characters, all Chinese labels/text, beige sheet background, floor, ground shadows, gradients, border and watermark. Do not add any environment, new prop, decorative motif or separate shadow. Keep all hair and shoes fully inside the canvas.\nTarget: RIGHT COLUMN, MIDDLE ROW, labeled 森系女生.\nIdentity and clothing invariants: Keep her chestnut brown side braid falling over the viewer's left shoulder with loose wavy framing strands, gentle closed-mouth smile, cream collared blouse with sleeves rolled to the elbows, olive green buttoned pinafore dress with its original waist and long flared skirt, hands loosely clasped together in front of the waist, dark brown lace-up ankle boots, light socks. Preserve the exact calm standing pose and original outfit.",
+      "source": "<USER_HOME>/Downloads/IMG_1160.jpg",
+      "tool": "built-in image_gen.imagegen",
+      "status": "generated, visually checked and copied unchanged",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a199e8-7957-7ca2-8ba6-b4f022fbf986/exec-e6434ad6-03ae-47d4-bf06-51e254d05385.png",
+      "artSourcePath": "<REPO>/native/ios/ArtSource/player-build20/player-female-forest.png",
+      "runtimePath": "<REPO>/native/ios/CatLife/Assets.xcassets/player-female-forest.imageset/player-female-forest.png",
+      "sha256": "31331b9ecdc8c2855213b23e126222d66a381472c146e85db2ec4c93c6b29335",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "fullyTransparentPixels": 1208343,
+      "fullyTransparentFraction": 0.768414,
+      "visibleBoundsAlphaOver16": [
+        349,
+        20,
+        901,
+        1213
+      ],
+      "lowAlphaNote": "Some extremely faint alpha<=16 speckles outside the visible character; no pixel postprocessing applied.",
+      "visualCheck": "Face, hair, outfit, colors, pose and complete hair/shoes match the selected right-column reference; no labels, scene or floor. Scholarly character retains reference wide-leg cropped trousers.",
+      "alphaBounds": [
+        0,
+        15,
+        1242,
+        1254
+      ],
+      "review": "Child and root both visually checked identity, clothes, colors, hairstyle and pose against the right-column reference. Cream-background in-game review remains part of integration QA."
+    },
+    {
+      "id": "player-female-scholarly",
+      "target": "RIGHT COLUMN, BOTTOM ROW, labeled 书卷女生",
+      "details": "Keep her chin-length chestnut bob hairstyle with bangs and the small blue hair clip on the viewer's right, gentle closed-mouth smile, pale blue button cardigan over a white collared blouse, dark belt, navy blue WIDE-LEG CROPPED TROUSERS with the visible division between two trouser legs (these are culottes/trousers, NOT a one-piece skirt), short white socks, brown Mary Jane shoes, both hands gently clasped in front. Preserve her exact calm standing pose, head angle, face and clothing silhouette.",
+      "prompt": "Use case: background-extraction / identity-preserve. Input image is the user's exact six-character reference sheet, an edit target, not a loose inspiration. Extract ONLY the specified female character into one polished game sprite, with genuine transparent alpha background. Preserve her exact face, eye shape, facial expression, hairstyle, hair strands, proportions, clothing cut, colors, footwear, accessories and body pose from the sheet. Do not redesign or invent details. The existing soft warm premium 3D animated-cartoon rendering, realistic cloth texture, soft light and friendly expression must remain faithful. Output square PNG 1024x1024; character centered horizontally, complete full body at approximately 90% of canvas height, around 5% transparent margin above hair and below soles. Remove all other characters, all Chinese labels/text, beige sheet background, floor, ground shadows, gradients, border and watermark. Do not add any environment, new prop, decorative motif or separate shadow. Keep all hair and shoes fully inside the canvas.\nTarget: RIGHT COLUMN, BOTTOM ROW, labeled 书卷女生.\nIdentity and clothing invariants: Keep her chin-length chestnut bob hairstyle with bangs and the small blue hair clip on the viewer's right, gentle closed-mouth smile, pale blue button cardigan over a white collared blouse, dark belt, navy blue WIDE-LEG CROPPED TROUSERS with the visible division between two trouser legs (these are culottes/trousers, NOT a one-piece skirt), short white socks, brown Mary Jane shoes, both hands gently clasped in front. Preserve her exact calm standing pose, head angle, face and clothing silhouette.",
+      "source": "<USER_HOME>/Downloads/IMG_1160.jpg",
+      "tool": "built-in image_gen.imagegen",
+      "status": "generated, visually checked and copied unchanged",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a199e8-7957-7ca2-8ba6-b4f022fbf986/exec-6ec8ab1d-628e-466c-86b5-f6f4b6651b2e.png",
+      "artSourcePath": "<REPO>/native/ios/ArtSource/player-build20/player-female-scholarly.png",
+      "runtimePath": "<REPO>/native/ios/CatLife/Assets.xcassets/player-female-scholarly.imageset/player-female-scholarly.png",
+      "sha256": "b089dc063d28df2aecc474f2669143f72b7c1fdc9057b943f3706cfcfd3f55b9",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaRange": [
+        0,
+        255
+      ],
+      "fullyTransparentPixels": 1194851,
+      "fullyTransparentFraction": 0.759834,
+      "visibleBoundsAlphaOver16": [
+        416,
+        40,
+        902,
+        1218
+      ],
+      "lowAlphaNote": "Some extremely faint alpha<=16 speckles outside the visible character; no pixel postprocessing applied.",
+      "visualCheck": "Face, hair, outfit, colors, pose and complete hair/shoes match the selected right-column reference; no labels, scene or floor. Scholarly character retains reference wide-leg cropped trousers.",
+      "alphaBounds": [
+        0,
+        4,
+        1240,
+        1254
+      ],
+      "review": "Child and root both visually checked identity, clothes, colors, hairstyle and pose against the right-column reference. Cream-background in-game review remains part of integration QA."
+    }
+  ],
+  "referenceSHA256": "5cc38774874c1d7d3105cab0f03a6028a040aec80e72b20e1e5f37a436b104bf"
+}

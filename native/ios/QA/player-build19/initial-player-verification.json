@@ -1,0 +1,44 @@
+{
+  "date": "2026-11-02",
+  "appVersion": "0.4.0 (19)",
+  "sourceManifest": {
+    "path": "build19-source-manifest.json",
+    "inputCount": 115,
+    "sha256": "ce5f583a6eb522230056336622353b0d4c58d46f4ba9a62bfd1c7050a913344f"
+  },
+  "uiTestSourceSHA256": "2864a2668e9cd1305cd3e5fbc33839e655850aab5fcc077988f31bd1b41fe0ae",
+  "coreTests": {
+    "passed": 129,
+    "suites": 11,
+    "newTests": 18,
+    "log": "player-build19/cat-player19-core.log",
+    "initialFixtureFailure": "One new test used a 13-character home name, exceeding the established 12-character rule. Fixture corrected; original log retained. All original 111 tests passed."
+  },
+  "uiTests": {
+    "status": "initial six scoped methods running",
+    "projectUniqueMethods": 44,
+    "newMethods": 3
+  },
+  "device": {
+    "status": "not installed; last delivered 0.3.0 (18)"
+  },
+  "limits": [
+    "Avatar illustrations have baseline clothes; equipped items are shown in wardrobe slots with real gameplay effects, not layered onto bodies.",
+    "Future purchasable gear not added; this release grants a free basic set and provides extensible catalogs.",
+    "Physical user acceptance remains separate from simulator tests."
+  ],
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "executableSHA256": "49086eeae2fb9acb8a697378eab4f9aa9795ea53c1991c18a79748e84e70688d",
+      "infoSHA256": "71628ae632dfe093b71c18c9ad6f7f8018cad887f207883ba176cdb41f36195e",
+      "log": "player-build19/cat-player19-build-sim.log"
+    },
+    "device": {
+      "result": "passed",
+      "executableSHA256": "4ccd7906a975e40535945b5e2772a62cd737b1b3eb79f8b4b9fe55e59266a760",
+      "infoSHA256": "141d3f701b3e9381418cd9ef71e68ea2ae2a57af4ecf78f93a4406709bcac224",
+      "log": "player-build19/cat-player19-build-device.log"
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "scope": "PR 3 core review fixes",
+  "result": "passed",
+  "tests": 152,
+  "suites": 13,
+  "newTests": 10,
+  "api": {
+    "actions": "Synchronize first; preserve elapsed progress even when requested action fails or is a no-op. Persist changed state regardless of requested ActionOutcome.succeeded.",
+    "save": "save(_ state: GameSnapshot) async throws preserved; new save(_ state: GameSnapshot, now: Date) async throws overload without default now."
+  },
+  "policy": {
+    "wallet": "Saturate at existing maximum; actual gold in receipt and outcome; full XP; count saturates; shift consumed once.",
+    "backupIntervalSeconds": 300,
+    "recoveryFileRetention": 3,
+    "recoveryCleanup": "best effort after successful restore; duplicate corrupt bytes reuse evidence"
+  },
+  "logSha256": "ec6409daf0050fd9593c98a6f09891ac7c34f65b74c4b3e71ff09a59b701b264",
+  "sources": [
+    {
+      "path": "native/ios/CatGameCore/Sources/CatGameCore/GameEngine.swift",
+      "sha256": "3a31d2ce91fe6d01abe46d3462fd86ad409d2ce72389a2dead041eebe4c8b315"
+    },
+    {
+      "path": "native/ios/CatGameCore/Sources/CatGameCore/FileSaveRepository.swift",
+      "sha256": "f6ffa77a05aa8f4743e03d9e1005b598c850797bf4538c4f98508635ea23898a"
+    },
+    {
+      "path": "native/ios/CatGameCore/Tests/CatGameCoreTests/ActionSynchronizationTests.swift",
+      "sha256": "b032a6510fbaee611426f88198d431ab09ecaa893e5ef84e2b3ddeb687bc52e7"
+    },
+    {
+      "path": "native/ios/CatGameCore/Tests/CatGameCoreTests/CareerProgressionTests.swift",
+      "sha256": "dbc6c42060e760ca37b558b5940019990901330ad25dd4a2ea20ae61582ac689"
+    },
+    {
+      "path": "native/ios/CatGameCore/Tests/CatGameCoreTests/FileSaveRepositoryTests.swift",
+      "sha256": "d114ef99b246bea98fd8a2a47e9e109cfd61487a2e9943d7e4fb77e3faff167c"
+    },
+    {
+      "path": "native/ios/CatGameCore/Tests/CatGameCoreTests/PlayerEquipmentTests.swift",
+      "sha256": "5b5ebf26149bc31bc1bad9fda3f55b68ed27fb693ed2b1b8e2195248fe30103b"
+    },
+    {
+      "path": "native/ios/CatGameCore/Tests/CatGameCoreTests/RestRecoveryTests.swift",
+      "sha256": "a8ffbd4f205f1a66de972de11c50310e27e45d456d91ebfeab6f68460ebf9f1d"
+    }
+  ]
+}

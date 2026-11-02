@@ -1,0 +1,80 @@
+[
+  {
+    "path": "test-screenshots/pro/screenshot-01.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — root with language and version destinations",
+    "timestamp": 1793614059.44
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-02.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — language page immediately translated to en",
+    "timestamp": 1793614067.617
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-03.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Home layout — home in en",
+    "timestamp": 1793614091.292
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-04.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — en applied without changing progress",
+    "timestamp": 1793614119.258
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-05.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Welcome — saved en after cold launch",
+    "timestamp": 1793614136.693
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-06.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — language page immediately translated to zh-Hant",
+    "timestamp": 1793614170.74
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-07.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Home layout — home in zh-Hant",
+    "timestamp": 1793614194.074
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-08.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — zh-Hant applied without changing progress",
+    "timestamp": 1793614221.136
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-09.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Welcome — saved zh-Hant after cold launch",
+    "timestamp": 1793614239.341
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-10.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — language page immediately translated to zh-Hans",
+    "timestamp": 1793614273.241
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-11.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Home layout — home in zh-Hans",
+    "timestamp": 1793614297.748
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-12.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Settings — zh-Hans applied without changing progress",
+    "timestamp": 1793614325.108
+  },
+  {
+    "path": "test-screenshots/pro/screenshot-13.png",
+    "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress()",
+    "description": "Welcome — saved zh-Hans after cold launch",
+    "timestamp": 1793614342.391
+  }
+]

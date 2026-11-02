@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-02",
+  "version": "0.5.1",
+  "build": 24,
+  "scope": "Custom player name in My Profile; no web-game changes.",
+  "status": {
+    "finished": "Implemented, signed, installed in place; original save byte-identical before first launch and current-install normal process verified. Core and final targeted UI checks passed.",
+    "partiallyFinished": "Player hands-on acceptance pending.",
+    "broken": [],
+    "nextWork": "Player feedback on rename flow; earlier PR review findings remain separate follow-up work."
+  },
+  "behavior": {
+    "entry": "Player → My Profile → pencil beside name",
+    "saveField": "player.profile.name",
+    "nameLength": "1–12 extended grapheme clusters after trimming surrounding whitespace",
+    "supported": "Chinese, English and visible emoji sequences",
+    "validation": "Reject blank names, control characters, invisible fillers and overlong input; do not mutate marked keyboard input.",
+    "commit": "Only publish saved display name after repository.save succeeds; keep draft and old name on failure.",
+    "default": "Localized Cat parent title when name is absent; custom names remain verbatim across language changes.",
+    "appearanceIndependent": true,
+    "legacySchema": 1,
+    "homeNameRulesChanged": false
+  },
+  "coreTests": {
+    "passed": 142,
+    "suites": 12,
+    "newTests": 8,
+    "report": "player-name-build24/core-tests.json"
+  },
+  "builds": {
+    "simulator": "passed",
+    "device": "passed",
+    "signature": "passed",
+    "configuration": "Debug",
+    "minimumOS": "iOS 17"
+  },
+  "sourceManifest": {
+    "path": "build24-source-manifest.json",
+    "inputCount": 136,
+    "sha256": "1403c2670d58e3b9faebec0ab786e63bac974b41ffe15e07d302596e6665b627",
+    "allInputsMatch": true
+  },
+  "uiTests": {
+    "executions": 5,
+    "passed": 4,
+    "historicalFailed": 1,
+    "finalPassed": 2,
+    "finalFailed": 0,
+    "distinctMethods": 3,
+    "newMethods": 2,
+    "report": "player-name-build24/ui-results.json"
+  },
+  "limitations": [
+    "No full historical gameplay suite or iOS 17–25 runtime sweep this release.",
+    "Disk-write failure behavior was code-reviewed; name validation and rejected writes were tested in core. No real device disk-full condition was induced.",
+    "Earlier PR #3 review findings are outside this feature change and are not marked fixed."
+  ],
+  "privacy": "Raw logs, result bundles, command receipts, device/signing identifiers, local absolute paths and actual saves remain outside the repository. Only compact summaries and selected screenshots are archived.",
+  "visualQA": {
+    "result": "passed for inspected standard-size SE/Pro pages",
+    "report": "player-name-build24/design-qa.md",
+    "screens": "player-name-build24/screens.json"
+  },
+  "deviceUpdate": "build24-device-update.json"
+}

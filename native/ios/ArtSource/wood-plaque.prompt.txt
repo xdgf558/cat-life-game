@@ -1,0 +1,11 @@
+Tool: built-in image_gen
+Reference: docs/ios-room-home/room-home-refined-v2.png
+Output: native/ios/ArtSource/wood-plaque.png
+Transparent background: true
+
+Use case: background-extraction / precise-object-edit.
+Create ONE reusable transparent UI title decoration based exactly on the small pale wooden hanging plaque at the top-left of the attached selected game screen. Output ONLY the wooden plaque, two very short upper rope ends/knots, and a few soft green leaves at its corners, on a true transparent alpha background. Remove ALL Chinese text, paw symbols and any other lettering or logos from the plaque. Its broad middle region must be completely blank and clear for native SwiftUI text to be overlaid later.
+
+Match the reference's cream miniature toy-house art: softly rounded light honey/cream wood, subtle horizontal wood grain, shallow beveled edges, warm daylight, soft tactile illustrated material, small warm-brown rope knots, restrained olive and fresh green corner leaves. Do not make a dark rustic board or a heavy ornamental sign. Maintain very readable blank center at least 75% of width and 60% of wood body height. The leafy trim should only touch outer corners, never intrude into center. Rope ends should be short and wholly within canvas, not long hanging strings. A nearly front-facing horizontal plaque with only a slight gentle natural tilt, suitable for UI title placement, not deep perspective.
+
+Target wide canvas about 1024 x 400, aspect ratio around 2.56:1, 5% transparent breathing room on edges. This will display at approximately 150 x 58 logical points on iPhone. Do not fill the image with large empty transparent padding or a very small sign. No text whatsoever, no numbers, no cat, no scene, no floor, no room, no HUD, no background, no visible checkerboard, no large cast shadow. Only one isolated blank title plaque with clean alpha edges.

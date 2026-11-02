@@ -1,0 +1,35 @@
+{
+  "date": "2026-10-31",
+  "device": "iPhone Air",
+  "os": "iOS 27.2",
+  "appVersion": "0.1.0 (9)",
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "binarySHA256": "6d5acc21470bdfcaba90e88c13d0d47d52b76aa1123034d7015c19ff2879c97c",
+  "launcherSHA256": "4675906361b8a6fd38022ad8b669feb3cf2509753d338dc927a070dd2e4ab83a",
+  "preparedBuildMatchesCurrentSources": true,
+  "signatureValidation": "passed",
+  "installation": "passed; existing app updated in place",
+  "launch": "physical-device acceptance subsequently passed, confirmed by the user",
+  "runningProcessVerified": false,
+  "uninstallOrSaveResetPerformed": false,
+  "saveVerification": {
+    "result": "byte-for-byte identical before and after installation",
+    "beforeSHA256": "477da9ff7b7b7acbc985c33e0e42b463a6dd4039acc5bb65cdb30c95f3eef6e0",
+    "afterSHA256": "477da9ff7b7b7acbc985c33e0e42b463a6dd4039acc5bb65cdb30c95f3eef6e0",
+    "normalSaveEdited": false
+  },
+  "physicalGameplayValidation": "passed; user-reported acceptance on 2026-10-31",
+  "launchArguments": [],
+  "installationEvidence": "<TMP>/cat-furniture-device-install.json",
+  "launchEvidence": "<TMP>/cat-furniture-device-launch.json",
+  "automatedLaunchAttempt": {
+    "result": "blocked by iOS lock screen",
+    "evidence": "<TMP>/cat-furniture-device-launch.json"
+  },
+  "manualAcceptance": {
+    "date": "2026-10-31",
+    "result": "passed",
+    "method": "user-reported physical-device acceptance",
+    "userStatement": "第 9 版真机验收 已经完成，通过测试。"
+  }
+}

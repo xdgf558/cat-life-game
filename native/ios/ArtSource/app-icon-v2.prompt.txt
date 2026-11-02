@@ -1,0 +1,7 @@
+Use case: precise-object-edit
+Asset type: final iOS game app icon for 打工养猫日记, a cozy cat-care game.
+Edit target: the provided square orange kitten icon. Preserve the same lovable orange tabby identity, amber eyes, cream muzzle, pink nose, happy gentle expression, mint bow, and the warm premium 3D cartoon / tactile cream-toy-dollhouse art style.
+Refine it into a polished small-screen icon: pull the camera back enough that BOTH ears and the entire round head fit comfortably inside the central 80% of the square, with at least 9% breathing room at the top and around the ears. Face dominates at roughly 70% of icon width, with a small upper chest and mint bow at the bottom. Nearly frontal, a subtle playful head tilt. Make clear simple shapes and clean highlights so it reads at 60px; soft short plush fur rather than noisy individual strands.
+Background: completely opaque, edge-to-edge pale warm mint / sage green, with a very gentle cream light glow behind the head, no pattern and no vignette border. Strong enough warm orange versus mint separation. Gentle sunlight from upper left.
+No text, letters, numerals, hard hat, objects, badge, room scenery, outline frame, circle background, rounded corners or phone mockup. The iOS system will mask the corners itself. Avoid cropped ears, tiny decorative details, and overly glossy eyes.
+Deliver one flat square icon artwork, exactly 1024×1024 pixels if supported, fully opaque RGB, no transparency.

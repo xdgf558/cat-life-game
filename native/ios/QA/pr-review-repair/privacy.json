@@ -1,0 +1,49 @@
+{
+  "scope": "new welcome22, audio23, player-name24 art/audio/QA files and device/source reports",
+  "scanned_files": 144,
+  "extensions": {
+    ".md": 7,
+    ".png": 59,
+    ".caf": 15,
+    ".log": 30,
+    ".json": 25,
+    ".txt": 6,
+    ".py": 1,
+    ".swift": 1
+  },
+  "status": "passed",
+  "confirmed_findings": [],
+  "corrected_files_verified": [
+    {
+      "path": "native/ios/QA/audio-build23/build-logs/cat23-device-delivery-build.log",
+      "unredacted_signing_fingerprints": 0
+    },
+    {
+      "path": "native/ios/QA/audio-build23/build-logs/cat23-device-slider-helper-build-failed.log",
+      "unredacted_signing_fingerprints": 0
+    }
+  ],
+  "decoded_metadata_findings": [],
+  "no_matches": [
+    "actual host username/home path",
+    "personal volume name",
+    "device UDID/CoreDevice ID",
+    "installation container identifier",
+    "full save payload",
+    "credential tokens/private keys"
+  ],
+  "metadata_checked": [
+    "PNG text/iTXt/zTXt/eXIf and nested EXIF, including decoded XML and UTF-16 comments",
+    "JSON decoded string values",
+    "CAF printable metadata"
+  ],
+  "absent_formats": [
+    "MP4/MOV",
+    "plist/binary plist"
+  ],
+  "ignored_false_positive_categories": [
+    "@2x/@3x asset filenames",
+    "iOS simulator runtime mount paths"
+  ],
+  "production_or_qa_files_modified_by_reviewer": false
+}

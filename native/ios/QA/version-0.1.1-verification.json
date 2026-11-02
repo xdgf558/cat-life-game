@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.1 (14)",
+  "priorPreparedVersion": "0.1.0 (14)",
+  "scope": "Correct the unpublished update marketing version and matching release entry. Previously delivered release versions remain unchanged.",
+  "changedProductionInputs": [
+    "CatLife/Info.plist",
+    "CatLife/Views/SettingsView.swift"
+  ],
+  "sourceManifest": {
+    "path": "build14-source-manifest.json",
+    "sha256": "fcaca2e83490e8704f6c55ebe75cea10338fd00dc0463994f3876d528b283e2a",
+    "inputCount": 87,
+    "currentFilesMatch": true
+  },
+  "builds": {
+    "simulator": "passed",
+    "signedDevice": "passed",
+    "codesign": "passed"
+  },
+  "uiTests": {
+    "passed": 1,
+    "failed": 0,
+    "case": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+    "seconds": 39.333,
+    "log": "version-0.1.1/version-check.log"
+  },
+  "verified": [
+    "current version 0.1.1 (14)",
+    "release 14 shows 0.1.1",
+    "release 13/12 retain 0.1.0",
+    "only newest 3 entries rendered",
+    "settings navigation and room state remain working"
+  ],
+  "previousLayoutTests": "home-layout-verification.json",
+  "layoutAndCoreChanged": false,
+  "physicalInstallation": "passed; installed 0.1.1 (14), original save byte-identical; user normal launch and process verified",
+  "deviceEvidence": "build14-device-update.json"
+}

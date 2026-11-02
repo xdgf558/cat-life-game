@@ -1,0 +1,13 @@
+Use case: stylized-concept. Production 2D game sprite animation atlas: EXACTLY 4 columns x 2 rows, eight equal square cells, edge-to-edge true transparent alpha, target 2048x1024 or another precise 2:1 canvas.
+Identity and art references: same orange tabby kitten in attached images, cream muzzle/white paws, amber eyes, small BROWN bow, cream toy-dollhouse plush 3D cartoon finish. The walking atlas is the reference for scale and RIGHT-FACING shallow three-quarter standing posture. Preserve head size, stripes and bow.
+Eight consecutive frames of a gentle eating action, row-major:
+0 relaxed four-paw standing facing right, head level.
+1 lower the head naturally from neck/shoulders.
+2 muzzle close to the low bowl-height, body and all feet planted.
+3 take a small mouthful with lowered head.
+4 small lick or chew with head still low.
+5 slightly lift muzzle for a chew.
+6 half raise head for a short pause, eyes soft.
+7 raise head to resting level, swallow and a tiny lip lick.
+NO BOWL in any frame: the bowl is a separate game sprite. The cat must be standing, not sitting. Front paws do not move and back remains naturally curved. These are sequential small movements with anatomical neck articulation, not 8 different cat poses. Head lowering should be gradual enough to animate using the frames and pauses. Keep hind legs, front paws and torso in exactly the same pixel positions/scale across frames; no translation, camera changes or zoom.
+Full cat, ears, whiskers, tail and feet all inside each cell with transparent gutters. Same common floor baseline at 85% of each square cell. Centered foot point. Tail relaxed behind body, slightly curved upward; do not make tail rigid. No floor, cast shadow, room, props, gridlines, outlines, labels, text, numbers, extra limbs, extra cats or opaque background.

@@ -1,0 +1,19 @@
+Tool: built-in image_gen
+Original reference: room-home-refined-v1.png
+Final output: room-home-refined-v2.png
+User request: 猫太大了，缩小一点，其他可以。
+
+Initial localized edit prompt:
+Use case: precise-object-edit.
+Edit the attached native iOS cat-game room-home design. The user approves EVERYTHING except the large orange cat in the room, which is too big.
+
+Make exactly one localized change: shrink ONLY the full-body orange tabby cat sitting on the floor to about 80% of its current width AND 80% of its current height, preserving its exact sitting pose, fluffy orange-striped appearance, expression, facial features, body proportions, bow/collar and perspective. Anchor the scale change at the cat's feet/contact point: its feet remain at the same floor position and its horizontal center stays the same. This reveals more wooden floor and room behind the cat. Restore the newly exposed background naturally with seamless wooden floorboards and appropriate existing furniture/background. Match the cat's contact shadow to the smaller size.
+
+HARD INVARIANTS: Everything outside the localized cat silhouette and its contact shadow must remain visually identical to the reference. Preserve the original full canvas/aspect ratio (853 x 1844 source), crop, camera angle, warm lighting, cream-and-mint miniature room, all furniture and their size and position, empty mint food bowl and rug, top wooden sign, all HUD values and icons, food thought bubble at its existing position, 布置 control, entire bottom care panel, bottom cat portrait (do NOT resize the avatar), all text, primary and secondary buttons, tab icons and labels, spacing, colors, and textures. Do not move or shrink the food bowl. Do not redesign or restyle any element. Do not add UI, extra cats, or objects. Do not replace text. Do not zoom out the room; scale only the room cat. Return the same one complete refined screen with the smaller cat.
+
+Correction prompt after visual review (applied to the intermediate smaller-cat image):
+Use case: precise-object-edit. This attached screen is already approved in all respects, but the orange cat in the ROOM has become a little TOO SMALL in the last edit. Make a very small, localized size/placement correction ONLY to the full-body room cat.
+
+Scale the current room cat UP by approximately 18% in both width and height, preserving its exact sitting pose, face, striped orange fur, bow, paws and body proportions. Anchor this rescale at the current feet, then shift the cat DOWN about 60 source-image pixels on the 853 x 1844 canvas. The desired final cat silhouette is approximately 310 pixels wide and 365 pixels tall excluding long whiskers; ear top around y=790, front paws on the floor around y=1155. Horizontal center stays essentially the same. This produces a cat smaller than the initial large design but larger than the attached too-small design. Match the small contact shadow under its feet and naturally repair the tiny exposed wood floor regions. Do not change the cat's pose or facial expression.
+
+Keep EVERYTHING ELSE visually unchanged: same complete 853 x 1844 composition and crop, same header and resource HUD, same readable Chinese text, same sunny room, furniture, bed, wood boards, plants, stairs, empty green floor food bowl and its rug at exactly their existing size and location, food thought bubble at exactly its existing position, 布置 button, all bottom care buttons and text, bottom portrait avatar (do not resize it), four bottom tabs and spacing. No restyling, no extra objects, no zooming, no scene-wide changes. Modify only the room cat and its immediate contact shadow. Return ONE full-screen image with that single correction.

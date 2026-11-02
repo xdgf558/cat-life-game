@@ -1,0 +1,157 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (8)",
+  "scope": "Investigate food consumed without the cat walking to the bowl; improve route completeness and preserve feeding through care-control updates.",
+  "findings": [
+    {
+      "status": "confirmed core defect, not conclusively matched to the physical session",
+      "detail": "At a narrow floor passage, 12 nearest visible endpoint connectors can omit an existing safe return path after a permitted stroll. Reduced 420x640 geometry reproduces this; the new regression fails on build 7 and passes with the repair."
+    },
+    {
+      "status": "layout instability confirmed by SwiftUI probe; interruption is a possible ordering race",
+      "detail": "Removing the food-cost subtitle when inventory reaches zero can change the care row height by 7 points, and same-value SpriteKit size assignment invokes didChangeSize. Both can reset the presentation. The baseline build 7 last-food UI test on SE passed, so an iOS cancellation was not reproduced in that run."
+    },
+    {
+      "status": "ruled out by user confirmation",
+      "detail": "The user explicitly confirmed Reduce Motion is disabled. It is not an explanation for the reported physical behavior."
+    }
+  ],
+  "changes": [
+    "Try 12 safe visible connectors first; if A* fails, retry once with all safe visible connectors using the same grid. Full swept collision checks remain enforced.",
+    "Keep the food-cost subtitle in layout with transparent/AX-hidden empty-stock presentation and fix button-content height at 45 points.",
+    "Avoid assigning identical scene sizes on appearance and ignore same-size didChangeSize callbacks.",
+    "No game-save schema, food costs, art scale or drag hot-path changes."
+  ],
+  "coreTests": {
+    "result": "passed",
+    "count": 44,
+    "suites": 4,
+    "regressionBefore": "new narrow-passage regression fails against build 7, as expected",
+    "evidence": [
+      "build8-core-test-results.txt",
+      "build8-core-regression-before.txt"
+    ],
+    "independentPathOracle": "CoreGraphics boolean geometry checks the entire swept footprint against the floor and bowl, independently of production segment tests."
+  },
+  "uiTests": {
+    "result": "passed",
+    "passedRuns": 4,
+    "failures": 0,
+    "runs": [
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testBowlDragRespondsAndCancelledValidationCannotOverwriteLayout",
+            "seconds": 31.427
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build8-se.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "seconds": 105.412
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build8-lastfood-final.xcresult"
+      },
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testFeedingDuringAndAfterAmbientStrollReachesBowl",
+            "seconds": 94.619
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build8-ambient.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testBowlCanMoveToFloorBelowWallPicturesAndPersist",
+            "seconds": 70.424
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build8-upper-floor.xcresult"
+      }
+    ],
+    "coverage": [
+      "Drag remains lightweight; cancellation cannot be overwritten by a late result.",
+      "Last food reaches actual mouth contact and completes meal 3; room bounds stay stable within 0.5 pt. Empty stock and restocking persist across launches and another meal completes.",
+      "Feed while a real ambient stroll has moved more than 0.02 normalized distance, then feed after another stroll ends; actual contact/meals and single resource charges required.",
+      "Move bowl below wall pictures, save/relaunch, and complete real feeding without collision or food-contact violations."
+    ]
+  },
+  "baselineObservation": {
+    "result": "build 7 last-food UI test passed on SE",
+    "resultBundle": "<TMP>/cat-life-build8-lastfood-before.xcresult",
+    "seconds": 105.27
+  },
+  "geometryScanLimit": {
+    "detail": "The read-only phone save had bowl position (0.7166666666666667,0.4866720005035401). At widths420/heights590...610 every0.5, old geometry returned a feeding plan for 22960 safe grid points and 5535 route midpoints. This does not reproduce the exact phone failure; the confirmed 640-height defect must not be presented as proof of the physical root cause.",
+    "readOnlySaveLocation": "<TMP>/cat-life-build8-phone-save.json"
+  },
+  "physicalDevice": {
+    "date": "2026-10-31",
+    "device": "iPhone Air",
+    "os": "iOS 27.2",
+    "appVersion": "0.1.0 (8)",
+    "bundleIdentifier": "com.stationcat.catlife.native",
+    "binarySHA256": "511799e7711759734e080610987d7fabffaf278d6dc32295075fb31b7ad3e76e",
+    "preparedBuildMatchesCurrentSources": true,
+    "signatureValidation": "passed",
+    "installation": "passed; application updated in place",
+    "launch": "passed; normal game launched after unlock and restored without test arguments",
+    "runningProcessVerified": true,
+    "uninstallOrSaveResetPerformed": false,
+    "saveHandling": "No uninstall or save reset. The normal game save was read once for diagnosis, not edited.",
+    "physicalGameplayValidation": "not executed; UI test runner blocked by iOS developer trust",
+    "processIdentifier": 0,
+    "reduceMotion": "user confirmed disabled",
+    "physicalUITest": {
+      "result": "blocked before test execution",
+      "device": "iPhone Air / iOS 27.2",
+      "runner": "com.stationcat.catlife.native.uitests.xctrunner",
+      "reason": "iOS rejected the UI test runner because its Developer App Certificate/profile is not trusted. The game application itself launches normally.",
+      "executedCases": 0,
+      "resultBundle": "<TMP>/cat-life-build8-phone-upper-floor.xcresult",
+      "normalSaveResetPerformed": false,
+      "testResetExecuted": false,
+      "finalLaunchArguments": []
+    },
+    "normalSaveChecks": {
+      "inventory": "unchanged",
+      "homeLayout": "unchanged",
+      "gold": "unchanged",
+      "catIDs": "unchanged",
+      "differences": "Only normal synchronization/decay tracking timestamps changed."
+    }
+  },
+  "limitations": [
+    "Game launch on the physical device is confirmed, but actual feeding automation could not begin because the separate UI test runner is not trusted by iOS.",
+    "The original physical symptom still requires a direct gameplay recheck; simulator and geometry successes do not establish its exact original cause."
+  ],
+  "physicalUITestAttempt": {
+    "result": "blocked before test execution",
+    "device": "iPhone Air / iOS 27.2",
+    "runner": "com.stationcat.catlife.native.uitests.xctrunner",
+    "reason": "iOS rejected the UI test runner because its Developer App Certificate/profile is not trusted. The game application itself launches normally.",
+    "executedCases": 0,
+    "resultBundle": "<TMP>/cat-life-build8-phone-upper-floor.xcresult",
+    "normalSaveResetPerformed": false,
+    "testResetExecuted": false,
+    "finalLaunchArguments": []
+  }
+}

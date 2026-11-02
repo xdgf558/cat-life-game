@@ -1,0 +1,164 @@
+{
+  "date": "2026-11-02",
+  "version": "0.4.1 (20)",
+  "mode": "built-in image_gen, individual reference-background extractions",
+  "assets": [
+    {
+      "name": "player-male-sunny",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        23,
+        23,
+        1230,
+        1254
+      ],
+      "subjectBoundsAlphaAbove16": [
+        305,
+        34,
+        913,
+        1225
+      ],
+      "fullyTransparentFraction": 0.7342,
+      "sha256": "a6ae5906c0b759811741118d6147e1cd4a055ebb625afcc7caa27b87f13f3056",
+      "bytes": 888510,
+      "sourceAndCatalogIdentical": true
+    },
+    {
+      "name": "player-male-forest",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        17,
+        23,
+        1240,
+        1226
+      ],
+      "subjectBoundsAlphaAbove16": [
+        380,
+        26,
+        867,
+        1195
+      ],
+      "fullyTransparentFraction": 0.7717,
+      "sha256": "ecb8102c7d4952252543519d448df1994b4b14e36b54583e9efccb363158db25",
+      "bytes": 789137,
+      "sourceAndCatalogIdentical": true
+    },
+    {
+      "name": "player-male-scholarly",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        0,
+        17,
+        1234,
+        1254
+      ],
+      "subjectBoundsAlphaAbove16": [
+        374,
+        30,
+        856,
+        1207
+      ],
+      "fullyTransparentFraction": 0.7662,
+      "sha256": "fd656cfff997741984491f4c107449c21f3166292a2a7c85495d9a1d2230ea3f",
+      "bytes": 803133,
+      "sourceAndCatalogIdentical": true
+    },
+    {
+      "name": "player-female-sunny",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        17,
+        19,
+        1251,
+        1254
+      ],
+      "subjectBoundsAlphaAbove16": [
+        330,
+        24,
+        907,
+        1213
+      ],
+      "fullyTransparentFraction": 0.7417,
+      "sha256": "936938457580c7189bcbcecc1ad09424a134aeaebc809d1c9be614b38f94e3d6",
+      "bytes": 858129,
+      "sourceAndCatalogIdentical": true
+    },
+    {
+      "name": "player-female-forest",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        0,
+        15,
+        1242,
+        1254
+      ],
+      "subjectBoundsAlphaAbove16": [
+        349,
+        20,
+        901,
+        1213
+      ],
+      "fullyTransparentFraction": 0.7684,
+      "sha256": "31331b9ecdc8c2855213b23e126222d66a381472c146e85db2ec4c93c6b29335",
+      "bytes": 839524,
+      "sourceAndCatalogIdentical": true
+    },
+    {
+      "name": "player-female-scholarly",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "alphaBounds": [
+        0,
+        4,
+        1240,
+        1254
+      ],
+      "subjectBoundsAlphaAbove16": [
+        416,
+        40,
+        902,
+        1218
+      ],
+      "fullyTransparentFraction": 0.7598,
+      "sha256": "b089dc063d28df2aecc474f2669143f72b7c1fdc9057b943f3706cfcfd3f55b9",
+      "bytes": 830727,
+      "sourceAndCatalogIdentical": true
+    }
+  ],
+  "changedProductionInputs": [
+    "CatLife/Assets.xcassets/player-female-forest.imageset/player-female-forest.png",
+    "CatLife/Assets.xcassets/player-female-scholarly.imageset/player-female-scholarly.png",
+    "CatLife/Assets.xcassets/player-female-sunny.imageset/player-female-sunny.png",
+    "CatLife/Assets.xcassets/player-male-forest.imageset/player-male-forest.png",
+    "CatLife/Assets.xcassets/player-male-scholarly.imageset/player-male-scholarly.png",
+    "CatLife/Assets.xcassets/player-male-sunny.imageset/player-male-sunny.png",
+    "CatLife/Info.plist",
+    "CatLife/Localization/GameStrings.swift",
+    "CatLife/Views/SettingsView.swift"
+  ],
+  "unchangedInputs": 106,
+  "scopePreserved": "All game logic, room/cat/furniture assets, geometry, avatar identifiers, equipment images and profile UI remain byte-identical to build19."
+}

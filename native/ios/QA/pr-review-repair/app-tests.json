@@ -1,0 +1,11 @@
+{
+  "version": "0.5.2",
+  "build": 25,
+  "result": "passed",
+  "tests": 8,
+  "failures": 0,
+  "durationSeconds": 9.643,
+  "scope": "Real GameStore with in-memory actor repository: read/write separation, rest exit timestamps, bounded retries and alert deduplication, explicit recovery, names, passive writes, due wages, load concurrency.",
+  "rawLogSHA256": "62ae5afa4f547527e0bd30ae6e47b27d0e2d9f561d024bfc0924c503f898b149",
+  "normalSavesTouched": false
+}

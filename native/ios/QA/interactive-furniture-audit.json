@@ -1,0 +1,135 @@
+{
+  "date": "2026-11-01",
+  "completedAt": "2026-11-01T09:41:47.082354+08:00",
+  "appVersion": "0.1.0 (12)",
+  "scope": "Audit existing interactive furniture after green-bed support fix; no new interactions implemented.",
+  "result": "No new confirmed runtime defect in the tested scope",
+  "productionChanges": false,
+  "testSourceChanges": false,
+  "saveSchemaChanged": false,
+  "newBuildOrDeviceInstall": false,
+  "sourceConsistency": {
+    "manifest": "build12-source-manifest.json",
+    "manifestSha256": "1fb06918d04ad79d42b03855f3e40b575bcd32e29cace8aa354676d231cd6bfa",
+    "checkedInputs": 84,
+    "mismatches": []
+  },
+  "interactionInventory": [
+    {
+      "kind": "bowl",
+      "catInteraction": "Approach current bowl position, eat with mouth on food, leave safely",
+      "placement": "move; cannot store"
+    },
+    {
+      "kind": "catBed",
+      "catInteraction": "Step onto bed, sleep, wake, step down",
+      "placement": "move/store/replace"
+    },
+    {
+      "kind": "floorCushion",
+      "catInteraction": "Step onto cushion, rest, wake, step down",
+      "placement": "move/store/replace"
+    },
+    {
+      "kinds": [
+        "catTree",
+        "flowerStool",
+        "cabinet",
+        "plant",
+        "wallFlower",
+        "wallCat"
+      ],
+      "catInteraction": "No cat action implemented",
+      "placement": "move/store/replace; pictures are wall-only"
+    }
+  ],
+  "uiRegression": {
+    "executed": 4,
+    "passed": 4,
+    "failed": 0,
+    "runs": [
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "test": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+        "result": "passed",
+        "seconds": 73.757,
+        "log": "interactive-furniture-audit/pro-bowl.log",
+        "resultBundle": "<TMP>/cat-furniture-audit-pro-bowl.xcresult"
+      },
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "test": "testFurnitureStorageAndReplacementPersistAndKeepFeedingReachable",
+        "result": "passed",
+        "seconds": 74.438,
+        "log": "interactive-furniture-audit/pro-replace.log",
+        "resultBundle": "<TMP>/cat-furniture-audit-pro-replace.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "test": "testFeedingWakesRestingCatBeforeWalkingToBowl",
+        "result": "passed",
+        "seconds": 56.829,
+        "log": "interactive-furniture-audit/se-cushion.log",
+        "resultBundle": "<TMP>/cat-furniture-audit-se-cushion.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "test": "testNavigationCanResumeAfterCancellingMealAtBowl",
+        "result": "passed",
+        "seconds": 30.278,
+        "log": "interactive-furniture-audit/se-meal-cancel.log",
+        "resultBundle": "<TMP>/cat-furniture-audit-se-meal-cancel.xcresult"
+      }
+    ],
+    "runnerFinalized": true,
+    "saveIsolation": "Application Support/CatLife-UITests; normal phone save not accessed"
+  },
+  "geometryProbe": {
+    "evidence": "interactive-furniture-audit-geometry.jsonl",
+    "metadata": "interactive-furniture-audit-geometry.meta.json",
+    "singleItemStoreRestorePassed": 18,
+    "bedCushionMovedRouteChecksPassed": 4,
+    "saveAssertionsPassed": 3,
+    "blockedEntranceSafelyRejected": true,
+    "notXCTestCases": true
+  },
+  "visualReview": {
+    "newScreensReviewed": [
+      "interactive-furniture-audit/moved-bowl-actual-food-contact-pro.png",
+      "interactive-furniture-audit/replaced-furniture-actual-food-contact-pro.png",
+      "interactive-furniture-audit/cushion-wake-food-contact-se.png",
+      "interactive-furniture-audit/cancelled-meal-safe-idle-se.png"
+    ],
+    "existingBuild12CushionEvidence": [
+      "bed-step-build12-pro/normal-moved-cushion-front-paws-support.png",
+      "bed-step-build12-pro/normal-moved-cushion-supported.png"
+    ],
+    "observation": "New food-contact screenshots show mouth at food and body outside bowl. Existing cushion frames show front paws at green rounded rim before rear feet move onto the cushion; no clear body slicing confirmed.",
+    "cushionDiagnosticLimit": "Cushion uses fixed 0.14 cat-width elevation. Unlike the bed, it has no independent PNG support-band contact assertion; zero step-clearance violations alone cannot prove exact visible rim contact."
+  },
+  "codeReview": [
+    "Rest target and feeding route recomputed from current furniture layout",
+    "Safe rest exit precedes pending feeding or editing",
+    "Revision invalidation prevents old completion after cancellation",
+    "High-bed support adaptations gated above 0.25 cat-width; pose/warp/support state reset for ordinary movement, food and play"
+  ],
+  "existingPlacementRule": "Moving other furniture guarantees feeding reachability, but can block a bed/cushion entrance. Rest then returns blocked rather than using an unsafe path. No extra placement restriction added.",
+  "limitations": [
+    "Finite tested layouts, not every possible arrangement",
+    "No new physical-device motion or performance acceptance in this audit",
+    "Moved/restored bed has geometry coverage, not a new real-UI sleep run at its moved position",
+    "Full background/resize/reduced-motion lifecycle matrix not rerun",
+    "Core suite was not rerun for this read-only runtime audit; prior build12 evidence remains separate"
+  ],
+  "deviceStatus": "Build12 already installed and running from prior task; unchanged production sources do not require another install",
+  "artifacts": {
+    "directory": "interactive-furniture-audit",
+    "temporaryBowlRecording": "<TMP>/cat-furniture-audit-pro-bowl-full.mp4"
+  },
+  "status": {
+    "finished": "Read-only runtime audit, four targeted UI regressions, geometry and existing visual review",
+    "partiallyFinished": "Exact cushion rim support is visually reviewed, without independent pixel-band diagnostic",
+    "broken": [],
+    "nextWork": "No confirmed fix required; unimplemented tree/stool cat actions remain future feature work"
+  }
+}

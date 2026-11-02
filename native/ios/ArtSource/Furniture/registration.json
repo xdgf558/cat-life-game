@@ -1,0 +1,593 @@
+{
+  "coordinateSystem": "pixel bounds [left,top,rightExclusive,bottomExclusive], top-left origin; SpriteKit anchor values separately provided",
+  "alphaThresholdForRegistration": 128,
+  "assets": [
+    {
+      "name": "room-empty",
+      "source": "native/ios/ArtSource/Furniture/room-empty.png",
+      "assetName": "room-empty",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGB",
+      "sha256": "1a390f780d63bf6fbe5e0b408cebb2f56d1930e5d972859b1f4551d29d650eb0",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-92d1251f-94ba-46a3-bde6-74deee42a42d.png",
+      "registrationNote": "Opaque empty-room plate; exactly matches original 1024x1536 canvas."
+    },
+    {
+      "name": "furniture-cabinet",
+      "source": "native/ios/ArtSource/Furniture/furniture-cabinet.png",
+      "assetName": "furniture-cabinet",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "sha256": "37ca13c495e0fc179807cd620ed19314d08cba4f9cd84832c5801e3c1bf896ae",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-3fa40a09-474b-4ef2-b67b-2e582028883c.png",
+      "alphaBounds": {
+        "1": [
+          49,
+          65,
+          1250,
+          1254
+        ],
+        "32": [
+          111,
+          104,
+          1149,
+          1190
+        ],
+        "128": [
+          112,
+          105,
+          1149,
+          1189
+        ],
+        "250": [
+          112,
+          106,
+          1148,
+          1188
+        ]
+      },
+      "fullyTransparentFraction": 0.485991,
+      "partiallyTransparentFraction": 0.513305,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.089314,
+        0.083732,
+        0.916268,
+        0.948166
+      ],
+      "opaqueWidthToHeight": 0.956642,
+      "lower10PercentOpaqueBBox": [
+        680,
+        1080,
+        819,
+        1189
+      ],
+      "lower20PercentOpaqueBBox": [
+        481,
+        972,
+        1087,
+        1189
+      ],
+      "lower35PercentOpaqueBBox": [
+        157,
+        809,
+        1124,
+        1189
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.502791,
+        0.947368
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.502791,
+        0.052632
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-cat-tree",
+      "source": "native/ios/ArtSource/Furniture/furniture-cat-tree.png",
+      "assetName": "furniture-cat-tree",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "sha256": "de12bd29f6ebf0ad88d7c286de38781a08a12a52d49f52bcd637a773106e1e18",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-55b7a7af-dcf2-4708-84b2-ec53deee6606.png",
+      "alphaBounds": {
+        "1": [
+          0,
+          21,
+          1012,
+          1536
+        ],
+        "32": [
+          206,
+          86,
+          877,
+          1464
+        ],
+        "128": [
+          207,
+          87,
+          877,
+          1463
+        ],
+        "250": [
+          208,
+          88,
+          875,
+          1462
+        ]
+      },
+      "fullyTransparentFraction": 0.566315,
+      "partiallyTransparentFraction": 0.433685,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.202148,
+        0.056641,
+        0.856445,
+        0.952474
+      ],
+      "opaqueWidthToHeight": 0.486919,
+      "lower10PercentOpaqueBBox": [
+        260,
+        1325,
+        859,
+        1463
+      ],
+      "lower20PercentOpaqueBBox": [
+        209,
+        1187,
+        877,
+        1463
+      ],
+      "lower35PercentOpaqueBBox": [
+        209,
+        981,
+        877,
+        1463
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.529297,
+        0.951823
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.529297,
+        0.048177
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-cat-bed",
+      "source": "native/ios/ArtSource/Furniture/furniture-cat-bed.png",
+      "assetName": "furniture-cat-bed",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "4c425fb47657c97069e781932f76537e3e2483b173c5300b404745f71b9e1d5e",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-0680dd1e-bd02-4573-9771-35fe2b337855.png",
+      "alphaBounds": {
+        "1": [
+          0,
+          9,
+          1490,
+          1000
+        ],
+        "32": [
+          86,
+          44,
+          1477,
+          961
+        ],
+        "128": [
+          87,
+          44,
+          1476,
+          960
+        ],
+        "250": [
+          88,
+          46,
+          1475,
+          959
+        ]
+      },
+      "fullyTransparentFraction": 0.374708,
+      "partiallyTransparentFraction": 0.625292,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.056641,
+        0.042969,
+        0.960938,
+        0.9375
+      ],
+      "opaqueWidthToHeight": 1.516376,
+      "lower10PercentOpaqueBBox": [
+        298,
+        868,
+        1112,
+        960
+      ],
+      "lower20PercentOpaqueBBox": [
+        194,
+        776,
+        1312,
+        960
+      ],
+      "lower35PercentOpaqueBBox": [
+        109,
+        639,
+        1445,
+        960
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.508789,
+        0.936523
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.508789,
+        0.063477
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-wall-flower",
+      "source": "native/ios/ArtSource/Furniture/furniture-wall-flower.png",
+      "assetName": "furniture-wall-flower",
+      "width": 1122,
+      "height": 1402,
+      "mode": "RGBA",
+      "sha256": "5e2d9e466f72cbedf7ef785d303fb786dfdbfc84c47d73992ff2f7185afb4114",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-d626557e-2157-461a-82fc-cf1e4e24b564.png",
+      "alphaBounds": {
+        "1": [
+          0,
+          0,
+          1092,
+          1402
+        ],
+        "32": [
+          181,
+          84,
+          972,
+          1368
+        ],
+        "128": [
+          182,
+          85,
+          972,
+          1368
+        ],
+        "250": [
+          183,
+          86,
+          971,
+          1366
+        ]
+      },
+      "fullyTransparentFraction": 0.507942,
+      "partiallyTransparentFraction": 0.491706,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.16221,
+        0.060628,
+        0.86631,
+        0.975749
+      ],
+      "opaqueWidthToHeight": 0.615744,
+      "lower10PercentOpaqueBBox": [
+        563,
+        1239,
+        972,
+        1368
+      ],
+      "lower20PercentOpaqueBBox": [
+        304,
+        1111,
+        972,
+        1368
+      ],
+      "lower35PercentOpaqueBBox": [
+        182,
+        918,
+        972,
+        1368
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.51426,
+        0.975036
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.51426,
+        0.024964
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-wall-cat",
+      "source": "native/ios/ArtSource/Furniture/furniture-wall-cat.png",
+      "assetName": "furniture-wall-cat",
+      "width": 1122,
+      "height": 1402,
+      "mode": "RGBA",
+      "sha256": "cace10f4ecff5f5bfc01de6816551e1f74403ee23c3c71e1b835dd13597d4162",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-ae1c0591-d37f-4385-9529-7f49064f7cec.png",
+      "alphaBounds": {
+        "1": [
+          0,
+          9,
+          1098,
+          1402
+        ],
+        "32": [
+          162,
+          124,
+          985,
+          1322
+        ],
+        "128": [
+          163,
+          125,
+          985,
+          1321
+        ],
+        "250": [
+          164,
+          126,
+          984,
+          1320
+        ]
+      },
+      "fullyTransparentFraction": 0.526217,
+      "partiallyTransparentFraction": 0.473298,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.145276,
+        0.089158,
+        0.877897,
+        0.942225
+      ],
+      "opaqueWidthToHeight": 0.687291,
+      "lower10PercentOpaqueBBox": [
+        646,
+        1201,
+        984,
+        1321
+      ],
+      "lower20PercentOpaqueBBox": [
+        428,
+        1081,
+        984,
+        1321
+      ],
+      "lower35PercentOpaqueBBox": [
+        166,
+        902,
+        984,
+        1321
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.511586,
+        0.941512
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.511586,
+        0.058488
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-plant",
+      "source": "native/ios/ArtSource/Furniture/furniture-plant.png",
+      "assetName": "furniture-plant",
+      "width": 1122,
+      "height": 1402,
+      "mode": "RGBA",
+      "sha256": "ee95a773ac9ec683735e5eb768b27f19693a2950bce963ff2b23b8e3bbedd138",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-6c4ee622-c3ec-4982-8510-030a04175078.png",
+      "alphaBounds": {
+        "1": [
+          39,
+          0,
+          1108,
+          1402
+        ],
+        "32": [
+          91,
+          138,
+          1070,
+          1266
+        ],
+        "128": [
+          92,
+          139,
+          1069,
+          1265
+        ],
+        "250": [
+          93,
+          141,
+          1068,
+          1264
+        ]
+      },
+      "fullyTransparentFraction": 0.577829,
+      "partiallyTransparentFraction": 0.421504,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.081996,
+        0.099144,
+        0.952763,
+        0.902282
+      ],
+      "opaqueWidthToHeight": 0.867673,
+      "lower10PercentOpaqueBBox": [
+        358,
+        1152,
+        814,
+        1265
+      ],
+      "lower20PercentOpaqueBBox": [
+        309,
+        1039,
+        865,
+        1265
+      ],
+      "lower35PercentOpaqueBBox": [
+        218,
+        870,
+        873,
+        1265
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.51738,
+        0.901569
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.51738,
+        0.098431
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-floor-cushion",
+      "source": "native/ios/ArtSource/Furniture/furniture-floor-cushion.png",
+      "assetName": "furniture-floor-cushion",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGBA",
+      "sha256": "2eda30a9c10447aec5e38686d185b8e4bd4648b04d27c0a4a9f623ff169199c5",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-49cffb32-5c68-4cb9-971a-f59d9851913c.png",
+      "alphaBounds": {
+        "1": [
+          0,
+          9,
+          1512,
+          1024
+        ],
+        "32": [
+          159,
+          114,
+          1409,
+          941
+        ],
+        "128": [
+          160,
+          115,
+          1409,
+          941
+        ],
+        "250": [
+          161,
+          116,
+          1408,
+          940
+        ]
+      },
+      "fullyTransparentFraction": 0.528203,
+      "partiallyTransparentFraction": 0.471797,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.104167,
+        0.112305,
+        0.917318,
+        0.918945
+      ],
+      "opaqueWidthToHeight": 1.512107,
+      "lower10PercentOpaqueBBox": [
+        615,
+        858,
+        1150,
+        941
+      ],
+      "lower20PercentOpaqueBBox": [
+        397,
+        775,
+        1236,
+        941
+      ],
+      "lower35PercentOpaqueBBox": [
+        188,
+        651,
+        1336,
+        941
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.510742,
+        0.917969
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.510742,
+        0.082031
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    },
+    {
+      "name": "furniture-flower-stool",
+      "source": "native/ios/ArtSource/Furniture/furniture-flower-stool.png",
+      "assetName": "furniture-flower-stool",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "sha256": "621ec61651697eb2a31f4888a877fcb03f2bdfd36859a607d0bb4d9d82721836",
+      "generatedPath": "<USER_HOME>/.codex/generated_images/01a18cf3-a872-71f1-adb5-d0a0c804c7f1/exec-95789826-b043-48c6-a442-c14e39de0c25.png",
+      "alphaBounds": {
+        "1": [
+          0,
+          21,
+          1234,
+          1254
+        ],
+        "32": [
+          166,
+          181,
+          1125,
+          1191
+        ],
+        "128": [
+          167,
+          182,
+          1125,
+          1190
+        ],
+        "250": [
+          168,
+          184,
+          1124,
+          1189
+        ]
+      },
+      "fullyTransparentFraction": 0.57526,
+      "partiallyTransparentFraction": 0.424389,
+      "opaqueBBoxNormalizedTopLeft": [
+        0.133174,
+        0.145136,
+        0.897129,
+        0.948963
+      ],
+      "opaqueWidthToHeight": 0.950397,
+      "lower10PercentOpaqueBBox": [
+        601,
+        1089,
+        767,
+        1190
+      ],
+      "lower20PercentOpaqueBBox": [
+        235,
+        988,
+        1091,
+        1190
+      ],
+      "lower35PercentOpaqueBBox": [
+        228,
+        837,
+        1105,
+        1190
+      ],
+      "bottomCenterAnchorNormalizedTopLeft": [
+        0.515152,
+        0.948166
+      ],
+      "bottomCenterAnchorSpriteKit": [
+        0.515152,
+        0.051834
+      ],
+      "registrationNote": "Alpha>=128 excludes low-alpha encoding noise. Lower bands are measured silhouette bounds, not a collision footprint; use reviewed furniture support geometry for collision. PNG RGB at alpha=0 is invisible and must not be interpreted as a background/halo."
+    }
+  ]
+}

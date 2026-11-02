@@ -1,0 +1,46 @@
+{
+  "devicesAndConfigurations": [
+    {
+      "device": {
+        "architecture": "arm64",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "modelName": "iPhone SE (3rd generation)",
+        "osBuildNumber": "23E254a",
+        "osVersion": "26.4.1",
+        "platform": "iOS Simulator"
+      },
+      "expectedFailures": 0,
+      "failedTests": 0,
+      "passedTests": 3,
+      "skippedTests": 0,
+      "testPlanConfiguration": {
+        "configurationId": "1",
+        "configurationName": "Test Scheme Action"
+      }
+    }
+  ],
+  "environmentDescription": "CatLife · Built with macOS 27.0.1",
+  "expectedFailures": 0,
+  "failedTests": 0,
+  "finishTime": 1793370651.927,
+  "passedTests": 3,
+  "result": "Passed",
+  "runtimeWarnings": [
+    {
+      "issueType": "Runtime Warning",
+      "message": "Modifying state during view update, this will cause undefined behavior."
+    },
+    {
+      "issueType": "Runtime Warning",
+      "message": "Modifying state during view update, this will cause undefined behavior."
+    }
+  ],
+  "skippedTests": 0,
+  "startTime": 1793370510.809,
+  "statistics": [],
+  "testFailures": [],
+  "title": "Test - CatLife",
+  "topInsights": [],
+  "totalTestCount": 3
+}
