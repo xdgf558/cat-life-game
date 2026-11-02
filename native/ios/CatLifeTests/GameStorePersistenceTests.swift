@@ -50,7 +50,7 @@ final class GameStorePersistenceTests: XCTestCase {
     }
 
     @MainActor
-    func testRestExitFailuresUnlockUIKeepCapturedTimeAndStopAfterThreeAttempts() async throws {
+    func testRestExitFailuresUnlockUIKeepCapturedTimeAndSlowAfterThreeAttempts() async throws {
         var seed = mutedSnapshot()
         seed.cats[0].energy = 40
         let repository = MemorySaveRepository(seed)
@@ -73,7 +73,7 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertNil(firstExit.activeRest)
 
         // This is the sole wall-clock retry-window test: initial failure, +2s, then +5s.
-        try await eventually("Automatic retries should reach the three-attempt limit", timeout: 9) {
+        try await eventually("Automatic retries should finish the three-attempt burst", timeout: 9) {
             let count = await repository.attempts.count
             return count == baseline + 3 && !store.isBusy
         }
@@ -89,7 +89,7 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(failedExits[2].startedAt.timeIntervalSince(failedExits[1].startedAt), 4.9)
         XCTAssertFalse(store.showSaveError, "Automatic retries must not reopen the dismissed alert.")
 
-        // Foreground/background sync is also automatic and must respect the exhausted budget.
+        // Foreground/background sync is also automatic and must respect the low-frequency retry interval.
         store.setForeground(false)
         await Task.yield()
         let exhaustedCount = await repository.attempts.count
@@ -271,7 +271,7 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertFalse(store.loadFailed)
     }
 
-    func testSaveRetryPolicyUsesBoundedBackoffAndResetsAfterSuccess() {
+    func testSaveRetryPolicySlowsToOneMinuteAndResetsAfterSuccess() {
         var retry = SaveRetryState()
         let first = Date(timeIntervalSince1970: 1_800_000_000)
         XCTAssertTrue(retry.permitsAutomaticAttempt(at: first))
@@ -290,7 +290,10 @@ final class GameStorePersistenceTests: XCTestCase {
         let third = second.addingTimeInterval(5)
         XCTAssertFalse(retry.failed(at: third))
         XCTAssertEqual(retry.failures, SaveRetryState.maximumAutomaticAttempts)
-        XCTAssertFalse(retry.permitsAutomaticAttempt(at: third.addingTimeInterval(3_600)))
+        XCTAssertFalse(retry.permitsAutomaticAttempt(at: third.addingTimeInterval(59.99)))
+        XCTAssertTrue(retry.permitsAutomaticAttempt(at: third.addingTimeInterval(60)))
+        XCTAssertFalse(retry.failed(at: third.addingTimeInterval(60)))
+        XCTAssertEqual(retry.nextAttempt, third.addingTimeInterval(120))
         XCTAssertTrue(retry.hasReportedFailure)
 
         retry.succeeded()
@@ -298,6 +301,112 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertFalse(retry.hasReportedFailure)
         XCTAssertTrue(retry.permitsAutomaticAttempt(at: third))
         XCTAssertTrue(retry.failed(at: third), "A new outage may present a fresh error after recovery.")
+    }
+
+    @MainActor
+    func testEveryManualFailureReportsAndPersistentRecoveryDoesNotReplayActions() async throws {
+        let repository = MemorySaveRepository(mutedSnapshot())
+        let store = GameStore(repository: repository)
+        await store.load()
+        let before = try XCTUnwrap(store.snapshot)
+        let baseline = await repository.attempts.count
+        await repository.setWritesFailing(true)
+        for (offset, action) in [store.feed, store.buyFood, store.retrySaving].enumerated() {
+            store.showSaveError = false
+            action()
+            try await eventually("Each manual failure must finish and report itself") {
+                let count = await repository.attempts.count
+                return count == baseline + offset + 1 && !store.isBusy
+            }
+            XCTAssertTrue(store.showSaveError)
+            XCTAssertTrue(store.hasSaveFailure, "Closing the alert must not hide the recovery entry.")
+            XCTAssertEqual(store.snapshot, before)
+        }
+        store.showSaveError = false
+        XCTAssertTrue(store.saveRetryIsSlow)
+        await repository.setWritesFailing(false)
+        store.retrySaving()
+        try await eventually("A retry with no gameplay differences must still probe storage") {
+            !store.isBusy && !store.hasSaveFailure
+        }
+        XCTAssertFalse(store.showSaveError)
+        XCTAssertEqual(store.snapshot?.player.gold, before.player.gold)
+        XCTAssertEqual(store.snapshot?.inventory, before.inventory)
+        XCTAssertEqual(store.snapshot?.cats, before.cats)
+        store.feed()
+        try await eventually("The next explicit action should save once") {
+            !store.isBusy && store.snapshot?.inventory.food == before.inventory.food - 1
+        }
+    }
+
+    @MainActor
+    func testFullStaminaClockDoesNotCausePassiveWritesOrBankExtraRecovery() async throws {
+        let date = Date()
+        var seed = mutedSnapshot(now: date)
+        seed.player.stamina = 100
+        let repository = MemorySaveRepository(seed)
+        let store = GameStore(repository: repository)
+        await store.load()
+        let baseline = await repository.attempts.count
+        for _ in 0..<3 {
+            store.setForeground(false)
+            await Task.yield()
+        }
+        let count = await repository.attempts.count
+        XCTAssertEqual(count, baseline)
+        var later = seed
+        _ = GameEngine.synchronize(&later, now: date.addingTimeInterval(120))
+        XCTAssertNotEqual(later.player.staminaUpdatedAt, seed.player.staminaUpdatedAt)
+        XCTAssertFalse(requiresDurableSave(later, comparedTo: seed))
+        let workDate = date.addingTimeInterval(125)
+        XCTAssertTrue(GameEngine.startWork(&later, now: workDate).succeeded)
+        XCTAssertTrue(requiresDurableSave(later, comparedTo: seed))
+        XCTAssertEqual(later.player.staminaUpdatedAt, workDate)
+        _ = GameEngine.synchronize(&later, now: workDate.addingTimeInterval(3599))
+        XCTAssertEqual(later.player.stamina, 90, "Full idle time is not banked toward recovery after spending.")
+        _ = GameEngine.synchronize(&later, now: workDate.addingTimeInterval(3600))
+        XCTAssertEqual(later.player.stamina, 95)
+    }
+
+    @MainActor
+    func testBackupRestAndWorkNoticesSurviveStartupAndEntry() async throws {
+        let date = Date().addingTimeInterval(-130)
+        var seed = mutedSnapshot(now: date)
+        XCTAssertTrue(GameEngine.startWork(&seed, now: date).succeeded)
+        XCTAssertTrue(GameEngine.startCatRest(&seed, catID: seed.cats[0].id,
+            furnitureID: "catBed", sessionID: "startup-rest", now: date).succeeded)
+        let repository = MemorySaveRepository(seed, disposition: .recoveredBackup)
+        let store = GameStore(repository: repository)
+        await store.load()
+        let workMessage = GameStrings.format("action.workFinished", 60)
+        for expected in [workMessage, GameStrings.text("save.recovered"), GameStrings.text("rest.loadEnded")] {
+            XCTAssertTrue(store.startupNotice?.contains(expected) == true)
+        }
+        store.enterHome()
+        for expected in [workMessage, GameStrings.text("save.recovered"), GameStrings.text("rest.loadEnded")] {
+            XCTAssertTrue(store.toast?.contains(expected) == true)
+        }
+    }
+
+    @MainActor
+    func testWorkNoticeSurvivesConcurrentPurchaseNotice() async throws {
+        await RoomScene.preloadWelcomeResources()
+        let date = Date().addingTimeInterval(-118)
+        var seed = mutedSnapshot(now: date)
+        XCTAssertTrue(GameEngine.startWork(&seed, now: date).succeeded)
+        let endsAt = try XCTUnwrap(seed.player.activeWork).endsAt
+        let repository = MemorySaveRepository(seed)
+        let store = GameStore(repository: repository)
+        await store.load()
+        store.enterHome()
+        try await Task.sleep(for: .seconds(max(0, endsAt.timeIntervalSinceNow) + 0.03))
+        store.buyFood()
+        try await eventually("Purchase and work settlement must commit together") {
+            !store.isBusy && store.snapshot?.player.activeWork == nil
+        }
+        XCTAssertTrue(store.toast?.contains(GameStrings.format("action.workFinished", 60)) == true)
+        XCTAssertTrue(store.toast?.contains(GameStrings.text("action.purchase")) == true)
+        XCTAssertEqual(store.snapshot?.player.gold, seed.player.gold + 60 - 20)
     }
 
     private func mutedSnapshot(now: Date = Date()) -> GameSnapshot {
@@ -339,7 +448,7 @@ private actor MemorySaveRepository: GameSaveRepository {
 
     private enum SimulatedWriteError: Error { case unavailable }
 
-    let lastLoadDisposition = SaveLoadDisposition.loaded
+    let lastLoadDisposition: SaveLoadDisposition
     private(set) var savedSnapshot: GameSnapshot
     private(set) var readCount = 0
     private(set) var attempts: [SaveAttempt] = []
@@ -350,7 +459,9 @@ private actor MemorySaveRepository: GameSaveRepository {
     private let saveDelay: Duration
 
     init(_ snapshot: GameSnapshot, writesFailing: Bool = false,
-         readDelay: Duration = .zero, saveDelay: Duration = .zero) {
+         readDelay: Duration = .zero, saveDelay: Duration = .zero,
+         disposition: SaveLoadDisposition = .loaded) {
+        lastLoadDisposition = disposition
         savedSnapshot = snapshot
         self.writesFailing = writesFailing
         self.readDelay = readDelay

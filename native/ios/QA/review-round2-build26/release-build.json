@@ -1,0 +1,12 @@
+{
+  "version": "0.5.3",
+  "build": 26,
+  "signedReleaseDeviceBuild": "passed",
+  "signatureVerification": "passed",
+  "releaseTestMarkersFound": [],
+  "releaseTestBundles": 0,
+  "runtimeAssetsValidated": 58,
+  "initialBuildFailure": "Debug and Release preflight initially used directory-only sandbox inputs. Concrete script, manifest and resource inputs fixed the denial; both subsequent builds succeeded.",
+  "releaseMarkersChecked": 22,
+  "finalUIFixesIncluded": true
+}

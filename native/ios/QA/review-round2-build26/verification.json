@@ -1,0 +1,70 @@
+{
+  "date": "2026-11-02",
+  "version": "0.5.3",
+  "build": 26,
+  "status": {
+    "finished": "Confirmed round-two save recovery, settings queue, full-stamina persistence, notices, typed errors, background bowl planning and LFS build preflight repaired and tested; prepared as an append-only revision for the existing PR.",
+    "partiallyFinished": "CatActor and RoomScene remain over 1,000 lines after responsibility extraction; full historical UI and physical-player acceptance remain outside this targeted run.",
+    "broken": [],
+    "nextWork": "User review of the appended PR revision and physical-device acceptance; device startup confirmation pending while locked."
+  },
+  "coreTests": {
+    "passed": 154,
+    "suites": 14,
+    "report": "core-tests.json"
+  },
+  "appTests": {
+    "passed": 20,
+    "failed": 0,
+    "report": "app-tests.json"
+  },
+  "resourcePreflight": {
+    "testsPassed": 11,
+    "runtimeFilesChecked": 58,
+    "scriptSandboxEnabled": true
+  },
+  "uiTests": {
+    "executions": 8,
+    "passed": 7,
+    "historicalFailures": 1,
+    "distinctMethods": 7,
+    "report": "ui-tests.json"
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "releaseTestMarkersFound": 0,
+    "report": "release-build.json"
+  },
+  "device": {
+    "version": "0.5.3",
+    "build": 26,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 5065,
+    "saveSHA256": "af046b656c05b55312ce39b3579aadc03ec8bed0b249485ae267751396784bee",
+    "launch": "blocked by iOS device lock; user asked to open the installed app",
+    "runningProcessVerified": false,
+    "userAcceptance": "pending"
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 191,
+    "sha256": "9d4d5bad3b0b072f8f9cb9da618a30bc37a8bbc7004ebeb49e4f8305899151a6",
+    "allInputsMatch": true,
+    "postValidationChange": "Removed one trailing blank line from ActionOutcome.swift during the staged diff check; no executable code changed after final UI/build verification."
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "newRawLogsCommitted": false,
+    "newScreenshots": "Git LFS"
+  },
+  "limitations": [
+    "No complete 54-method UI sweep, Dynamic Type sweep or prolonged physical-device stress test.",
+    "Audio validation exercises saved preferences/playback state; it does not establish physical listening or every audio route.",
+    "Static-link audit did not find duplicated Core implementation; runtime loaded images were not enumerated.",
+    "The two additional pre-queue Settings guards received static review and final sound-flow regression, not a separate deterministic scheduler-window test.",
+    "Large Scene files were not arbitrarily split solely to reduce line counts."
+  ]
+}

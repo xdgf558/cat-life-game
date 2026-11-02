@@ -13,6 +13,9 @@ struct SettingsView: View {
     @State private var isSavingHomeName = false
     @State private var audioDraft = AudioSettings()
     @State private var isSavingAudio = false
+    @State private var hasLoadedAudioDraft = false
+    @State private var hasUnsubmittedAudioChanges = false
+    @State private var audioSaveGeneration = 0
     @FocusState private var nameFieldFocused: Bool
     @Environment(\.dismiss) private var dismiss
 
@@ -98,6 +101,7 @@ struct SettingsView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) { SaveStatusBanner(store: store) }
         .fontDesign(.rounded)
         .foregroundStyle(RoomTheme.ink)
         .tint(RoomTheme.darkMint)
@@ -106,12 +110,7 @@ struct SettingsView: View {
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif
-        .alert(GameStrings.text("save.writeTitle"), isPresented: $store.showSaveError) {
-            Button(GameStrings.text("save.retry")) { store.retrySaving() }
-            Button(GameStrings.text("common.done"), role: .cancel) { }
-        } message: {
-            Text(GameStrings.text("save.writeBody"))
-        }
+        .saveRecoveryAlert(store: store)
     }
 
     private func page<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -193,10 +192,17 @@ struct SettingsView: View {
                         .font(.headline).frame(maxWidth: .infinity, minHeight: 26)
                 }
                 .buttonStyle(MintButtonStyle())
-                .disabled(!audioDraft.effectsEnabled || audioDraft.effectsVolume == 0)
+                .disabled(!audioDraft.effectsEnabled || audioDraft.effectsVolume == 0
+                          || isSavingAudio || hasUnsubmittedAudioChanges
+                          || store.pendingAudioSettings != nil || audioDraft != store.audioSettings)
                 .accessibilityIdentifier("audioPreviewButton")
             }
-            .disabled(isSavingAudio || store.isBusy)
+
+            if isSavingAudio || (store.pendingAudioSettings != nil && !store.audioSettingsSaveFailed) {
+                ProgressView(GameStrings.text("common.saving"))
+                    .font(.footnote).tint(RoomTheme.darkMint)
+                    .accessibilityIdentifier("audioSaveStatus")
+            }
 
             Text(GameStrings.text("audio.systemHint"))
                 .font(.footnote).foregroundStyle(RoomTheme.secondary)
@@ -204,7 +210,14 @@ struct SettingsView: View {
         }
         .accessibilityIdentifier("audioSettingsScroll")
         .navigationTitle(GameStrings.text("settings.audio"))
-        .onAppear { audioDraft = store.audioSettings }
+        .onAppear {
+            // A page can reappear while its previous request is waiting behind
+            // another save. Keep that draft, or restore the Store's latest intent
+            // when opening a new editor after a failed or unfinished write.
+            guard !hasUnsubmittedAudioChanges, !isSavingAudio else { return }
+            audioDraft = store.pendingAudioSettings ?? store.audioSettings
+            hasLoadedAudioDraft = true
+        }
         .onDisappear { saveAudioDraft() }
     }
 
@@ -216,7 +229,9 @@ struct SettingsView: View {
             Toggle(GameStrings.text(title), isOn: Binding(
                 get: { audioDraft[keyPath: enabled] },
                 set: { value in
+                    guard audioDraft[keyPath: enabled] != value else { return }
                     audioDraft[keyPath: enabled] = value
+                    hasUnsubmittedAudioChanges = true
                     saveAudioDraft()
                 }))
                 .font(.headline).tint(RoomTheme.mint)
@@ -232,7 +247,11 @@ struct SettingsView: View {
                     .foregroundStyle(RoomTheme.darkMint)
             }
             Slider(value: Binding(get: { audioDraft[keyPath: volume] },
-                                  set: { audioDraft[keyPath: volume] = $0 }),
+                                  set: { value in
+                                      guard audioDraft[keyPath: volume] != value else { return }
+                                      audioDraft[keyPath: volume] = value
+                                      hasUnsubmittedAudioChanges = true
+                                  }),
                    in: 0...1, step: 0.05,
                    onEditingChanged: { editing in if !editing { saveAudioDraft() } })
                 .tint(RoomTheme.mint)
@@ -250,14 +269,22 @@ struct SettingsView: View {
     }
 
     private func saveAudioDraft() {
-        guard !isSavingAudio, audioDraft != store.audioSettings else { return }
+        guard hasLoadedAudioDraft, hasUnsubmittedAudioChanges else { return }
         let proposed = audioDraft
+        hasUnsubmittedAudioChanges = false
+        // Selecting the saved value can still supersede an older in-flight
+        // request. Only skip a true no-op with no pending intent in the Store.
+        guard proposed != store.audioSettings || store.pendingAudioSettings != nil || isSavingAudio else { return }
+        audioSaveGeneration += 1
+        let generation = audioSaveGeneration
         isSavingAudio = true
         Task {
+            guard audioSaveGeneration == generation else { return }
             _ = await store.updateAudioSettings(proposed)
-            // Only persisted preferences become active. A failed write restores
-            // the prior values and GameStore presents its normal save alert.
-            audioDraft = store.audioSettings
+            guard audioSaveGeneration == generation else { return }
+            // Never copy an older completion over a newer slider/toggle edit.
+            // Failed intent remains in the Store and the persistent save banner
+            // offers retry even after this destination has disappeared.
             isSavingAudio = false
         }
     }
@@ -480,6 +507,7 @@ private struct AppRelease: Identifiable, Sendable {
     // Keep release history as data. Only the latest three entries for this
     // installed binary are rendered; older entries have no hidden UI elements.
     private static let history: [AppRelease] = [
+        .init(build: 26, version: "0.5.3", date: "2026-11-02"),
         .init(build: 25, version: "0.5.2", date: "2026-11-02"),
         .init(build: 24, version: "0.5.1", date: "2026-11-02"),
         .init(build: 23, version: "0.5.0", date: "2026-11-02"),

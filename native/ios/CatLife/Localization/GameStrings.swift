@@ -39,6 +39,11 @@ enum GameStrings {
     }
 
     private static let chinese: [String: String] = [
+        "releases.26.title": "保存状态更清楚",
+        "releases.26.body": "保存遇到问题时持续显示状态并提供重试入口；声音设置会等待保存完成，保留未成功写入的选择。优化满体力时的自动存档，并改善房间加载与提示显示。",
+        "save.recoveryPending": "保存暂不可用，未保存的操作尚未生效。正在自动重试，时间结算会在恢复后补上。",
+        "save.recoverySlow": "保存仍不可用，未保存的操作尚未生效。会每分钟再次尝试，也可手动重试；恢复后会补上时间结算。",
+        "action.inventoryFull": "背包里这类物品已达到数量上限。",
         "releases.25.title": "保存与互动更稳定",
         "releases.25.body": "玩家档案改为紧凑首页，可分别查看个人属性、穿戴与加成；同时改进存档失败后的重试与恢复，减少自动写入，并优化猫咪互动时的移动路线。",
         "releases.24.title": "给自己一个喜欢的名字",
@@ -311,6 +316,11 @@ enum GameStrings {
     ]
 
     private static let traditionalChinese: [String: String] = [
+        "releases.26.title": "儲存狀態更清楚",
+        "releases.26.body": "儲存遇到問題時持續顯示狀態並提供重試入口；聲音設定會等待儲存完成，保留未成功寫入的選擇。改善體力全滿時的自動存檔，並優化房間載入與提示顯示。",
+        "save.recoveryPending": "暫時無法儲存，尚未儲存的操作還未生效。正在自動重試，恢復後會補上時間結算。",
+        "save.recoverySlow": "仍然無法儲存，尚未儲存的操作還未生效。每分鐘會再試一次，也可手動重試；恢復後會補上時間結算。",
+        "action.inventoryFull": "背包內這類物品已達數量上限。",
         "releases.25.title": "儲存與互動更穩定",
         "releases.25.body": "玩家檔案改為精簡首頁，可分別查看個人屬性、穿戴與加成；同時改善存檔失敗後的重試與恢復，減少自動寫入，並優化貓咪互動時的移動路線。",
         "releases.24.title": "給自己一個喜歡的名字",
@@ -583,6 +593,11 @@ enum GameStrings {
     ]
 
     private static let english: [String: String] = [
+        "releases.26.title": "Clearer save recovery",
+        "releases.26.body": "A persistent save status keeps retries available. Sound changes wait for saving and retain choices that could not be written. Reduces autosaves at full stamina and improves room loading and notices.",
+        "save.recoveryPending": "Saving is unavailable. Unsaved actions have not taken effect. Retrying automatically; elapsed progress will catch up when saving recovers.",
+        "save.recoverySlow": "Saving is still unavailable. Unsaved actions have not taken effect. We retry every minute, or you can retry now. Elapsed progress will catch up after recovery.",
+        "action.inventoryFull": "You have reached the inventory limit for this item.",
         "releases.25.title": "More reliable saves and interactions",
         "releases.25.body": "A compact profile now links to attributes, wardrobe, and equipment bonuses. Improves save recovery and retries, reduces automatic writes, and improves cat movement during interactions.",
         "releases.24.title": "A name of your own",

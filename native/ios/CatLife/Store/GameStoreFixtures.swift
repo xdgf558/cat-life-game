@@ -7,9 +7,12 @@ struct GameStoreFixtures {
     var initialSnapshot: GameSnapshot?
     var failRestExitOnce = false
     var failWorkCompletionOnce = false
+    private var failUserSaves = false
+    private var outageStarted = false
 
     init(arguments: [String] = [], allowsSeeding: Bool = false, now: Date = Date()) {
         guard arguments.contains("--ui-testing") else { return }
+        failUserSaves = arguments.contains("--save-outage-test")
         failRestExitOnce = arguments.contains("--recovery-end-failure-once")
         let reset = allowsSeeding && arguments.contains("--reset-ui-test-save")
         failWorkCompletionOnce = reset && arguments.contains("--career-save-failure-once")
@@ -51,6 +54,10 @@ struct GameStoreFixtures {
 
     mutating func checkSave(_ candidate: GameSnapshot, original: GameSnapshot,
                             exitsRest: Bool) throws {
+        if failUserSaves && (outageStarted || candidate.inventory != original.inventory) {
+            outageStarted = true
+            throw CocoaError(.fileWriteUnknown)
+        }
         if exitsRest && failRestExitOnce {
             failRestExitOnce = false
             throw CocoaError(.fileWriteUnknown)

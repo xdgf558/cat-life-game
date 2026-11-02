@@ -124,6 +124,7 @@ final class RoomSceneArtwork {
     }
 
     func updateBowlLayers(cat: CatActor, floor: RoomFloor?) {
+        bowlFront.isHidden = bowl.isHidden
         bowlFront.size = CGSize(width: bowl.size.width, height: bowl.size.height * 0.68)
         bowlFront.position = CGPoint(x: bowl.position.x, y: bowl.position.y - bowl.size.height * 0.16)
         let groundDepth = 1_000 - (floor?.bowlGround(at: bowl.position).y ?? bowl.position.y)

@@ -1,10 +1,15 @@
 #!/usr/bin/env ruby
 # Regenerate the checked-in Xcode project after adding app/UI-test source files.
-# Uses the host's xcodeproj gem; the app itself has no external dependencies.
-require 'xcodeproj'
+# Uses the host's xcodeproj gem; runtime media must be hydrated with Git LFS.
 require 'pathname'
 
 root = File.expand_path('..', __dir__)
+# Check before creating/replacing the project, even when xcodeproj is not installed.
+unless system('/usr/bin/python3', '-B', File.join(__dir__, 'check_runtime_assets.py'), '--root', root)
+  abort 'Runtime asset preflight failed; the Xcode project was not changed.'
+end
+require 'xcodeproj'
+
 project_path = File.join(root, 'CatLife.xcodeproj')
 project = Xcodeproj::Project.new(project_path)
 project.root_object.compatibility_version = 'Xcode 14.0'
@@ -12,6 +17,15 @@ project.root_object.development_region = 'zh_CN'
 project.root_object.known_regions = ['zh_CN', 'en', 'Base']
 
 app = project.new_target(:application, 'CatLife', :ios, '17.0')
+preflight = app.new_shell_script_build_phase('Check Runtime Assets')
+preflight.shell_path = '/bin/sh'
+preflight.shell_script = '/usr/bin/python3 -B "$SRCROOT/scripts/check_runtime_assets.py" --root "$SRCROOT"'
+preflight.input_paths = ['$(SRCROOT)/scripts/check_runtime_assets.py', '$(SRCROOT)/scripts/runtime_assets.json']
+preflight.input_file_list_paths = ['$(SRCROOT)/scripts/runtime_assets.xcfilelist']
+preflight.always_out_of_date = '1'
+preflight.show_env_vars_in_log = '0'
+app.build_phases.delete(preflight)
+app.build_phases.unshift(preflight)
 app_group = project.main_group.new_group('CatLife', 'CatLife')
 Dir.glob(File.join(root, 'CatLife', '**', '*.swift')).sort.each do |file|
   relative = Pathname.new(file).relative_path_from(Pathname.new(File.join(root, 'CatLife'))).to_s

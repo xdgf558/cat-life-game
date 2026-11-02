@@ -67,14 +67,18 @@ struct PlayerProfileView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 0) {
+                    SaveStatusBanner(store: store)
                 if let toast = store.toast, !toast.isEmpty {
                     Text(toast).font(.footnote).multilineTextAlignment(.center)
                         .padding(12).frame(maxWidth: .infinity)
                         .background(RoomTheme.paper)
                         .accessibilityIdentifier("profileToast")
                 }
+                }
             }
         }
+        .saveRecoveryAlert(store: store, isActive: !isShowingAttributes)
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink)
         .environment(\.locale, Locale(identifier: store.language.rawValue))
         .presentationDetents([.large]).presentationDragIndicator(.visible)
@@ -213,6 +217,8 @@ struct PlayerProfileView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) { SaveStatusBanner(store: store) }
+        .saveRecoveryAlert(store: store)
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink)
         .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
         .presentationContentInteraction(.scrolls)

@@ -3,7 +3,7 @@
 采用 SwiftUI + SpriteKit + Foundation，最低 iOS 17。独立于仓库根目录的网页版。
 
 版本发布规则
-当前已交付并安装到开发用 iPhone 的版本为 0.5.2（构建号 25），整合 PR 审查修复及紧凑玩家档案；覆盖安装首启前存档逐字节一致，正常启动及新版进程运行已确认，对外版本号与构建号均已提升。用户体验验收待反馈。已发布的第13版及更早版本仍保留实际的 0.1.0 和各自构建号，不回写历史记录。
+当前已交付并覆盖安装到开发用 iPhone 的版本为 0.5.3（构建号 26），修复二轮审查发现的保存恢复、音频偏好和后台规划问题；首启前原存档 5,065 字节逐字节一致。iOS 锁屏暂时拦住启动，已请用户手动打开，新版进程与玩家体验验收待确认。已发布的第13版及更早版本仍保留实际的 0.1.0 和各自构建号，不回写历史记录。
 历史版本 0.2.0（构建号 17）已于 2026-11-02 覆盖安装到 iPhone Air，存档保留及新版进程运行已确认，用户已反馈验收通过。
 历史版本 0.3.0（构建号 18）已完成下文所列核心及模拟器验证，并覆盖安装到 iPhone Air；首次启动前存档逐字节一致。此前 CLI 启动被 iOS Security／开发者信任检查拒绝；用户随后手动打开并保持前台，只读查询已确认新版安装目录下的游戏进程运行。本版用户玩法验收仍待反馈，安装成功、启动确认和用户验收分开记录。
 历史版本 0.4.0（构建号 19）已完成下文所列核心与模拟器验证，并于 2026-11-02 覆盖安装到 iPhone Air；首次启动前存档逐字节一致，CLI 正常启动成功，新版进程已确认。本版用户玩法验收仍待反馈，不能把安装和启动确认记作玩法验收通过。
@@ -12,18 +12,26 @@
 每次向玩家交付新的更新，都要同时提升 Info.plist 的 CFBundleShortVersionString（对外版本号）并递增 CFBundleVersion（构建号）。修复或界面微调递增 patch，例如 0.1.0 → 0.1.1；明显功能迭代递增 minor，例如 0.1.x → 0.2.0；主版本按发布规划调整。同一次尚未发布更新的调试可以保留对外版本号，新安装包的构建号按需要递增。
 版本变更要同步 SettingsView.swift 中 AppRelease.history 的当前记录、GameStrings.swift 中对应的三语更新文案和版本相关测试期望；历史已发布记录的 version、构建号和日期保留。此规则同时记录于本目录 AGENTS.md，后续原生更新均遵循。
 
-运行
-用 Xcode 打开本目录的 CatLife.xcodeproj，选择 CatLife scheme 和一个 iPhone 模拟器，点击 Run。
-模拟器构建不需要 Apple 开发者账号；安装到自己的 iPhone 时，需要在 Signing & Capabilities 选择自己的 Team。
-工程已生成并包含本地 CatGameCore Swift 包，无需下载第三方依赖。
-网页入口 index.html 和原来的 JavaScript 未修改。
+当前构建与运行（唯一现行入口）
+原生运行图片和音频已经迁入 Git LFS。只取得源码或 LFS 指针文件不能构建可运行的 App；下文历史章节描述的是各版本当时的分发方式，不替代此处的现行步骤。
+在安装 Git LFS 后，从仓库根目录执行：
+git lfs install
+git lfs pull --include="native/ios/CatLife/**"
+python3 -B native/ios/scripts/check_runtime_assets.py
 
-命令行（从仓库根目录执行）
+检查通过后，用 Xcode 打开 native/ios/CatLife.xcodeproj，选择 CatLife scheme 和 iPhone 模拟器，点击 Run；也可以继续执行：
 xcodebuild -project native/ios/CatLife.xcodeproj -scheme CatLife -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+
+已生成工程的第一个构建阶段也会检查运行素材。发现 LFS 指针、缺失文件、空文件或错误的 PNG/JPEG/CAF 文件头时，会报出具体路径和下载命令并停止；构建过程不自动联网或修改素材。scripts/runtime_assets.json 是必须随资源变更更新的运行文件清单，可检测整套 imageset 被删除的情况；该检查不替代图片解码和实际音频验收。
+工程已包含本地 CatGameCore Swift 包，无需第三方运行代码依赖；运行素材仍需按上述步骤下载。模拟器构建不需要 Apple 开发者账号；安装到自己的 iPhone 时，需要在 Signing & Capabilities 选择自己的 Team。网页版仍直接打开根目录 index.html，不依赖原生资源。
+
+仅测试 Foundation 核心逻辑，不需要运行素材：
 cd native/ios/CatGameCore && swift test
 
-新增 Swift 源文件后，用 ruby native/ios/scripts/generate_project.rb 重新生成工程（需要 xcodeproj gem）。
-新增美术资源后，用 python3 native/ios/scripts/import_assets.py 更新资产目录；场景原图直接复制，AppIcon 由 macOS sips 导出为 1024×1024，原始设计图保留。
+工程和资源维护（以下命令同样从仓库根目录执行）
+通常直接使用已提交工程，不需要重新生成。新增 Swift 源文件后，可用 ruby native/ios/scripts/generate_project.rb 生成工程（需要 xcodeproj gem）；生成器在创建或替换工程前先执行同一素材检查，失败不覆盖原工程。
+新增美术资源前先按文末说明下载 ArtSource，再用 python3 native/ios/scripts/import_assets.py 更新资产目录；场景原图直接复制，AppIcon 由 macOS sips 导出为 1024×1024，原始设计图保留。确定添加或移除运行素材后，执行 python3 -B native/ios/scripts/check_runtime_assets.py --update-manifest，这会同时更新 runtime_assets.json 与 runtime_assets.xcfilelist，把两个清单与素材一起提交；普通构建和生成工程不会自动重写清单。
+前置检查的临时夹具自测：python3 -B -m unittest discover -s native/ios/scripts -p test_check_runtime_assets.py。自测不改真实素材，不运行 Xcode 或模拟器。
 
 当前范围
 - 奶油玩具屋房间首页，真实金币/体力/猫粮状态。
@@ -267,10 +275,10 @@ player.profile 保存 avatarID、ownedEquipmentIDs 和按槽位记录的 equippe
 SE 与 Pro 的全部六款底栏头像实际截图均已目视检查通过，31 点头肩缩略头像及底栏、房间尺寸符合预期。本轮 UI 证据见 QA/avatar-navigation-verification.json。
 2026-11-02，0.4.2（21）已覆盖安装到 iPhone Air，设备应用查询确认版本为 0.4.2／21。安装前正常结束旧进程 PID <REDACTED>；覆盖安装后、首次新版启动前，普通存档 4435 字节逐字节一致，SHA256 为 d23ecfb85f7dbe545a45f28347143384d989b1c3f596220ede829337410d545c。无测试参数的正常启动成功，新安装目录 00000000-0000-0000-0000-000000000019 下的 CatLife 进程 PID <REDACTED> 已查询确认为运行。本版已交付且启动已确认，用户真机体验验收仍待反馈；安装和启动确认不等于完成真机全部玩法或长时间性能验证。设备证据见 QA/build21-device-update.json，旧版本历史记录保持原样。
 
-历史初版 PR 归档（0.4.2；当前 LFS 策略见下文）
+历史初版 PR 归档（0.4.2；旧分发方式已被替代）
 当时将原生 iOS 至 0.4.2（21）的程序、运行素材、设计来源和完整 QA 证据一起纳入版本控制。
-QA 下 PNG/JPG 截图与 MP4 录屏由 Git LFS 跟踪；源码、App 运行资产和 ArtSource 原图仍为普通 Git 文件。
-拉取完整证据时安装 Git LFS 后运行 git lfs install，再运行 git lfs pull。普通克隆已包含构建 App 所需的全部运行资源。
+当时只有 QA 下 PNG/JPG 截图与 MP4 录屏由 Git LFS 跟踪，App 运行资产和 ArtSource 原图尚为普通 Git 文件。
+这是旧 PR 快照的历史记录。当前运行素材也已迁入 Git LFS，不能沿用当时的克隆条件；现行构建统一执行文首“当前构建与运行”的下载和检查步骤。
 QA/pr-review/core-tests.log 记录开 PR 前对当前代码重新执行的核心测试：129 项、11 个套件全部通过。此前各版本历史验证记录保留原始结果；本次归档不代表重新执行全部历史 UI 测试。
 公开审查版本已对 QA 及设计出处中的本机路径、设备/安装标识、签名身份与进程元数据脱敏；测试结论、版本、耗时、存档校验值和媒体内容保留。详细范围与原有附件缺失记录见 QA/pr-review/sanitization.json。
 
@@ -297,7 +305,7 @@ QA/pr-review/core-tests.log 记录开 PR 前对当前代码重新执行的核心
 
 Git LFS 与资料获取
 运行图片、音频、设计原图、QA 媒体、大日志和大型 JSON 由 Git LFS 保存。仓库 .lfsconfig 默认仅下载 native/ios/CatLife 下构建必需的运行素材，历史 QA 不再随普通 checkout 自动下载。
-首次构建：安装 Git LFS，执行 git lfs install，再执行 git lfs pull --include="native/ios/CatLife/**"。
+首次构建统一按文首“当前构建与运行”操作；这里仅补充可选资料下载方式。
 需要全部设计和 QA 原件时，执行 git lfs pull --include="native/ios/ArtSource/**,native/ios/QA/**,docs/**"。
 如果只看网页或源码，可以使用 GIT_LFS_SKIP_SMUDGE=1 git clone；网页仍直接打开根目录 index.html，不依赖任何原生资料。
 
@@ -307,3 +315,7 @@ Git LFS 与资料获取
 人物与名字并排显示，点击人物弹出个人属性；“我的穿戴”和“穿戴加成”各进入二级页，装备详情返回穿戴。属性弹层优先滚动内容，解决小屏半屏状态下短划动看不到底部数值的问题。房间、猫咪和玩法模型未改变。
 本轮 UI 两个不同方法共执行四次：三次通过、一次小屏首轮滚动失败。Pro 首轮完整操作及三语通过；加入一行滚动优先设置后，最终 SE 完整操作、改名、换形象、穿戴、返回和冷启动保留通过，原断言未放宽。并非全量重跑 52 项 UI 用例，大字号未执行。核心和 Store 哈希与上一修复阶段一致，沿用 152 核心及 8 项 App 存档单测结果。
 最终 Debug 测试包与签名 Release 真机包通过，0.5.2（25）覆盖安装，首启前原存档逐字节一致，正常进程已确认。用户体验验收待反馈。精简结果和六张必要截图见 QA/compact-profile-build25/；本轮原始日志、结果束和真实存档不入库。
+
+二轮审查修复 0.5.3（构建号 26）
+保存失败后保留可见状态与手动重试入口，每次主动操作失败均反馈；自动尝试先等待 2 秒、5 秒，之后每分钟探测。失败的喂食或购买不扣资源，恢复后只补结算经过的时间，不自动重放失败消费。音频设置保留最新选择并串行提交；同时到达的工作、恢复和操作提示合并展示。满体力的纯时钟更新不再单独触发写盘；动作失败使用类型化原因。旧食盆位置恢复也已移入后台规划，并取消过时布局结果。
+本轮核心 154 项／14 组、App 20 项、资源检查 11 项通过；7 个相关 UI 方法共 8 次执行，7 次通过、1 次初始辅助功能分组失败已修复并完整复测。Debug 模拟器和签名 Release 真机包构建通过；首次资源检查的沙箱声明错误已修正，沙箱保持开启。未全量重跑 54 项历史 UI 用例。大文件按职责抽出了规划、攀爬时间线和提示，但 CatActor、RoomScene 仍超过 1,000 行。核对矩阵、限定范围、初始失败和精简证据见 QA/review-round2-build26/README.md 与 verification.json；原始日志、完整 xcresult 和真实存档只在本地临时目录保留。

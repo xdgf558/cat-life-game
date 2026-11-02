@@ -58,6 +58,9 @@ struct RoomHomeView: View {
         // the clock only from the current phase, never from a phase captured
         // by the suspended load task.
         .onChange(of: scenePhase, initial: true) { _, phase in store.setForeground(phase == .active) }
+        .overlay(alignment: .top) {
+            if store.activeSheet == nil && !store.isShowingSettings { SaveStatusBanner(store: store) }
+        }
         .sheet(item: $store.activeSheet) { destination in
             if destination == .player {
                 PlayerProfileView(store: store)
@@ -68,15 +71,7 @@ struct RoomHomeView: View {
         .fullScreenCover(isPresented: $store.isShowingSettings) {
             SettingsView(store: store)
         }
-        .alert(GameStrings.text("save.writeTitle"), isPresented: Binding(
-            get: { store.showSaveError && !store.isShowingSettings },
-            set: { store.showSaveError = $0 }
-        )) {
-            Button(GameStrings.text("save.retry")) { store.retrySaving() }
-            Button(GameStrings.text("common.done"), role: .cancel) { }
-        } message: {
-            Text(GameStrings.text("save.writeBody"))
-        }
+        .saveRecoveryAlert(store: store, isActive: store.activeSheet == nil && !store.isShowingSettings)
     }
 
     private func home(_ snapshot: GameSnapshot) -> some View {

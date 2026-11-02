@@ -1,0 +1,10 @@
+{
+  "passed": 154,
+  "suites": 14,
+  "failed": 0,
+  "newCases": [
+    "resourceFailuresCarryTypedReasonsWithoutMatchingText",
+    "careerLockAndSuccessHaveDistinctFailureState"
+  ],
+  "sourceChangedAfterRun": "One trailing blank line removed from ActionOutcome.swift; no executable change."
+}

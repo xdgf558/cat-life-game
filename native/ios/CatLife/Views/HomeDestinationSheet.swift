@@ -45,6 +45,8 @@ struct HomeDestinationSheet: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 0) {
+                    SaveStatusBanner(store: store)
                 if let toast = store.toast, !toast.isEmpty {
                     Text(toast)
                         .font(.system(size: 14, weight: .medium))
@@ -54,8 +56,10 @@ struct HomeDestinationSheet: View {
                         .background(RoomTheme.paper)
                         .accessibilityIdentifier("sheetToast")
                 }
+                }
             }
         }
+        .saveRecoveryAlert(store: store)
         .fontDesign(.rounded)
         .foregroundStyle(RoomTheme.ink)
         .presentationDetents(destination == .town ? [.medium, .large] : [.large])

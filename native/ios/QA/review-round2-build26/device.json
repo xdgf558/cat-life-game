@@ -1,0 +1,11 @@
+{
+  "version": "0.5.3",
+  "build": 26,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 5065,
+  "saveSHA256": "af046b656c05b55312ce39b3579aadc03ec8bed0b249485ae267751396784bee",
+  "launch": "blocked by iOS device lock; user asked to open the installed app",
+  "runningProcessVerified": false,
+  "userAcceptance": "pending"
+}

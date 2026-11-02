@@ -28,7 +28,7 @@ final class GameStore {
     private(set) var loadFailed = false
     // Welcome presentation belongs to this process, not the durable game save.
     private(set) var hasEnteredHome = false
-    private(set) var startupNotice: String?
+    var startupNotice: String? { notices.startupNotice }
     var showSaveError = false
     var activeSheet: HomeSheet? {
         didSet {
@@ -41,7 +41,7 @@ final class GameStore {
     }
     var inventoryCategory: InventoryCategory = .supplies
     private(set) var now = Date()
-    private(set) var toast: String?
+    var toast: String? { notices.toast }
     private(set) var feedback: RoomFeedback?
     private(set) var isDecorating = false {
         didSet { if oldValue != isDecorating { playNavigationSound() } }
@@ -58,7 +58,7 @@ final class GameStore {
     @ObservationIgnored private let repository: any GameSaveRepository
     @ObservationIgnored private let audio = GameAudioController()
     @ObservationIgnored private var timerTask: Task<Void, Never>?
-    @ObservationIgnored private var toastTask: Task<Void, Never>?
+    @ObservationIgnored private let notices = GameNoticeCenter()
     @ObservationIgnored private var lastSyncCheck = Date.distantPast
     @ObservationIgnored private var foreground = false
     @ObservationIgnored private var pendingSynchronization = false
@@ -66,7 +66,20 @@ final class GameStore {
     @ObservationIgnored private var presentedRestSessionID: String?
     @ObservationIgnored private var restTransitions: [RestTransition] = []
     @ObservationIgnored private var restRetryTask: Task<Void, Never>?
-    @ObservationIgnored private var saveRetry = SaveRetryState()
+    private(set) var saveRetry = SaveRetryState()
+    var hasSaveFailure: Bool { saveRetry.failures > 0 }
+    var saveRetryIsSlow: Bool { saveRetry.failures >= SaveRetryState.maximumAutomaticAttempts }
+    private(set) var pendingAudioSettings: AudioSettings?
+    private(set) var audioSettingsSaveFailed = false
+    @ObservationIgnored private var audioSaveRequest: AudioSaveRequest?
+    @ObservationIgnored private var pendingManualRetry = false
+
+    private struct AudioSaveRequest {
+        let id = UUID()
+        let settings: AudioSettings
+        var attempted = false
+        var completion: CheckedContinuation<Bool, Never>?
+    }
     #if DEBUG
     @ObservationIgnored private var fixtures = GameStoreFixtures()
     #endif
@@ -141,20 +154,50 @@ final class GameStore {
 
     @discardableResult
     func updateAudioSettings(_ settings: AudioSettings) async -> Bool {
-        guard !isBusy, !isDecorating, var context = saveContext() else { return false }
-        var candidate = context.candidate
-        guard candidate.settings.audio != settings else { return true }
-        candidate.settings.audio = settings
-        isBusy = true
-        defer { isBusy = false; drainPendingSynchronization() }
-        do {
-            context.candidate = candidate
-            try await commit(context)
-            return true
-        } catch {
-            recordSaveFailure()
-            return false
+        guard snapshot != nil, !isDecorating else { return false }
+        guard audioSaveRequest != nil || audioSettings != settings else { return true }
+        return await withCheckedContinuation { completion in
+            // Resolve superseded callers without letting an older in-flight
+            // commit clear the player's newest intent, even when it is a revert.
+            audioSaveRequest?.completion?.resume(returning: false)
+            audioSaveRequest = AudioSaveRequest(settings: settings, completion: completion)
+            pendingAudioSettings = settings
+            audioSettingsSaveFailed = false
+            drainPendingSynchronization()
         }
+    }
+
+    @discardableResult
+    private func processPendingAudioSettings(userInitiated: Bool = false) -> Bool {
+        guard !isBusy, let request = audioSaveRequest,
+              !request.attempted || userInitiated || saveRetry.permitsAutomaticAttempt(at: Date()),
+              var context = saveContext() else { return false }
+        let explicitAttempt = userInitiated || !request.attempted
+        audioSaveRequest?.attempted = true
+        _ = GameEngine.synchronize(&context.candidate, now: Date())
+        context.candidate.settings.audio = request.settings
+        isBusy = true
+        Task {
+            do {
+                try await commit(context)
+                if audioSaveRequest?.id == request.id {
+                    audioSaveRequest?.completion?.resume(returning: true)
+                    audioSaveRequest = nil
+                    pendingAudioSettings = nil
+                    audioSettingsSaveFailed = false
+                }
+            } catch {
+                if audioSaveRequest?.id == request.id {
+                    audioSaveRequest?.completion?.resume(returning: false)
+                    audioSaveRequest?.completion = nil
+                    audioSettingsSaveFailed = true
+                }
+                recordSaveFailure(userInitiated: explicitAttempt)
+            }
+            isBusy = false
+            drainPendingSynchronization()
+        }
+        return true
     }
     var foodRequired: Int { cat?.isPregnant == true ? 2 : 1 }
     var hasFood: Bool { (snapshot?.inventory.food ?? 0) >= foodRequired }
@@ -270,6 +313,7 @@ final class GameStore {
         snapshot = context.candidate
         acknowledgeTransitions(context.transitions)
         saveRetry.succeeded()
+        showSaveError = false
         restRetryTask?.cancel()
         restRetryTask = nil
         if let receipt = context.candidate.player.lastWorkResult,
@@ -280,24 +324,23 @@ final class GameStore {
         }
     }
 
-    private func recordSaveFailure(showAlert: Bool = true) {
+    private func recordSaveFailure(showAlert: Bool = true, userInitiated: Bool = false) {
         let firstFailure = saveRetry.failed(at: Date())
-        if showAlert && firstFailure { showSaveError = true }
+        if showAlert && (firstFailure || userInitiated) { showSaveError = true }
         restRetryTask?.cancel()
         restRetryTask = nil
-        guard saveRetry.failures < SaveRetryState.maximumAutomaticAttempts else { return }
         let delay = max(0, saveRetry.nextAttempt.timeIntervalSinceNow)
         restRetryTask = Task { [weak self] in
             do { try await Task.sleep(for: .seconds(delay)) } catch { return }
             guard let self else { return }
             self.restRetryTask = nil
-            self.synchronize(showNotice: false)
+            self.synchronize()
         }
     }
 
     func retrySaving() {
-        // Explicit retry is independent of the exhausted automatic budget.
-        synchronize(showNotice: true, userInitiated: true)
+        // Explicit retry does not wait for the automatic backoff.
+        synchronize(userInitiated: true)
     }
 
     func showFurnitureNotice(_ key: String) { showNotice(GameStrings.text(key)) }
@@ -307,10 +350,7 @@ final class GameStore {
         hasEnteredHome = true
         syncAudio()
         audio.play(pendingWorkResultID == nil ? .enter : .workComplete, userInitiated: true)
-        if let notice = startupNotice {
-            startupNotice = nil
-            showNotice(notice)
-        }
+        notices.enterHome()
     }
 
     func load() async {
@@ -385,7 +425,7 @@ final class GameStore {
         now = Date()
         timerTask?.cancel()
         timerTask = nil
-        if snapshot != nil { synchronize(showNotice: active) }
+        if snapshot != nil { synchronize() }
         guard active else { return }
         timerTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -396,7 +436,7 @@ final class GameStore {
                 let workDue = self.snapshot?.player.activeWork.map { $0.endsAt <= self.now } ?? false
                 let restDue = self.snapshot?.cats.contains { $0.activeRest.map { $0.endsAt <= self.now } ?? false } ?? false
                 if workDue || restDue || self.now.timeIntervalSince(self.lastSyncCheck) >= 60 {
-                    self.synchronize(showNotice: true)
+                    self.synchronize()
                 }
             }
         }
@@ -486,7 +526,7 @@ final class GameStore {
             audio.play(.tap, userInitiated: true)
             return true
         } catch {
-            recordSaveFailure(showAlert: false)
+            recordSaveFailure(showAlert: false, userInitiated: true)
             // The name editor keeps the draft and presents an inline error.
             // Its saved display name remains unchanged for a safe retry.
             return false
@@ -530,7 +570,7 @@ final class GameStore {
                 GameLocalization.shared.language = language
                 showNotice(GameStrings.text("settings.languageSaved"))
             } catch {
-                recordSaveFailure()
+                recordSaveFailure(userInitiated: true)
             }
             isBusy = false
             drainPendingSynchronization()
@@ -562,7 +602,7 @@ final class GameStore {
             try await commit(context)
             return true
         } catch {
-            recordSaveFailure()
+            recordSaveFailure(userInitiated: true)
             return false
         }
     }
@@ -694,7 +734,7 @@ final class GameStore {
                 }
                 showNotice(message(for: outcome))
             } catch {
-                recordSaveFailure()
+                recordSaveFailure(userInitiated: true)
             }
             isBusy = false
             isSavingLayout = false
@@ -702,24 +742,27 @@ final class GameStore {
         }
     }
 
-    private func synchronize(showNotice: Bool, userInitiated: Bool = false) {
+    private func synchronize(userInitiated: Bool = false) {
         guard snapshot != nil else { return }
-        guard !isBusy else { pendingSynchronization = true; return }
+        guard !isBusy else {
+            pendingSynchronization = true
+            pendingManualRetry = pendingManualRetry || userInitiated
+            return
+        }
+        if processPendingAudioSettings(userInitiated: userInitiated) { return }
         guard userInitiated || saveRetry.permitsAutomaticAttempt(at: Date()) else { return }
         guard var context = saveContext() else { return }
         lastSyncCheck = Date()
         _ = GameEngine.synchronize(&context.candidate, now: lastSyncCheck)
-        // Advancing only the sync timestamp does not require a disk write.
-        var comparable = context.candidate
-        comparable.meta.lastSyncAt = context.original.meta.lastSyncAt
-        guard comparable != context.original else {
+        // A retry probes storage even if the failed user action was rolled back.
+        guard hasSaveFailure || requiresDurableSave(context.candidate, comparedTo: context.original) else {
             acknowledgeTransitions(context.transitions)
             return
         }
         isBusy = true
         Task {
             do { try await commit(context) }
-            catch { recordSaveFailure() }
+            catch { recordSaveFailure(userInitiated: userInitiated) }
             isBusy = false
             drainPendingSynchronization()
         }
@@ -727,13 +770,20 @@ final class GameStore {
 
     private func drainPendingSynchronization() {
         guard !isBusy else { return }
+        if pendingManualRetry {
+            pendingManualRetry = false
+            pendingSynchronization = false
+            synchronize(userInitiated: true)
+            return
+        }
+        if processPendingAudioSettings() { return }
         if !restTransitions.isEmpty {
             processNextRestTransition()
             return
         }
         guard pendingSynchronization else { return }
         pendingSynchronization = false
-        synchronize(showNotice: foreground)
+        synchronize()
     }
 
     private func playCommittedSound(_ kind: ActionKind) {
@@ -750,57 +800,9 @@ final class GameStore {
         }
     }
 
-    private func showNotice(_ message: String) {
-        guard hasEnteredHome else {
-            // Loading and foreground synchronization can finish while the player
-            // is still on the welcome screen. Start the toast only on entry.
-            startupNotice = message
-            return
-        }
-        toastTask?.cancel()
-        toast = message
-        toastTask = Task { [weak self] in
-            do { try await Task.sleep(for: .seconds(3)) } catch { return }
-            self?.toast = nil
-        }
-    }
+    private func showNotice(_ message: String) { notices.show(message, ready: hasEnteredHome) }
 
     private func message(for outcome: ActionOutcome) -> String {
-        if outcome.succeeded {
-            switch outcome.kind {
-            case .feed: return GameStrings.text("action.feed")
-            case .clean: return GameStrings.text("action.clean")
-            case .play: return GameStrings.text("action.play")
-            case .purchase: return GameStrings.text("action.purchase")
-            case .workStarted:
-                if let active = snapshot?.player.activeWork, let job = WorkCatalog.job(id: active.jobID) {
-                    if let quote = active.quote, quote.durationSeconds != quote.baseDurationSeconds {
-                        return GameStrings.text("work.benefitsApplied") + " · "
-                            + GameStrings.format("work.durationSeconds", quote.durationSeconds / 60, quote.durationSeconds % 60)
-                    }
-                    return GameStrings.format("career.started", GameStrings.text("jobs.\(job.id).name"), job.durationMinutes)
-                }
-                return GameStrings.text("action.workStarted")
-            case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
-            case .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded:
-                return GameStrings.text(outcome.messageKey)
-            case .layout: return GameStrings.text("layout.saved")
-            case .none: return GameStrings.text(outcome.messageKey)
-            }
-        }
-        switch outcome.messageKey {
-        case "player.avatarMissing", "equipment.itemMissing", "equipment.notOwned",
-             "sleep.workActive", "work.sleeping", "rest.invalidFurniture",
-             "work.jobMissing", "work.levelRequired", "work.progressLimit":
-            return GameStrings.text(outcome.messageKey)
-        case "room.invalidPosition", "room.invalidFurnitureLayout": return GameStrings.text("layout.invalid")
-        case "shop.goldRequired": return GameStrings.text("action.insufficientGold")
-        case "work.staminaRequired": return GameStrings.text("action.insufficientStamina")
-        case "care.foodRequired": return GameStrings.text("care.needFood")
-        case "care.litterRequired": return GameStrings.text("care.needLitter")
-        case "care.toyRequired": return GameStrings.text("care.needToy")
-        case "shop.inventoryFull": return GameStrings.text("action.full")
-        default: return GameStrings.text("action.failed")
-        }
+        GameActionNotice.message(for: outcome, snapshot: snapshot)
     }
 }

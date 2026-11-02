@@ -1,26 +1,5 @@
 import Foundation
 
-public enum ActionKind: String, Codable, Sendable {
-    case feed, clean, play, purchase, workStarted, workFinished, layout, none
-    case sleepStarted, sleepEnded, catRestStarted, catRestEnded
-}
-
-public struct ActionOutcome: Equatable, Sendable {
-    public var kind: ActionKind
-    public var succeeded: Bool
-    public var messageKey: String
-    /// Resource units consumed/granted, or gold paid out for completed work.
-    public var amount: Int
-
-    public init(kind: ActionKind = .none, succeeded: Bool = true,
-                messageKey: String = "", amount: Int = 0) {
-        self.kind = kind
-        self.succeeded = succeeded
-        self.messageKey = messageKey
-        self.amount = amount
-    }
-}
-
 /// Deterministic rules. Call `synchronize` on launch, foreground, and active ticks.
 /// Every public action first synchronizes elapsed time. Even when the requested
 /// action fails or is a no-op, its inout state retains that independent progress.
@@ -37,7 +16,7 @@ public enum GameEngine {
                                     now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
-        guard PlayerCatalog.avatar(id: avatarID) != nil else { return failure("player.avatarMissing") }
+        guard PlayerCatalog.avatar(id: avatarID) != nil else { return failure(.playerAvatarMissing) }
         state.player.profile.avatarID = avatarID
         return ActionOutcome(messageKey: "player.avatarSaved")
     }
@@ -46,8 +25,8 @@ public enum GameEngine {
                                  now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
-        guard let item = PlayerCatalog.item(id: itemID) else { return failure("equipment.itemMissing") }
-        guard state.player.profile.ownedEquipmentIDs.contains(itemID) else { return failure("equipment.notOwned") }
+        guard let item = PlayerCatalog.item(id: itemID) else { return failure(.equipmentItemMissing) }
+        guard state.player.profile.ownedEquipmentIDs.contains(itemID) else { return failure(.equipmentNotOwned) }
         state.player.profile.equipped[item.slot] = item.id
         return ActionOutcome(messageKey: "equipment.equipped")
     }
@@ -65,9 +44,9 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard PlayerCatalog.starterEquipmentIDs.allSatisfy({ state.player.profile.ownedEquipmentIDs.contains($0) })
-        else { return failure("equipment.notOwned") }
+        else { return failure(.equipmentNotOwned) }
         let items = PlayerCatalog.starterEquipmentIDs.compactMap { PlayerCatalog.item(id: $0) }
-        guard items.count == PlayerCatalog.starterEquipmentIDs.count else { return failure("equipment.itemMissing") }
+        guard items.count == PlayerCatalog.starterEquipmentIDs.count else { return failure(.equipmentItemMissing) }
         for item in items {
             state.player.profile.equipped[item.slot] = item.id
         }
@@ -95,7 +74,7 @@ public enum GameEngine {
         guard synchronized.succeeded else { return synchronized }
         guard state.player.activeSleep == nil else { return ActionOutcome() }
         var candidate = state
-        guard candidate.player.activeWork == nil else { return failure("sleep.workActive") }
+        guard candidate.player.activeWork == nil else { return failure(.sleepWorkActive) }
         candidate.player.activeSleep = PlayerSleep(startedAt: effectiveTime(candidate, now: now))
         state = candidate
         return ActionOutcome(kind: .sleepStarted, messageKey: "sleep.started")
@@ -120,23 +99,23 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
-            return failure("care.catMissing")
+            return failure(.careCatMissing)
         }
         guard state.cats[index].activeRest == nil,
               state.cats[index].lastRestSessionID != sessionID else { return ActionOutcome() }
         guard !sessionID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return failure("rest.invalidSession")
+            return failure(.restInvalidSession)
         }
         guard state.home.furniture.contains(where: { $0.itemID == furnitureID }),
               let item = state.inventory.furniture.first(where: { $0.id == furnitureID }),
-              let duration = catRestDuration(for: item.kind) else { return failure("rest.invalidFurniture") }
+              let duration = catRestDuration(for: item.kind) else { return failure(.restInvalidFurniture) }
         var candidate = state
         let timestamp = effectiveTime(candidate, now: now)
         candidate.cats[index].activeRest = CatRest(id: sessionID, furnitureID: furnitureID,
             startedAt: timestamp, endsAt: timestamp.addingTimeInterval(duration),
             energyReward: 20 + candidate.home.comfortScore / 20)
         candidate.cats[index].lastRestSessionID = sessionID
-        guard candidate.isValid else { return failure("game.invalidState") }
+        guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(kind: .catRestStarted, messageKey: "rest.started")
     }
@@ -146,7 +125,7 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
-            return failure("care.catMissing")
+            return failure(.careCatMissing)
         }
         guard let rest = state.cats[index].activeRest,
               sessionID == nil || sessionID == rest.id else { return ActionOutcome() }
@@ -159,11 +138,11 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
-            return failure("care.catMissing")
+            return failure(.careCatMissing)
         }
         let units = state.cats[index].isPregnant ? 2 : 1
         guard state.inventory.food >= units else {
-            return failure("care.foodRequired", amount: units)
+            return failure(.careFoodRequired, amount: units)
         }
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
@@ -180,9 +159,9 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
-            return failure("care.catMissing")
+            return failure(.careCatMissing)
         }
-        guard state.inventory.litter > 0 else { return failure("care.litterRequired") }
+        guard state.inventory.litter > 0 else { return failure(.careLitterRequired) }
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory.litter -= 1
@@ -198,9 +177,9 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
-            return failure("care.catMissing")
+            return failure(.careCatMissing)
         }
-        guard state.inventory.toys > 0 else { return failure("care.toyRequired") }
+        guard state.inventory.toys > 0 else { return failure(.careToyRequired) }
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory.toys -= 1
@@ -240,12 +219,12 @@ public enum GameEngine {
                                  now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
-        guard let job = WorkCatalog.job(id: jobID) else { return failure("work.jobMissing") }
-        guard state.player.level >= job.unlockLevel else { return failure("work.levelRequired") }
-        guard state.player.activeSleep == nil else { return failure("work.sleeping") }
-        guard state.player.activeWork == nil else { return failure("work.alreadyActive") }
-        guard let quote = workQuote(for: state.player, jobID: jobID) else { return failure("game.invalidState") }
-        guard state.player.stamina >= quote.staminaCost else { return failure("work.staminaRequired") }
+        guard let job = WorkCatalog.job(id: jobID) else { return failure(.workJobMissing) }
+        guard state.player.level >= job.unlockLevel else { return failure(.workLevelRequired) }
+        guard state.player.activeSleep == nil else { return failure(.workSleeping) }
+        guard state.player.activeWork == nil else { return failure(.workAlreadyActive) }
+        guard let quote = workQuote(for: state.player, jobID: jobID) else { return failure(.gameInvalidState) }
+        guard state.player.stamina >= quote.staminaCost else { return failure(.workStaminaRequired) }
         let timestamp = effectiveTime(state, now: now)
         var candidate = state
         if candidate.player.stamina == 100 {
@@ -256,7 +235,7 @@ public enum GameEngine {
         candidate.player.activeWork = ActiveWork(jobID: job.id, startedAt: timestamp,
                                             endsAt: timestamp.addingTimeInterval(Double(quote.durationSeconds)),
                                             goldReward: job.goldReward, expReward: job.expReward, quote: quote)
-        guard candidate.isValid else { return failure("game.invalidState") }
+        guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(kind: .workStarted, messageKey: "work.started")
     }
@@ -265,13 +244,13 @@ public enum GameEngine {
     /// Repeating a sync at the same timestamp has no effect and pays no reward.
     public static func synchronize(_ state: inout GameSnapshot,
                                    now: Date = Date()) -> ActionOutcome {
-        guard valid(state, now: now) else { return failure("game.invalidState") }
+        guard valid(state, now: now) else { return failure(.gameInvalidState) }
         let timestamp = effectiveTime(state, now: now)
         var workProgress: (level: Int, exp: Int)?
         if let work = state.player.activeWork, timestamp >= work.endsAt {
             guard let progress = WorkCatalog.progress(level: state.player.level,
                                                       exp: state.player.exp, adding: work.expReward) else {
-                return failure("work.progressLimit")
+                return failure(.workProgressLimit)
             }
             workProgress = progress
         }
@@ -327,7 +306,7 @@ public enum GameEngine {
                                        now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
-        guard position.x.isFinite, position.y.isFinite else { return failure("room.invalidPosition") }
+        guard position.x.isFinite, position.y.isFinite else { return failure(.roomInvalidPosition) }
         let position = NormalizedPoint(x: min(1, max(0, position.x)), y: min(1, max(0, position.y)))
         if position != state.home.bowlPosition { finishAllCatRests(&state, now: effectiveTime(state, now: now)) }
         state.home.bowlPosition = position
@@ -343,9 +322,9 @@ public enum GameEngine {
                                      now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
-        guard GameSnapshot.isUnitPosition(bowlPosition) else { return failure("room.invalidPosition") }
+        guard GameSnapshot.isUnitPosition(bowlPosition) else { return failure(.roomInvalidPosition) }
         guard GameSnapshot.validFurniture(owned: state.inventory.furniture, placements: furniture) else {
-            return failure("room.invalidFurnitureLayout")
+            return failure(.roomInvalidFurnitureLayout)
         }
         if bowlPosition != state.home.bowlPosition || furniture != state.home.furniture {
             // Geometry changes can affect an exit route as well as the occupied item.
@@ -361,12 +340,12 @@ public enum GameEngine {
                             key: String, now: Date) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
-        guard (1...999).contains(quantity) else { return failure("shop.invalidQuantity") }
+        guard (1...999).contains(quantity) else { return failure(.shopInvalidQuantity) }
         let cost = unitPrice * quantity
         let count = quantity * unitsPerItem
-        guard state.player.gold >= cost else { return failure("shop.goldRequired", amount: cost) }
+        guard state.player.gold >= cost else { return failure(.shopGoldRequired, amount: cost) }
         guard state.inventory[keyPath: stock] <= GameSnapshot.maximumStock - count else {
-            return failure("shop.inventoryFull")
+            return failure(.shopInventoryFull)
         }
         state.player.gold -= cost
         state.inventory[keyPath: stock] += count
@@ -434,8 +413,8 @@ public enum GameEngine {
         now.timeIntervalSince1970.isFinite && state.isValid
     }
 
-    private static func failure(_ key: String, amount: Int = 0) -> ActionOutcome {
-        ActionOutcome(succeeded: false, messageKey: key, amount: amount)
+    private static func failure(_ reason: ActionFailure, amount: Int = 0) -> ActionOutcome {
+        ActionOutcome(amount: amount, failure: reason)
     }
 
     private static func elapsedSteps(from: Date, to: Date, interval: TimeInterval) -> Int {

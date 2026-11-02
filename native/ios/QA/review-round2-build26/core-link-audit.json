@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "version": "0.5.3",
+  "build": 26,
+  "configuration": "Debug simulator",
+  "evidence": "Read-only otool/nm/lipo inspection of the latest build products; no rebuild or simulator action performed by this audit.",
+  "symbolMethod": "Compare externally defined symbols containing the CatGameCore module name using nm -gU for each architecture. The app implementation is in its Debug dynamic library; the launcher is also inspected.",
+  "architectures": {
+    "arm64": {
+      "presentInAllInspectedArtifacts": true,
+      "definedCoreNamedSymbols": {
+        "app": 2,
+        "hostedTests": 0,
+        "coreFramework": 998
+      },
+      "launcherDefinedCoreNamedSymbols": 0,
+      "appCoreDefinitionOverlap": 0,
+      "testsCoreDefinitionOverlap": 0,
+      "frameworkCopiesHaveSameInstallName": true,
+      "appDependsOnThatInstallName": true,
+      "hostedTestsDependOnThatInstallName": true,
+      "frameworkCopiesHaveSameCoreDefinitionSet": true,
+      "differenceFromBuild25": {
+        "app": 0,
+        "hostedTests": 0,
+        "coreFramework": 11
+      }
+    },
+    "x86_64": {
+      "presentInAllInspectedArtifacts": true,
+      "definedCoreNamedSymbols": {
+        "app": 2,
+        "hostedTests": 0,
+        "coreFramework": 998
+      },
+      "launcherDefinedCoreNamedSymbols": 0,
+      "appCoreDefinitionOverlap": 0,
+      "testsCoreDefinitionOverlap": 0,
+      "frameworkCopiesHaveSameInstallName": true,
+      "appDependsOnThatInstallName": true,
+      "hostedTestsDependOnThatInstallName": true,
+      "frameworkCopiesHaveSameCoreDefinitionSet": true,
+      "differenceFromBuild25": {
+        "app": 0,
+        "hostedTests": 0,
+        "coreFramework": 11
+      }
+    }
+  },
+  "hostedTestRuntimeEvidence": {
+    "passed": 20,
+    "failed": 0,
+    "source": "Coordinating task reported the current hosted App test run passed 20 tests. These functional tests do not enumerate loaded dynamic images."
+  },
+  "limits": [
+    "No runtime image enumeration was performed; do not infer exactly one loaded Core image.",
+    "Other Xcode versions and configurations were not inspected by this audit.",
+    "Two framework copies in app/test bundles alone do not establish duplicated statically linked implementation."
+  ],
+  "conclusion": "No duplicated static Core implementation was found in either architecture. The app implementation and hosted tests reference the same dynamic Core framework install name, and both embedded framework copies have the same Core definition set. The two app-local Core-named symbols are the app-defined FileSaveRepository conformance to its GameSaveRepository protocol, not overlapping Core framework definitions."
+}

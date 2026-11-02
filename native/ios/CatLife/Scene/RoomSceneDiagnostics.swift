@@ -25,6 +25,10 @@ final class RoomSceneDiagnostics {
     var carePlanCancelled = 0
     var lastCarePlanMilliseconds: Double = 0
     var lastCarePlanOnMainThread = false
+    var bowlPlanning = false
+    var bowlPlanCompletions = 0
+    var bowlPlanCancelled = 0
+    var lastBowlPlanOnMainThread = false
     var lastRestInterrupt: [String: Any]?
     var dragMoveSamples = 0
     var maximumDragMoveMs: Double = 0
@@ -218,6 +222,8 @@ final class RoomSceneDiagnostics {
             "carePlanning": carePlanning, "carePlanCompletions": carePlanCompletions,
             "carePlanCancelled": carePlanCancelled, "lastCarePlanMilliseconds": lastCarePlanMilliseconds,
             "lastCarePlanOnMainThread": lastCarePlanOnMainThread,
+            "bowlPlanning": bowlPlanning, "bowlPlanCompletions": bowlPlanCompletions,
+            "bowlPlanCancelled": bowlPlanCancelled, "lastBowlPlanOnMainThread": lastBowlPlanOnMainThread,
             "bowl": ["x": bowl.x / size.width, "y": 1 - bowl.y / size.height],
             "cat": ["x": cat.position.x / size.width, "y": 1 - cat.position.y / size.height]
         ]
