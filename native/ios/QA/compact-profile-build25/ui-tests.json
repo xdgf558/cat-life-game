@@ -1,0 +1,41 @@
+{
+  "executions": 4,
+  "passed": 3,
+  "historicalFailures": 1,
+  "distinctMethods": 2,
+  "newMethods": 1,
+  "totalSuiteMethods": 52,
+  "runs": [
+    {
+      "method": "testCompactPlayerProfileSeparatesDetailsAndPreservesEdits",
+      "status": "failed",
+      "durationSeconds": 70.565,
+      "device": "iPhone SE (3rd generation), iOS 26.4",
+      "stage": "initial"
+    },
+    {
+      "method": "testCompactPlayerProfileSeparatesDetailsAndPreservesEdits",
+      "status": "passed",
+      "durationSeconds": 393.264,
+      "device": "iPhone 18 Pro, iOS 27.0",
+      "stage": "initial"
+    },
+    {
+      "method": "testPlayerProfileAndEquipmentTranslateInAllThreeLanguages",
+      "status": "passed",
+      "durationSeconds": 613.307,
+      "device": "iPhone 18 Pro, iOS 27.0",
+      "stage": "initial"
+    },
+    {
+      "method": "testCompactPlayerProfileSeparatesDetailsAndPreservesEdits",
+      "status": "passed",
+      "durationSeconds": 423.393,
+      "device": "iPhone SE (3rd generation), iOS 26.4",
+      "stage": "scroll-priority-fix"
+    }
+  ],
+  "sourceScope": "Pro passed both methods before the one-line presentationContentInteraction(.scrolls) correction. SE final passed the full flow with that correction; no localization, persistence or other layout change followed. The entire historical suite was not rerun.",
+  "initialFailure": "A 25.7pt content drag at the medium sheet detent did not reveal the last attribute rows. Added content scrolling priority; identical assertions passed in the final SE run.",
+  "testAssertionsRelaxed": false
+}

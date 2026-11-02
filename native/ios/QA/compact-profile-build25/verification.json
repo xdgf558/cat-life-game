@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "feature": "compact-player-profile",
+  "version": "0.5.2",
+  "build": 25,
+  "recordedDate": "2026-11-02",
+  "overallStatus": "delivered; player acceptance pending",
+  "scope": {
+    "root": "Compact identity card with avatar, player name, rename control, avatar style, status, level, and appearance selection.",
+    "attributes": "Tapping the character opens a separate scrollable medium/large sheet; closing returns to the profile.",
+    "wardrobe": "Compact root entry pushes the wardrobe; equipment details return to the wardrobe.",
+    "bonuses": "Compact root entry pushes the equipment bonuses page.",
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "accessibility": "Standard text aims to keep primary entries visible on small phones; accessibility text sizes can scroll naturally.",
+    "saveModelChangedByThisLayoutUpdate": false,
+    "saveCommitLogicChangedByThisLayoutUpdate": false,
+    "equipmentRulesChangedByThisLayoutUpdate": false
+  },
+  "buildChecks": {
+    "debug": {
+      "status": "passed",
+      "target": "final simulator build-for-testing"
+    },
+    "release": {
+      "status": "passed",
+      "target": "final signed iphoneos build"
+    },
+    "releaseSigning": {
+      "status": "passed",
+      "evidence": "release-build.json"
+    }
+  },
+  "uiRegression": {
+    "status": "passed in targeted scope",
+    "executed": 4,
+    "passed": 3,
+    "failed": 1,
+    "targets": [
+      {
+        "deviceClass": "small-phone-simulator",
+        "status": "final full flow passed"
+      },
+      {
+        "deviceClass": "large-phone-simulator",
+        "status": "initial full flow and three-language checks passed; see sourceScope in ui-tests.json"
+      }
+    ],
+    "checks": [
+      {
+        "id": "compact-root-layout",
+        "status": "passed in targeted scope"
+      },
+      {
+        "id": "attributes-sheet-open-scroll-close",
+        "status": "passed in targeted scope"
+      },
+      {
+        "id": "wardrobe-equipment-return-navigation",
+        "status": "passed in targeted scope"
+      },
+      {
+        "id": "bonuses-secondary-page",
+        "status": "passed in targeted scope"
+      },
+      {
+        "id": "simplified-traditional-english",
+        "status": "passed in targeted scope"
+      },
+      {
+        "id": "accessibility-text-size",
+        "status": "not run"
+      },
+      {
+        "id": "rename-avatar-and-equipment-state-preservation",
+        "status": "passed in targeted scope"
+      },
+      {
+        "id": "cold-launch-save-preservation",
+        "status": "passed in targeted scope"
+      }
+    ],
+    "failures": [
+      {
+        "stage": "initial SE",
+        "issue": "medium-sheet short drags did not reveal the last attribute rows",
+        "resolution": "content scrolls first; unchanged full-flow assertions passed on final SE"
+      }
+    ],
+    "note": "Three successful executions and one historical failure across iterations; full suite and accessibility text sizes were not executed. See ui-tests.json for exact source scope."
+  },
+  "deviceDelivery": {
+    "installation": {
+      "status": "passed"
+    },
+    "launch": {
+      "status": "passed",
+      "normalProcessVerified": true
+    },
+    "savePreservation": {
+      "status": "passed",
+      "byteIdenticalBeforeFirstLaunch": true
+    },
+    "playerAcceptance": {
+      "status": "pending"
+    },
+    "evidence": "device-delivery.json"
+  },
+  "evidencePolicy": "Only concise sanitized verification summaries belong here. Exclude raw logs, full UI hierarchies, local user paths, device identifiers, and generated session identifiers. Earlier build-25 verification reports remain unchanged.",
+  "coreAndStore": "Core and Store inputs unchanged since pr-review-repair source manifest; inherited 152 core tests / 13 suites and 8 App persistence tests, not rerun for this UI-only change.",
+  "sourceManifest": "source-manifest.json"
+}

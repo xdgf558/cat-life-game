@@ -40,7 +40,7 @@ enum GameStrings {
 
     private static let chinese: [String: String] = [
         "releases.25.title": "保存与互动更稳定",
-        "releases.25.body": "改进存档失败后的重试与恢复，减少自动写入，并优化猫咪互动时的寻路。",
+        "releases.25.body": "玩家档案改为紧凑首页，可分别查看个人属性、穿戴与加成；同时改进存档失败后的重试与恢复，减少自动写入，并优化猫咪互动时的移动路线。",
         "releases.24.title": "给自己一个喜欢的名字",
         "releases.24.body": "玩家档案新增角色改名，可以设置 1–12 个字的名字，预览后保存，也能随时恢复默认称呼。名字会随存档保留，切换形象不会改变名字。",
         "player.name.default": "铲屎官",
@@ -84,6 +84,7 @@ enum GameStrings {
         "gender.male": "男生",
         "gender.female": "女生",
         "player.stats": "个人属性",
+        "player.attributes.open": "查看属性",
         "player.status": "当前状态",
         "player.status.idle": "自在休息中",
         "player.status.working": "正在打工",
@@ -102,6 +103,7 @@ enum GameStrings {
         "player.starterGift": "四件基础道具已免费放入衣橱，选好后穿上即可获得加成。",
         "player.equipAll": "穿上基础套装",
         "player.bonuses": "穿戴加成",
+        "player.bonuses.summary": "查看当前穿戴带来的提升",
         "player.bonus.duration": "工作时长 −%d%%",
         "player.bonus.stamina": "体力消耗 −%d%%",
         "player.bonus.mood": "心情消耗 −%d%%",
@@ -310,7 +312,7 @@ enum GameStrings {
 
     private static let traditionalChinese: [String: String] = [
         "releases.25.title": "儲存與互動更穩定",
-        "releases.25.body": "改善存檔失敗後的重試與恢復，減少自動寫入，並優化貓咪互動時的尋路。",
+        "releases.25.body": "玩家檔案改為精簡首頁，可分別查看個人屬性、穿戴與加成；同時改善存檔失敗後的重試與恢復，減少自動寫入，並優化貓咪互動時的移動路線。",
         "releases.24.title": "給自己一個喜歡的名字",
         "releases.24.body": "玩家檔案新增角色改名，可以設定 1–12 個字的名字，預覽後儲存，也能隨時恢復預設稱呼。名字會隨存檔保留，切換形象不會改變名字。",
         "player.name.default": "鏟屎官",
@@ -354,6 +356,7 @@ enum GameStrings {
         "gender.male": "男生",
         "gender.female": "女生",
         "player.stats": "個人屬性",
+        "player.attributes.open": "查看屬性",
         "player.status": "目前狀態",
         "player.status.idle": "自在休息中",
         "player.status.working": "正在打工",
@@ -372,6 +375,7 @@ enum GameStrings {
         "player.starterGift": "四件基礎道具已免費放入衣櫥，選好後穿上即可獲得加成。",
         "player.equipAll": "穿上基礎套裝",
         "player.bonuses": "穿戴加成",
+        "player.bonuses.summary": "查看目前穿戴帶來的提升",
         "player.bonus.duration": "工作時間 −%d%%",
         "player.bonus.stamina": "體力消耗 −%d%%",
         "player.bonus.mood": "心情消耗 −%d%%",
@@ -580,7 +584,7 @@ enum GameStrings {
 
     private static let english: [String: String] = [
         "releases.25.title": "More reliable saves and interactions",
-        "releases.25.body": "Improves save recovery and retries, reduces automatic writes, and plans cat interactions in the background.",
+        "releases.25.body": "A compact profile now links to attributes, wardrobe, and equipment bonuses. Improves save recovery and retries, reduces automatic writes, and improves cat movement during interactions.",
         "releases.24.title": "A name of your own",
         "releases.24.body": "Name your character from your player profile. Choose 1–12 characters, preview and save your name, or restore the default whenever you like. Your name stays in your save and does not change when you switch looks.",
         "player.name.default": "Cat parent",
@@ -624,6 +628,7 @@ enum GameStrings {
         "gender.male": "Male",
         "gender.female": "Female",
         "player.stats": "Attributes",
+        "player.attributes.open": "View attributes",
         "player.status": "Current status",
         "player.status.idle": "Taking it easy",
         "player.status.working": "Working",
@@ -642,6 +647,7 @@ enum GameStrings {
         "player.starterGift": "Four starter items are yours for free. Equip them from your wardrobe to activate their bonuses.",
         "player.equipAll": "Equip starter set",
         "player.bonuses": "Equipment bonuses",
+        "player.bonuses.summary": "See what your gear improves",
         "player.bonus.duration": "Work duration −%d%%",
         "player.bonus.stamina": "Stamina cost −%d%%",
         "player.bonus.mood": "Mood cost −%d%%",

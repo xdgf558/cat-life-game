@@ -1,0 +1,13 @@
+{
+  "version": "0.5.2",
+  "build": 25,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 3940,
+  "saveSHA256": "fab53241f862b610a59de1712d4ef17df8f91b52dd0ea9f06762a1cf3f98706a",
+  "launch": "passed",
+  "runningProcessVerified": true,
+  "recordedDate": "2026-11-02",
+  "playerAcceptance": "pending",
+  "normalLaunchArguments": true
+}

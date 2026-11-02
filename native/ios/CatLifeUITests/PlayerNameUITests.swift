@@ -2,6 +2,88 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testCompactPlayerProfileSeparatesDetailsAndPreservesEdits() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        openPlayerProfile(in: app)
+        assertCompactProfileRoot(in: app)
+        assertProfileValue("profilePlayerName", "铲屎官", in: app)
+
+        tapProfileControl("profileAttributesButton", in: app)
+        waitForElement("profileAttributesSheet", in: app)
+        for (identifier, value) in [("profileLevel", "1"), ("profileExp", "0"),
+                                    ("profileStamina", "80"), ("profileMood", "80"),
+                                    ("profileGold", "200"), ("profileCompletedWork", "0")] {
+            scrollCareerPage("profileAttributesSheet", to: identifier, in: app)
+            waitForObservedValue(identifier, value, in: app)
+        }
+        attachScreenshot(app, named: "Compact profile — portrait opens the separate attribute sheet")
+        closeProfileAttributes(in: app)
+        assertCompactProfileRoot(in: app)
+
+        tapProfileControl("profileWardrobeButton", in: app)
+        waitForElement("profileWardrobeScroll", in: app)
+        tapProfilePageControl("profileEquipAllButton", scroll: "profileWardrobeScroll", in: app)
+        assertProfileValue("profileEquippedCount", "4", in: app)
+        for (slot, item) in playerStarterEquipment {
+            assertProfileValue("equipmentSlot_\(slot)", item, in: app)
+        }
+        attachScreenshot(app, named: "Compact profile — the wardrobe owns all four equipped slots")
+        tapProfileControl("equipmentSlot_head", in: app)
+        waitForElement("equipmentScroll", in: app)
+        tapProfilePageControl("unequipSlot_head", scroll: "equipmentScroll", in: app)
+        waitForObservedValue("equippedItem_head", "none", in: app)
+        tapProfilePageControl("equipItem_starter_cap", scroll: "equipmentScroll", in: app)
+        waitForObservedValue("equippedItem_head", "starter_cap", in: app)
+        tapAnimationControl("profileBackButton", in: app)
+        waitForElement("profileWardrobeScroll", in: app)
+        XCTAssertFalse(element("profileAttributesButton", in: app).exists,
+                       "The equipment Back button returns one level to the wardrobe.")
+        tapAnimationControl("profileSectionBackButton", in: app)
+        assertCompactProfileRoot(in: app)
+
+        tapProfileControl("profileBonusesButton", in: app)
+        waitForElement("profileBonusesScroll", in: app)
+        for (identifier, value) in [("profileDurationBonus", "15"), ("profileStaminaBonus", "15"),
+                                    ("profileMoodBonus", "20")] {
+            assertProfileValue(identifier, value, in: app)
+        }
+        attachScreenshot(app, named: "Compact profile — bonuses have their own detail page")
+        tapAnimationControl("profileSectionBackButton", in: app)
+        assertCompactProfileRoot(in: app)
+
+        let name = "暖阳伙伴🐾"
+        openPlayerNameEditor(in: app)
+        replacePlayerNameText(with: name, replacing: "", in: app)
+        tapPlayerNameControl("playerNameSaveButton", in: app)
+        waitForLabel("playerNameStatus", "名字已保存", in: app)
+        tapAnimationControl("playerNameBackButton", in: app)
+        selectPlayerNameTestAvatar("female_forest", in: app)
+        assertProfileValue("profilePlayerName", name, in: app)
+        assertProfileValue("profileAvatarName", "female_forest", in: app)
+        assertCompactProfileRoot(in: app)
+        attachScreenshot(app, named: "Compact profile — saved name and selected portrait on the short root page")
+        closePlayerProfile(in: app)
+
+        relaunchPreservingSave(app)
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+        openPlayerProfile(in: app)
+        assertCompactProfileRoot(in: app)
+        assertProfileValue("profilePlayerName", name, in: app)
+        assertProfileValue("profileAvatarName", "female_forest", in: app)
+        assertProfileValue("profileEquippedCount", "4", in: app)
+        for (slot, item) in playerStarterEquipment {
+            assertProfileValue("equipmentSlot_\(slot)", item, in: app)
+        }
+        assertProfileValue("profileDurationBonus", "15", in: app)
+        returnToProfileRoot(in: app)
+        assertCompactProfileRoot(in: app)
+        closePlayerProfile(in: app)
+        assertKnownHomeViewportBaseline(in: app)
+    }
+
+    @MainActor
     func testPlayerNamePersistsAndPreservesAppearanceAndProgress() throws {
         continueAfterFailure = false
         let app = launchFreshHome()
@@ -36,7 +118,7 @@ extension RoomHomeUITests {
         assertProfileValue("profileAvatarName", "female_forest", in: app)
         waitForLabel("profileAvatarName", "森系女生", in: app)
         attachScreenshot(app, named: "Player name — the saved name remains separate from the new appearance")
-        tapAnimationControl("closeSheetButton", in: app)
+        closePlayerProfile(in: app)
         assertPlayerNameProgress(bowl: originalBowl, room: originalRoomFrame, in: app)
 
         relaunchPreservingSave(app)
@@ -78,13 +160,14 @@ extension RoomHomeUITests {
         waitForLabel("playerNamePreview", "铲屎官", in: app)
         tapAnimationControl("playerNameBackButton", in: app)
         assertProfileValue("profilePlayerName", "铲屎官", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        closePlayerProfile(in: app)
         relaunchPreservingSave(app)
         assertPlayerNameProgress(bowl: originalBowl, room: originalRoomFrame, in: app)
         openPlayerProfile(in: app)
         assertProfileValue("profilePlayerName", "铲屎官", in: app)
         assertProfileValue("profileAvatarName", "female_forest", in: app)
         assertProfileValue("profileEquippedCount", "4", in: app)
+        returnToProfileRoot(in: app)
         attachScreenshot(app, named: "Player name — default restored after cold launch without losing appearance or equipment")
     }
 
@@ -102,7 +185,7 @@ extension RoomHomeUITests {
         waitForLabel("playerNameStatus", "名字已保存", in: app)
         tapAnimationControl("playerNameBackButton", in: app)
         assertProfileValue("profilePlayerName", name, in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        closePlayerProfile(in: app)
 
         let languages = [
             (code: "en", title: "Character name", field: "Your name", save: "Save name",
@@ -124,7 +207,7 @@ extension RoomHomeUITests {
             attachScreenshot(app, named: "Player name — translated controls preserve the custom name in \(language.code)")
             tapAnimationControl("playerNameBackButton", in: app)
             assertProfileValue("profilePlayerName", name, in: app)
-            tapAnimationControl("closeSheetButton", in: app)
+            closePlayerProfile(in: app)
         }
 
         selectPlayerNameTestLanguage("en", in: app)
@@ -135,7 +218,7 @@ extension RoomHomeUITests {
         waitForLabel("playerNamePreview", "Cat parent", in: app)
         tapAnimationControl("playerNameBackButton", in: app)
         assertProfileValue("profilePlayerName", "Cat parent", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        closePlayerProfile(in: app)
         relaunchPreservingSave(app)
         waitForLabel("tabHome", "Home", in: app)
         openPlayerProfile(in: app)
@@ -147,6 +230,29 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("playerNameSaveButton", in: app).isEnabled)
         XCTAssertFalse(element("playerNameResetButton", in: app).isEnabled)
         attachScreenshot(app, named: "Player name — English default and cleared custom name survive cold launch")
+    }
+
+    @MainActor
+    private func assertCompactProfileRoot(in app: XCUIApplication,
+                                          file: StaticString = #filePath, line: UInt = #line) {
+        waitForElement("profileScroll", in: app, file: file, line: line)
+        for identifier in ["profileAttributesSheet", "profileWardrobeScroll", "profileBonusesScroll",
+                           "profileLevel", "profileExp", "profileStamina", "profileMood", "profileGold",
+                           "profileCompletedWork", "profileEquippedCount", "profileEquipAllButton",
+                           "equipmentSlot_head", "equipmentSlot_body", "equipmentSlot_feet", "equipmentSlot_accessory",
+                           "profileDurationBonus", "profileStaminaBonus", "profileMoodBonus"] {
+            XCTAssertFalse(element(identifier, in: app).exists,
+                "\(identifier) belongs to a detail page, not the compact profile root.", file: file, line: line)
+        }
+        let viewport = unobscuredScrollViewport(element("profileScroll", in: app), in: app)
+        for identifier in ["profileAttributesButton", "profileRenameButton", "profileChooseAvatar",
+                           "profileWardrobeButton", "profileBonusesButton"] {
+            let target = element(identifier, in: app)
+            XCTAssertTrue(target.exists && target.isEnabled && target.isHittable,
+                          "The compact root must expose \(identifier) directly.", file: file, line: line)
+            XCTAssertTrue(viewport.contains(target.frame),
+                          "\(identifier) should fit without scrolling the root page.", file: file, line: line)
+        }
     }
 
     @MainActor
