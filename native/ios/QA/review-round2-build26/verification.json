@@ -6,7 +6,7 @@
     "finished": "Confirmed round-two save recovery, settings queue, full-stamina persistence, notices, typed errors, background bowl planning and LFS build preflight repaired and tested; prepared as an append-only revision for the existing PR.",
     "partiallyFinished": "CatActor and RoomScene remain over 1,000 lines after responsibility extraction; full historical UI and physical-player acceptance remain outside this targeted run.",
     "broken": [],
-    "nextWork": "User review of the appended PR revision and physical-device acceptance; device startup confirmation pending while locked."
+    "nextWork": "User review of the appended PR revision and physical-device gameplay acceptance; startup verified on 2026-11-03."
   },
   "coreTests": {
     "passed": 154,
@@ -44,9 +44,12 @@
     "saveByteIdenticalBeforeFirstLaunch": true,
     "saveBytes": 5065,
     "saveSHA256": "af046b656c05b55312ce39b3579aadc03ec8bed0b249485ae267751396784bee",
-    "launch": "blocked by iOS device lock; user asked to open the installed app",
-    "runningProcessVerified": false,
-    "userAcceptance": "pending"
+    "launch": "passed; normal launch succeeded after unlock and installed app process verified",
+    "runningProcessVerified": true,
+    "userAcceptance": "pending",
+    "launchConfirmedDate": "2026-11-03",
+    "startupEvidence": "startup-confirmation.json",
+    "initialLaunchFailure": "iOS device lock on installation day; retained as historical evidence"
   },
   "sourceManifest": {
     "path": "source-manifest.json",

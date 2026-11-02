@@ -5,7 +5,10 @@
   "saveByteIdenticalBeforeFirstLaunch": true,
   "saveBytes": 5065,
   "saveSHA256": "af046b656c05b55312ce39b3579aadc03ec8bed0b249485ae267751396784bee",
-  "launch": "blocked by iOS device lock; user asked to open the installed app",
-  "runningProcessVerified": false,
-  "userAcceptance": "pending"
+  "launch": "passed; normal launch succeeded after unlock and installed app process verified",
+  "runningProcessVerified": true,
+  "userAcceptance": "pending",
+  "launchConfirmedDate": "2026-11-03",
+  "startupEvidence": "startup-confirmation.json",
+  "initialLaunchFailure": "iOS device lock on installation day; retained as historical evidence"
 }

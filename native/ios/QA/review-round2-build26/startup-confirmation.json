@@ -1,0 +1,12 @@
+{
+  "date": "2026-11-03",
+  "version": "0.5.3",
+  "build": 26,
+  "installedVersionVerified": true,
+  "runningProcessMatchesCurrentInstallation": true,
+  "userReportedAppOpened": true,
+  "normalLaunchWithoutTestArguments": true,
+  "reinstalled": false,
+  "scope": "Initial read found no game process. A normal launch succeeded, and a subsequent read-only process check matched the installed app. Full gameplay acceptance remains pending.",
+  "saveReadOrWrittenByVerificationTools": false
+}
