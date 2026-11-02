@@ -1,0 +1,8 @@
+.DS_Store
+# Apple IDE and Swift build artifacts, including nested projects.
+xcuserdata/
+*.xcuserstate
+DerivedData/
+.build/
+*.xcresult/
+*.xcarchive/

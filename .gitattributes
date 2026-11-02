@@ -1,0 +1,22 @@
+# Large source/runtime media and historical evidence are downloaded with Git LFS.
+# Plain Swift, source metadata and small QA summaries stay reviewable in Git.
+native/ios/**/*.png filter=lfs diff=lfs merge=lfs -text
+native/ios/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+native/ios/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+native/ios/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
+native/ios/**/*.caf filter=lfs diff=lfs merge=lfs -text
+docs/**/*.png filter=lfs diff=lfs merge=lfs -text
+docs/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+docs/**/*.jpeg filter=lfs diff=lfs merge=lfs -text
+docs/**/*.mp4 filter=lfs diff=lfs merge=lfs -text
+docs/**/*.caf filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/**/*.log filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/**/*.txt filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/player-build19/initial-pro/manifest.json filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/player-build19/initial-se/manifest.json filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/player-build19/second-pro/manifest.json filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/pr-review/sanitization.json filter=lfs diff=lfs merge=lfs -text
+native/ios/QA/verification.json filter=lfs diff=lfs merge=lfs -text
+# Collapse historical evidence; new compact repair notes remain normal text.
+native/ios/QA/** linguist-generated=true -whitespace
+native/ios/ArtSource/**/*.prompt.txt -whitespace

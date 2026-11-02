@@ -1,0 +1,2 @@
+[lfs]
+	fetchinclude = native/ios/CatLife/**
