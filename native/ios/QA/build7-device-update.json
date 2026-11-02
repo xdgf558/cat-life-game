@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-31",
+  "device": "iPhone Air",
+  "os": "iOS 27.2",
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "appVersion": "0.1.0 (7)",
+  "preparedBuildMatchesCurrentSources": true,
+  "binaryHashMatchesVerifiedBuild": true,
+  "binarySHA256": "731e1a9e8484fbd07a5d27ad36158d11ff39e56c9abfeb53f13f6347bc8f87eb",
+  "signatureValidation": "passed",
+  "connection": "wired, paired, connected",
+  "installation": "passed; existing application updated in place",
+  "launch": "passed; application activated with no test or reset arguments",
+  "runningProcessVerified": true,
+  "processIdentifier": 0,
+  "uninstallOrSaveResetPerformed": false,
+  "saveHandling": "Existing application updated in place; no uninstall, test-save reset, or normal-save reset was performed. Save contents were not inspected.",
+  "physicalGameplayValidation": "Build 7 installation and launch verified; physical touch-to-display latency and subjective drag feel are not measured by simulator/probe tests."
+}

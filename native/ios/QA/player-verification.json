@@ -1,0 +1,275 @@
+{
+  "date": "2026-11-02",
+  "appVersion": "0.4.0 (19)",
+  "sourceManifest": {
+    "path": "build19-source-manifest.json",
+    "inputCount": 115,
+    "sha256": "ca23fc7fa612e15d6fb82a5ffa23d03ccc421e3cd1bc46c5293cde43e0660ffa"
+  },
+  "uiTestSourceSHA256": "bf985c1c8642c0b837b7d5d5df7471cda5ee1f04cec01b69ff6d2d69bce1ca81",
+  "coreTests": {
+    "passed": 129,
+    "suites": 11,
+    "newTests": 18,
+    "log": "player-build19/cat-player19-core.log",
+    "initialFixtureFailure": "One new test used a 13-character home name, exceeding the established 12-character rule. Fixture corrected; original log retained. All original 111 tests passed."
+  },
+  "uiTests": {
+    "status": "passed: latest valid result of all seven scoped methods is passing",
+    "projectUniqueMethods": 44,
+    "newMethods": 3,
+    "initial": {
+      "executions": 6,
+      "passed": 2,
+      "failed": 4,
+      "runs": [
+        {
+          "device": "iPhone SE (3rd generation)",
+          "cases": [
+            {
+              "method": "testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice",
+              "result": "failed",
+              "seconds": 131.685
+            },
+            {
+              "method": "testHorizontalHomeNavigationScrollsWithoutActivatingAndKeepsRoomStable",
+              "result": "passed",
+              "seconds": 92.043
+            },
+            {
+              "method": "testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch",
+              "result": "failed",
+              "seconds": 48.711
+            },
+            {
+              "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+              "result": "passed",
+              "seconds": 46.823
+            }
+          ],
+          "log": "player-build19/cat-player19-se.log",
+          "resultBundle": "<TMP>/cat-player19-se.xcresult"
+        },
+        {
+          "device": "<DEVICE_NAME_29>",
+          "cases": [
+            {
+              "method": "testEquippedWorkKeepsCapturedTermsAndSettlesOnce",
+              "result": "failed",
+              "seconds": 34.866
+            },
+            {
+              "method": "testPlayerProfileAndEquipmentTranslateInAllThreeLanguages",
+              "result": "failed",
+              "seconds": 270.95
+            }
+          ],
+          "log": "player-build19/cat-player19-pro.log",
+          "resultBundle": "<TMP>/cat-player19-pro.xcresult"
+        }
+      ],
+      "sourceManifest": "player-build19/initial-build19-source-manifest.json",
+      "testSourceSHA256": "2864a2668e9cd1305cd3e5fbc33839e655850aab5fcc077988f31bd1b41fe0ae"
+    },
+    "secondRound": {
+      "executions": 5,
+      "passed": 3,
+      "failed": 2,
+      "runs": [
+        {
+          "device": "iPhone SE (3rd generation)",
+          "cases": [
+            {
+              "method": "testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice",
+              "result": "passed",
+              "seconds": 177.181
+            },
+            {
+              "method": "testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch",
+              "result": "passed",
+              "seconds": 259.681
+            },
+            {
+              "method": "testWelcomeEntryPreservesProgressAcrossRelaunch",
+              "result": "passed",
+              "seconds": 52.113
+            }
+          ],
+          "log": "player-build19/cat-player19-se-final.log",
+          "resultBundle": "<TMP>/cat-player19-se-final.xcresult"
+        },
+        {
+          "device": "<DEVICE_NAME_29>",
+          "cases": [
+            {
+              "method": "testEquippedWorkKeepsCapturedTermsAndSettlesOnce",
+              "result": "failed",
+              "seconds": 94.431
+            },
+            {
+              "method": "testPlayerProfileAndEquipmentTranslateInAllThreeLanguages",
+              "result": "failed",
+              "seconds": 104.009
+            }
+          ],
+          "log": "player-build19/cat-player19-pro-final.log",
+          "resultBundle": "<TMP>/cat-player19-pro-final.xcresult"
+        }
+      ],
+      "sourceManifest": "player-build19/second-build19-source-manifest.json",
+      "testSourceSHA256": "b3e0108354e7cb76f2558204d48fdbb336f12834f61a3aa1f128f5dc3ee48fb2",
+      "cause": "Both Pro tests searched for a not-yet-loaded LazyVGrid item by pulling down while already at scroll top, dismissing the sheet. Frames and accessibility evidence confirmed this was a test gesture error."
+    },
+    "thirdRound": {
+      "executions": 2,
+      "passed": 1,
+      "failed": 1,
+      "runs": [
+        {
+          "device": "iPhone SE (3rd generation)",
+          "cases": [
+            {
+              "method": "testPlayerProfileAndEquipmentTranslateInAllThreeLanguages",
+              "result": "failed",
+              "seconds": 34.807
+            }
+          ],
+          "log": "player-build19/cat-player19-se-delivery.log",
+          "resultBundle": "<TMP>/cat-player19-se-delivery.xcresult"
+        },
+        {
+          "device": "<DEVICE_NAME_29>",
+          "cases": [
+            {
+              "method": "testEquippedWorkKeepsCapturedTermsAndSettlesOnce",
+              "result": "passed",
+              "seconds": 337.528
+            }
+          ],
+          "log": "player-build19/cat-player19-pro-delivery.log",
+          "resultBundle": "<TMP>/cat-player19-pro-delivery.xcresult"
+        }
+      ],
+      "testSourceSHA256": "bf985c1c8642c0b837b7d5d5df7471cda5ee1f04cec01b69ff6d2d69bce1ca81",
+      "note": "SE log contains obsolete swipe helper instructions not present in current binary. Both installed and built Runner hashes matched 1124e9d888a29147a77d99ecdf846bbcf75d0d27277f88f4e73f3f189abe6e45 when checked after this run. Exact cache cause is unconfirmed; stale run retained as a failed execution, not current-source validation. Runner explicitly reinstalled before targeted SE retry."
+    },
+    "final": {
+      "executions": 1,
+      "passed": 1,
+      "failed": 0,
+      "runs": [
+        {
+          "device": "iPhone SE (3rd generation)",
+          "cases": [
+            {
+              "method": "testPlayerProfileAndEquipmentTranslateInAllThreeLanguages",
+              "result": "passed",
+              "seconds": 394.879
+            }
+          ],
+          "log": "player-build19/cat-player19-se-fresh-runner.log",
+          "resultBundle": "<TMP>/cat-player19-se-fresh-runner.xcresult"
+        }
+      ],
+      "testSourceSHA256": "bf985c1c8642c0b837b7d5d5df7471cda5ee1f04cec01b69ff6d2d69bce1ca81"
+    },
+    "allAttempts": {
+      "executions": 14,
+      "passed": 7,
+      "failed": 7,
+      "distinctMethods": 7,
+      "note": "All failed attempts preserved, including the SE stale-logic execution. Final production inputs validated by Pro equipped-work and SE three-language cases; earlier unchanged scoped regressions retained without needless reruns."
+    },
+    "compiledRunnerSHA256": "1124e9d888a29147a77d99ecdf846bbcf75d0d27277f88f4e73f3f189abe6e45"
+  },
+  "device": {
+    "status": "0.4.0 (19) installed and normally launched on iPhone Air",
+    "installedVersion": "0.4.0 (19)",
+    "saveByteIdentical": true,
+    "runningProcessVerified": true,
+    "evidence": "build19-device-update.json",
+    "userAcceptance": "pending"
+  },
+  "limits": [
+    "Avatar illustrations have baseline clothes; equipped items are shown in wardrobe slots with real gameplay effects, not layered onto bodies.",
+    "Future purchasable gear not added; this release grants a free basic set and provides extensible catalogs.",
+    "Physical user acceptance remains separate from simulator tests."
+  ],
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "executableSHA256": "49086eeae2fb9acb8a697378eab4f9aa9795ea53c1991c18a79748e84e70688d",
+      "infoSHA256": "71628ae632dfe093b71c18c9ad6f7f8018cad887f207883ba176cdb41f36195e",
+      "log": "player-build19/cat-player19-build-sim-delivery.log"
+    },
+    "device": {
+      "result": "passed",
+      "executableSHA256": "da7600d547f428ed0959aa3107eaf30f83594e1ae6a3d94087c1fe39a2a750bc",
+      "infoSHA256": "141d3f701b3e9381418cd9ef71e68ea2ae2a57af4ecf78f93a4406709bcac224",
+      "log": "player-build19/cat-player19-build-device-delivery.log",
+      "codesign": "passed"
+    }
+  },
+  "resolvedDuringQA": [
+    "Numeric accessibility values use literal strings so 1800 is not localized as 1,800.",
+    "Precise bounded test drags bring targets into the actual unobscured viewport without full-page overshoot.",
+    "Ready welcome page stayed after one recorded in-bounds initial tap. General helper records this and allows one conditional center retry only while the same ready page remains; dedicated welcome single-tap regression is unchanged."
+  ],
+  "visualReview": {
+    "result": "passed",
+    "screens": [
+      "delivery-se/5B2E279F-9538-40C8-9645-1D5B274920BE.png",
+      "delivery-se/BE99220A-CEC1-4D7E-91FF-34820E25337A.png",
+      "delivery-se/ED6DEA03-F080-48C4-9C77-4A62FAF4BFDB.png",
+      "second-se/BC698BBE-0ED2-4892-B089-6BC45CB4486F.png",
+      "delivery-pro/241CA906-9BBC-4DEF-8527-A4D69EB665B2.png"
+    ],
+    "checks": [
+      "Actual six-avatar selectors, equipped slots and three-language attribute/item pages reviewed.",
+      "Selected appearance persists; fully equipped button reads Equipped.",
+      "Captured work preview shows 25min30sec and 43/16 costs with unchanged 800/200 rewards.",
+      "Room viewport matches established Pro and SE baselines."
+    ]
+  },
+  "assets": {
+    "mode": "built-in image_gen",
+    "avatars": 6,
+    "equipmentIcons": 4,
+    "transparent": true,
+    "provenance": "../ArtSource/player-build19/prompts-and-provenance.json",
+    "validation": "../ArtSource/player-build19/asset-validation.json"
+  },
+  "rules": {
+    "starterEquipment": "Four owned items on fresh saves and migration of absent profile, not automatically equipped. Explicit empty ownership remains empty.",
+    "slots": [
+      "head",
+      "body",
+      "feet",
+      "accessory"
+    ],
+    "bonuses": {
+      "starter_cap": {
+        "moodReductionPercent": 20
+      },
+      "starter_jacket": {
+        "staminaReductionPercent": 15
+      },
+      "starter_sneakers": {
+        "durationReductionPercent": 10
+      },
+      "starter_charm": {
+        "durationReductionPercent": 5
+      }
+    },
+    "stacking": "Add per category; maximum 50%; ceil reduced integer costs and seconds, minimum one for positive base.",
+    "activeWork": "Snapshot costs/time/rewards at start. Current outfit only affects the next shift. Old shifts retain their original deadlines/rewards.",
+    "avatar": "All six are cosmetic; gender and appearance do not change work statistics.",
+    "allSetFlyer": {
+      "seconds": 102,
+      "staminaCost": 9,
+      "moodCost": 4,
+      "gold": 60,
+      "experience": 22
+    }
+  }
+}

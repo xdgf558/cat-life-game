@@ -1,0 +1,8 @@
+{
+  "processIdentifier": 0,
+  "matchedProcess": {
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000020/CatLife.app/CatLife",
+    "processIdentifier": 0
+  },
+  "source": "fresh devicectl device info processes result; unrelated processes omitted"
+}

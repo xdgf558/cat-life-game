@@ -1,0 +1,19 @@
+{
+  "date": "2026-11-02",
+  "method": "User opened the normal installed game; read-only app/version and process queries",
+  "userStatement": "已打开并保持前台",
+  "version": "0.3.0",
+  "build": "18",
+  "installationURL": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000016/CatLife.app/",
+  "process": {
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000016/CatLife.app/CatLife",
+    "processIdentifier": 0
+  },
+  "reinstalledOrRelaunched": false,
+  "newTestsExecuted": 0,
+  "rawReceipts": [
+    "<TMP>/cat-career18-user-open-apps.json",
+    "<TMP>/cat-career18-user-open-processes.json"
+  ],
+  "limits": "Process matches the installed build; foreground state is user-reported. This is launch confirmation, not full gameplay acceptance."
+}

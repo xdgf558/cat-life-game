@@ -1,0 +1,143 @@
+{
+  "title": "打工养猫日记 · 原生 iOS 房间首页",
+  "status": "visual-design-only",
+  "source": {
+    "selectedOption": 2,
+    "style": "奶油玩具屋",
+    "referenceFile": "selected-direction.png"
+  },
+  "target": {
+    "platform": "native iOS",
+    "logicalCanvas": {
+      "width": 390,
+      "height": 844
+    },
+    "safeArea": {
+      "top": 44,
+      "bottom": 34,
+      "note": "设计基准留白，原生实现应读取实际设备安全区；效果图不绘制系统状态栏或 Home 指示条。"
+    }
+  },
+  "visualDirection": {
+    "preserve": [
+      "奶油与薄荷绿配色",
+      "暖木色等距房间",
+      "柔和日光",
+      "圆润家具和织物质感",
+      "小橘的外观和比例"
+    ],
+    "proposedTokens": {
+      "cream": "#F8F1E4",
+      "mint": "#67B89A",
+      "text": "#68452F",
+      "wood": "#C68D52"
+    },
+    "typography": "圆润中文无衬线；正文 14–16 pt，猫咪名约 18 pt，交互命中区域至少 44 pt。"
+  },
+  "informationHierarchy": [
+    "紧凑标题与金币、体力",
+    "可互动房间和猫咪",
+    "底部照顾操作",
+    "四项导航"
+  ],
+  "previewState": {
+    "catId": "cat_001",
+    "catName": "小橘",
+    "gold": 200,
+    "stamina": 80,
+    "staminaMax": 100,
+    "catFood": 3,
+    "condition": "轻微饥饿",
+    "bowl": "空盆"
+  },
+  "controls": {
+    "room": {
+      "cat": "点击小橘打开或聚焦照顾面板。",
+      "bowl": "可调用与主按钮相同的喂食动作；不设置第二个高亮喂食文字按钮。",
+      "decorate": "布置入口进入家具编辑模式；编辑中显示完成/取消，临时摆放取消时恢复。"
+    },
+    "carePanel": {
+      "primary": "喂食",
+      "secondary": [
+        "清洁",
+        "玩耍"
+      ],
+      "feedback": "库存和猫咪状态由核心校验与更新成功后再播放吃饭动画，反馈实际消耗。普通猫示例为 1 份，怀孕等情况由游戏规则计算。"
+    },
+    "navigation": {
+      "items": [
+        "家",
+        "打工",
+        "商店",
+        "猫町"
+      ],
+      "selected": "家"
+    }
+  },
+  "interactionStates": [
+    {
+      "state": "饥饿且有猫粮",
+      "presentation": "空食盆、小橘想吃饭、显示猫粮余量与可执行的喂食按钮。"
+    },
+    {
+      "state": "喂食成功",
+      "presentation": "核心确认消耗后，食盆短暂出现猫粮，小橘低头吃饭，显示饱腹增长反馈；保存不依赖动画播放完毕。"
+    },
+    {
+      "state": "猫粮不足",
+      "presentation": "不扣除资源，主操作改为去商店或明确提供购买入口。"
+    },
+    {
+      "state": "动作进行中",
+      "presentation": "在本次动作提交期间抑制重复点击，避免重复扣除；动画可中断而不影响已确认状态。"
+    },
+    {
+      "state": "恢复前台",
+      "presentation": "按时间差同步玩法，读取结果刷新猫咪与照顾操作；不重播已结算奖励。"
+    }
+  ],
+  "implementationBoundary": {
+    "SwiftUI": [
+      "资源栏",
+      "照顾面板",
+      "导航",
+      "详情与设置面板"
+    ],
+    "SpriteKit": [
+      "房间背景",
+      "家具节点",
+      "猫咪节点",
+      "交互反馈动画"
+    ],
+    "gameCore": "唯一负责状态、库存和规则，场景不直接修改金币或猫粮。"
+  },
+  "assetsToPrepare": [
+    "无 UI 的房间背景",
+    "可独立移动的家具",
+    "小橘透明角色素材及动作",
+    "空食盆与有粮食盆",
+    "一致风格的导航与照顾图标"
+  ],
+  "reviewNotes": [
+    "当前交付为静态设计稿，未生成 Xcode 工程或原生可运行界面。",
+    "整屏效果图作为视觉参考，不应整张贴进原生 App 替代真实交互控件。",
+    "素材拆分、动画制作与真机验证属于后续实现工作。"
+  ],
+  "artifacts": {
+    "selectedReference": "selected-direction.png",
+    "refinedScreen": "room-home-refined-v2.png",
+    "generationPrompt": "generation-prompt-v2.txt",
+    "previousRefinedScreen": "room-home-refined-v1.png",
+    "previousGenerationPrompt": "generation-prompt.txt"
+  },
+  "latestRevision": {
+    "version": 2,
+    "request": "猫太大了，缩小一点，其他可以。",
+    "change": "缩小房间中的主体小橘，保留房间家具、底部头像和界面布局。",
+    "scaleGuidance": "目标为上一稿宽高约 80%，当前图像作为视觉比例参考，原生实现时以场景坐标和角色缩放参数落实。"
+  },
+  "deliveryNotes": [
+    "设计稿已检查：沿用选定画风；空食盆对应饥饿；唯一主要喂食按钮；清洁、玩耍、布置与四项导航文字均可辨认。",
+    "设计稿为生成图像，图中控件位置不视为像素级原生布局规范；设备安全区、动态字体和辅助功能需在原生实现时校准。"
+  ]
+}

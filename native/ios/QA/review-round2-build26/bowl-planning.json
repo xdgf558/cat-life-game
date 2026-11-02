@@ -1,0 +1,16 @@
+{
+  "bowlPlanCancelled": 4,
+  "bowlPlanCompletions": 2,
+  "lastBowlPlanOnMainThread": false,
+  "completedMeals": 1,
+  "foodContactSamples": 76,
+  "foodContactViolations": 0,
+  "phase": "idle",
+  "passedAssertions": [
+    "background cancellation observed",
+    "stale layout worker did not replay after leaving arrangement",
+    "bowl position preserved",
+    "cat physically reached food surface",
+    "food 3 to 2; satiety 35 to 60; gold remains 200"
+  ]
+}

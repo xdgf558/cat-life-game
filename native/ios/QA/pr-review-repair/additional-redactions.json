@@ -1,0 +1,12 @@
+[
+  {
+    "file": "native/ios/QA/audio-build23/build-logs/cat23-device-delivery-build.log",
+    "replacements": 4,
+    "sha256": "8d3c0134bdb0b1297f52c2cf7d9835df8201f648b66e08736789d07f215b231c"
+  },
+  {
+    "file": "native/ios/QA/audio-build23/build-logs/cat23-device-slider-helper-build-failed.log",
+    "replacements": 4,
+    "sha256": "e59c0cc135f3f97c24c1c3869fe9099cd7716261575f31fd847fed6ee7462663"
+  }
+]

@@ -1,0 +1,9 @@
+Tool: built-in image_gen
+Reference: docs/ios-room-home/room-home-refined-v2.png
+Output: native/ios/ArtSource/cat-idle.png
+Transparent background: true
+
+Use case: identity-preserve / background-extraction.
+Create ONE production-ready transparent sprite of ONLY the full-body orange tabby cat sitting on the floor in the attached selected game mockup. This is the main room cat, not the small avatar portrait. Extract/recreate the exact same cat identity in the exact same pose and viewing angle: adorable round orange tabby 小橘, fluffy short orange striped fur, cream chest and muzzle, amber eyes looking slightly upward toward camera, tiny pink nose, happy slightly open mouth, small warm brown bow/collar, front paws planted, tail curled at the viewer's left side of the seated body. Preserve the 3/4 front-facing seated orientation and the reference's cozy cream miniature-toy illustrated game style, warm soft window light, cute plush proportions. Do not change breed, stripe pattern impression, expression or bow. Complete ears, whiskers, tail and all paws must be included.
+
+Output only this one isolated character on a genuinely fully transparent alpha background, approximately 768 x 1024 portrait canvas or similar silhouette-friendly ratio. Center character with 6–10% transparent padding around all sides. No room, floor, UI, words, labels, bowls, furniture, avatar circle, speech bubble, frame, checkerboard drawn into pixels, colored background, or large cast-shadow patch. Fine soft edges of fur and whiskers should retain clean alpha; no white fringe. Avoid an independent ground shadow, as it will be supplied by SpriteKit. Keep a natural crisp clean silhouette suitable for a SpriteKit SKSpriteNode. This is a reusable game asset, not a new app mockup.

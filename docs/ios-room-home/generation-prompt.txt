@@ -1,0 +1,28 @@
+Tool: built-in image_gen
+Reference: selected-direction.png
+Output: room-home-refined-v1.png
+
+Use case: ui-mockup / precise refinement of an existing selected design.
+EDIT THE ATTACHED IMAGE into ONE refined, production-quality native iPhone room-home UI screen for the Chinese cat-care game 打工养猫日记. The user explicitly selected this image and wants its exact art direction continued. This is refinement, not a new style exploration.
+
+REFERENCE INVARIANTS — preserve strongly:
+- Same warm cream-and-mint tactile miniature dollhouse, sunny isometric cutaway room, golden wooden floor, arched window at left, little wooden cabinet, cushions and rounded cat bed, scratching tree on right.
+- Same adorable orange tabby 小橘, fluffy rounded body, large expressive amber eyes, cream muzzle/chest, stripes, little bow/collar, same toy-like illustrative rendering. Preserve its character identity and approachable proportions.
+- Same soft warm natural light, matte rounded furniture, plush fabric textures, cream surfaces, mint-green primary action, brown readable lettering.
+- The room is the hero. Keep scene immersive and pleasing, not a dashboard or collection of cards.
+- Same game state: 金币 200, 体力 80/100, 猫粮 3, 小橘 is mildly hungry.
+- The bottom app destinations remain 家 / 打工 / 商店 / 猫町, with 家 selected.
+
+TARGET DIMENSIONS & PRESENTATION:
+Target logical iPhone canvas 390 × 844 points, match source 853 × 1844 aspect ratio closely at high resolution. One full rectangular app screen only, no phone body, bezel, notch, Dynamic Island, OS status bar, clock, battery or signal, home indicator, browser chrome, outer rounded device frame, presentation background, labels outside screen, or multiple screens. Reserve a quiet approximately 44-point top inset and 34-point bottom inset for native safe-area planning, filled with appropriate app background but no interactive elements. Do not crop important objects or text. No date/time content.
+Keep Chinese body labels readable at logical 14–16 points; minimum touch areas ~44 points, comfortable spacing. Use at most two complementary typefaces, rounded Chinese sans-serif with a little personality, not wobbly illegible handwritten text. No English, gibberish, lorem ipsum, emoji stand-ins, or technical annotations.
+
+SPECIFIC REFINEMENTS:
+1. Header: significantly reduce the original enormous hanging wooden sign. Use a refined small wood plaque at top-left inside safe inset, with “我的小家” as the title. The small “打工养猫日记” eyebrow may appear only if there is enough space. To its right, compact clean cream HUD on two tidy rows: a gold paw coin followed by “200”, and a lightning icon followed by “80/100”. These resource rows should be readable but not dominate the scene. Leave breathing room. No plus/purchase buttons.
+2. Preserve generous room size: approximately the area below header down to the care panel; floor and room geometry remain coherent. Keep 小橘 as the main hero, slightly smaller if necessary so cat, bowl, and some free floor are comfortably visible and never hidden by controls. No new cats. Keep the plush room feeling of the reference. Remove unnecessary foreground clutter if it blocks gameplay visibility.
+3. CRITICAL STATE CORRECTION: THE CAT FOOD BOWL ON THE FLOOR MUST BE EMPTY, clean mint-green ceramic with the paw emblem, matching the mildly hungry state. No kibble anywhere inside that floor bowl. A small thought bubble above the cat containing a bowl-with-food illustration is fine and represents what the cat wants, but keep it modest.
+4. Remove the duplicate floating green “喂食” button above the physical floor bowl. Remove the scene's duplicate 小橘 name tag. Place one small neutral cream “布置” control with a modest furniture icon near the upper-right edge of the playable room, away from the cat and all resource HUD. This is secondary, not a bright primary CTA.
+5. Native care panel: a softly rounded top-edge cream bottom sheet, approximately 120–135 logical points tall, attached to the bottom of the room. Optional delicate short drag handle. Avoid a giant portrait: use at most a small 30-point cat portrait, then name “小橘” in 18-point bold. Supporting copy “有点饿了” and “猫粮 3” in clean readable secondary text. On the right, ONE unmistakable mint-green primary button “喂食”, minimum 48-point tall, with a small bowl icon. Small supporting line “消耗 1 份猫粮” can sit under/inside the primary action in high contrast, never microscopic. Under the main care row, add two quiet, clearly tappable secondary controls with small matching brush and feather-toy icons labeled “清洁” and “玩耍”. They must not compete with the primary feed action. No extra meters, progress bars, tutorial, achievements or quest cards.
+6. Bottom navigation: a clean cream stable tab bar beneath care controls, roughly 60–66 logical points tall plus reserved bottom inset. Four equally spaced illustrated icons with 12–14-point labels 家 / 打工 / 商店 / 猫町. Keep chosen 家 mint-highlighted but reduce the original oversized selection blob. Icons are restrained and all from one coherent rounded illustration style. Room art, care controls, tab bar and bottom safe padding must fit without clipping.
+
+Overall screen hierarchy: small title and resources → beautiful room + cat → immediate care action → navigation. Spacing and grouping first; minimal borders and subtle shadows only, no cards inside cards. This should look like a thoughtfully refined actual native mobile game screen, with the selected art direction faithfully preserved. Render only this final refined room-home screen.

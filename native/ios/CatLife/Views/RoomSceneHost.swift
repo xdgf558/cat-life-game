@@ -1,0 +1,166 @@
+import SwiftUI
+import SpriteKit
+import CatGameCore
+
+@MainActor
+struct RoomSceneHost: View {
+    let store: GameStore
+    let isActive: Bool
+    let reducedMotion: Bool
+    @State private var scene = RoomScene(size: CGSize(width: 390, height: 480))
+    #if DEBUG
+    @State private var animationPhase = "idle"
+    @State private var navigationStatus = ""
+    @State private var dragStatus = ""
+    @State private var furnitureStatus = ""
+
+    private var furnitureTesting: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("--ui-testing")
+            && (args.contains("--furniture-test") || args.contains("--rest-test"))
+    }
+
+    private var dragTesting: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("--ui-testing") && args.contains("--drag-performance-test")
+    }
+
+    private var navigationTesting: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("--ui-testing") && args.contains("--navigation-test")
+    }
+
+    private var animationTesting: Bool {
+        let args = ProcessInfo.processInfo.arguments
+        return args.contains("--ui-testing") && args.contains("--animation-test")
+    }
+
+    #endif
+
+    private var effectiveReducedMotion: Bool {
+        #if DEBUG
+        reducedMotion || (animationTesting && ProcessInfo.processInfo.arguments.contains("--reduce-motion-test"))
+        #else
+        reducedMotion
+        #endif
+    }
+
+    var body: some View {
+        GeometryReader { geometry in
+            NativeRoomCanvas(scene: scene, isActive: isActive, canvasSize: geometry.size)
+                .allowsHitTesting(!store.isSavingLayout)
+                .onAppear {
+                    scene.scaleMode = .resizeFill
+                    if scene.size != geometry.size { scene.size = geometry.size }
+                    #if DEBUG
+                    scene.diagnostics.onPresentationChanged = { animationPhase = $0 }
+                    scene.diagnostics.onNavigationChanged = { navigationStatus = $0 }
+                    scene.diagnostics.onDragMetricsChanged = { dragStatus = $0 }
+                    scene.diagnostics.onFurnitureDiagnosticsChanged = { furnitureStatus = $0 }
+                    dragStatus = scene.diagnostics.dragDescription
+                    furnitureStatus = scene.diagnostics.furnitureDescription
+                    navigationStatus = scene.diagnostics.navigationDescription
+                    animationPhase = scene.presentationPhase
+                    #endif
+                    scene.onPlacementPendingChanged = { store.setLayoutResolving($0) }
+                    scene.reducedMotion = effectiveReducedMotion
+                    scene.onCatTapped = { store.inspectCat() }
+                    scene.onSound = { store.playSceneSound($0) }
+                    scene.onBowlTapped = { store.feed() }
+                    scene.onBowlMoved = { store.moveBowl(to: $0) }
+                    scene.onFurnitureSelected = { store.selectFurniture(id: $0) }
+                    scene.onFurnitureMoved = { store.moveFurniture(id: $0, to: $1) }
+                    scene.onFurniturePlacementFinished = { store.finishFurniturePlacement(id: $0, succeeded: $1) }
+                    scene.onRestingFurnitureChanged = { store.setRestingFurniture(id: $0, sessionID: $1) }
+                    scene.onFurnitureNotice = { store.showFurnitureNotice($0) }
+                    refreshScene()
+                    scene.setPresentationActive(isActive)
+                }
+                .onChange(of: isActive) { _, active in
+                    scene.setPresentationActive(active)
+                    if !active { scene.cancelPlacementPreview() }
+                }
+                .onDisappear {
+                    scene.setPresentationActive(false)
+                    scene.cancelPlacementPreview()
+                }
+                .onChange(of: geometry.size) { _, size in scene.size = size }
+                .onChange(of: effectiveReducedMotion) { _, value in scene.reducedMotion = value }
+                .onChange(of: store.sceneSnapshot) { _, _ in refreshScene() }
+                .onChange(of: store.isDecorating) { _, _ in refreshScene() }
+                .onChange(of: store.selectedFurnitureID) { _, _ in refreshScene() }
+                .onChange(of: store.placingFurnitureID) { _, _ in refreshScene() }
+                .onChange(of: store.feedback?.id) { _, _ in
+                    if let feedback = store.feedback { scene.playFeedback(kind: feedback.kind) }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(GameStrings.text("accessibility.cat"))
+                .accessibilityIdentifier("roomScene")
+                .accessibilityValue(sceneAccessibilityValue)
+                .accessibilityAddTraits(.isButton)
+                .accessibilityAction { store.inspectCat() }
+                .accessibilityAction(named: Text(GameStrings.text("care.feed"))) { store.feed() }
+                .accessibilityAction(named: Text(GameStrings.text("rest.bedAction"))) { scene.restInFurniture(kind: .catBed) }
+                .accessibilityAction(named: Text(GameStrings.text("rest.cushionAction"))) { scene.restInFurniture(kind: .floorCushion) }
+        }
+    }
+
+    private var sceneAccessibilityValue: String {
+        #if DEBUG
+        if furnitureTesting { return furnitureStatus }
+        if dragTesting { return dragStatus }
+        if navigationTesting { return navigationStatus }
+        if animationTesting { return animationPhase }
+        return ProcessInfo.processInfo.arguments.contains("--ui-testing") ? bowlPositionDescription : store.catStatus
+        #else
+        return store.catStatus
+        #endif
+    }
+
+    private func refreshScene() {
+        if let value = store.sceneSnapshot {
+            scene.apply(snapshot: value, editing: store.isDecorating,
+                        selectedFurnitureID: store.selectedFurnitureID,
+                        placingFurnitureID: store.placingFurnitureID)
+        }
+    }
+
+    #if DEBUG
+    private var bowlPositionDescription: String {
+        guard let point = store.sceneSnapshot?.home.bowlPosition else { return "" }
+        return String(format: "%.3f,%.3f", point.x, point.y)
+    }
+    #endif
+}
+
+/// Present the scene explicitly so scene attachment and resume ordering are
+/// consistent across supported OS versions, including a cold launch from inactive.
+@MainActor
+private struct NativeRoomCanvas: UIViewRepresentable {
+    let scene: RoomScene
+    let isActive: Bool
+    let canvasSize: CGSize
+
+    func makeUIView(context: Context) -> SKView {
+        let view = SKView()
+        view.preferredFramesPerSecond = 30
+        view.ignoresSiblingOrder = true
+        view.backgroundColor = .clear
+        configure(view)
+        return view
+    }
+
+    func updateUIView(_ view: SKView, context: Context) {
+        configure(view)
+    }
+
+    private func configure(_ view: SKView) {
+        if canvasSize.width > 0 && canvasSize.height > 0 && scene.size != canvasSize {
+            scene.size = canvasSize
+        }
+        if view.scene !== scene { view.presentScene(scene) }
+        scene.setPresentationActive(isActive)
+        view.isPaused = !isActive
+        scene.isPaused = !isActive
+    }
+}

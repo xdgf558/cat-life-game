@@ -1,0 +1,191 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "4B1074EC-4DED-4BB8-B34C-EBBD39D28EBF.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_7470543A-FBA1-40F7-B675-D578045EEBF6.txt",
+        "timestamp": 1793585245.279
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "6A692030-763E-478B-9A7D-808AA98CB970.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — the cafe shift uses thirty real minutes_0_7EE8699C-0C21-4758-A806-CA294B4FCE9D.txt",
+        "timestamp": 1793585206.226
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "DBC6E19A-0E7E-4567-BAAB-7ED2D90996F3.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — level ten can select the thirty-minute cat cafe job_0_705A13B0-06FB-4A99-AB0E-17C58BF79340.png",
+        "timestamp": 1793585199.879
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E03A18D6-4B52-46D0-A959-E46EA1D98B76.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — the selected flyer job counts down_0_525917BA-EE63-4EC1-90C0-7BB122DAA0E7.txt",
+        "timestamp": 1793585134.254
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7A82673F-A006-4B4A-BDD9-12BBB2490A1C.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Career — future jobs show their real level requirements_0_45248514-B48C-4494-B678-C7E8472DF0D6.png",
+        "timestamp": 1793585115.251
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "5D3C3FA9-FD3F-46B4-8FD9-067BD886F577.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_019E6BBD-9A3A-4AD9-97C1-CA47CDCE7512.txt",
+        "timestamp": 1793585079.075
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "A1A183EC-02E8-4C22-8F29-39407CB435AF.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_2796FD4B-D87C-4987-9A44-23FF33227B3D.txt",
+        "timestamp": 1793585504.997
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "79219F97-3C5D-4968-AC36-4D3F1804F85F.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — the free starter set occupies four distinct slots_0_CDEA846B-D0F7-4B7C-B30C-F5126ECBF2D0.png",
+        "timestamp": 1793585422.084
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "BC698BBE-0ED2-4892-B089-6BC45CB4486F.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — three female appearances with a saved selection_0_552756F8-3212-4E1F-9B0F-CAD9B70FFB9B.png",
+        "timestamp": 1793585338.921
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "965998F2-6F03-48F7-9097-4FC98DBD88AD.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — three male appearances with a saved selection_0_9BFE5040-4BDD-4F56-8575-E27EFC09EF6F.png",
+        "timestamp": 1793585317.63
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "DA7BB3F7-7D2E-4411-A6D4-8E4D49BBA049.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_46BE30CF-4E5E-4D59-A8A5-644534649DD1.txt",
+        "timestamp": 1793585256.629
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E6B23C28-B7C7-4E06-8473-E557C186FC07.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Welcome — entered home restores four food and 180 gold_0_FC2D9B57-F302-48BB-B39F-032907DD9140.png",
+        "timestamp": 1793585557.243
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "A0BCA711-A9EC-4D35-A89D-00361907474A.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — after cold launch and a second explicit welcome entry_0_85796DF4-DFD1-4EB0-80C3-C920A25C372A.txt",
+        "timestamp": 1793585557.177
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B57613B9-F7BE-4F31-AEF2-AB7A8866655B.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_DA7F5BC2-B94E-4D1F-AFE9-633F1EA33B52.txt",
+        "timestamp": 1793585552.852
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "72F8C765-DE50-4CF9-9B98-2CA822DD792F.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Welcome — cold launch waits for Enter without resetting saved progress_0_3BF46520-3DF3-47B8-8313-592AA1090E57.png",
+        "timestamp": 1793585548.442
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CF1F926C-47C3-4D85-B027-15D1E7CA2C2B.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — after backgrounding and reactivating the entered home_0_A8414C06-29F5-48A8-A7B0-20E27FB2B529.txt",
+        "timestamp": 1793585537.681
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "21DBDDFA-C444-4E38-A165-BCC43444944A.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — after entering through Welcome and purchasing food_0_B3758016-2822-4590-A2F1-20099B652A65.txt",
+        "timestamp": 1793585530.569
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "41D7C06E-5F8B-48C0-82DD-08564EE02F46.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_48F024B4-2C53-4B1E-B4EE-82E0F2DC88E2.txt",
+        "timestamp": 1793585520.986
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "963FAC37-9BEF-4B6E-9E5B-592560864262.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Welcome — ready and waiting for the user's Enter action_0_EFC34E86-7CEE-4A41-8CE6-79C1AE4AAE4D.png",
+        "timestamp": 1793585516.489
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch"
+  }
+]

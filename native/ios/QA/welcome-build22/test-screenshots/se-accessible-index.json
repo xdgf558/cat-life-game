@@ -1,0 +1,38 @@
+[
+  {
+    "path": "test-screenshots/se-accessible/screenshot-01.png",
+    "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes()",
+    "description": "Welcome — held real load disables Enter without revealing the room",
+    "timestamp": 1793614573.291
+  },
+  {
+    "path": "test-screenshots/se-accessible/screenshot-02.png",
+    "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes()",
+    "description": "Welcome — completed real load still waits for an explicit Enter tap",
+    "timestamp": 1793614583.779
+  },
+  {
+    "path": "test-screenshots/se-accessible/screenshot-03.png",
+    "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes()",
+    "description": "Welcome — released load enters the real saved room",
+    "timestamp": 1793614591.514
+  },
+  {
+    "path": "test-screenshots/se-accessible/screenshot-04.png",
+    "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch()",
+    "description": "Welcome — ready and waiting for the user's Enter action",
+    "timestamp": 1793614603.571
+  },
+  {
+    "path": "test-screenshots/se-accessible/screenshot-05.png",
+    "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch()",
+    "description": "Welcome — cold launch waits for Enter without resetting saved progress",
+    "timestamp": 1793614635.661
+  },
+  {
+    "path": "test-screenshots/se-accessible/screenshot-06.png",
+    "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch()",
+    "description": "Welcome — entered home restores four food and 180 gold",
+    "timestamp": 1793614644.452
+  }
+]

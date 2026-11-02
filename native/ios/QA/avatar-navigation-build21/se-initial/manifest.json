@@ -1,0 +1,707 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "84D6D85C-E3FD-4232-8D24-B3EEFADF08B0.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_4A785D05-7E64-4555-AD33-D863789FC1D5.txt",
+        "timestamp": 1793602308.929
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "D82CD79F-502E-46E0-80D0-BD3B45A2BF46",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.48 下午",
+        "timestamp": 1793602308.929
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B94360CC-6F91-47F2-9F32-14CDBE626EA5",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.48 下午",
+        "timestamp": 1793602308.621
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "2C58A3B3-8807-48CC-B027-829F1162375D.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_D56CC618-4A13-4F68-BBAD-227DC9207ACD.txt",
+        "timestamp": 1793602308.2
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "16309A75-1D4A-4430-90AB-FD3BC487800D",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.48 下午",
+        "timestamp": 1793602308.2
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "229EF9E2-1482-42C2-808F-B6C7A77E7949",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.47 下午",
+        "timestamp": 1793602307.698
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "463FDE10-4247-4DF1-A738-157334E8130B.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_58D09C68-2ADB-47A7-AFD6-D5CF2DE0D8FC.txt",
+        "timestamp": 1793602306.994
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "9E03F0C4-42D9-4E9E-8280-583928B5B978",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.46 下午",
+        "timestamp": 1793602306.994
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "98657ECB-5EC2-4938-BB28-78DB9C7D0C86",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.46 下午",
+        "timestamp": 1793602306.699
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "366EB09F-9900-46CF-8688-FE92B3F25329.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_F4B09293-4C0C-4FC5-8CD7-AC020C7BF726.txt",
+        "timestamp": 1793602305.995
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "17879A1D-0425-41DA-9644-0D11606B3046",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.45 下午",
+        "timestamp": 1793602305.995
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B3FD39CE-2CA0-4AA1-8922-D61A4AF297C4",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.45 下午",
+        "timestamp": 1793602305.636
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "F1B08119-F8D5-4AC9-AAC5-95DF885E2A07.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_23B71FBD-4219-4974-8B53-54F3FDF83847.txt",
+        "timestamp": 1793602304.932
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "42083756-1EE3-4726-AF92-9FAA29EB792B",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.44 下午",
+        "timestamp": 1793602304.932
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "53077BA5-A798-4AB5-AD79-17EACC081894",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.44 下午",
+        "timestamp": 1793602304.602
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "249D0ECF-64EC-4B67-8284-FB69403B4A53.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_2C531A08-3B13-4ADA-A1A6-AB0D195B3152.txt",
+        "timestamp": 1793602304.024
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "F6F42DE9-8759-4AC1-BC4C-6111CEEFCA66",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.44 下午",
+        "timestamp": 1793602304.024
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "04942940-EA4C-4DD3-BAA6-37AA37E6C977",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.43 下午",
+        "timestamp": 1793602303.656
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "435F5177-2643-421D-8E8C-ECD3AEF4F67D.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_C3B5CCD8-0E93-413A-9631-5B1FC983BF5F.txt",
+        "timestamp": 1793602302.947
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "0C792F2D-137F-4E0A-BA3A-FDADB9A7AA2E",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.42 下午",
+        "timestamp": 1793602302.947
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CC098809-617C-46A9-B769-4ADF08E246F1",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.42 下午",
+        "timestamp": 1793602302.615
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "DEA9040E-5BB0-4B5E-97F2-84C347F1CF98.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Debug description for `\"tabPlayer\" Button`_0_FEB284D1-943A-4159-B221-48CDC6036D1C.txt",
+        "timestamp": 1793602302.009
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "C881CD1E-A89F-4AE2-A95E-A67DCF99E4AB",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.42 下午",
+        "timestamp": 1793602302.009
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "9D741B34-9BB5-414B-B062-416890D7AF2A",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.41 下午",
+        "timestamp": 1793602301.617
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "D61395F4-06E5-4232-8B69-A21B0C542E18",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.38 下午",
+        "timestamp": 1793602298.097
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7E03E8F1-0942-42D6-9BF3-99D71B5F502F",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.38 下午",
+        "timestamp": 1793602298.39
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "1440D1D6-E16D-40C1-A30E-DB4553E62E35",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.36 下午",
+        "timestamp": 1793602296.335
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "1464AEF1-5642-490E-B057-DF63D2E2F16D",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.36 下午",
+        "timestamp": 1793602296.628
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FC53F54E-370D-4462-8923-5195BA8C5D9D",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.35 下午",
+        "timestamp": 1793602295.465
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "8702FDAB-DDC2-481B-AD88-CD8F0EE618A6",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.35 下午",
+        "timestamp": 1793602295.766
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "DE2AE053-0ED9-4B82-9DDE-F107FCABB6D0",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.27 下午",
+        "timestamp": 1793602287.495
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "60C24969-5E06-4E66-9CA3-65A34E478891",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.28 下午",
+        "timestamp": 1793602288.178
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "8EF10CA6-697E-4EA1-8159-CDA8DFCCFD61",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.24 下午",
+        "timestamp": 1793602284.706
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "0D09299A-0ED9-40D5-A334-0DA8A7E88451",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.26 下午",
+        "timestamp": 1793602286.136
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E43D358C-36B7-4A4F-9110-99497FD8BFD2",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.20 下午",
+        "timestamp": 1793602280.813
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "A4DF51B5-353F-40D1-856D-4B5633F0A36C",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.21 下午",
+        "timestamp": 1793602281.111
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7FE016E2-5893-4550-B8F7-4F166BFD784C",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.14 下午",
+        "timestamp": 1793602274.34
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "ACC4CF9F-C773-4E2B-8F36-2C4E3DC0F108",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.14 下午",
+        "timestamp": 1793602274.635
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FF0B849A-8C0F-4464-8987-864900522582.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_forest_0_E79D2E8E-2736-4E92-AA33-B4C76641DD72.png",
+        "timestamp": 1793602272.568
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "22F12D6C-FDB9-4DD7-95CC-4D86760F8385.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_8727B4BB-847D-473B-BBFA-73CB37E6DD82.txt",
+        "timestamp": 1793602272.459
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7B44593B-34D4-4086-81E6-DE9A7579E6DA",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.12 下午",
+        "timestamp": 1793602272.438
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "8EC90FE1-350B-4822-8F93-9DCDFDFE9D6D",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.10 下午",
+        "timestamp": 1793602270.289
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "EB4993BF-8ED3-4689-93AE-FA51FC455735",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.06 下午",
+        "timestamp": 1793602266.327
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CF183FE4-D1CE-4A34-AA14-5C0E7D05CB63",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.06 下午",
+        "timestamp": 1793602266.628
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CC0B88B9-F638-4600-8F7C-F772D922CBC9",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.04 下午",
+        "timestamp": 1793602264.478
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "48BAD835-4B57-40C1-92D6-F8BE783EB145",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.04 下午",
+        "timestamp": 1793602264.772
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "73BD6FAE-EC4A-4D8B-BE18-36D00AF2895F",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.51.03 下午",
+        "timestamp": 1793602263.293
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "21B58444-FE8B-405A-B7A3-92492C4487BC",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.51.03 下午",
+        "timestamp": 1793602263.59
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "9AE9DB0C-DF3C-498E-9153-E271F01B901C",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.58 下午",
+        "timestamp": 1793602258.179
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "5BA62FBB-1D0C-40B7-9BD4-6A21F886C6BE",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.58 下午",
+        "timestamp": 1793602258.488
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "DA2EE153-BDE1-4D76-882D-753EB5DAC71C",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.52 下午",
+        "timestamp": 1793602252.614
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "0E1E7999-C21D-418E-A60A-0EED56C2E6DD",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.52 下午",
+        "timestamp": 1793602252.915
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FADCC449-C3F0-4B17-A2BC-7578301310F5.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — home portrait male_sunny_0_81C5DCA4-B9DB-4997-97C9-4BEC119FEB6F.png",
+        "timestamp": 1793602250.612
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "364D54B2-4581-4DB1-BCB3-E49C3BEFA79D.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_B33F21C7-7118-4E53-906B-C0A830C1359E.txt",
+        "timestamp": 1793602250.493
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "46AEAD37-765B-497E-BE31-BA07AC1D207C",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.50 下午",
+        "timestamp": 1793602250.478
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "77448497-D155-41E7-9173-2DCFD42856C4",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.49 下午",
+        "timestamp": 1793602249.018
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "2F0D9F75-6828-41FF-A8C4-3A76ADF28B47",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.45 下午",
+        "timestamp": 1793602245.416
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "662E6A6F-E0F6-40C6-A616-485B065D5522",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.45 下午",
+        "timestamp": 1793602245.706
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "A1629CB6-CAC0-4A59-B3A6-5C98EA7D6B3E",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.43 下午",
+        "timestamp": 1793602243.934
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "55D834B8-B1F8-496D-B235-097988923D2F",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.44 下午",
+        "timestamp": 1793602244.228
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "4396529F-8642-4BFF-B9C9-8E102795D5DC",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.43 下午",
+        "timestamp": 1793602243.189
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "655A2F42-79CB-4CAE-8841-9BC10A09361E",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.43 下午",
+        "timestamp": 1793602243.478
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "AE3B5113-15D3-49DF-B52F-797544A95112",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.39 下午",
+        "timestamp": 1793602239.536
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "BA895744-B22A-4D3A-AFCD-0FC2B680449F",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.39 下午",
+        "timestamp": 1793602239.829
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "7FE4A1F2-0072-4E9E-8173-68A71A9FE5DD",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.35 下午",
+        "timestamp": 1793602235.245
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "D26DFC69-629C-4029-9C38-965F8735648E",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.35 下午",
+        "timestamp": 1793602235.528
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "C864B1D0-2EA1-469F-ACD1-43513E75CDB9.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player navigation — unselected fallback on the real home bar_0_BD0CAAF4-BA47-4BA1-8AAF-5BDAE2C5770C.png",
+        "timestamp": 1793602233.857
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "59BC204D-4536-4245-A59F-F6CFB9A3392F",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.33 下午",
+        "timestamp": 1793602233.647
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "EA02C462-25DB-4E46-AD22-66F8F58CA089",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.31 下午",
+        "timestamp": 1793602231.344
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "5F1E65CC-2821-498B-927D-6C7EB5F3D04F",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.31 下午",
+        "timestamp": 1793602231.771
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "05308641-7525-4AA7-869B-BBC874273FB0.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_71CC25C3-84EE-4182-B4A7-AEABDC489FC2.txt",
+        "timestamp": 1793602229.927
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E4D6C1D7-9F67-40A5-AF02-7FE340B109F3",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "UI Snapshot 2026-11-02 at 02.50.29 下午",
+        "timestamp": 1793602229.878
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "ACC3D78B-640C-4310-8DC8-E5A89B3666BC",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Synthesized Event 2026-11-02 at 02.50.22 下午",
+        "timestamp": 1793602222.796
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FF6F62A8-15BC-4BE3-87AB-C1EFCDD34AD8.mp4",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Screen Recording 2026-11-02 at 02.50.17 下午.mp4",
+        "timestamp": 1793602217.413
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerNavigationPortraitFollowsSelectionAndRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerNavigationPortraitFollowsSelectionAndRelaunch"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "BB8C6DC3-CB65-4FA0-915B-060B11CCDBDC.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — nested navigation closes back to the unchanged room_0_0734CD38-CF27-4CEE-A982-FE4F38CFD62E.png",
+        "timestamp": 1793602358.574
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "8D2F5D51-73CF-4494-AAE6-C9F17FD12A52.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — the third recent release is reachable; older history is hidden_0_991F16DB-FF0B-4CB5-B3EA-1FB2E6A39242.png",
+        "timestamp": 1793602342.704
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "71F7C2BC-742A-49CA-9398-42614578DEA6.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — version page at the top before scrolling_0_9D7BCDD8-3807-4BBF-A997-2EAB9B667550.png",
+        "timestamp": 1793602333.232
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation"
+  }
+]

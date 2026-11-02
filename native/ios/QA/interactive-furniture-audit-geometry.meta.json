@@ -1,0 +1,141 @@
+{
+  "runDate": "2026-11-01",
+  "runCompletedAt": "2026-11-01T09:28:20.179352+08:00",
+  "timeZone": "Asia/Singapore",
+  "runTimeEvidence": "mtime of original probe results.jsonl, recorded immediately after the actual run",
+  "archivedAt": "2026-11-01T09:39:33.092754+08:00",
+  "rawResults": "interactive-furniture-audit-geometry.jsonl",
+  "rawResultsSha256": "3aeda5ec62a6eb5cf542113f1e838ec31930590e4e7d053414d9c4751a31f0ce",
+  "originalResultsPath": "<TMP>/cat-interactive-furniture-audit/results.jsonl",
+  "rawResultRecords": 24,
+  "categoryCounts": {
+    "store-replace": 18,
+    "stored-replaced-moved": 4,
+    "neighbour-blocks-entry": 1,
+    "migration": 1
+  },
+  "sceneSizes": [
+    [
+      375,
+      436
+    ],
+    [
+      420,
+      600
+    ]
+  ],
+  "additionalBlockedEntranceSceneSize": [
+    402,
+    567
+  ],
+  "sourceInputs": {
+    "native/ios/CatGameCore/Sources/CatGameCore/GameSnapshot.swift": {
+      "sha256": "5976dd772d44ff4a6604c6f066d2fd2f4353f0d9bceea5bc49fc26f96c94d93d",
+      "modifiedAfterProbe": false
+    },
+    "native/ios/CatGameCore/Sources/CatGameCore/GameEngine.swift": {
+      "sha256": "f640feca31179de8ee7663c9d133bae1389de7911465d25617e8c9c20ae77007",
+      "modifiedAfterProbe": false
+    },
+    "native/ios/CatGameCore/Sources/CatGameCore/FurnitureCatalog.swift": {
+      "sha256": "1d812a3d6b30b615af5c4d460c56dc700639113490b1cbd55d8cef1ae0366f60",
+      "modifiedAfterProbe": false
+    },
+    "native/ios/CatGameCore/Sources/CatGameCore/RoomNavigation.swift": {
+      "sha256": "bfc047b55d25e30479ac5e0c41d73daa12e99f2535810076d7c1aee5b45279dd",
+      "modifiedAfterProbe": false
+    },
+    "native/ios/CatGameCore/Sources/CatGameCore/FeedingDock.swift": {
+      "sha256": "952121bef90ef46c757cf3bf548f5fd5d6e442cc3e7b6fe96d7542b9337bd730",
+      "modifiedAfterProbe": false
+    },
+    "native/ios/CatGameCore/Sources/CatGameCore/FurnitureRestPlanner.swift": {
+      "sha256": "9ccf1290b4f6292be5f441fdb631849af632b07d3dd0d983e1bb0ec4de069b9c",
+      "modifiedAfterProbe": false
+    },
+    "native/ios/CatLife/Scene/RoomFloor.swift": {
+      "sha256": "6c801caa92e8edefff05c5ceef2b5c5f38082b5d362abae373bf5915485f3317",
+      "modifiedAfterProbe": false,
+      "matchesCompiledPureExtraction": true
+    },
+    "native/ios/CatLife/Scene/RoomFurniture.swift": {
+      "sha256": "6149aef1d08d17bdf45d93a085e51e8c757f630bdff12e751525f268666bfb7d",
+      "modifiedAfterProbe": false,
+      "matchesCompiledPureExtraction": true
+    }
+  },
+  "probeInputs": {
+    "<TMP>/cat-interactive-furniture-audit/main.swift": "881b5a26c461eb298975612d26a5d44c5040cde15b327c1a47fffd2d7f2e7715",
+    "<TMP>/cat-interactive-furniture-audit/RoomFloor.swift": "3ead15b29561ea955b18cce9a1203d3cc88a45b5e3347c184238f1386da3ac9c",
+    "<TMP>/cat-interactive-furniture-audit/RoomFurniture.swift": "771a0444e83cd513b8fecb64cb8a7bb11b9d71706d3024158f4805b165b8cdfd",
+    "<TMP>/cat-interactive-furniture-audit/probe": "6fb1d9a96534434ad259457d7d890981efcabdc3c4dbcc15b89a1ffc09a57dc9"
+  },
+  "buildMethod": "Standalone xcrun swiftc -O against current Core sources and pure-geometry extractions of RoomFloor/RoomFurniture; no Xcode project build or simulator.",
+  "coverage": {
+    "singleItemStoreRestore": {
+      "cases": 18,
+      "items": [
+        "cabinet",
+        "catTree",
+        "catBed",
+        "wallFlower",
+        "wallCat",
+        "plantLarge",
+        "plantSmall",
+        "floorCushion",
+        "flowerStool"
+      ],
+      "checks": [
+        "Atomic GameEngine.setRoomLayout accepts storage",
+        "JSON encode/decode returns exactly the committed snapshot",
+        "Owned inventory is retained",
+        "Stored item has no center or rest target",
+        "Restoring the item restores its floor obstacle when applicable",
+        "Only catBed/floorCushion return rest plans"
+      ]
+    },
+    "bedAndCushionReposition": {
+      "cases": 4,
+      "checks": [
+        "Re-place stored item at a new legal resolved point",
+        "Recompute actual rest point and stage",
+        "All normal approach and target-exempt entry/exit segments are walkable",
+        "Independent CoreGraphics union/subtract/intersection swept rectangles do not leave the floor or touch another obstacle",
+        "Continuous route endpoints and resting center inside target"
+      ]
+    },
+    "saveCompatibility": {
+      "records": 1,
+      "checks": [
+        "Explicit empty placement list remains empty after encode/decode",
+        "All nine owned instances remain owned",
+        "Missing legacy furniture fields migrate exactly to the fresh defaults without other changes"
+      ],
+      "note": "This audit exercised in-memory JSON encode/decode, not FileSaveRepository disk I/O or an app cold launch."
+    },
+    "blockedEntranceExample": {
+      "cases": 1,
+      "sceneSize": [
+        402,
+        567
+      ],
+      "movedItem": "flowerStool",
+      "resolvedScenePoint": [
+        111,
+        178
+      ],
+      "result": "Placement is legal and feeding remains reachable; later catBed rest returns nil because the current entrance is blocked. This is an intentional placement rule, not a regression or a proposal to require every furniture target to stay reachable."
+    }
+  },
+  "results": {
+    "singleItemStoreRestorePassed": 18,
+    "bedAndCushionRepositionPassed": 4,
+    "saveCompatibilityChecksPassed": 3,
+    "blockedEntranceSafelyRejected": true
+  },
+  "limitations": [
+    "No simulator, physical-device interaction, rendered image review, or Xcode build in this audit",
+    "Rest interaction support is limited to catBed and floorCushion; bowl feeding uses its separate path",
+    "No runtime code, interaction feature, collision rule, or placement restriction changed"
+  ]
+}

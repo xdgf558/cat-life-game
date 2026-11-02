@@ -1,0 +1,15 @@
+Use case: precise-object-edit.
+Asset type: transparent 2D game sprite atlas, eight subtle facial/ear expression frames of the same seated orange kitten.
+Reference identity: attached cat-idle.png is the exact character and pose to preserve: round orange tabby kitten with amber eyes, white muzzle/chest/front paws, pink nose, tiny brown tied bow collar, curled striped tail at lower left, same plush 3D cream-toy-dollhouse rendering, warm upper-left light.
+Create ONE strictly regular sprite sheet, exactly 4 COLUMNS and 2 ROWS = EIGHT equal SQUARE CELLS, 2:1 canvas, target 2048x1024. Cells are invisible; NO grid, borders, text, labels, numbers, or background. True transparent alpha everywhere around each kitten. No shadow and no floor.
+Registration is crucial: every frame is the SAME reference seated body, in the SAME fixed camera, scale, position, tilt, fur pattern, and lighting. Center each full kitten within its cell. Feet rest at y=82% of each cell. Ear tops around y=12%. All tail and whiskers inside each cell with a clear transparent gutter between cells. No cropping.
+Reading left to right, top row then bottom row:
+Frame 0: original seated pose, eyes gently open and friendly.
+Frame 1: same exact pose, eyelids half closed for the beginning of a slow blink.
+Frame 2: same exact pose, both eyes softly fully closed, relaxed.
+Frame 3: same exact pose, eyes half open during the end of the blink.
+Frame 4: same exact seated body, eyes glance slightly right, head rotation at most 2 degrees.
+Frame 5: same exact seated body and open eyes, just one ear swivels subtly backward.
+Frame 6: same exact seated body, eyes softly closed in contentment, mouth slightly less open.
+Frame 7: original relaxed open-eyed pose, essentially identical to frame 0.
+These are small natural expression changes, not eight different cats and not a redesign. Preserve the sitting anatomy and proportions precisely. No exaggerated expressions, no movement of legs/body, no hats, toys or extra objects. Fully transparent background, clean edges.

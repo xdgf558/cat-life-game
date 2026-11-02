@@ -1,0 +1,57 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.1 (14)",
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "os": "iOS 27.2",
+  "sourceManifest": "build14-source-manifest.json",
+  "sourceInputCount": 87,
+  "preparedBuildMatchesCurrentSources": true,
+  "signatureValidation": "passed",
+  "signedBuildLog": "version-0.1.1/device-build.log",
+  "signatureLog": "version-0.1.1/codesign.log",
+  "binarySHA256": "aa231dc33131e9073172ad3e8cef7d329cbdf3f3736490e0bf0b8e1c290da4ef",
+  "launcherSHA256": "896385ddf55341d52ae18524b9bbe4e039508c152717426550b1ecb310b4242d",
+  "preparedAppPath": "<TMP>/cat-life-ios-device-build/Build/Products/Debug-iphoneos/CatLife.app",
+  "installation": "passed; in-place update from 0.1.0 (13) to 0.1.1 (14)",
+  "lastVerifiedInstalledBuild": "14",
+  "launch": "passed; user opened the app normally after unlocking, then the new installed executable was verified running",
+  "runningProcessVerified": true,
+  "uninstallOrSaveResetPerformed": false,
+  "normalSaveEdited": false,
+  "physicalUITests": false,
+  "userConnectionRequested": false,
+  "physicalGameplayValidation": "pending user gameplay acceptance of 0.1.1 (14)",
+  "versionCorrection": "version-0.1.1-verification.json",
+  "lastVerifiedInstalledVersion": "0.1.1",
+  "processIdentifier": 0,
+  "installationEvidence": "version-0.1.1/device-install.json",
+  "installedVersionEvidence": "version-0.1.1/device-installed-app.json",
+  "processEvidence": "version-0.1.1/device-running-process.json",
+  "sourceManifestSHA256": "fcaca2e83490e8704f6c55ebe75cea10338fd00dc0463994f3876d528b283e2a",
+  "previousConnectionCheck": {
+    "result": "unavailable",
+    "error": "CoreDeviceError 4016; required trusted connectivity services unavailable",
+    "log": "home-layout-build14/device-readiness.log"
+  },
+  "connectionCheck": {
+    "result": "passed",
+    "date": "2026-11-01",
+    "evidence": "version-0.1.1/device-installed-app.json"
+  },
+  "previousLaunchBlock": {
+    "reason": "iPhone automatically locked during update; command-line launch denied by iOS",
+    "evidence": "version-0.1.1/device-first-launch-locked.json",
+    "resolution": "User unlocked and opened the game; verified matching new bundle process"
+  },
+  "saveVerification": {
+    "result": "passed",
+    "method": "read-only copies immediately before and after in-place installation, before new app launch",
+    "byteIdentical": true,
+    "bytes": 2912,
+    "beforeSHA256": "1d884625e2f96ddfd8a815fac6aa212e9647b274385127cdf285b3ed9fce9b3b",
+    "afterSHA256": "1d884625e2f96ddfd8a815fac6aa212e9647b274385127cdf285b3ed9fce9b3b",
+    "rawSavesKeptOnlyInLocalTemporaryDirectory": true
+  },
+  "launchArgumentsInjected": []
+}

@@ -1,0 +1,87 @@
+{
+  "passed": 20,
+  "failed": 0,
+  "cases": [
+    {
+      "test": "CatLifeTests.GameStoreAudioSettingsTests testAudioIntentWaitsForBusySaveAndPreservesItsPlayerChange",
+      "seconds": 0.028
+    },
+    {
+      "test": "CatLifeTests.GameStoreAudioSettingsTests testFailedAudioIntentsRemainRetryableAndRetrySavesLatestSettings",
+      "seconds": 0.014
+    },
+    {
+      "test": "CatLifeTests.GameStoreAudioSettingsTests testOlderAudioSuccessCannotDiscardNewerIntentReturningToSavedValues",
+      "seconds": 0.034
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testBackupRestAndWorkNoticesSurviveStartupAndEntry",
+      "seconds": 0.004
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testDueWorkSettlementPersistsOnceAfterTimestampOnlyRequests",
+      "seconds": 2.129
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testEveryManualFailureReportsAndPersistentRecoveryDoesNotReplayActions",
+      "seconds": 0.107
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testExplicitRenameRecoversPendingRestExitAfterWriteFailure",
+      "seconds": 0.045
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testFailedRenameDoesNotPublishDraftOrRaiseGlobalAlert",
+      "seconds": 0.001
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testFullStaminaClockDoesNotCausePassiveWritesOrBankExtraRecovery",
+      "seconds": 0.001
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testLoadKeepsExclusiveSaveOwnershipAcrossSuspensionPoints",
+      "seconds": 0.256
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testRestExitFailuresUnlockUIKeepCapturedTimeAndSlowAfterThreeAttempts",
+      "seconds": 7.056
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testSaveRetryPolicySlowsToOneMinuteAndResetsAfterSuccess",
+      "seconds": 0.002
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testSuccessfulLoadRemainsUsableWhenReconciliationCannotSave",
+      "seconds": 0.046
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testTimestampOnlyForegroundSynchronizationDoesNotWrite",
+      "seconds": 0.003
+    },
+    {
+      "test": "CatLifeTests.GameStorePersistenceTests testWorkNoticeSurvivesConcurrentPurchaseNotice",
+      "seconds": 2.056
+    },
+    {
+      "test": "CatLifeTests.RoomBowlPlannerTests testCancelledWorkerCannotPublishAReplacementLayout",
+      "seconds": 0.003
+    },
+    {
+      "test": "CatLifeTests.RoomBowlPlannerTests testCompletelyBlockedLegacyLayoutDoesNotInventAWalkableRoute",
+      "seconds": 0.009
+    },
+    {
+      "test": "CatLifeTests.RoomBowlPlannerTests testInterruptedClimbRetainsItsFirstPoseThenReturnsAllSupportToFloor",
+      "seconds": 0.002
+    },
+    {
+      "test": "CatLifeTests.RoomBowlPlannerTests testLegacyWallPositionRestoresToReachableFloorWithoutChangingRequest",
+      "seconds": 3.206
+    },
+    {
+      "test": "CatLifeTests.RoomBowlPlannerTests testValidRestoredPositionAndNavigationAreStableAcrossReload",
+      "seconds": 0.086
+    }
+  ],
+  "scopeNote": "Runtime Core, Store and Scene unchanged after this run. Final UI-only follow-up adds a SaveStatusBanner accessibility container and two Settings task-generation guards; these are covered by the later UI runs."
+}

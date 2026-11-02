@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "deviceClass": "iPhone Pro simulator",
+  "scope": "Two UI regressions on the current PR fixes; elapsed times are individual planner samples, not a baseline or percentile benchmark. Artificial worker delay is excluded from planningMilliseconds.",
+  "tests": [
+    {
+      "name": "testCarePlansRunOffMainThreadAndConsumeSuppliesOnce",
+      "result": "passed",
+      "durationSeconds": 67.114
+    },
+    {
+      "name": "testInterruptedCarePlanningResumesAndPreservesQueuedFeed",
+      "result": "passed",
+      "durationSeconds": 99.307
+    }
+  ],
+  "plannerSamples": [
+    {
+      "action": "Feeding",
+      "nonMainThread": true,
+      "planningMilliseconds": 21.252,
+      "appliedPlanCount": 1,
+      "cancelledPlanCount": 0,
+      "completedMealCountAtSample": 0,
+      "foodContactSamples": 0,
+      "collisionViolations": 0,
+      "foodContactViolations": 0,
+      "phaseAtSample": "feeding"
+    },
+    {
+      "action": "Playing",
+      "nonMainThread": true,
+      "planningMilliseconds": 26.916,
+      "appliedPlanCount": 2,
+      "cancelledPlanCount": 0,
+      "completedMealCountAtSample": 1,
+      "foodContactSamples": 67,
+      "collisionViolations": 0,
+      "foodContactViolations": 0,
+      "phaseAtSample": "playing"
+    },
+    {
+      "action": "Resumed and queued feeding",
+      "nonMainThread": true,
+      "planningMilliseconds": 31.561,
+      "appliedPlanCount": 2,
+      "cancelledPlanCount": 1,
+      "completedMealCountAtSample": 2,
+      "foodContactSamples": 141,
+      "collisionViolations": 0,
+      "foodContactViolations": 0,
+      "phaseAtSample": "idle"
+    }
+  ],
+  "verifiedResources": {
+    "ordinaryCare": {
+      "foodBefore": 3,
+      "foodAfterOneMeal": 2,
+      "toyUsesAfterPurchase": 6,
+      "toyUsesAfterOnePlay": 5,
+      "goldBefore": 200,
+      "goldAfterOneToyPurchase": 165,
+      "foodCharges": 1,
+      "toyUseCharges": 1
+    },
+    "interruptedAndQueuedFeed": {
+      "foodBefore": 3,
+      "foodAfterTwoMeals": 1,
+      "foodAfterColdRelaunch": 1,
+      "satietyBefore": 35,
+      "satietyAfterTwoMeals": 85,
+      "satietyAfterColdRelaunch": 85,
+      "foodCharges": 2,
+      "completedMeals": 2,
+      "appliedPlans": 2,
+      "cancelledPlans": 1,
+      "extraChargesAfterResumeOrRelaunch": 0
+    }
+  },
+  "evidence": "Planner metrics are extracted from successful XCTest text attachments. Initial resource counts derive from the reset fixture and toy catalog; final counts, charges, and cold-launch persistence are successful assertions in the corresponding tests. No UI hierarchy, local user path, device identifier, or generated session identifier is included."
+}

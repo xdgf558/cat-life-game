@@ -1,0 +1,68 @@
+{
+  "executions": 8,
+  "passed": 7,
+  "historicalFailures": 1,
+  "distinctMethods": 7,
+  "newMethods": 2,
+  "runs": [
+    {
+      "stage": "initial-se",
+      "device": "iPhone SE (3rd generation), iOS 26.4",
+      "test": "CatLifeUITests.RoomHomeUITests testNavigationCareStaysClearAfterMovingBowlNearCat",
+      "result": "passed",
+      "seconds": 71.226
+    },
+    {
+      "stage": "initial-se",
+      "device": "iPhone SE (3rd generation), iOS 26.4",
+      "test": "CatLifeUITests.RoomHomeUITests testPersistentSaveFailureRemainsRetryableWithoutChargingFailedActions",
+      "result": "failed",
+      "seconds": 25.061
+    },
+    {
+      "stage": "initial-se",
+      "device": "iPhone SE (3rd generation), iOS 26.4",
+      "test": "CatLifeUITests.RoomHomeUITests testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+      "result": "passed",
+      "seconds": 46.09
+    },
+    {
+      "stage": "final-se",
+      "device": "iPhone SE (3rd generation), iOS 26.4",
+      "test": "CatLifeUITests.RoomHomeUITests testPersistentSaveFailureRemainsRetryableWithoutChargingFailedActions",
+      "result": "passed",
+      "seconds": 63.677
+    },
+    {
+      "stage": "final-pro",
+      "device": "iPhone 18 Pro, iOS 27.2",
+      "test": "CatLifeUITests.RoomHomeUITests testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+      "result": "passed",
+      "seconds": 124.761
+    },
+    {
+      "stage": "final-pro",
+      "device": "iPhone 18 Pro, iOS 27.2",
+      "test": "CatLifeUITests.RoomHomeUITests testBowlPlanningCancelsAcrossBackgroundAndLayoutExitThenFeedsOnce",
+      "result": "passed",
+      "seconds": 52.077
+    },
+    {
+      "stage": "final-pro",
+      "device": "iPhone 18 Pro, iOS 27.2",
+      "test": "CatLifeUITests.RoomHomeUITests testCarePlansRunOffMainThreadAndConsumeSuppliesOnce",
+      "result": "passed",
+      "seconds": 52.575
+    },
+    {
+      "stage": "final-pro",
+      "device": "iPhone 18 Pro, iOS 27.2",
+      "test": "CatLifeUITests.RoomHomeUITests testInterruptedCarePlanningResumesAndPreservesQueuedFeed",
+      "result": "passed",
+      "seconds": 76.878
+    }
+  ],
+  "initialFailure": "The save-status container did not expose a distinct accessible retry-button identifier. Adding accessibilityElement(children: .contain) fixed it; the complete same test passed without relaxing assertions.",
+  "sourceScope": "Initial SE navigation and update-page cases ran before the SaveStatusBanner accessibility grouping and two Settings task-generation guards. All Store, Scene and Core sources were unchanged; final SE and Pro cases ran after those UI-only fixes.",
+  "notRun": "No full 54-method historical UI sweep; no Dynamic Type sweep."
+}

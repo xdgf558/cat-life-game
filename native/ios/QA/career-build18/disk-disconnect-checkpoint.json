@@ -1,0 +1,86 @@
+{
+  "date": "2026-11-02",
+  "task": "Finish native iOS 0.3.0 (18) careers/level progression; user authorized implementation and ordinary in-place device update",
+  "repository": "<REPO>",
+  "blocker": "External volume <PROJECT_VOLUME> unmounted during final QA; use workdir=<TMP> for commands until restored. User has been asked asynchronously to reconnect both disk and iPhone.",
+  "production": "Core catalog and progression, durable result, app UI, Store and translations/version all implemented. Latest change adds explicit accessibilityElement(ignore) and localized accessibilityLabel to careerLocked_<job> Label in HomeDestinationSheet.swift. Applied successfully before volume disappeared.",
+  "core": {
+    "passed": 111,
+    "suites": 10,
+    "newTests": 16,
+    "log": "<TMP>/cat-career18-core-tests.log"
+  },
+  "uiTestMethods": 41,
+  "uiTestSourceSHA256": "65903309a15b2f0b58fbf9c1a1cbe8ccf5916ff2ced55eb231e383b404b9703a",
+  "initialUI": {
+    "executions": 8,
+    "passed": 5,
+    "failed": 3,
+    "logs": [
+      "<TMP>/cat-career18-se.log",
+      "<TMP>/cat-career18-pro.log"
+    ],
+    "failure": "Career-card parent identifier hid child names/selection IDs. Root removed parent identifier and used a contain accessibility group.",
+    "unchangedPassed": [
+      "sleep persistence/ticking/mutual exclusion",
+      "recent releases 18/17/16",
+      "cat rest partial/background recovery",
+      "feeding persistence"
+    ]
+  },
+  "secondUI": {
+    "SE": "1 passed (offline107.489s), 1 failed (locked Label AX32.402s); total139.892s.",
+    "Pro": "2 passed: active/background 115.424s; all-three-language careers/results 259.491s. Total 374.915s.",
+    "logs": [
+      "<TMP>/cat-career18-se-final.log",
+      "<TMP>/cat-career18-pro-final.log"
+    ]
+  },
+  "finalPendingTest": "testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice on SE after rebuilding explicit lock label fix. Other three career cases need not repeat if their second-round results pass.",
+  "builds": {
+    "simulatorDD": "<TMP>/cat-life-career18-build",
+    "deviceDD": "<TMP>/cat-life-ios-device-build",
+    "lastDeviceBuildLog": "<TMP>/cat-career18-build-device-lock-label.log",
+    "freshSimDDToUse": "<TMP>/cat-life-career18-release-build",
+    "freshSimBuildAttempt": "Never started: cwd missing; retry after drive restored"
+  },
+  "device": {
+    "id": "00000000-0000-0000-0000-000000000010",
+    "bundle": "com.stationcat.catlife.native",
+    "team": "<SIGNING_TEAM_1>",
+    "lastInstalled": "0.2.0 (17), user accepted",
+    "latestConnection": "CoreDevice 4016, asked to reconnect",
+    "newInstallRequired": true
+  },
+  "resumeSteps": [
+    "Verify mounted repository and last label fix/test hash; do not edit production or rebuild unnecessarily.",
+    "Complete Pro second-round test; export and inspect screenshots for 3 languages.",
+    "Build final simulator app in release DD; run only remaining locked-career case on SE; fix genuine further issues if any.",
+    "Update build18 source manifest and career-verification hashes to final label change; verify device build/signature matches final source.",
+    "Record initial 5/3 plus second round likely3/1 plus final targeted pass without erasing failures. Baseline aggregate before18 is136 passed/16 historical failures/37 unique methods.",
+    "Update README/SCOPE and QA after results. AGENTS latest delivered remains17 until actual18 install.",
+    "If phone online: verify source/app hashes, terminate only actual CatLife PID, copy save before, install in-place, copy after BEFORE launch and assert exact bytes, query18 and launch/prove new path/PID. No test/reset arguments or uninstall.",
+    "If disk or phone unavailable, accurately report pending step, not success."
+  ],
+  "currentUITotals": {
+    "executions": 12,
+    "passed": 8,
+    "failed": 4,
+    "newMethods": 4,
+    "projectUniqueMethods": 41
+  },
+  "externalDiskCheck": "diskutil list external physical (escalated/read-only) returned no external disks; /Volumes contains only Macintosh HD.",
+  "newVisualFinding": {
+    "issue": "English result page still renders completion date as Chinese (11month/2day) because Text(date, format:.dateTime...) uses current system locale. All other reviewed job/result text fits and is localized.",
+    "screenshot": "<TMP>/cat-career18-pro-final-attachments/1872A31D-37D4-4DA6-895B-C115B49338A7.png",
+    "neededFix": "In HomeDestinationSheet.workResult, set the Date.FormatStyle locale explicitly to Locale(identifier: store.language.rawValue), matching SettingsView date localization. Add workResultCompletedAt accessibilityIdentifier. Extend existing three-language UI method to assert English has no Chinese month marker and Chinese locales show the expected marker; do not add a mirror-only new test.",
+    "validation": "After disk restore, rebuild final simulator and signed device app after both lock-label and date-locale fixes. Rerun locked-career case on SE and existing three-language method on Pro. Unchanged successful active/offline and legacy regression methods need not rerun."
+  },
+  "finalDeviceBuildStatus": "Last build-device-lock-label.log succeeded, but not final after the newly found explicit date-locale correction.",
+  "exportedAttachments": [
+    "<TMP>/cat-career18-se-attachments",
+    "<TMP>/cat-career18-pro-attachments",
+    "<TMP>/cat-career18-se-final-attachments",
+    "<TMP>/cat-career18-pro-final-attachments"
+  ]
+}

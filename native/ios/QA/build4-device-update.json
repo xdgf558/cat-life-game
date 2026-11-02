@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-31",
+  "device": "iPhone Air",
+  "os": "iOS 27.2",
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "appVersion": "0.1.0 (4)",
+  "preparedBuildMatchesCurrentSources": true,
+  "signatureValidation": "passed",
+  "connection": "wired, paired, connected",
+  "installation": "passed; existing application updated in place",
+  "uninstallOrSaveResetPerformed": false,
+  "saveHandling": "Existing save container retained by in-place update; no test/reset launch arguments were used; save contents were not inspected.",
+  "launch": "blocked by device lock screen; system reported FBSOpenApplicationErrorDomain Locked",
+  "nextAction": "Unlock the iPhone and open 打工养猫日记; physical gameplay validation remains pending."
+}

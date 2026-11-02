@@ -1,0 +1,151 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (5)",
+  "xcode": "27.2 (27B52)",
+  "scope": [
+    "Actual meal mouth-to-food alignment, docking and backward exit with solid floor/bowl collision checks",
+    "Visible fifth bottom navigation tab for inventory; persisted food/litter/toy uses with use and shop flows"
+  ],
+  "coreTests": {
+    "passed": 41,
+    "failures": 0,
+    "suites": 4,
+    "log": "feeding-core-tests.txt",
+    "newCoverage": "4 feeding dock tests including 16 scale/facing/ratio cases, food contact and independently sampled collision bounds"
+  },
+  "uiTests": {
+    "passedRuns": 12,
+    "failures": 0,
+    "runs": [
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "feeding geometry and inventory integration",
+        "passed": 4,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testInventoryFoodUsePersistsAcrossRelaunch",
+            "seconds": 73.133
+          },
+          {
+            "name": "testInventoryToyPurchaseAndUseCountsRemainingUses",
+            "seconds": 46.041
+          },
+          {
+            "name": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+            "seconds": 71.692
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 81.557
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build5-pro.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "safe cancellation, inventory and reduced motion",
+        "passed": 5,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testInventoryFoodUsePersistsAcrossRelaunch",
+            "seconds": 31.881
+          },
+          {
+            "name": "testInventoryToyPurchaseAndUseCountsRemainingUses",
+            "seconds": 27.988
+          },
+          {
+            "name": "testNavigationCanResumeAfterCancellingMealAtBowl",
+            "seconds": 28.657
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 69.715
+          },
+          {
+            "name": "testReducedMotionSettlesPromptlyAndConsumesFoodOnce",
+            "seconds": 13.794
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build5-se.xcresult"
+      },
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "safe cancellation and layered bowl rendering",
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testNavigationCanResumeAfterCancellingMealAtBowl",
+            "seconds": 35.704
+          },
+          {
+            "name": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+            "seconds": 63.03
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build5-pro-final.xcresult"
+      },
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "final foreground rim and paw occlusion",
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testNavigationCareStaysClearAfterMovingBowlNearCat",
+            "seconds": 64.337
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build5-visual-final.xcresult"
+      }
+    ],
+    "checks": [
+      "Every completed meal increments real meal count and mouth contact samples with zero food-contact violations",
+      "Live collision audit independent of cached bowl obstacle; ordinary walking and directed docking footprints",
+      "Food 3→2 persists through relaunch; toy purchase 0→6 and play 6→5",
+      "Cancellation while mouth touches food returns to safe walking position and permits another real meal",
+      "Reduced motion consumes food once and settles without translation"
+    ]
+  },
+  "visualReview": {
+    "result": "passed for requested scope",
+    "screenshots": [
+      "feeding-contact-iphone-pro.png",
+      "backpack-home-iphone-pro.png",
+      "inventory-iphone-pro.png",
+      "inventory-iphone-se.png",
+      "inventory-toys-iphone-se.png"
+    ],
+    "recording": "cat-feeding-build5-preview.mp4",
+    "checks": [
+      "Muzzle reaches visible kibble during low-head bite frames",
+      "Food/front rim occludes paws; muzzle remains visible above rear food",
+      "Approach and backward exit remain outside solid bowl footprint",
+      "Inventory entry visible; cards and shop link work on 375pt width with scrolling"
+    ]
+  },
+  "physicalDevice": {
+    "appPath": "<TMP>/cat-life-ios-device-build/Build/Products/Debug-iphoneos/CatLife.app",
+    "bundleIdentifier": "com.stationcat.catlife.native",
+    "appVersion": "0.1.0 (5)",
+    "binarySHA256": "0a2e8ef576c051b64e6a9b4690c69876da471131941b6939cd2d0bfdaccd4b8a",
+    "sourceTimestampCheck": "passed",
+    "signatureVerification": "passed",
+    "installation": "passed; existing application updated in place",
+    "lastInstalledVersion": "0.1.0 (5)",
+    "uninstallOrSaveResetPerformed": false,
+    "launch": "passed; application activated with no test or reset arguments",
+    "runningProcessVerified": true,
+    "date": "2026-10-31",
+    "evidence": "build5-device-update.json",
+    "saveHandling": "Existing application updated in place; no uninstall, test-save reset, or normal-save reset was performed. Save contents were not inspected."
+  },
+  "knownLimitations": [
+    "Installation and launch verified; user interaction and long-running performance validation remain pending.",
+    "Native inventory currently contains the three migrated supply types; full web furniture/items are not yet migrated.",
+    "Existing meal atlas has tiny stray edge pixels in frames 2/3/5; cosmetic atlas cleanup is separate from the verified feeding contact and inventory fix."
+  ]
+}

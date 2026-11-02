@@ -1,0 +1,216 @@
+{
+  "appVersion": "0.4.3",
+  "build": 22,
+  "date": "2026-11-02",
+  "scope": "Targeted simulator UI verification for the redesigned native welcome screen and real staged loading progress.",
+  "totals": {
+    "executions": 13,
+    "passed": 7,
+    "historicalFailedExecutions": 6,
+    "distinctMethods": 5,
+    "newMethods": 0
+  },
+  "groups": [
+    {
+      "group": "se",
+      "screenClass": "small",
+      "log": "test-logs/cat22-se-tests.log",
+      "sourceStage": "Initial source before the welcomeHero accessibility correction.",
+      "executed": 4,
+      "passed": 2,
+      "failed": 2,
+      "tests": [
+        {
+          "test": "RoomHomeUITests/testOfflineCareerSettlementRetriesSaveThenPersistsLevelAndSingleReward",
+          "result": "passed",
+          "durationSeconds": 118.59
+        },
+        {
+          "test": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+          "result": "passed",
+          "durationSeconds": 47.482
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+          "result": "failed",
+          "durationSeconds": 22.94
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch",
+          "result": "failed",
+          "durationSeconds": 22.607
+        }
+      ],
+      "failureEvidence": [
+        "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:884: error: -[CatLifeUITests.RoomHomeUITests testWelcomeCannotEnterUntilTheRealSaveLoadFinishes] : XCTAssertTrue failed - Expected UI element: welcomeHero",
+        "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:836: error: -[CatLifeUITests.RoomHomeUITests testWelcomeEntryPreservesProgressAcrossRelaunch] : XCTAssertTrue failed - Expected UI element: welcomeHero"
+      ]
+    },
+    {
+      "group": "pro",
+      "screenClass": "large",
+      "log": "test-logs/cat22-pro-tests.log",
+      "sourceStage": "Initial source before the welcomeHero accessibility correction; saved English, Traditional Chinese and Simplified Chinese paths passed.",
+      "executed": 3,
+      "passed": 1,
+      "failed": 2,
+      "tests": [
+        {
+          "test": "RoomHomeUITests/testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+          "result": "passed",
+          "durationSeconds": 344.878
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+          "result": "failed",
+          "durationSeconds": 32.717
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch",
+          "result": "failed",
+          "durationSeconds": 27.662
+        }
+      ],
+      "failureEvidence": [
+        "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:884: error: -[CatLifeUITests.RoomHomeUITests testWelcomeCannotEnterUntilTheRealSaveLoadFinishes] : XCTAssertTrue failed - Expected UI element: welcomeHero",
+        "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:836: error: -[CatLifeUITests.RoomHomeUITests testWelcomeEntryPreservesProgressAcrossRelaunch] : XCTAssertTrue failed - Expected UI element: welcomeHero"
+      ]
+    },
+    {
+      "group": "se-final",
+      "screenClass": "small",
+      "log": "test-logs/cat22-se-final-tests.log",
+      "sourceStage": "Intermediate ZStack accessibility attempt; both welcomeHero checks still failed. The filename does not indicate successful final verification.",
+      "executed": 2,
+      "passed": 0,
+      "failed": 2,
+      "tests": [
+        {
+          "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+          "result": "failed",
+          "durationSeconds": 22.847
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch",
+          "result": "failed",
+          "durationSeconds": 22.8
+        }
+      ],
+      "failureEvidence": [
+        "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:884: error: -[CatLifeUITests.RoomHomeUITests testWelcomeCannotEnterUntilTheRealSaveLoadFinishes] : XCTAssertTrue failed - Expected UI element: welcomeHero",
+        "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:836: error: -[CatLifeUITests.RoomHomeUITests testWelcomeEntryPreservesProgressAcrossRelaunch] : XCTAssertTrue failed - Expected UI element: welcomeHero"
+      ]
+    },
+    {
+      "group": "se-accessible",
+      "screenClass": "small",
+      "log": "test-logs/cat22-se-accessible-tests.log",
+      "sourceStage": "Spacer.accessibilityRepresentation fix; both welcome tests passed. After this run, only the English welcome subtitle and formatting indentation changed.",
+      "executed": 2,
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+          "result": "passed",
+          "durationSeconds": 28.119
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch",
+          "result": "passed",
+          "durationSeconds": 53.03
+        }
+      ]
+    },
+    {
+      "group": "pro-final",
+      "screenClass": "large",
+      "log": "test-logs/cat22-pro-final-tests.log",
+      "sourceStage": "Delivery source after the English subtitle and indentation changes; both welcome tests passed.",
+      "executed": 2,
+      "passed": 2,
+      "failed": 0,
+      "tests": [
+        {
+          "test": "RoomHomeUITests/testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+          "result": "passed",
+          "durationSeconds": 35.235
+        },
+        {
+          "test": "RoomHomeUITests/testWelcomeEntryPreservesProgressAcrossRelaunch",
+          "result": "passed",
+          "durationSeconds": 72.993
+        }
+      ]
+    }
+  ],
+  "correction": {
+    "initialFailure": "All six failures stopped because welcomeHero was missing from the accessibility tree; failure records are retained rather than replaced by passing reruns.",
+    "unsuccessfulAttempt": "Putting the accessibility element on the ZStack did not make the welcomeHero identifier discoverable; the two se-final failures preserve this intermediate attempt.",
+    "successfulFix": "The hero region exposes its accessible image through Spacer.accessibilityRepresentation. Both welcome tests then passed on the small screen and again on the large screen.",
+    "finalSourceCoverage": "After the small-screen accessible run passed, only the English welcome subtitle and indentation changed. The large-screen final run used the delivery source. Earlier passing language, retry/settlement and version-navigation paths were not rerun without a relevant behavioral change. The seven passes therefore span iterations, not seven executions of one final source snapshot."
+  },
+  "screenshots": {
+    "count": 30,
+    "indexes": [
+      {
+        "group": "se",
+        "count": 5,
+        "index": "test-screenshots/se-index.json"
+      },
+      {
+        "group": "pro",
+        "count": 13,
+        "index": "test-screenshots/pro-index.json"
+      },
+      {
+        "group": "se-accessible",
+        "count": 6,
+        "index": "test-screenshots/se-accessible-index.json"
+      },
+      {
+        "group": "pro-final",
+        "count": 6,
+        "index": "test-screenshots/pro-final-index.json"
+      }
+    ],
+    "pixels": "Copied byte-for-byte from the original exported PNGs. Existing manually captured QA screenshots were not overwritten.",
+    "pngChunkTypes": [
+      "IDAT",
+      "IEND",
+      "IHDR",
+      "eXIf",
+      "iTXt",
+      "sRGB"
+    ],
+    "metadataAudit": {
+      "checkedPNGFiles": 30,
+      "identityOrLocationFindings": 0,
+      "retainedMetadata": "Only Screenshot description/comment, orientation 1, pixel dimensions, and standard color metadata; no device IDs, host paths, author or location data found."
+    }
+  },
+  "privacy": {
+    "logs": "Repository/user/temp paths, device and installation identifiers, signer/profile/team metadata, and process/thread identifiers are redacted. Timing, test names and outcomes are preserved.",
+    "indexes": "Contain only actual PNG paths, test identifiers, screenshot descriptions and timestamps. Device IDs/names, test URLs, binary snapshots and touch-event metadata are excluded.",
+    "rawEvidence": "Original logs, exports and result bundles remain in local temporary storage; no raw identity mapping is included in this archive.",
+    "validation": {
+      "checkedLogs": 5,
+      "checkedIndexes": 4,
+      "findingsByPattern": {
+        "userPaths": 0,
+        "userVolumePaths": 0,
+        "privateTempPaths": 0,
+        "uuid": 0,
+        "nonzeroPidTid": 0,
+        "nonzeroBracketPid": 0,
+        "signer": 0,
+        "emails": 0
+      },
+      "systemPaths": "Apple CoreSimulator runtime volume paths are retained; they contain OS runtime identifiers rather than a user-owned volume name."
+    }
+  },
+  "limits": [
+    "Simulator execution and screenshots do not constitute physical-device installation, launch confirmation, or player acceptance.",
+    "The full historical UI suite was not rerun."
+  ]
+}

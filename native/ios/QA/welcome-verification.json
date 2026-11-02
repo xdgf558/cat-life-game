@@ -1,0 +1,141 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.2 (15)",
+  "scope": "Native welcome screen with explicit entry; existing room and save schema preserved",
+  "sourceManifest": {
+    "path": "build15-source-manifest.json",
+    "sha256": "52b14c012f1c2ae6c425c09855439d7fa5c691837005f235a6ea9ffc6be8f885",
+    "inputCount": 91
+  },
+  "uiTestSourceSHA256": "224816274959c2407fd92d55628cf97597d92de5ab02f31c04e7d537026c64e4",
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "<TMP>/cat-welcome15-build-sim-final.log",
+      "version": "0.1.2",
+      "build": "15",
+      "executableSHA256": "817dae6a737a27ba2b772fb5b101bf5d4f9b703a80cc9df7ca887cd6c60f9690",
+      "infoSHA256": "640f6aec41a2b3e6f16d497709cab587ef436f02807b24acbfbe291ec07600be"
+    },
+    "device": {
+      "result": "passed",
+      "log": "<TMP>/cat-welcome15-build-device.log",
+      "version": "0.1.2",
+      "build": "15",
+      "executableSHA256": "f54146e59798d77d7a65083306a157bf40b459ff30fe9d96917503f5403d7c84",
+      "infoSHA256": "d780ef9356403577a13d5b3b1cce4cdde636538826a1324779671d57aa7bcc04",
+      "codesign": "passed --verify --deep --strict"
+    }
+  },
+  "coreTests": {
+    "rerun": false,
+    "reason": "CatGameCore production inputs unchanged; 77 tests in 8 suites passed in build13"
+  },
+  "uiTests": {
+    "status": "passed",
+    "executed": 7,
+    "passed": 7,
+    "failed": 0,
+    "distinctMethods": 5,
+    "newMethods": 2,
+    "runs": [
+      {
+        "device": "pro",
+        "result": "passed",
+        "cases": [
+          {
+            "test": "testLastFoodStillCompletesMealAtBowl",
+            "result": "passed",
+            "seconds": 183.267
+          },
+          {
+            "test": "testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+            "result": "passed",
+            "seconds": 30.073
+          },
+          {
+            "test": "testWelcomeEntryPreservesProgressAcrossRelaunch",
+            "result": "passed",
+            "seconds": 64.106
+          }
+        ],
+        "resultBundle": "<TMP>/cat-welcome15-pro.xcresult",
+        "log": "welcome-build15/pro-tests.log"
+      },
+      {
+        "device": "se",
+        "result": "passed",
+        "cases": [
+          {
+            "test": "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+            "result": "passed",
+            "seconds": 236.752
+          },
+          {
+            "test": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 44.436
+          },
+          {
+            "test": "testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+            "result": "passed",
+            "seconds": 24.629
+          },
+          {
+            "test": "testWelcomeEntryPreservesProgressAcrossRelaunch",
+            "result": "passed",
+            "seconds": 49.145
+          }
+        ],
+        "resultBundle": "<TMP>/cat-welcome15-se.xcresult",
+        "log": "welcome-build15/se-tests.log"
+      }
+    ]
+  },
+  "visualReview": {
+    "status": "passed",
+    "screenshots": [
+      "pro-ready.png",
+      "se-ready.png",
+      "se-english.png",
+      "se-traditional.png",
+      "se-loading.png"
+    ],
+    "directory": "welcome-build15",
+    "findings": "Checked actual simulator captures: intact cat cutout, readable title/status/CTA/version, small-screen three-language fit. Held loading fixture contains a test-only release button.",
+    "homeFrames": {
+      "pro": [
+        0,
+        62,
+        402,
+        567
+      ],
+      "se": [
+        0,
+        20,
+        375,
+        436
+      ]
+    },
+    "roomFrameMatchesPrevious": true
+  },
+  "device": {
+    "status": "installed and new process verified after user opened app",
+    "evidence": "build15-device-update.json",
+    "normalSaveByteIdentical": true
+  },
+  "preservedRoomInputs": {
+    "path": "home-layout-build14/preserved-scene-and-assets.json",
+    "count": 66,
+    "allHashesMatch": true
+  },
+  "art": {
+    "asset": "../CatLife/Assets.xcassets/welcome-cat.imageset/welcome-cat.png",
+    "mode": "built-in image_gen",
+    "prompt": "welcome-build15/art-prompt.txt"
+  },
+  "limits": [
+    "Physical-device interaction acceptance remains separate from process launch verification.",
+    "Static system launch-color configuration is compiled; not separately captured frame by frame."
+  ]
+}

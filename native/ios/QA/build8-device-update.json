@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-31",
+  "device": "iPhone Air",
+  "os": "iOS 27.2",
+  "appVersion": "0.1.0 (8)",
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "binarySHA256": "511799e7711759734e080610987d7fabffaf278d6dc32295075fb31b7ad3e76e",
+  "preparedBuildMatchesCurrentSources": true,
+  "signatureValidation": "passed",
+  "installation": "passed; application updated in place",
+  "launch": "passed; normal game launched after unlock and restored without test arguments",
+  "runningProcessVerified": true,
+  "uninstallOrSaveResetPerformed": false,
+  "saveHandling": "No uninstall or save reset. The normal game save was read once for diagnosis, not edited.",
+  "physicalGameplayValidation": "not executed; UI test runner blocked by iOS developer trust",
+  "processIdentifier": 0,
+  "reduceMotion": "user confirmed disabled",
+  "physicalUITest": {
+    "result": "blocked before test execution",
+    "device": "iPhone Air / iOS 27.2",
+    "runner": "com.stationcat.catlife.native.uitests.xctrunner",
+    "reason": "iOS rejected the UI test runner because its Developer App Certificate/profile is not trusted. The game application itself launches normally.",
+    "executedCases": 0,
+    "resultBundle": "<TMP>/cat-life-build8-phone-upper-floor.xcresult",
+    "normalSaveResetPerformed": false,
+    "testResetExecuted": false,
+    "finalLaunchArguments": []
+  },
+  "normalSaveChecks": {
+    "inventory": "unchanged",
+    "homeLayout": "unchanged",
+    "gold": "unchanged",
+    "catIDs": "unchanged",
+    "differences": "Only normal synchronization/decay tracking timestamps changed."
+  }
+}

@@ -1,0 +1,288 @@
+CatGameCore — native prototype rules and persistence
+
+This Foundation-only Swift package contains no UI, SpriteKit, networking, database,
+login, browser-storage access, or cloud-save code. It is independent of the web game.
+
+Implemented rules:
+- Basic food costs 20 gold. Feeding uses 1 serving, or 2 for a pregnant cat,
+  restores 25 satiety and 4 mood, capped at 100.
+- Cleaning consumes 1 litter, restores 30 cleanliness and 4 health.
+- Play requires 1 toy use. A 35-gold wand supplies 6 uses. Playing changes mood
+  by 18 + floor(comfort / 20), intimacy by 12, energy by -10, player mood by +4.
+- Five careers use the web catalog's base values:
+  Job                    Level   Real minutes   Stamina   Mood   Gold   EXP
+  Flyer Handout          1       2              10        5      60     22
+  Convenience Store      2       3              15        8      100    35
+  Pet Shop Assistant     4       4              20        12     160    52
+  IT Engineer            6       10             30        12     400    100
+  Cat Cafe Manager       10      30             50        20     800    200
+  The cafe uses durationMinutes: 30, not the web's separate duration: 12 field.
+  Locked careers and insufficient stamina cannot start or charge resources.
+  Mood costs clamp at zero. Only one work shift can be active.
+- Work completion grants its captured gold and EXP once. Each next level costs
+  current level * 100 EXP; overflow EXP is retained and can cross several levels.
+  Level thresholds unlock careers at levels 1, 2, 4, 6 and 10. The catalog does
+  not impose an artificial gameplay level cap; numeric overflow is rejected.
+  Web random events, random item rewards, player hunger, mood-dependent duration
+  or fine adjustments, tasks, and bank repayment are not yet ported.
+- player.lastWorkResult is the most recent already-paid receipt, not an unclaimed
+  reward. It stores work ID, job ID, original deadline as completedAt, gold/EXP,
+  levelBefore, levelAfter and expAfter. Newly unlocked careers are derived from
+  the level range. Viewing a receipt does not pay again. Starting another shift
+  keeps the receipt; the next completion replaces it.
+- Six cosmetic avatars provide male and female variants of Sunny, Forest and
+  Bookish looks. Avatar and gender choices never change work ability or rewards.
+- Four starter equipment items are owned for free but initially unequipped:
+  cap/head reduces work mood cost by 20%; jacket/body reduces stamina cost by
+  15%; sneakers/feet reduce duration by 10%; charm/accessory reduces duration
+  by 5%. The full set reduces duration/stamina/mood costs by 15%/15%/20%.
+  Same-category reductions add and cap at 50%. Positive costs round up with a
+  minimum of one; zero base costs remain zero. Durations round up to whole
+  seconds. Gold and EXP rewards are unchanged. Fatigue relief is represented
+  by reduced stamina expenditure, not by a separate fatigue statistic.
+- GameEngine.workQuote supplies both the preview and the contract captured in
+  activeWork.quote. Equipping, removing or changing appearance does not alter an
+  active shift's deadline, costs or rewards; changes apply to the next start.
+  The captured baseline is not repriced from a later catalog. Slots permit one
+  owned item each, and removing equipment retains ownership. The starter gift
+  IDs are explicit, so future purchasable catalog entries are not auto-granted.
+- Player sleep recovers 20 stamina and 20 mood per real hour, capped at 100.
+  Each stat earns 1 point per 180 seconds; its remaining seconds persist across
+  synchronization, separate sleep sessions, and reloads. Capped stats do not bank
+  extra recovery. Sleep continues until explicit wake-up, including while offline.
+  Sleep and work are mutually exclusive; browsing and cat care remain available.
+  Repeated starts/wakes and clock rollback cannot duplicate elapsed-time rewards.
+- A cat may rest on an owned, placed catBed or floorCushion. The caller starts
+  its session only after the cat has physically settled on the furniture.
+  Bed rests last 12 seconds; cushion rests last 9. Energy is the only recovered
+  cat stat: the session budget is 20 + floor(comfort / 20), capped at 100 energy.
+  Earned energy is floor(budget * elapsed / duration), granted incrementally.
+  Early exit settles only elapsed time. Successful care and changed room layouts
+  end rest; failed care and unchanged layouts do not. Matching session IDs keep
+  duplicate starts and late exit events from awarding again or ending a new rest.
+- Cat satiety, cleanliness, mood, energy lose 1 per 12/8/6/5 elapsed minutes.
+  Player stamina recovers 5 per elapsed awake hour, without stacking during sleep.
+  Cat energy decay pauses during rest, preserving the pre-rest partial interval;
+  other cat stats continue decaying. Rest expires automatically, grants at most
+  its one-session budget offline, and resumes normal energy decay after expiry.
+  Partial intervals are preserved.
+  Disease, mortality, breeding progression, and health decay are deferred.
+
+GameEngine actions are synchronous value mutations. synchronize must be called
+on load/foreground and active ticks. Failed actions do not consume resources.
+Care feedback follows successful state mutations. A furniture-arrival callback
+may request startCatRest, but elapsed timestamps in the core determine rewards;
+animation frames never award energy. On cold load, the app synchronizes first,
+then ends any unfinished cat rest so a fresh scene starts safely on the floor.
+Player sleep remains active across cold loads until explicit wake-up.
+The Store should serialize snapshot saves in creation order and throttle passive
+sync writes; the repository serializes disk operations but does not choose which
+of two externally submitted snapshots represents the user's latest intent.
+Gold, EXP, level advancement and the receipt belong to the same atomic work
+completion snapshot. The Store publishes that snapshot and its result notice
+only after successful saving. A failed save retains the uncompleted shift for
+retry. Offline completion and clock rollback cannot pay the same shift twice.
+
+Native saves:
+- FileSaveRepository writes cat-life-native-v1.json in its caller-provided directory.
+- A changed valid primary is retained as cat-life-native-v1.backup.json before
+  replacing the primary with an atomic Data write.
+- Invalid primary files can recover from a validated backup. The corrupt bytes
+  are preserved in a separate unreadable-save-UUID.json file. The caller can
+  inspect lastLoadDisposition to notify the player of backup recovery.
+- When no usable backup exists, load throws rather than creating a new game.
+- A future schema is refused and never replaced with an older backup.
+- The model retains every native cats entry, including generated IDs.
+- Schema remains 1. Player sleep, per-stat recovery remainders, and cat rest
+  sessions live in the same snapshot. Legacy saves missing the new fields default
+  to no active sleep/rest and zero remainders, retaining cats, resources, furniture,
+  room layout, work, and settings. No separate persistence key is introduced.
+- Career fields are player.level, player.exp, player.lastWorkResult, and
+  activeWork.expReward in the same snapshot. Missing level/EXP fields default to
+  level 1 and zero EXP; old completedWorkCount does not grant retrospective gold
+  or EXP. Existing cats, supplies, furniture, layout, settings, sleep and work
+  remain intact. Old in-flight work retains its ID, deadline and captured gold;
+  missing EXP uses the known job's base value (22 for flyers), or zero for an
+  unknown legacy job. Explicit saved EXP rewards are preserved. Invalid progress
+  or receipt fields cannot overwrite a valid primary save or backup.
+- player.profile contains avatarID, ownedEquipmentIDs and equipped slot IDs in
+  the same schema-1 save. Only an entirely absent profile migrates to the four
+  free starter items. An explicit empty inventory remains empty across reloads.
+  Malformed or incomplete profile data is rejected, not treated as another gift.
+  Unknown avatars/items, duplicate IDs, unowned equipment or slot mismatches
+  cannot overwrite a valid primary or backup; validated backup recovery applies.
+  Old activeWork records without quote retain their original deadline and rewards
+  without inferring historical costs or applying the current outfit retroactively.
+- This version is NOT an importer for catGameSaveV1 web JSON. Full web-save import
+  requires a dedicated migration that preserves all unimplemented module blocks.
+
+All UI messages are keys. ActionOutcome.amount means consumed units for care,
+granted units for purchases, and awarded gold for work completion.
+
+0.2.0 (build 17) validation: 95 core tests in 9 suites passed, including real
+repository reloads, legacy migration, partial recovery, offline expiry, clock
+rollback, session replay, and sleep/work exclusion. The final fresh app build
+passed all 10 UI executions across 9 distinct methods; the project now has 37
+distinct UI methods. The initial run's 9 passes and 1 stale-version assertion
+failure remain recorded. An earlier compile failure executed no UI tests and is
+not counted as a UI result. The final app also fixes a stale scenePhase race
+after asynchronous load that could cancel the sync timer; strengthened UI checks
+observe actual sleep recovery and work timing.
+The earlier CoreDevice error 4016 was resolved after reconnecting the iPhone.
+On 2026-11-02, 0.2.0 (17) was installed in place on iPhone Air. The 2912-byte
+normal save was byte-identical before installation and before the first new
+launch. Normal CLI launch succeeded, and PID <REDACTED> was verified in the new
+installation directory. No uninstall, save reset/edit, or test arguments were
+used. The user reported player acceptance passed on 2026-11-02. This user report
+does not add automated test runs or long-session performance coverage.
+Installation and save evidence are recorded in ../QA/build17-device-update.json.
+
+0.3.0 (build 18) career milestone, 2026-11-02:
+Implemented: five base careers, experience/levels/unlocks, durable latest result,
+legacy migration and once-only offline completion. This is not the complete web
+work system: the random-event, hunger and mood-duration systems remain deferred.
+Validation complete: 111 core tests in 10 suites, including 16 new career and
+persistence tests; final simulator and signed device builds passed. This milestone
+executed 16 UI cases: 10 passes and 6 preserved historical failures, with successful
+coverage of 8 distinct methods. Cumulative totals are 146 passes, 22 historical
+failures and 41 distinct UI methods. The final identical production source received
+two targeted reruns, both passing: SE career locking/selection/cafe 30-minute test
+in 152.619 seconds, and Pro three-language/result-date test in 228.898 seconds.
+The 10 passes across this milestone must not be described as 10 executions on that
+final source. UI evidence and failures are retained in ../QA/career-verification.json.
+The result date now explicitly uses the selected game language. The SE test helper
+also excludes navigation-bar-covered areas when deciding whether a control can be
+tapped; this helper correction does not constitute a production gameplay change.
+
+On 2026-11-02, 0.3.0 (18) was installed in place on iPhone Air, with the installed
+version confirmed by a device query. Before first new launch, the normal save was
+byte-identical to the pre-install copy: 3261 bytes, SHA256
+581cdf8552fb6475c92fa762007365683f31f72fd1973b753e8c7fea61ed41ed.
+No uninstall, save reset/edit, or test arguments were used. iOS refused CLI launch
+at its Security/developer-trust check. Host signature verification passed; the
+provisioning profile is valid from 2026-08-22 through 2027-08-22, contains the
+signing certificate, and matches the device, app identifier and development team.
+The user then reported opening the app and keeping it in the foreground. A read-only
+device query confirmed CatLife PID <REDACTED> running from the 0.3.0 (18) installation
+directory 00000000-0000-0000-0000-000000000016, so launch is now confirmed.
+No reinstall, process restart, save change or new test was performed for this
+confirmation. The earlier CLI Security refusal remains historical and must not be
+rewritten as a successful CLI launch. Build 18 player gameplay acceptance still
+awaits feedback; the prior build 17 acceptance remains historical. Device evidence
+is in ../QA/build18-device-update.json.
+
+0.4.0 (build 19) player profile and equipment milestone, 2026-11-02:
+Implemented: six interchangeable cosmetic appearances, persisted four-slot
+ownership/equipment, a free unequipped starter set and captured work quotations.
+The profile UI shows level/EXP, stamina, mood, gold, activity state and completed
+jobs. Appearance and equipment changes publish only after successful saving.
+A full starter set changes flyers to 102 seconds, 9 stamina and 4 mood; the cafe
+uses 1530 seconds, 43 stamina and 16 mood. Existing sleep exclusion, level locks,
+clock-rollback protection and once-only offline rewards remain in force.
+Equipment is represented by wardrobe slots, item details and effective numerical
+bonuses. The selected portrait is not a layered paper doll: equipping an item does
+not yet replace clothing pixels on the character's body. Additional items, shop
+purchases, outfit layers and further slots are deferred; no backend is introduced.
+
+Core validation: 129 tests in 11 suites passed, including 18 new cases. The first
+run had one new fixture failure because its home name exceeded the existing
+12-character limit. Only that fixture was corrected; the full suite then passed,
+with the original tests unchanged and the initial failure log preserved.
+Simulator and signed device builds succeeded. This milestone executed 14 UI
+cases: 7 passes and 7 preserved historical failures, with a passing result for each
+of 7 distinct methods. The project now has 44 distinct UI methods, 153 cumulative
+passes and 29 historical failures. The final identical production source received
+only two targeted executions: the Pro equipped-work case passed in 337.528 seconds,
+and the SE three-language case passed in 394.879 seconds. Previously passing,
+unaffected regressions were not rerun; the milestone's 7 passes must not be
+represented as 7 passes on that final build. All stage failures remain recorded
+in ../QA/player-verification.json.
+
+On 2026-11-02, 0.4.0 (19) was installed in place on iPhone Air, with the installed
+version confirmed by a device app query. The previous process PID <REDACTED> was ended
+normally before installation. Before the first new launch, the normal save was
+byte-identical to the pre-install copy: 3378 bytes, SHA256
+6f15b4713955162875cfd2b57333e2b1c340a1a4075c203ca4062a6837635f33.
+Normal CLI launch succeeded, and PID <REDACTED> was confirmed running from the new
+installation directory 00000000-0000-0000-0000-000000000017/CatLife.app/CatLife.
+No uninstall, save reset/edit, or test arguments were used. Build 19 player gameplay
+acceptance remains pending; installation and launch confirmation do not establish
+complete physical-device gameplay or long-session performance coverage. Device
+evidence is recorded in ../QA/build19-device-update.json. Build-17 and build-18
+historical results remain unchanged.
+
+0.4.1 (build 20) avatar artwork patch, 2026-11-02:
+Six transparent character images replace the previous art, following the user's
+IMG_1160.jpg reference while retaining each character's face, hairstyle, outfit,
+colors, accessories and pose. Existing avatar IDs and saved selections are retained.
+This is an artwork/version update only: Core rules, the four equipment slots,
+bonuses, work contracts and save behavior are unchanged. Body clothing layers
+remain outside the implemented scope. Asset prompts/provenance are documented in
+../ArtSource/player-build20/README.txt.
+
+Simulator and signed device builds and codesign verification passed. Three UI
+executions passed with zero failures: SE avatar case 296.383 seconds, SE version
+page 47.572 seconds, and Pro avatar case 286.529 seconds. There are still 44 distinct
+UI methods; cumulative totals are 156 passes and 29 historical failures. Core was
+unchanged and not rerun; the 129 tests in 11 suites from build 19 remain the Core
+evidence, not a newly executed build-20 test run.
+The six source characters and actual SE screenshots of all six looks, the profile
+and version page were reviewed; Pro screenshots of all six cards and the profile
+were also reviewed. No visible artifacts were found at normal display size, and
+hair, hands, hats and shoes remain complete. Room viewports are unchanged:
+SE (0,20,375,436), Pro (0,62,402,567). Source low-alpha edges were preserved without
+external pixel editing. Evidence is in ../QA/avatar-verification.json and actual
+screenshots/logs in ../QA/avatar-build20.
+
+On 2026-11-02, the user reconnected and unlocked the iPhone, resolving the prior
+CoreDevice 4016 communication block. Version 0.4.1 (20) was installed in place on
+iPhone Air; the device app query confirmed version 0.4.1 and build 20. The old
+process PID <REDACTED> was terminated normally before installation. The normal save
+was byte-identical before installation and before the first new launch: 3572 bytes,
+SHA256 44ad5c0519351d5a366acdcf763fc60194761333b4a4cf4148c081a7fffdb729.
+Normal launch without test/reset arguments succeeded with exit 0. A subsequent
+query confirmed CatLife PID <REDACTED> running from the new installation directory
+00000000-0000-0000-0000-000000000018. No uninstall, save reset or save edit occurred.
+Build 20 is delivered and launch-confirmed; player acceptance remains pending.
+Installation and process confirmation do not establish full physical-device
+gameplay or long-session performance coverage. Device evidence is recorded in
+../QA/build20-device-update.json. Historical version records remain unchanged.
+
+
+0.4.2 (build 21) player navigation portrait, 2026-11-02:
+The Player button in the bottom bar now shows a head-and-shoulders thumbnail of
+the selected appearance, reusing the existing character PNG. Successful saved
+selection changes update it immediately and persist across relaunch. An unset
+appearance retains the default person icon. The image and accessibility name
+share the existing player.profile.avatarID; no save field, artwork, Core rule or
+equipment bonus was added or changed. The circular portrait remains 31 points,
+the navigation bar remains 70 points, and room, cat and furniture sizes are unchanged.
+
+Simulator and signed device builds and codesign verification passed. Four UI
+executions produced three passes and one historical failure. The first SE portrait
+execution failed at 92.503 seconds: after selecting the third look, the home button
+still showed the preceding look. That run did not independently confirm the
+selection commit, so the failure cause remains undetermined. The SE version page
+passed in 49.085 seconds, and the first Pro six-look/relaunch execution passed in
+189.075 seconds. Only the test was then changed to add avatarSelectedID and profile
+save checkpoints; production code did not change again. The SE six-look/relaunch
+rerun passed in 220.284 seconds. The original failure remains recorded rather than
+being attributed to test timing or presented as a diagnosed product defect.
+There are now 45 distinct UI methods, with cumulative totals of 159 passes and
+30 historical failures. Core was unchanged and not rerun; build 19's 129 tests in
+11 suites remain historical evidence. Actual SE and Pro screenshots of all six
+navigation portraits passed visual review, including the 31-point head-and-shoulders
+crop and unchanged navigation/room size. UI evidence is recorded in
+../QA/avatar-navigation-verification.json.
+
+On 2026-11-02, version 0.4.2 (21) was installed in place on iPhone Air; the device
+app query confirmed version 0.4.2 and build 21. The old process PID <REDACTED> was
+terminated normally before installation. The normal save was byte-identical before
+installation and before the first new launch: 4435 bytes, SHA256
+d23ecfb85f7dbe545a45f28347143384d989b1c3f596220ede829337410d545c.
+Normal launch without test arguments succeeded, and CatLife PID <REDACTED> was confirmed
+running from the new directory 00000000-0000-0000-0000-000000000019.
+Build 21 is delivered and launch-confirmed; user acceptance remains pending.
+Installation and process confirmation do not establish complete physical-device
+gameplay or long-session performance coverage. Device evidence is recorded in
+../QA/build21-device-update.json. Earlier release records remain unchanged.

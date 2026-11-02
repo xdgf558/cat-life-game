@@ -1,0 +1,8 @@
+Tool: built-in image_gen
+References: docs/ios-room-home/room-home-refined-v2.png; native/ios/ArtSource/icon-home.png
+Output: native/ios/ArtSource/icon-town.png
+Transparent background: true
+
+Use case: stylized-concept. Asset type: native iOS game tab-bar icon at 31 logical points. The first attached image is a composition/concept reference: match the corresponding tab icon at the bottom of the UI. The second mint house is the style reference: match its soft rounded cream toy-dollhouse material, clean simple silhouette, gentle highlights, soft upper-left light and warm friendly polish.
+Generate ONE isolated icon only, centered on a square canvas about 768 x 768. Subject occupies about 85% of canvas width. Genuinely transparent alpha background, complete silhouette and comfortable small padding. No text, numbers, labels, letters, circular button plate, border, frame, floor, colored backdrop or large shadow patch. Keep details simple and readable when small.
+Subject: a tiny cream cottage with lavender-purple roof and a little cream cat-head ornament perched on the roof at upper right, matching the reference's bottom CAT TOWN icon. Lavender arched door, two simple light blue windows and one small upper window. Rounded softly dimensional miniature toy form. The cat head is a simple cream face with two tiny eyes and pink ears, a decoration attached to roof. House icon only, no additional scenery or ground.

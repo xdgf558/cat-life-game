@@ -1,0 +1,15 @@
+Use case: stylized-concept. Asset type: animation sprite atlas for the existing native iOS orange-cat room game.
+Input image 1 is the exact cat identity reference. Input image 2 is the existing rise animation atlas: match its character proportions, head size, fur markings, orange knotted collar, cream muzzle/chest/paws, warm soft light and high three-quarter camera.
+Create ONE transparent RGBA sprite sheet, exactly TWO COLUMNS by FOUR ROWS (8 equal cells), 1024×2048 portrait, no labels, borders, separators or captions. Each cell is 512×512. Reading order left-to-right, top-to-bottom. The same one complete chubby orange kitten appears once in each cell. All eight cats face screen RIGHT in a consistent three-quarter view. Keep the physical skull/head and body size constant across frames, a common centered body registration and a common floor baseline near 86% of each cell height; the cat must naturally become LOWER when lying down, never scale up to fill the cell. Keep 7% safe transparent gutters so tails/whiskers never enter a neighboring cell.
+Frames:
+0: four paws standing, calm mouth closed, a small natural head/body turn as it chooses a sleeping spot, tail relaxing downward.
+1: bending forelegs and hindlegs, lowering chest and hips toward the floor.
+2: forepaws laid forward on the floor, chest down, hips tucked, head still awake.
+3: comfortably curled on its belly/side with tail wrapped around the body and forepaws tucked, head slightly raised and eyes open.
+4: same curled resting body, head lowered comfortably over tucked paws, eyes gently closed asleep.
+5: almost identical to frame 4, only a barely perceptible relaxed breathing change in chest and cheeks; exact same support outline and head registration.
+6: waking from that same curled body, eyes softly opening and head lifting slightly.
+7: natural low forward stretch, forepaws extended, shoulders low, back and hindquarters beginning to rise, eyes gently narrowed.
+Style: high quality soft tactile toy-like 3D cartoon, fluffy fur, friendly round face, exact same orange/cream striped cat identity as references. Not photorealistic. Natural anatomy with four legs, no duplicate limbs, no furniture, bed, cushion, floor, external cast shadow, scene, text, ZZZ, motion trails or props. Fully transparent background everywhere outside the cat, including between cells. Keep complete cat silhouettes uncut in every cell.
+
+Generated with built-in image_gen.imagegen; transparent_background=true. References: ../cat-idle.png and cat-rise.png. Original generator pixels are preserved; runtime registration uses alpha bounds.

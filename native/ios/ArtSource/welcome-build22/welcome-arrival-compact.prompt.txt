@@ -1,0 +1,9 @@
+Use case: precise-object-edit
+Asset type: native iOS compact-screen full-bleed welcome background, 9:16 portrait.
+Input image 1 is the exact EDIT TARGET. It is a finished tall portrait illustration, about 851x1847 pixels.
+Primary request: OUTPAINT ONLY to the LEFT and RIGHT to produce a 9:16 portrait image, about 1040x1848 pixels. Add about 94 pixels of naturally continued scenery to each side, approximately 11% of the original width on each side. The original image's central pixels should stay unchanged. Do NOT crop top or bottom. Do NOT compress or stretch the image. Do NOT zoom, move, resize, redraw or change the boy or cat.
+Preserve exact vertical composition: the young man's head begins at about 20.4% of image height; his front shoe bottom is at about 77.5%; the cat's paws reach about 74%; the whole bottom 80–100% is clean sunlit stone path with soft edge foliage. Keep the whole top 0–20% as sunlit blank cream wall for future native title.
+Outpaint left: extend the same sunlit cream exterior wall, green climbing vine, daisies and foliage/stone pathway naturally outward, matching perspective and light.
+Outpaint right: extend the green entrance door, wall, daisies and foliage/pathway naturally outward. Make a cohesive edge-to-edge scene with absolutely NO blurred sidebars, duplicated vertical strips, seams, borders, frames or blank margins.
+Critical invariants: keep the SAME smiling young man's identity/face/hair, sage green shirt, cream T shirt, tan trousers, canvas shoulder bag and yellow hardhat; keep the SAME orange tabby cat with bow collar; their poses, sizes and relative positions must stay unchanged in the central original area. Keep the arched doorway, lighting, warmth, shadows, 3D storybook texture and colors unchanged.
+Output: exactly one full-bleed 9:16 portrait raster background. No UI, text, icons, numbers, buttons, badges, progress bars or watermark. This is purely a left/right canvas extension.

@@ -1,0 +1,309 @@
+{
+  "date": "2026-11-02",
+  "appVersion": "0.3.0 (18)",
+  "scope": "Five careers, player level/experience and durable already-paid work summaries",
+  "sourceManifest": {
+    "path": "build18-source-manifest.json",
+    "inputCount": 93,
+    "sha256": "392d90a2e163ce07c07ae8bc4d0a1d7d369ed6e2e2ed2c45b9a40308a3f204a9"
+  },
+  "uiTestSourceSHA256": "d9b7248895f0b09e312f6a914d94bee54cd6cab817920826013c0c598def4592",
+  "coreTests": {
+    "result": "passed",
+    "count": 111,
+    "suites": 10,
+    "newTests": 16,
+    "log": "career-build18/cat-career18-core-tests.log"
+  },
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "career-build18/cat-career18-build-sim-release.log",
+      "executableSHA256": "2197fc601bc1869876a7ec237a159b9bede8b7086adda4ee6d5fdb39aadc364b",
+      "infoSHA256": "27d6b724cddc2f884d4688737a819143d77bd050241e9423d2ac4d91984b64d7"
+    },
+    "device": {
+      "result": "passed",
+      "log": "career-build18/cat-career18-build-device-release.log",
+      "executableSHA256": "25562ee1a7147b0477d22d91457d20b295f4fc58879e4103c8f6429a21121d2d",
+      "infoSHA256": "655a0b4c1e337d47f38a5bae24e489c2adcf98fb83d0dd70e5a2ed9fa9f1eb59",
+      "codesign": "passed using system certificate trust service"
+    }
+  },
+  "uiTests": {
+    "status": "final two targeted cases running",
+    "projectUniqueMethods": 41,
+    "newMethods": 4,
+    "initial": {
+      "executions": 8,
+      "passed": 5,
+      "failed": 3,
+      "runs": [
+        {
+          "device": "iPhone SE (3rd generation)",
+          "cases": [
+            {
+              "method": "testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice",
+              "result": "failed",
+              "seconds": 41.85
+            },
+            {
+              "method": "testOfflineCareerSettlementRetriesSaveThenPersistsLevelAndSingleReward",
+              "result": "failed",
+              "seconds": 77.139
+            },
+            {
+              "method": "testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork",
+              "result": "passed",
+              "seconds": 94.118
+            },
+            {
+              "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+              "result": "passed",
+              "seconds": 46.999
+            }
+          ],
+          "log": "career-build18/cat-career18-se.log",
+          "resultBundle": "<TMP>/cat-career18-se.xcresult"
+        },
+        {
+          "device": "<DEVICE_NAME_29>",
+          "cases": [
+            {
+              "method": "testActiveCareerCompletesInBackgroundAndKeepsOnePersistentResult",
+              "result": "passed",
+              "seconds": 116.589
+            },
+            {
+              "method": "testCareerSelectionAndSavedResultTranslateInAllThreeLanguages",
+              "result": "failed",
+              "seconds": 58.77
+            },
+            {
+              "method": "testCatRestRecoversPartiallyWhenFedAndCapsAfterBackgroundCompletion",
+              "result": "passed",
+              "seconds": 112.075
+            },
+            {
+              "method": "testFeedingPersistsAcrossRelaunch",
+              "result": "passed",
+              "seconds": 46.352
+            }
+          ],
+          "log": "career-build18/cat-career18-pro.log",
+          "resultBundle": "<TMP>/cat-career18-pro.xcresult"
+        }
+      ],
+      "failure": "Three career-list cases could not find individual names/selection controls. Removed the card-level inherited identifier and kept children as an accessibility container. Scroll helper now permits fully-visible disabled controls for state assertions while enabled controls still require hit testing.",
+      "sourceManifest": "career-build18/initial-build18-source-manifest.json",
+      "testSourceSHA256": "8e23c9c401cbfc316a04c30dce54be21ab3064f75df54426fc1eb5955966c169"
+    },
+    "unchangedRegressionMethods": [
+      "testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork",
+      "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+      "testCatRestRecoversPartiallyWhenFedAndCapsAfterBackgroundCompletion",
+      "testFeedingPersistsAcrossRelaunch"
+    ],
+    "secondRound": {
+      "executions": 4,
+      "passed": 3,
+      "failed": 1,
+      "runs": [
+        {
+          "log": "<TMP>/cat-career18-se-final.log",
+          "cases": [
+            {
+              "method": "testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice",
+              "result": "failed",
+              "seconds": 32.402
+            },
+            {
+              "method": "testOfflineCareerSettlementRetriesSaveThenPersistsLevelAndSingleReward",
+              "result": "passed",
+              "seconds": 107.489
+            }
+          ]
+        },
+        {
+          "log": "<TMP>/cat-career18-pro-final.log",
+          "cases": [
+            {
+              "method": "testActiveCareerCompletesInBackgroundAndKeepsOnePersistentResult",
+              "result": "passed",
+              "seconds": 115.424
+            },
+            {
+              "method": "testCareerSelectionAndSavedResultTranslateInAllThreeLanguages",
+              "result": "passed",
+              "seconds": 259.491
+            }
+          ]
+        }
+      ],
+      "failure": "The locked-level Label exposed the SF Symbol accessibility label instead of its numeric level requirement. Added an explicit combined accessibility node and complete localized label."
+    },
+    "preExecutionEnvironmentFailures": {
+      "count": 2,
+      "reason": "Sandbox denied Swift manifest cache writes; no XCTest cases started. Relaunched through system Xcode permissions.",
+      "logs": [
+        "career-build18/cat-career18-se-release.log",
+        "career-build18/cat-career18-pro-release.log"
+      ]
+    }
+  },
+  "device": {
+    "status": "reconnected; not yet installed",
+    "lastInstalledVersion": "0.2.0 (17)",
+    "connectionLog": "career-build18/device-connection-check.log"
+  },
+  "rules": {
+    "jobIDs": [
+      "job_flyer",
+      "job_store",
+      "job_petshop",
+      "job_it_engineer",
+      "job_cat_cafe_manager"
+    ],
+    "unlockLevels": [
+      1,
+      2,
+      4,
+      6,
+      10
+    ],
+    "durationMinutes": [
+      2,
+      3,
+      4,
+      10,
+      30
+    ],
+    "staminaCosts": [
+      10,
+      15,
+      20,
+      30,
+      50
+    ],
+    "moodCosts": [
+      5,
+      8,
+      12,
+      12,
+      20
+    ],
+    "goldRewards": [
+      60,
+      100,
+      160,
+      400,
+      800
+    ],
+    "experienceRewards": [
+      22,
+      35,
+      52,
+      100,
+      200
+    ],
+    "levelRequirement": "current level * 100 experience",
+    "legacy": "Missing level/experience default to 1/0. Already-completed legacy jobs are not credited again. In-flight jobs keep their deadline/gold and gain their catalog experience on completion.",
+    "summary": "Latest work receipt is saved in the same state as its already-applied rewards. Reopening it never awards anything."
+  },
+  "limits": [
+    "Web work random events, hunger and mood-dependent duration/penalties are separate later work.",
+    "No task/achievement system in this release.",
+    "Physical-device player acceptance remains distinct from automated tests."
+  ],
+  "changedProductionInputs": [
+    "CatGameCore/Sources/CatGameCore/GameEngine.swift",
+    "CatGameCore/Sources/CatGameCore/GameSnapshot.swift",
+    "CatGameCore/Sources/CatGameCore/WorkCatalog.swift",
+    "CatLife/Info.plist",
+    "CatLife/Localization/GameStrings.swift",
+    "CatLife/Store/GameStore.swift",
+    "CatLife/Views/HomeDestinationSheet.swift",
+    "CatLife/Views/SettingsView.swift"
+  ],
+  "resolvedDuringQA": [
+    "Removed career-card identifier inheritance; names, lock requirements and selection controls now retain their own accessibility IDs.",
+    "Rest-status text now uses the active job rather than the old fixed flyer wording.",
+    "Work countdown and progress use the monotonic saved-time floor, matching core clock-rollback protection."
+  ],
+  "preservedInputs": [
+    "CatLife/Assets.xcassets/AccentColor.colorset/Contents.json",
+    "CatLife/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+    "CatLife/Assets.xcassets/AppIcon.appiconset/Contents.json",
+    "CatLife/Assets.xcassets/Contents.json",
+    "CatLife/Assets.xcassets/LaunchCream.colorset/Contents.json",
+    "CatLife/Assets.xcassets/bowl-empty.imageset/Contents.json",
+    "CatLife/Assets.xcassets/bowl-empty.imageset/bowl-empty.png",
+    "CatLife/Assets.xcassets/bowl-full.imageset/Contents.json",
+    "CatLife/Assets.xcassets/bowl-full.imageset/bowl-full.png",
+    "CatLife/Assets.xcassets/cat-avatar.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-avatar.imageset/cat-avatar.png",
+    "CatLife/Assets.xcassets/cat-eating.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-eating.imageset/cat-eating.png",
+    "CatLife/Assets.xcassets/cat-expressions.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-expressions.imageset/cat-expressions.png",
+    "CatLife/Assets.xcassets/cat-idle.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-idle.imageset/cat-idle.png",
+    "CatLife/Assets.xcassets/cat-meal.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-meal.imageset/cat-meal.png",
+    "CatLife/Assets.xcassets/cat-play.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-play.imageset/cat-play.png",
+    "CatLife/Assets.xcassets/cat-rest.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-rest.imageset/cat-rest.png",
+    "CatLife/Assets.xcassets/cat-rise.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-rise.imageset/cat-rise.png",
+    "CatLife/Assets.xcassets/cat-step.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-step.imageset/cat-step.png",
+    "CatLife/Assets.xcassets/cat-walk.imageset/Contents.json",
+    "CatLife/Assets.xcassets/cat-walk.imageset/cat-walk.png",
+    "CatLife/Assets.xcassets/furniture-cabinet.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-cabinet.imageset/furniture-cabinet.png",
+    "CatLife/Assets.xcassets/furniture-cat-bed.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-cat-bed.imageset/furniture-cat-bed.png",
+    "CatLife/Assets.xcassets/furniture-cat-tree.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-cat-tree.imageset/furniture-cat-tree.png",
+    "CatLife/Assets.xcassets/furniture-floor-cushion.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-floor-cushion.imageset/furniture-floor-cushion.png",
+    "CatLife/Assets.xcassets/furniture-flower-stool.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-flower-stool.imageset/furniture-flower-stool.png",
+    "CatLife/Assets.xcassets/furniture-plant.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-plant.imageset/furniture-plant.png",
+    "CatLife/Assets.xcassets/furniture-wall-cat.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-wall-cat.imageset/furniture-wall-cat.png",
+    "CatLife/Assets.xcassets/furniture-wall-flower.imageset/Contents.json",
+    "CatLife/Assets.xcassets/furniture-wall-flower.imageset/furniture-wall-flower.png",
+    "CatLife/Assets.xcassets/icon-clean.imageset/Contents.json",
+    "CatLife/Assets.xcassets/icon-clean.imageset/icon-clean.png",
+    "CatLife/Assets.xcassets/icon-home.imageset/Contents.json",
+    "CatLife/Assets.xcassets/icon-home.imageset/icon-home.png",
+    "CatLife/Assets.xcassets/icon-play.imageset/Contents.json",
+    "CatLife/Assets.xcassets/icon-play.imageset/icon-play.png",
+    "CatLife/Assets.xcassets/icon-shop.imageset/Contents.json",
+    "CatLife/Assets.xcassets/icon-shop.imageset/icon-shop.png",
+    "CatLife/Assets.xcassets/icon-town.imageset/Contents.json",
+    "CatLife/Assets.xcassets/icon-town.imageset/icon-town.png",
+    "CatLife/Assets.xcassets/icon-work.imageset/Contents.json",
+    "CatLife/Assets.xcassets/icon-work.imageset/icon-work.png",
+    "CatLife/Assets.xcassets/room-background.imageset/Contents.json",
+    "CatLife/Assets.xcassets/room-background.imageset/room-background.png",
+    "CatLife/Assets.xcassets/room-empty.imageset/Contents.json",
+    "CatLife/Assets.xcassets/room-empty.imageset/room-empty.png",
+    "CatLife/Assets.xcassets/welcome-cat.imageset/Contents.json",
+    "CatLife/Assets.xcassets/welcome-cat.imageset/welcome-cat.png",
+    "CatLife/Assets.xcassets/wood-plaque.imageset/Contents.json",
+    "CatLife/Assets.xcassets/wood-plaque.imageset/wood-plaque.png",
+    "CatLife/Scene/CatActor.swift",
+    "CatLife/Scene/RoomFloor.swift",
+    "CatLife/Scene/RoomFurniture.swift",
+    "CatLife/Scene/RoomScene.swift",
+    "CatLife/Views/RoomHomeView.swift",
+    "CatLife/Views/RoomSceneHost.swift"
+  ],
+  "visualFindings": [
+    "English work-summary date still used system Chinese locale; Date.FormatStyle now explicitly uses the saved app language. Final language test will assert the actual date label."
+  ]
+}

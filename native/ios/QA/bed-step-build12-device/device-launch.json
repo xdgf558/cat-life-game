@@ -1,0 +1,53 @@
+{
+  "info": {
+    "arguments": [
+      "devicectl",
+      "device",
+      "process",
+      "launch",
+      "--device",
+      "<DEVICE_UDID_8>",
+      "--terminate-existing",
+      "com.stationcat.catlife.native",
+      "--json-output",
+      "<TMP>/cat-bed-build12-device-launch.json"
+    ],
+    "commandType": "devicectl.device.process.launch",
+    "environment": {
+      "TERM": "dumb"
+    },
+    "jsonVersion": 5,
+    "outcome": "success",
+    "version": "651.32"
+  },
+  "result": {
+    "deviceIdentifier": "00000000-0000-0000-0000-000000000010",
+    "launchOptions": {
+      "activatedWhenStarted": true,
+      "arguments": [],
+      "environmentVariables": {
+        "TERM": "dumb"
+      },
+      "platformSpecificOptions": {},
+      "startStopped": false,
+      "terminateExistingInstances": true,
+      "user": {
+        "active": true
+      }
+    },
+    "process": {
+      "auditToken": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000009/CatLife.app/CatLife",
+      "processIdentifier": 0
+    }
+  }
+}

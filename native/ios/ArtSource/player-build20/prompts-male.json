@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-02",
+  "sourcePath": "<USER_HOME>/Downloads/IMG_1160.jpg",
+  "mode": "built-in image_gen edit",
+  "assets": [
+    {
+      "id": "sunny",
+      "prompt": "Use case: background-extraction / identity-preserve. The attached image is the exact source artwork, NOT merely inspiration. Extract and faithfully reproduce ONLY the TOP LEFT male character labeled 晴日男生. He has tousled warm chestnut hair, big brown eyes, an open cheerful smile, and his LEFT-SIDE arm in the picture is lifted in a friendly open-palm wave. Preserve his exact stance and wave. His other hand rests in a pocket. Preserve the pale apricot short-sleeve open shirt over a plain white tee, tan/brown rolled-cuff cargo shorts with side pockets, white crew socks, ivory high-top sneakers with tan/gold details. Keep the source character's exact face, eyes, nose, mouth, expression, head-to-body proportions, hair silhouette, color palette, clothing construction, fabric texture, accessories, hands, shoes and pose. Preserve the same refined soft 3D cartoon rendering and warm lighting. Do not redesign, beautify, change age, change gender, remove an accessory, change clothes, simplify outfit, or invent anything. Remove all other five characters, all Chinese labels, all background and all floor/contact shadows. Output only this ONE complete character as a high-fidelity transparent PNG cutout, on a SQUARE canvas with genuine alpha. Uniformly scale and center the entire character including hair/hat/bag/waving hand; head top at about 5% canvas height, shoe soles at about 95%, at least 5% bottom clearance. Keep every fingertip, hair strand and shoe fully inside the canvas. No text, label, background, ground, shadow, border, scenery, props beyond the character's original accessories or watermark.",
+      "sourcePath": "<USER_HOME>/Downloads/IMG_1160.jpg",
+      "assetName": "player-male-sunny",
+      "generationPath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-6fba02ce-7d49-4d7d-8b16-d3b62c902025.png",
+      "mode": "RGBA",
+      "transparentBackground": true,
+      "size": [
+        1254,
+        1254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "halfAlphaBounds": [
+        306,
+        36,
+        912,
+        1225
+      ],
+      "sha256": "a6ae5906c0b759811741118d6147e1cd4a055ebb625afcc7caa27b87f13f3056",
+      "bytes": 888510,
+      "sourceCopy": "native/ios/ArtSource/player-build20/player-male-sunny.png",
+      "runtimeCopy": "native/ios/CatLife/Assets.xcassets/player-male-sunny.imageset/player-male-sunny.png",
+      "copiesIdentical": true
+    },
+    {
+      "id": "forest",
+      "prompt": "Use case: background-extraction / identity-preserve. The attached image is the exact source artwork, NOT merely inspiration. Extract and faithfully reproduce ONLY the MIDDLE LEFT male character labeled 森系男生. He has tousled dark brown hair under an olive-green bucket hat with a small tan patch, brown eyes and a gentle smile. Preserve his exact stance with BOTH hands in his trouser pockets. Preserve the cream long-sleeved collared button shirt with rolled sleeves, olive-green multi-pocket utility vest, loose tan cuffed trousers, and brown lace-up ankle hiking boots. Keep the source character's exact face, eyes, nose, mouth, expression, head-to-body proportions, hair silhouette, color palette, clothing construction, fabric texture, accessories, hands, shoes and pose. Preserve the same refined soft 3D cartoon rendering and warm lighting. Do not redesign, beautify, change age, change gender, remove an accessory, change clothes, simplify outfit, or invent anything. Remove all other five characters, all Chinese labels, all background and all floor/contact shadows. Output only this ONE complete character as a high-fidelity transparent PNG cutout, on a SQUARE canvas with genuine alpha. Uniformly scale and center the entire character including hair/hat/bag/waving hand; head top at about 5% canvas height, shoe soles at about 95%, at least 5% bottom clearance. Keep every fingertip, hair strand and shoe fully inside the canvas. No text, label, background, ground, shadow, border, scenery, props beyond the character's original accessories or watermark.",
+      "sourcePath": "<USER_HOME>/Downloads/IMG_1160.jpg",
+      "assetName": "player-male-forest",
+      "generationPath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-cd8d9a92-5834-420c-b782-01452780465d.png",
+      "mode": "RGBA",
+      "transparentBackground": true,
+      "size": [
+        1254,
+        1254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "halfAlphaBounds": [
+        381,
+        27,
+        866,
+        1194
+      ],
+      "sha256": "ecb8102c7d4952252543519d448df1994b4b14e36b54583e9efccb363158db25",
+      "bytes": 789137,
+      "sourceCopy": "native/ios/ArtSource/player-build20/player-male-forest.png",
+      "runtimeCopy": "native/ios/CatLife/Assets.xcassets/player-male-forest.imageset/player-male-forest.png",
+      "copiesIdentical": true
+    },
+    {
+      "id": "scholarly",
+      "prompt": "Use case: background-extraction / identity-preserve. The attached image is the exact source artwork, NOT merely inspiration. Extract and faithfully reproduce ONLY the BOTTOM LEFT male character labeled 书卷男生. He has short softly parted dark-brown wavy hair, round thin brown eyeglasses, brown eyes and a gentle smile. Preserve his exact pose: one hand holding the brown shoulder-bag strap at his chest and the other hand in his trouser pocket. Preserve the ivory collared button shirt with rolled sleeves, dusty navy-blue cable-knit V-neck sleeveless vest, warm brown cuffed trousers, white socks and dark brown leather shoes. Keep the brown leather satchel hanging at the viewer-left hip with its shoulder strap, buckles and flap. Keep the source character's exact face, eyes, nose, mouth, expression, head-to-body proportions, hair silhouette, color palette, clothing construction, fabric texture, accessories, hands, shoes and pose. Preserve the same refined soft 3D cartoon rendering and warm lighting. Do not redesign, beautify, change age, change gender, remove an accessory, change clothes, simplify outfit, or invent anything. Remove all other five characters, all Chinese labels, all background and all floor/contact shadows. Output only this ONE complete character as a high-fidelity transparent PNG cutout, on a SQUARE canvas with genuine alpha. Uniformly scale and center the entire character including hair/hat/bag/waving hand; head top at about 5% canvas height, shoe soles at about 95%, at least 5% bottom clearance. Keep every fingertip, hair strand and shoe fully inside the canvas. No text, label, background, ground, shadow, border, scenery, props beyond the character's original accessories or watermark.",
+      "sourcePath": "<USER_HOME>/Downloads/IMG_1160.jpg",
+      "assetName": "player-male-scholarly",
+      "generationPath": "<USER_HOME>/.codex/generated_images/01a199e8-eb82-7b12-80f3-d02ff39aded8/exec-0bcd0300-8c13-4a9e-92c9-92a1eae16562.png",
+      "mode": "RGBA",
+      "transparentBackground": true,
+      "size": [
+        1254,
+        1254
+      ],
+      "alphaExtrema": [
+        0,
+        255
+      ],
+      "halfAlphaBounds": [
+        375,
+        32,
+        856,
+        1206
+      ],
+      "sha256": "fd656cfff997741984491f4c107449c21f3166292a2a7c85495d9a1d2230ea3f",
+      "bytes": 803133,
+      "sourceCopy": "native/ios/ArtSource/player-build20/player-male-scholarly.png",
+      "runtimeCopy": "native/ios/CatLife/Assets.xcassets/player-male-scholarly.imageset/player-male-scholarly.png",
+      "copiesIdentical": true
+    }
+  ],
+  "review": "All three original source characters and generated cutouts visually compared. Full figure, original face/hair/outfits/accessories/pose retained; no source labels or other characters. No external pixel editing, cropping, compositing, scaling or alpha cleanup performed."
+}

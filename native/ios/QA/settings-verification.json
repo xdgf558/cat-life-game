@@ -1,0 +1,454 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.0 (13)",
+  "features": [
+    "two-level full-screen settings",
+    "persisted simplified/traditional Chinese and English",
+    "current bundle version and three recent release notes",
+    "persisted custom home name, explicit default reset and stable room plaque"
+  ],
+  "coreTests": {
+    "result": "passed",
+    "count": 77,
+    "suites": 8,
+    "log": "settings-build13-test-logs/cat-home-name-core-tests.log",
+    "sha256": "7fa4552c7bc3c93040f4fc464d83385715f87a7e5050b623670d519d97738273"
+  },
+  "uiTests": {
+    "allAttempts": {
+      "executed": 14,
+      "passed": 10,
+      "failures": 4
+    },
+    "uniqueMethods": 5,
+    "earlierSettingsOnly": {
+      "executed": 5,
+      "passed": 5,
+      "failures": 0,
+      "notFinalProductionSource": true
+    },
+    "beforeKeyboardProductFix": {
+      "executed": 7,
+      "passed": 3,
+      "failures": 4
+    },
+    "finalProductionSourceAttempts": {
+      "executed": 2,
+      "passed": 2,
+      "failures": 0
+    },
+    "finalProductionSourceLatestPerCase": {
+      "definition": "Latest observed result per method in the explicitly stated scope; earlier failed attempts remain in allAttempts.",
+      "uniqueCases": 2,
+      "passed": 2,
+      "failures": 0,
+      "cases": [
+        {
+          "name": "testSettingsDismissalResumesAnInProgressMeal",
+          "result": "passed",
+          "seconds": 60.129,
+          "logLine": 409,
+          "run": "final-source-run-1",
+          "log": "settings-build13-test-logs/cat-build13-se-keyboard-room.log"
+        },
+        {
+          "name": "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges",
+          "result": "passed",
+          "seconds": 80.647,
+          "logLine": 340,
+          "run": "final-source-run-2",
+          "log": "settings-build13-test-logs/cat-build13-pro-keyboard-room.log"
+        }
+      ]
+    },
+    "latestNameAndSettingsReturnPerCaseAcrossAllRevisions": {
+      "definition": "Latest observed result per method in the explicitly stated scope; earlier failed attempts remain in allAttempts.",
+      "uniqueCases": 4,
+      "passed": 4,
+      "failures": 0,
+      "cases": [
+        {
+          "name": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+          "result": "passed",
+          "seconds": 35.835,
+          "logLine": 629,
+          "run": "rename-se-initial",
+          "log": "settings-build13-test-logs/cat-home-name-build13-se.log"
+        },
+        {
+          "name": "testSettingsDismissalResumesAnInProgressMeal",
+          "result": "passed",
+          "seconds": 60.129,
+          "logLine": 409,
+          "run": "final-source-run-1",
+          "log": "settings-build13-test-logs/cat-build13-se-keyboard-room.log"
+        },
+        {
+          "name": "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges",
+          "result": "passed",
+          "seconds": 80.647,
+          "logLine": 340,
+          "run": "final-source-run-2",
+          "log": "settings-build13-test-logs/cat-build13-pro-keyboard-room.log"
+        },
+        {
+          "name": "testHomeNameValidationDiscardedDraftAndLocalizedDefaultPreserveProgress",
+          "result": "passed",
+          "seconds": 116.547,
+          "logLine": 593,
+          "run": "rename-se-keyboard-done-retry",
+          "log": "settings-build13-test-logs/cat-home-name-build13-se-final.log"
+        }
+      ]
+    },
+    "runs": [
+      {
+        "label": "settings-pro",
+        "stage": "earlier-settings-only",
+        "sourceLog": "<TMP>/cat-settings-build13-pro.log",
+        "log": "settings-build13-test-logs/cat-settings-build13-pro.log",
+        "logSha256": "52dc0baf3474a1bb480001d80f8e047b0d5a3a6959c0b59b88b5a560f325a309",
+        "startedAtLocal": "2026-11-01 09:52:55.419",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "resultBundle": "<TMP>/cat-settings-build13-pro.xcresult",
+        "runnerSucceeded": true,
+        "executed": 2,
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+            "result": "passed",
+            "seconds": 212.016,
+            "logLine": 867
+          },
+          {
+            "name": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 36.495,
+            "logLine": 1009
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "settings-se",
+        "stage": "earlier-settings-only",
+        "sourceLog": "<TMP>/cat-settings-build13-se.log",
+        "log": "settings-build13-test-logs/cat-settings-build13-se.log",
+        "logSha256": "81270866e28e09176f2a017d7db21b3fc05053a61d59a5c9fa96749bdb061936",
+        "startedAtLocal": "2026-11-01 09:58:05.837",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "resultBundle": "<TMP>/cat-settings-build13-se.xcresult",
+        "runnerSucceeded": true,
+        "executed": 3,
+        "passed": 3,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testSettingsDismissalResumesAnInProgressMeal",
+            "result": "passed",
+            "seconds": 39.202,
+            "logLine": 291
+          },
+          {
+            "name": "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+            "result": "passed",
+            "seconds": 202.032,
+            "logLine": 1128
+          },
+          {
+            "name": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 36.377,
+            "logLine": 1280
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "rename-pro-initial",
+        "stage": "before-keyboard-safe-area-fix",
+        "sourceLog": "<TMP>/cat-home-name-build13-pro.log",
+        "log": "settings-build13-test-logs/cat-home-name-build13-pro.log",
+        "logSha256": "d2a9ad8acfa825f6098f81935c76d6499a508d6940b921a97cdbc041c6023d51",
+        "startedAtLocal": "2026-11-01 18:02:16.927",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "resultBundle": "<TMP>/cat-home-name-build13-pro.xcresult",
+        "runnerSucceeded": false,
+        "executed": 1,
+        "passed": 0,
+        "failures": 1,
+        "cases": [
+          {
+            "name": "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges",
+            "result": "failed",
+            "seconds": 27.982,
+            "logLine": 789
+          }
+        ],
+        "observedFailureMessages": [
+          {
+            "line": 637,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:1442: error: -[CatLifeUITests.RoomHomeUITests testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges] : Failed to synthesize event: Neither element nor any descendant has keyboard focus. Event dispatch snapshot: TextField, {{38.0, 230.3}, {326.0, 52.0}}, identifier: 'homeNameField', label: '小家名称', placeholderValue: '给小家起个名字'"
+          }
+        ]
+      },
+      {
+        "label": "rename-pro-final",
+        "stage": "before-keyboard-safe-area-fix",
+        "sourceLog": "<TMP>/cat-home-name-build13-pro-final.log",
+        "log": "settings-build13-test-logs/cat-home-name-build13-pro-final.log",
+        "logSha256": "1a468026c55b5364bdc3b96b98080a64733ef83ee8750e93d9c029c19f1007a3",
+        "startedAtLocal": "2026-11-01 18:06:02.238",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "resultBundle": "<TMP>/cat-home-name-build13-pro-final.xcresult",
+        "runnerSucceeded": true,
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges",
+            "result": "passed",
+            "seconds": 86.296,
+            "logLine": 326
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "rename-se-initial",
+        "stage": "before-keyboard-safe-area-fix",
+        "sourceLog": "<TMP>/cat-home-name-build13-se.log",
+        "log": "settings-build13-test-logs/cat-home-name-build13-se.log",
+        "logSha256": "595874f58e0a088ef62cd2e2a5bb93b8f81426776c76494db4cdfeabfb80dcdc",
+        "startedAtLocal": "2026-11-01 18:08:30.593",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "resultBundle": "<TMP>/cat-home-name-build13-se.xcresult",
+        "runnerSucceeded": false,
+        "executed": 3,
+        "passed": 1,
+        "failures": 2,
+        "cases": [
+          {
+            "name": "testHomeNameValidationDiscardedDraftAndLocalizedDefaultPreserveProgress",
+            "result": "failed",
+            "seconds": 31.451,
+            "logLine": 215
+          },
+          {
+            "name": "testSettingsDismissalResumesAnInProgressMeal",
+            "result": "failed",
+            "seconds": 41.87,
+            "logLine": 480
+          },
+          {
+            "name": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 35.835,
+            "logLine": 629
+          }
+        ],
+        "observedFailureMessages": [
+          {
+            "line": 213,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:62: error: -[CatLifeUITests.RoomHomeUITests testHomeNameValidationDiscardedDraftAndLocalizedDefaultPreserveProgress] : XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - homeNameSaveButton did not become tappable"
+          },
+          {
+            "line": 478,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:269: error: -[CatLifeUITests.RoomHomeUITests testSettingsDismissalResumesAnInProgressMeal] : XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - homeNameSaveButton did not become tappable"
+          }
+        ]
+      },
+      {
+        "label": "rename-se-keyboard-done-retry",
+        "stage": "before-keyboard-safe-area-fix",
+        "sourceLog": "<TMP>/cat-home-name-build13-se-final.log",
+        "log": "settings-build13-test-logs/cat-home-name-build13-se-final.log",
+        "logSha256": "811a11a2e920899cc122e25dea08d7f15ec69c2640832eaaee9dafb1eeffc1e9",
+        "startedAtLocal": "2026-11-01 18:15:46.964",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "resultBundle": "<TMP>/cat-home-name-build13-se-final.xcresult",
+        "runnerSucceeded": false,
+        "executed": 2,
+        "passed": 1,
+        "failures": 1,
+        "cases": [
+          {
+            "name": "testHomeNameValidationDiscardedDraftAndLocalizedDefaultPreserveProgress",
+            "result": "passed",
+            "seconds": 116.547,
+            "logLine": 593
+          },
+          {
+            "name": "testSettingsDismissalResumesAnInProgressMeal",
+            "result": "failed",
+            "seconds": 47.012,
+            "logLine": 866
+          }
+        ],
+        "observedFailureMessages": [
+          {
+            "line": 864,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:283: error: -[CatLifeUITests.RoomHomeUITests testSettingsDismissalResumesAnInProgressMeal] : XCTAssertEqual failed: (\"0\") is not equal to (\"1\") - Closing settings must resume and finish the same meal, not cancel it or start another one."
+          }
+        ]
+      },
+      {
+        "label": "final-source-run-1",
+        "stage": "final-production-source-after-keyboard-safe-area-fix",
+        "sourceLog": "<TMP>/cat-build13-se-keyboard-room.log",
+        "log": "settings-build13-test-logs/cat-build13-se-keyboard-room.log",
+        "logSha256": "c1d534ea16efe30d5c3d296d1b138b52b16e4cfe112ebf09b607b522f7519cd8",
+        "startedAtLocal": "2026-11-01 18:20:35.758",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "resultBundle": "<TMP>/cat-build13-se-keyboard-room.xcresult",
+        "runnerSucceeded": true,
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testSettingsDismissalResumesAnInProgressMeal",
+            "result": "passed",
+            "seconds": 60.129,
+            "logLine": 409
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "final-source-run-2",
+        "stage": "final-production-source-after-keyboard-safe-area-fix",
+        "sourceLog": "<TMP>/cat-build13-pro-keyboard-room.log",
+        "log": "settings-build13-test-logs/cat-build13-pro-keyboard-room.log",
+        "logSha256": "32a4487b405271c4e53f05b73edc74a60b50b4e38c5f9b33044c3717d49c06b1",
+        "startedAtLocal": "2026-11-01 18:22:07.906",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "resultBundle": "<TMP>/cat-build13-pro-keyboard-room.xcresult",
+        "runnerSucceeded": true,
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges",
+            "result": "passed",
+            "seconds": 80.647,
+            "logLine": 340
+          }
+        ],
+        "observedFailureMessages": []
+      }
+    ],
+    "countingRule": "Count actual Test Case completion lines once. Suite summaries repeat the same cases. Retried failures are retained in allAttempts."
+  },
+  "productionFix": {
+    "file": "CatLife/Views/RoomHomeView.swift",
+    "change": "Ignore keyboard bottom safe-area changes in the underlying room while full-screen settings edits the home name.",
+    "reason": "The pre-fix SE retry completed name validation but the interrupted meal returned idle with completedMeals0; this is retained as a failed product regression.",
+    "validationScope": "Only explicitly supplied post-fix logs count as final production-source coverage. The earlier five language/settings passes are historical."
+  },
+  "earlierInputFailures": [
+    "Initial Pro typing failed because the text field lacked keyboard focus.",
+    "Two initial SE name/meal runs could not tap Save while the keyboard covered the controls. Actual Done/key-dismissal was added to the test helper before independent Save; no failure was deleted."
+  ],
+  "screenshots": {
+    "settingsEarlier": [
+      "settings-build13/language-english-pro.png",
+      "settings-build13/language-simplified-pro.png",
+      "settings-build13/language-traditional-pro.png",
+      "settings-build13/room-english-pro.png",
+      "settings-build13/room-traditional-pro.png",
+      "settings-build13/settings-root-pro.png",
+      "settings-build13/updates-pro.png",
+      "settings-build13/updates-third-entry-pro.png"
+    ],
+    "homeName": [
+      "home-name-build13/final-pro-english-custom-name.png",
+      "home-name-build13/final-pro-keyboard-input.png",
+      "home-name-build13/final-pro-room-name.png",
+      "home-name-build13/final-pro-saved-preview.png",
+      "home-name-build13/final-se-keyboard-input.png",
+      "home-name-build13/final-se-room-meal-completed.png",
+      "home-name-build13/final-se-updates-third.png",
+      "home-name-build13/final-se-updates-top.png",
+      "home-name-build13/pro-custom-room-name.png",
+      "home-name-build13/pro-english-custom-name.png",
+      "home-name-build13/pro-saved-preview.png",
+      "home-name-build13/se-default-name-preview.png",
+      "home-name-build13/se-default-room-name.png",
+      "home-name-build13/se-keyboard-before-done.png",
+      "home-name-build13/se-thirteen-character-validation.png"
+    ]
+  },
+  "existingFinalDiagnostics": [
+    "home-name-build13/final-se-meal-completion.txt"
+  ],
+  "sourceManifest": {
+    "path": "build13-source-manifest.json",
+    "sha256": "f668fd8dde508b0f37c7444f2d0b679b399c3a2b1c059ce503cb640e5438510a",
+    "inputCount": 87,
+    "currentFilesMatch": true
+  },
+  "saveSchemaChanged": false,
+  "webFilesChanged": false,
+  "artPixelsChanged": false,
+  "limits": [
+    "Earlier full language regression was not repeated wholesale after the keyboard safe-area refinement.",
+    "Simulator/core results do not establish physical-device gameplay acceptance.",
+    "Full lifecycle, long-session performance and minimum-iOS runtime matrix were not repeated."
+  ],
+  "archivedEvidence": [
+    {
+      "path": "settings-build13-test-logs/cat-home-name-core-tests.log",
+      "sha256": "7fa4552c7bc3c93040f4fc464d83385715f87a7e5050b623670d519d97738273"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-settings-build13-pro.log",
+      "sha256": "52dc0baf3474a1bb480001d80f8e047b0d5a3a6959c0b59b88b5a560f325a309"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-settings-build13-se.log",
+      "sha256": "81270866e28e09176f2a017d7db21b3fc05053a61d59a5c9fa96749bdb061936"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-home-name-build13-pro.log",
+      "sha256": "d2a9ad8acfa825f6098f81935c76d6499a508d6940b921a97cdbc041c6023d51"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-home-name-build13-pro-final.log",
+      "sha256": "1a468026c55b5364bdc3b96b98080a64733ef83ee8750e93d9c029c19f1007a3"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-home-name-build13-se.log",
+      "sha256": "595874f58e0a088ef62cd2e2a5bb93b8f81426776c76494db4cdfeabfb80dcdc"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-home-name-build13-se-final.log",
+      "sha256": "811a11a2e920899cc122e25dea08d7f15ec69c2640832eaaee9dafb1eeffc1e9"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-build13-se-keyboard-room.log",
+      "sha256": "c1d534ea16efe30d5c3d296d1b138b52b16e4cfe112ebf09b607b522f7519cd8"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-build13-pro-keyboard-room.log",
+      "sha256": "32a4487b405271c4e53f05b73edc74a60b50b4e38c5f9b33044c3717d49c06b1"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-build13-keyboard-room-build.log",
+      "sha256": "e14676eb8e8cf4b5fac82b1df9f30ac5babcbfb33614da4699bf8c144147a40e"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-build13-keyboard-room-device-build.log",
+      "sha256": "28f2cbbd3f81bc7a563c1e3bb410638d2e03b0821c0b4dc98a522f451d51846b"
+    },
+    {
+      "path": "settings-build13-test-logs/cat-build13-keyboard-room-codesign.log",
+      "sha256": "45cc212419c6ca2c9d8f4503ea85f6e5428073d4209e0deca39de3658d8fc0c9"
+    }
+  ],
+  "deviceEvidence": "build13-device-update.json"
+}

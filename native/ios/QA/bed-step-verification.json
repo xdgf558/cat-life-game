@@ -1,0 +1,190 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.0 (12)",
+  "problem": "Build 11 fixed bed-rim layering but used the .06-cat-width final pose offset as climbing support height, leaving held front paws below the mattress edge.",
+  "changes": [
+    "Measure the low yellow opening from the unchanged bed texture and solve physical support height separately from the ground projection.",
+    "Revalidate the adjusted restPoint and entry/exit with the existing planner; keep final visible rest and shadow position unchanged.",
+    "Blend high-step paw spans during reaching/downward reach/withdrawal; preserve actual partial height and mesh on cancellation.",
+    "Audit actual front paws against a separately measured mattress contact band; add visible foot position to isolated test diagnostics.",
+    "Reject step heights above .55 cat widths before a plan/deformation is generated, avoiding folded legs on extreme narrow/tall canvases."
+  ],
+  "coreTests": {
+    "result": "passed",
+    "tests": 64,
+    "suites": 6,
+    "log": "bed-step-build12-test-logs/cat-bed-build12-core-tests.log"
+  },
+  "geometry": {
+    "result": "passed",
+    "regularCases": 34,
+    "stressCasesRejected": 12,
+    "evidence": "bed-step-build12-geometry-final.jsonl",
+    "earlierStressFailure": "bed-step-build12-geometry.jsonl",
+    "note": "The stress issue was discovered in a temporary geometry/mesh audit and then guarded; it is not a UI test failure."
+  },
+  "pawTransitionAudit": {
+    "result": "passed",
+    "gridSamples": 5555,
+    "transitionChecks": 510050,
+    "evidence": "bed-step-build12-paw-transition.txt",
+    "scope": "Numerical mesh and endpoint checks, not additional core tests or a replacement for rendered review."
+  },
+  "visualReview": {
+    "scope": "Normal entry before the height guard and partial-withdrawal-only refinement; the regular entry geometry is unchanged.",
+    "method": "Root reviewed actual Pro recording frames showing raised front paws on the rim, the torso rising, and rear paws reaching the mattress.",
+    "evidence": [
+      "bed-step-build12-root-review/front-paw-reaching.png",
+      "bed-step-build12-root-review/front-paws-supported-body-rising.png",
+      "bed-step-build12-root-review/body-and-rear-paws-on-bed.png"
+    ],
+    "limitation": "Eight 2D poses still have discrete silhouette changes; high-step forelegs bend strongly. Final subjective motion acceptance remains with the user.",
+    "preview": "bed-step-build12-preview.mp4",
+    "result": "Reviewed actual entry support and step-down; subjective motion acceptance pending"
+  },
+  "initialUITestFailure": {
+    "result": "failed observation window before any feed was sent",
+    "finding": "AX polling missed the short .12... .45 entry-progress window. Diagnostics show a complete rest and safe natural exit, with actual rim contact and zero collision/clearance violations; lastRestInterrupt is null.",
+    "correction": "For the bed only, poll the already-existing room value with a bounded 40ms run-loop yield between AX reads; observe any nonzero entry up to .45. Keep strict actual-input entering/phase/progress assertions. Cushion observation behavior unchanged.",
+    "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt.log",
+    "secondAttempt": {
+      "result": "same observation timeout; no feed was sent",
+      "trace": [
+        "entering/reaching at .013728",
+        "entering/lifting at .562983",
+        "supported at 1.0"
+      ],
+      "cause": "One-second predicate polling jumped over the intentionally narrow observation window; .025 lower bound still excluded the first actual entry snapshot.",
+      "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt-final.log"
+    }
+  },
+  "uiTests": {
+    "status": "completed",
+    "attempts": 6,
+    "passed": 3,
+    "failures": 3,
+    "acceptedFinalPassed": 2,
+    "acceptedFinalFailures": 0,
+    "uniqueTestsInSuite": 24,
+    "cases": [
+      {
+        "case": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "before final refinements",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 121.328,
+        "log": "bed-step-build12-test-logs/cat-bed-build12-pro-normal.log",
+        "resultBundle": "<TMP>/cat-bed-build12-pro-normal.xcresult"
+      },
+      {
+        "case": "testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "first observation-window failure",
+        "executed": 1,
+        "result": "failed",
+        "passed": 0,
+        "failures": 1,
+        "seconds": 70.367,
+        "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt.log",
+        "resultBundle": "<TMP>/cat-bed-build12-pro-interrupt.xcresult"
+      },
+      {
+        "case": "testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "second observation-window failure",
+        "executed": 1,
+        "result": "failed",
+        "passed": 0,
+        "failures": 1,
+        "seconds": 74.464,
+        "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt-final.log",
+        "resultBundle": "<TMP>/cat-bed-build12-pro-interrupt-final.xcresult"
+      },
+      {
+        "case": "testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "repeat tap fixture failure",
+        "executed": 1,
+        "result": "failed",
+        "passed": 0,
+        "failures": 1,
+        "seconds": 103.651,
+        "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt-observed.log",
+        "resultBundle": "<TMP>/cat-bed-build12-pro-interrupt-observed.xcresult"
+      },
+      {
+        "case": "testDecoratingWakesSleepingCatBeforeBedStorageAndPersists",
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "accepted final validation",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 59.75,
+        "log": "bed-step-build12-test-logs/cat-bed-build12-se-storage.log",
+        "resultBundle": "<TMP>/cat-bed-build12-se-storage.xcresult"
+      },
+      {
+        "case": "testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain",
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "accepted final validation",
+        "executed": 1,
+        "result": "passed",
+        "passed": 1,
+        "failures": 0,
+        "seconds": 73.228,
+        "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt-retap.log",
+        "resultBundle": "<TMP>/cat-bed-build12-pro-interrupt-retap.xcresult"
+      }
+    ]
+  },
+  "build": {
+    "simulator": "passed",
+    "signedDevice": "passed",
+    "signature": "passed",
+    "sourceManifest": "build12-source-manifest.json"
+  },
+  "deviceEvidence": "build12-device-update.json",
+  "limits": [
+    "Installed and normally running on iPhone Air; physical climbing appearance still awaits user acceptance",
+    "Full background/resize/reduced-motion lifecycle matrix and long-session physical performance were not repeated",
+    "Extreme narrow/tall room canvases can reject a bed rest when its ledge is above the supported step height"
+  ],
+  "saveSchemaChanged": false,
+  "webFilesChanged": false,
+  "artPixelsChanged": false,
+  "repeatTapFixtureFailure": {
+    "finding": "Fast observation captured real feed interruption at entering/frontPaws progress .059266436; the cat exited and completed one actual meal. The subsequent bed-center tap hit the cat standing in front, opening its profile sheet rather than requesting a new rest.",
+    "actualMealCount": 1,
+    "foodContactSamples": 81,
+    "collisionViolations": 0,
+    "bedEdgeViolations": 0,
+    "correction": "Test-only catBed tap moves to the visible left/rear bed area; product hit-testing and the repeat-rest assertions remain unchanged.",
+    "screenshot": "bed-step-build12-pro/repeat-bed-tap-hit-cat-profile.png",
+    "log": "bed-step-build12-test-logs/cat-bed-build12-pro-interrupt-observed.log"
+  },
+  "finalValidation": {
+    "result": "passed",
+    "coverage": [
+      "Real feeding input during incomplete bed entry, safe withdrawal, actual food contact, exactly one meal, repeat bed rest, waking and cold-launch inventory",
+      "Small-screen safe exit before arrangement/storage, persisted room and actual feeding"
+    ],
+    "actualInterruption": {
+      "phase": "entering/frontPaws",
+      "progress": 0.0647105877,
+      "meals": 1,
+      "foodContactSamples": 73,
+      "repeatCompletedRests": 1,
+      "repeatRestContactSamples": 13,
+      "bedEdgeContactSamples": 7,
+      "bedEdgeMaxError": 0,
+      "collisionViolations": 0
+    },
+    "note": "Three failed attempts retained: two polling-window misses and one verified cat-profile tap fixture. Actual-input and gameplay assertions remain strict."
+  },
+  "deviceInstallation": "passed 2026-11-01; build 12 installed in place with identical ordinary save",
+  "deviceLaunch": "passed; normal game process verified"
+}

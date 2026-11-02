@@ -1,0 +1,172 @@
+{
+  "assets": [
+    {
+      "asset": "player-male-sunny",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        391,
+        79,
+        864,
+        1190
+      ],
+      "sha256": "7558b13597cc93384f084cd7cf22d987f5e1077abbdc4a5509a4335242528b7d",
+      "bytes": 727480
+    },
+    {
+      "asset": "player-male-forest",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        414,
+        76,
+        868,
+        1196
+      ],
+      "sha256": "2b90a6743362bfc7ce4cccd5d5c22c4a228461ea3a4c4304290da9844ff012ee",
+      "bytes": 783750
+    },
+    {
+      "asset": "player-male-scholarly",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        408,
+        73,
+        872,
+        1197
+      ],
+      "sha256": "34f67cd1118364719a49ea96ea0f8cd59fe0cb3167d4f4abe890b7133c282fbe",
+      "bytes": 808493
+    },
+    {
+      "asset": "player-female-sunny",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        400,
+        77,
+        873,
+        1192
+      ],
+      "sha256": "2136ba8fd82a28fb7ef02300baea025da86902d8ffcb16a243f8fa761fdfd4e1",
+      "bytes": 761435
+    },
+    {
+      "asset": "player-female-forest",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        425,
+        99,
+        871,
+        1192
+      ],
+      "sha256": "2cbdc442d220118bdf40a8e5fecdbe009dfe3ab422b9f99b22535cd1b51b6dbe",
+      "bytes": 769032
+    },
+    {
+      "asset": "player-female-scholarly",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        398,
+        82,
+        866,
+        1191
+      ],
+      "sha256": "f1fab68a3847535902ca8106558f18bd67925f32e6d3a1696fc00b3654fe4695",
+      "bytes": 841410
+    },
+    {
+      "asset": "gear-starter-cap",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        43,
+        146,
+        1211,
+        1132
+      ],
+      "sha256": "0a8193cd5a0851d8a28984c62e5fb93e1668836e021ab6fee807e4633535143c",
+      "bytes": 1628473
+    },
+    {
+      "asset": "gear-starter-jacket",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        31,
+        104,
+        1236,
+        1091
+      ],
+      "sha256": "f97c5a936c804618f0cf0f6b19696eb231c9469bad42a7b3f0de72a5c2bbd2ef",
+      "bytes": 1374871
+    },
+    {
+      "asset": "gear-starter-sneakers",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        20,
+        168,
+        1237,
+        1117
+      ],
+      "sha256": "e9a68ad116542839727a44b041bf41c865828109af90f57269962fd5bdc4526b",
+      "bytes": 1411823
+    },
+    {
+      "asset": "gear-starter-charm",
+      "size": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "visibleBoundsAtHalfAlpha": [
+        115,
+        77,
+        1209,
+        1171
+      ],
+      "sha256": "bdfe440bbe9b9e3ae37e1d51244e24de4d0d2b1ddff624b35039310e99ac085d",
+      "bytes": 1406291
+    }
+  ],
+  "checks": [
+    "Each image visually reviewed from built-in tool output.",
+    "All ten full figures/objects are intact, with no text or watermarks.",
+    "Six player variants share pose, chibi proportions, cream/warm/pastel palette.",
+    "Each PNG has genuine alpha transparency.",
+    "Original generated pixels copied unchanged; no image editing or resizing.",
+    "Generated project assets stored in the repository and asset catalog."
+  ]
+}

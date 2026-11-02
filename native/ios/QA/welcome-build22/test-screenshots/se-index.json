@@ -1,0 +1,32 @@
+[
+  {
+    "path": "test-screenshots/se/screenshot-01.png",
+    "test": "RoomHomeUITests/testOfflineCareerSettlementRetriesSaveThenPersistsLevelAndSingleReward()",
+    "description": "Career — an unsuccessful offline settlement stays recoverable",
+    "timestamp": 1793614021.02
+  },
+  {
+    "path": "test-screenshots/se/screenshot-02.png",
+    "test": "RoomHomeUITests/testOfflineCareerSettlementRetriesSaveThenPersistsLevelAndSingleReward()",
+    "description": "Career — offline flyer result awards one level and unlocks the store",
+    "timestamp": 1793614058.738
+  },
+  {
+    "path": "test-screenshots/se/screenshot-03.png",
+    "test": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+    "description": "Settings — version page at the top before scrolling",
+    "timestamp": 1793614155.304
+  },
+  {
+    "path": "test-screenshots/se/screenshot-04.png",
+    "test": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+    "description": "Settings — the third recent release is reachable; older history is hidden",
+    "timestamp": 1793614164.335
+  },
+  {
+    "path": "test-screenshots/se/screenshot-05.png",
+    "test": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+    "description": "Settings — nested navigation closes back to the unchanged room",
+    "timestamp": 1793614180.235
+  }
+]

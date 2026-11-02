@@ -1,0 +1,11 @@
+Tool: built-in image_gen
+Reference: native/ios/ArtSource/cat-idle.png
+Output: native/ios/ArtSource/cat-avatar.png
+Transparent background: true
+
+Use case: identity-preserve / background-extraction.
+Make a single square transparent character avatar of ONLY the HEAD and a small amount of upper chest of the EXACT SAME orange-tabby cat in the attached canonical sprite. Keep the same rounded plush face, bright large amber eyes, tiny pink nose, happy softly open mouth, white/cream muzzle and cheeks, orange forehead stripes, warm brown bow tied at the neck, pink inner ears, fluffy soft fur and cozy miniature-game illustration style. Face should be almost front-facing with the same slight three-quarter/upward pose; instantly recognizable as the exact same 小橘 character. Do not make a generic different cat or change the eye color.
+
+Crop/composition: square canvas about 768 x 768 or higher square resolution, head/ears/bow occupying about 80% of canvas with clear transparent padding. Keep BOTH ears and whiskers complete, no clipping. Include only a little white chest beneath the bow and shape its bottom edge naturally as a rounded soft fur bust silhouette. No forelegs, tail, full body or detached accessories. Keep eyes and features readable when the avatar is shown at 52 logical points in a native iOS care panel.
+
+True transparent alpha background, clean fur edges, no white halo, no colored circle, no frame, no rim, no drop shadow block, no UI, no text, no labels, no background, no floor, no props. Return only one isolated head-and-shoulders game avatar.

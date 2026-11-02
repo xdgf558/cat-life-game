@@ -1,0 +1,59 @@
+{
+  "date": "2026-11-02",
+  "version": "0.2.0",
+  "build": 17,
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "installation": "passed, in place; no uninstall or reset",
+  "installedVersionQueried": true,
+  "normalSave": {
+    "beforePath": "<TMP>/cat-rest17-save-before.json",
+    "afterPath": "<TMP>/cat-rest17-save-after.json",
+    "bytes": 2912,
+    "sha256": "880644284cc35dc573fd93e45a10706a782c8f89fe61a845bcd6ce37918a05c7",
+    "byteIdentical": true,
+    "comparisonMoment": "after installation and before first new launch"
+  },
+  "launch": {
+    "cliSucceeded": true,
+    "newInstallProcessVerified": true,
+    "pid": 0,
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000015/CatLife.app/CatLife",
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build17-source-manifest.json",
+    "inputCount": 92,
+    "sha256": "03d4b5826f7a35812c2f7a265294367011576bab6c59a0fa1b2e21684e17a807",
+    "currentFilesMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "log": "recovery-build17/cat-rest17-build-device-release.log",
+    "executableSHA256": "a0167d141b4c7460d1a7a2ac8f3f08ba89096814d8e3879bf2915ab16785526b",
+    "infoSHA256": "2887b0e46096cee47292ad8b4df7bcb630c20bcfbe1e8d2b137e032356f9bbe6",
+    "codesign": "passed"
+  },
+  "rawReceipts": [
+    "<TMP>/cat-rest17-install-terminate.json",
+    "<TMP>/cat-rest17-install-copy-before.json",
+    "<TMP>/cat-rest17-device-install.json",
+    "<TMP>/cat-rest17-install-copy-after.json",
+    "<TMP>/cat-rest17-apps-after.json",
+    "<TMP>/cat-rest17-device-launch.json",
+    "<TMP>/cat-rest17-process-after.json"
+  ],
+  "previousConnectionFailure": {
+    "date": "2026-11-01",
+    "error": "CoreDevice 4016",
+    "evidence": "recovery-build17/device-connection-check.log",
+    "resolved": true
+  },
+  "limits": "Installation, pre-launch save equality and the new process were verified. The user confirmed acceptance on 2026-11-02; this does not add automated physical-device or long-session performance coverage.",
+  "userAcceptance": {
+    "date": "2026-11-02",
+    "status": "passed",
+    "source": "User reported: testing passed",
+    "scope": "User acceptance of installed 0.2.0 (17); no new automated test runs or long-session performance claim."
+  }
+}

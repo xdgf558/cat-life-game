@@ -1,0 +1,82 @@
+{
+  "date": "2026-11-02",
+  "version": "0.5.0",
+  "build": 23,
+  "scope": "Native iOS original background music and interaction effects, persisted independent settings, lifecycle and action-synchronized playback.",
+  "status": {
+    "finished": "Implemented, signed, installed in place and normal process verified; core and final targeted simulator checks passed.",
+    "partiallyFinished": "First audio set delivered; subjective listening and full real-device route/interruption acceptance pending.",
+    "broken": [],
+    "nextWork": "Player listening feedback and long-session/physical route profiling."
+  },
+  "sourceManifest": {
+    "path": "build23-source-manifest.json",
+    "inputCount": 135,
+    "sha256": "0a96bfcf06ab521470a81cde72b28f2d49103a5579ccdecbe6e1909047e28239",
+    "allInputsMatch": true
+  },
+  "assets": {
+    "backgroundLoops": 3,
+    "effects": 12,
+    "bytes": 7457664,
+    "provenance": "../AudioSource/build23/README.md",
+    "integration": "../AudioSource/build23/INTEGRATION.md",
+    "verification": "audio-build23/audio-assets-verification.json"
+  },
+  "settings": {
+    "path": "Settings → Sound",
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "defaultMusicVolume": 0.35,
+    "defaultEffectsVolume": 0.65,
+    "independentEnabledFlags": true,
+    "legacySaveSchema": 1
+  },
+  "builds": {
+    "simulator": "passed",
+    "device": "passed",
+    "signature": "passed",
+    "logs": "audio-build23/build-logs",
+    "historicalBuildFailure": "One test helper used Float where XCTest requires CGFloat; corrected, both final builds passed. Failed build logs retained."
+  },
+  "coreTests": {
+    "passed": 134,
+    "suites": 11,
+    "newTests": 5,
+    "report": "audio-build23/core-tests.json"
+  },
+  "controllerControlFlow": {
+    "passed": 9,
+    "platformDoubles": true,
+    "report": "audio-build23/cat23-audio-state-check-summary.json"
+  },
+  "uiTests": {
+    "passed": 7,
+    "failedHistoricalExecutions": 6,
+    "executions": 13,
+    "newMethods": 2,
+    "distinctMethodsThisRound": 3,
+    "finalTargetedPassed": 4,
+    "finalTargetedFailed": 0,
+    "finalTargets": "SE and Pro each passed real slider→saved value→mute→purchase→cold launch→preview→background resume; each also passed action-synchronized feed/clean/play and work/sleep music.",
+    "finalRuntimeSourceHashMatched": true,
+    "details": "audio-build23/ui-results.json",
+    "testSourceSHA256": "4cb29dd4d47662ab5afe1cae7fb0f5c449f3ba612e71fc0688d6980c8cf32cfd",
+    "failureNotes": "One initial SpriteKit preload crash before audio ready; no repeated crash. Four tests failed assumptions about XCTest stepped-slider landing, and one SE test ran an obsolete assertion after a rebuild. Final checks use actual displayed selections; the SE runner was reinstalled and passed."
+  },
+  "visualQA": {
+    "result": "passed for inspected SE/Pro standard-size sound settings",
+    "report": "audio-build23/design-qa.md",
+    "screens": "audio-build23/screens.json"
+  },
+  "deviceUpdate": "build23-device-update.json",
+  "knownLimitations": [
+    "Actual speaker/headphone sound, silent switch, phone/Siri interruptions and Bluetooth routes require physical listening acceptance.",
+    "iOS 27 simulator still reports an audio-session main-thread performance warning. Explicit session mutations are serialized off MainActor; available issue frames are all zero and cannot identify the caller. No measured UI stall established. See audio-build23/cat23-audio-runtime-warning-review.json.",
+    "The disabled preview action remains mint-colored under the shared button style; accessibility/interaction is correctly disabled.",
+    "No full historical gameplay suite, long-session profile or iOS 17–25 runtime sweep in this release."
+  ]
+}

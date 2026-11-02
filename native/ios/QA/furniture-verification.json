@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (9)",
+  "scope": "Independent movable furniture, bag storage/replacement, and whole-layout persistence",
+  "implemented": [
+    "Nine owned furniture instances using eight transparent sprites and an empty architectural background",
+    "Floor furniture and wall pictures have separate placement domains",
+    "Store moves placement into the furniture bag without removing ownership; replace creates a validated draft",
+    "Done atomically saves bowl and furniture; Cancel restores the whole draft",
+    "Missing schema-1 furniture fields receive defaults; explicit empty arrays remain empty",
+    "Current furniture footprints participate in walking, food docking and play navigation",
+    "Dragging remains a geometry-only preview; route validation runs on a cancellable worker",
+    "The arrangement panel retains the normal room viewport; a real resize restarts a new-item placement safely"
+  ],
+  "coreTests": {
+    "result": "passed",
+    "tests": 54,
+    "suites": 5,
+    "log": "<TMP>/cat-furniture-final-core.log"
+  },
+  "geometry": {
+    "result": "passed",
+    "evidence": "furniture-default-geometry.jsonl",
+    "canvasSizes": [
+      [
+        375,
+        400
+      ],
+      [
+        375,
+        435
+      ],
+      [
+        402,
+        560
+      ],
+      [
+        420,
+        600
+      ]
+    ],
+    "defaultFurniture": 9,
+    "findings": "All default footprints are inside their domain, mutually separated, and clear of cat and bowl; feeding is reachable without moving either cat or bowl."
+  },
+  "finalUITests": {
+    "result": "passed",
+    "executed": 5,
+    "passed": 5,
+    "failures": 0,
+    "cases": [
+      {
+        "case": "testFurnitureMovePersistsAndCancelledStorageRestoresRoom",
+        "exitCode": 0,
+        "resultBundle": "<TMP>/cat-furniture-final-se-move.xcresult",
+        "log": "<TMP>/cat-furniture-final-se-move.log",
+        "device": "iPhone SE (3rd generation)",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "result": "passed"
+      },
+      {
+        "case": "testFurnitureStorageAndReplacementPersistAndKeepFeedingReachable",
+        "exitCode": 0,
+        "resultBundle": "<TMP>/cat-furniture-final-se-replace.xcresult",
+        "log": "<TMP>/cat-furniture-final-se-replace.log",
+        "device": "iPhone SE (3rd generation)",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "result": "passed"
+      },
+      {
+        "case": "testAllFurnitureCanBeStoredWithoutLossAndCancelledPlacementRestoresBag",
+        "exitCode": 0,
+        "resultBundle": "<TMP>/cat-furniture-final-se-all.xcresult",
+        "log": "<TMP>/cat-furniture-final-se-all.log",
+        "device": "iPhone SE (3rd generation)",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "result": "passed"
+      },
+      {
+        "case": "testBowlDragRespondsAndCancelledValidationCannotOverwriteLayout",
+        "device": "<DEVICE_NAME_29>",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "result": "passed",
+        "resultBundle": "<TMP>/cat-furniture-final-pro-drag.xcresult",
+        "log": "<TMP>/cat-furniture-final-pro-drag.log"
+      },
+      {
+        "case": "testBowlCanMoveToFloorBelowWallPicturesAndPersist",
+        "device": "<DEVICE_NAME_29>",
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "result": "passed",
+        "resultBundle": "<TMP>/cat-furniture-final-pro-upper.xcresult",
+        "log": "<TMP>/cat-furniture-final-pro-upper.log"
+      }
+    ]
+  },
+  "intermediateValidation": {
+    "passedRuns": 4,
+    "note": "Earlier default cushion/stool positions; one initial accessibility-identifier failure was fixed before these runs. Final source runs are listed separately."
+  },
+  "art": {
+    "generator": "built-in image_gen.imagegen",
+    "source": "ArtSource/Furniture",
+    "prompts": "ArtSource/Furniture/prompts.json",
+    "manifest": "ArtSource/Furniture/generation-manifest.json",
+    "runtimeRegistration": "SpriteKit UV crops derived from transparency; original generated PNGs preserved."
+  },
+  "device": {
+    "installation": "passed; in-place update",
+    "signatureValidation": "passed",
+    "launch": "physical-device acceptance subsequently passed, confirmed by the user",
+    "normalSavePreserved": "byte-for-byte unchanged across installation",
+    "saveReset": false,
+    "evidence": "build9-device-update.json",
+    "physicalGameplayValidation": "passed; user-reported acceptance on 2026-10-31",
+    "manualAcceptance": {
+      "date": "2026-10-31",
+      "result": "passed",
+      "method": "user-reported physical-device acceptance",
+      "userStatement": "第 9 版真机验收 已经完成，通过测试。"
+    }
+  },
+  "limits": [
+    "Food bowl remains a separate draggable object and is not reclaimable into the furniture bag."
+  ],
+  "dragPreview": {
+    "device": "<DEVICE_NAME_29> Simulator",
+    "samples": 106,
+    "maximumMeasuredMilliseconds": 0.418,
+    "measurement": "Touch-move callback computation, not physical-device end-to-end input latency."
+  },
+  "screenshots": [
+    "build9-se-furniture-moved.png",
+    "build9-se-furniture-replaced.png",
+    "build9-se-furniture-bag.png",
+    "build9-se-furniture-feeding.png",
+    "build9-se-empty-room.png",
+    "build9-se-all-furniture-stored.png"
+  ]
+}

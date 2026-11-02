@@ -1,0 +1,203 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "3A8361F3-12D8-4C8D-8BFA-BB244F6CFBCE.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest — cat safely leaves the moved cushion without consuming supplies_0_4DB4230D-0BBE-4680-9A28-3DB958874BC5.png",
+        "timestamp": 1793543523.891
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E019194C-365C-46B7-8198-91ED74BDC2E0.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest — cat settled on the moved and saved cushion_0_6D1DB308-9D5F-4BCD-BE1B-CD8F783BEC43.png",
+        "timestamp": 1793543509.498
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "6EA06A1A-271C-4C44-998E-CBD8079856DC.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest contact — floorCushion_0_F6668B11-A92C-4711-8D4B-13D24D8BB1B8.txt",
+        "timestamp": 1793543509.439
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "794A58D1-5397-42E5-9E15-6D61AFB79213.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest — cat settled inside the cat bed_0_0B883303-3079-4F7D-BECD-5424761E9797.png",
+        "timestamp": 1793543455.772
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "49C4FB23-E085-414E-9AC5-2D9A8A4B92B8.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Rest contact — catBed_0_EFE73C5C-053D-4A29-B636-F018F47EE069.txt",
+        "timestamp": 1793543455.7
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "A9BB7AB5-6553-4E02-8E96-2283E23C178B.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — retried early-wake reward remains fixed after deadline and cold launch_0_F9E7C187-DDC5-4CAE-8B0C-F9C38BEC0D76.png",
+        "timestamp": 1793543576.849
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "023900A8-5D4C-4348-A5F2-8C4F263DD3EC.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — retried early-wake reward remains fixed after deadline and cold launch_0_4AE28A59-C91D-43F4-9966-FAC71ED48CA7.txt",
+        "timestamp": 1793543576.774
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CE1D187D-8692-4A9B-AB67-D6FB29FAB5EE.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — early wake reports its first save failure_0_416AAD40-B535-489F-8A4D-C8B729330D80.png",
+        "timestamp": 1793543552.169
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testFailedCatRestEndRetriesOriginalPartialRecoveryWithoutAwardingPastWake()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testFailedCatRestEndRetriesOriginalPartialRecoveryWithoutAwardingPastWake"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "5BF7F35D-78C2-476B-9DFC-4F272A078735.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — waking and another cold launch do not pay or seed the old sleep again_0_854EC77B-E9C5-43EC-8739-1A5D86AC222B.png",
+        "timestamp": 1793543638.609
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "44B5F5C0-3A1E-4A71-A3F3-191057EB2945.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — real load settles the past thirty minutes to 50 stamina and 60 mood_0_C2590066-5805-4C1C-9C27-73392C7E5718.png",
+        "timestamp": 1793543597.308
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testOfflinePlayerSleepSettlesThirtyMinutesOnceWithoutReseeding()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testOfflinePlayerSleepSettlesThirtyMinutesOnceWithoutReseeding"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "34AE528B-82AC-4942-9F87-85EBAC080F68.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — active work prevents a second simultaneous activity_0_97F27049-E945-4447-89CF-1AC3457BB421.png",
+        "timestamp": 1793543734.093
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "EC927C03-9127-46FE-B4A8-B5A2AA8D1094.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after starting the two-minute work shift_0_E09A0D31-E236-461F-8410-FDA177A85F12.txt",
+        "timestamp": 1793543725.099
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "0965285A-3695-41EB-AFBA-475CC8A6A135.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after restoring sleep on cold launch_0_0C2F7562-DFE8-4A96-AE6C-8DF6F2219B33.txt",
+        "timestamp": 1793543700.381
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "4CAD571D-52FC-486C-95B4-97ADD31136A4.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after returning to the foreground_0_504CB3FC-1A16-44C8-90F6-E7AD4A40B4EB.txt",
+        "timestamp": 1793543677.594
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "32A07DF0-88F3-4D02-A552-39D225194CF4.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery — player sleeping with work unavailable_0_DB48C667-D312-4328-B3EC-400B1C0C6DBB.png",
+        "timestamp": 1793543670.803
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "99BA843E-91FF-4CAD-A96C-5565C337BBE6.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — after starting sleep_0_0B1F7435-A12F-452A-BD0D-2B667A87CFFB.txt",
+        "timestamp": 1793543670.438
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CDB4CF1F-F9F8-4454-9E3A-2CD9287A2321.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — nested navigation closes back to the unchanged room_0_69064EBE-5F6E-450C-A67C-9D504DD98D52.png",
+        "timestamp": 1793543785.256
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B58B5165-EC38-4B25-8325-50552BB376ED.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — the third recent release is reachable; older history is hidden_0_79A982D6-F572-4F33-8759-DD4B8FEBE1B3.png",
+        "timestamp": 1793543769.265
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CB9CA745-2EE1-4B0E-9672-B7C9796CB381.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — version page at the top before scrolling_0_545F4E7E-1712-435B-AD55-0C9CFAAECDF4.png",
+        "timestamp": 1793543759.965
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation"
+  }
+]

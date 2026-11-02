@@ -1,0 +1,254 @@
+{
+  "runs": [
+    {
+      "run": "se-audio",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "total": 2,
+      "devices": [
+        {
+          "model": "iPhone SE (3rd generation)",
+          "os": "26.4.1",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [
+        {
+          "failureText": "com.stationcat.catlife.native crashed",
+          "targetName": "CatLifeUITests",
+          "testIdentifier": 1,
+          "testIdentifierString": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+          "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "testName": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback()"
+        }
+      ],
+      "runtimeWarnings": [],
+      "log": "test-logs/cat23-se-audio.log"
+    },
+    {
+      "run": "pro-audio",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1,
+      "devices": [
+        {
+          "model": "iPhone 18 Pro",
+          "os": "27.0",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [],
+      "runtimeWarnings": [
+        {
+          "issueType": "Runtime Warning",
+          "message": "    AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread."
+        }
+      ],
+      "log": "test-logs/cat23-pro-audio.log"
+    },
+    {
+      "run": "se-final",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "total": 2,
+      "devices": [
+        {
+          "model": "iPhone SE (3rd generation)",
+          "os": "26.4.1",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [
+        {
+          "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - audioMusicVolume should become 20%; got Optional(15%)",
+          "targetName": "CatLifeUITests",
+          "testIdentifier": 1,
+          "testIdentifierString": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+          "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "testName": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback()"
+        }
+      ],
+      "runtimeWarnings": [],
+      "log": "test-logs/cat23-se-final.log"
+    },
+    {
+      "run": "pro-final",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "total": 1,
+      "devices": [
+        {
+          "model": "iPhone 18 Pro",
+          "os": "27.0",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [
+        {
+          "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - audioMusicVolume should become 20%; got Optional(10%)",
+          "targetName": "CatLifeUITests",
+          "testIdentifier": 1,
+          "testIdentifierString": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+          "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "testName": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback()"
+        }
+      ],
+      "runtimeWarnings": [
+        {
+          "issueType": "Runtime Warning",
+          "message": "    AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread."
+        }
+      ],
+      "log": "test-logs/cat23-pro-final.log"
+    },
+    {
+      "run": "se-validated",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "total": 2,
+      "devices": [
+        {
+          "model": "iPhone SE (3rd generation)",
+          "os": "26.4.1",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [
+        {
+          "failureText": "failed - audioMusicVolume did not reach 20% after three gestures:\nattempt=1, requested=0.2, displayed=15%\nattempt=2, requested=0.25, displayed=35%\nattempt=3, requested=0.1, displayed=5%",
+          "targetName": "CatLifeUITests",
+          "testIdentifier": 1,
+          "testIdentifierString": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+          "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "testName": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback()"
+        }
+      ],
+      "runtimeWarnings": [],
+      "log": "test-logs/cat23-se-validated.log"
+    },
+    {
+      "run": "pro-validated",
+      "result": "Failed",
+      "passed": 1,
+      "failed": 1,
+      "skipped": 0,
+      "total": 2,
+      "devices": [
+        {
+          "model": "iPhone 18 Pro",
+          "os": "27.0",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [
+        {
+          "failureText": "failed - audioMusicVolume did not reach 20% after three gestures:\nattempt=1, requested=0.2, displayed=10%\nattempt=2, requested=0.30000000000000004, displayed=35%\nattempt=3, requested=0.15000000000000005, displayed=10%",
+          "targetName": "CatLifeUITests",
+          "testIdentifier": 1,
+          "testIdentifierString": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+          "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "testName": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback()"
+        }
+      ],
+      "runtimeWarnings": [
+        {
+          "issueType": "Runtime Warning",
+          "message": "    AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread."
+        },
+        {
+          "issueType": "Runtime Warning",
+          "message": "    AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread."
+        }
+      ],
+      "log": "test-logs/cat23-pro-validated.log"
+    },
+    {
+      "run": "se-settings-final",
+      "result": "Failed",
+      "passed": 0,
+      "failed": 1,
+      "skipped": 0,
+      "total": 1,
+      "devices": [
+        {
+          "model": "iPhone SE (3rd generation)",
+          "os": "26.4.1",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [
+        {
+          "failureText": "XCTAssertEqual failed: (\"XCTWaiterResult(rawValue: 2)\") is not equal to (\"XCTWaiterResult(rawValue: 1)\") - audioMusicVolume should become 20%; got Optional(15%)",
+          "targetName": "CatLifeUITests",
+          "testIdentifier": 1,
+          "testIdentifierString": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+          "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "testName": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback()"
+        }
+      ],
+      "runtimeWarnings": [],
+      "log": "test-logs/cat23-se-settings-final.log"
+    },
+    {
+      "run": "pro-settings-final",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1,
+      "devices": [
+        {
+          "model": "iPhone 18 Pro",
+          "os": "27.0",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [],
+      "runtimeWarnings": [
+        {
+          "issueType": "Runtime Warning",
+          "message": "    AVAudioSession_iOS.mm:975   This method can lead to UI unresponsiveness if called on the main thread. Consider using the asynchronous activate/deactivate API instead for calls from the main thread."
+        }
+      ],
+      "log": "test-logs/cat23-pro-settings-final.log"
+    },
+    {
+      "run": "se-settings-retry",
+      "result": "Passed",
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "total": 1,
+      "devices": [
+        {
+          "model": "iPhone SE (3rd generation)",
+          "os": "26.4.1",
+          "platform": "iOS Simulator"
+        }
+      ],
+      "testFailures": [],
+      "runtimeWarnings": [],
+      "log": "test-logs/cat23-se-settings-retry.log"
+    }
+  ],
+  "totals": {
+    "passed": 7,
+    "failedHistoricalExecutions": 6,
+    "executions": 13
+  },
+  "notes": [
+    "se-audio: one initial SpriteKit preload worker crash before audio ready. Native texture preload API usage reviewed; not enough evidence to attribute to application code. Subsequent cold launches completed.",
+    "se-final/pro-final: XCTest normalized slider gesture landed below intended step. A bounded correction also proved unstable. Final tests perform a real drag, require a changed non-endpoint value, compare displayed value to saved settings, then verify that exact value survives mute and cold launch.",
+    "Intermediate iOS 27 audio session main-thread warning prompted asynchronous serialized session setup before final validation."
+  ]
+}

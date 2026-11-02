@@ -1,0 +1,9 @@
+Tool: built-in image_gen
+Reference: native/ios/ArtSource/icon-home.png
+Output: native/ios/ArtSource/icon-play.png
+Transparent background: true
+
+Use case: game UI asset.
+Generate ONE standalone PLAY icon for a cozy cream miniature-toy native iOS cat-care game. The attached mint house icon is a STYLE reference only, not the subject. Match its rounded clay-toy volume, clean simple silhouette, subtly sculpted surface, soft upper-left daylight and warm friendly polish. The subject is a single plump yarn ball with a short gently curved loose string tail. Use a soft coral yarn ball, cream yarn highlights, and a tiny restrained mint accent if useful; only these harmonious pastel colors. The yarn strands should read clearly as a simple ball at 31 logical points, with broad rounded wraps rather than hundreds of thin details. Tail curves gracefully toward the lower right, not a tangled loop. No cat, no house, no hand, no other toy.
+
+Square canvas about 768 x 768, icon centered and occupying about 85% of the width with transparent padding and no clipping. Genuine transparent alpha background. No circular button plate, no colored backdrop, no border, no text, no label, no frame, no floor and no large cast-shadow patch. One isolated clean icon only.

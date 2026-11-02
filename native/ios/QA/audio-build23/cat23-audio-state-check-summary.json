@@ -1,0 +1,38 @@
+{
+  "scope": "Audio controller control-flow checks with real controller source and AVAudioSession/AVAudioPlayer test doubles; not a hardware audio test",
+  "result": "passed",
+  "check_count": 9,
+  "checks": [
+    "Fresh first effect survives asynchronous activation without blocking MainActor",
+    "Background invalidates activation completion and pending cue",
+    "Effects older than 0.5 seconds are discarded",
+    "Muting both channels cancels pending activation and playback",
+    "Activation failure does not self-retry; next explicit cue can recover",
+    "Interruption clears only after successful reactivation",
+    "Explicit route recovery restores music without manufacturing a cue",
+    "Pending effects are bounded to four",
+    "Rapid foreground/background transitions restore only the newest generation"
+  ],
+  "session_mutations_recorded_on_main_thread": 0,
+  "typecheck": "Swift 6 strict-concurrency=complete; arm64 iOS 17 Simulator target; passed",
+  "production_file": "native/ios/CatLife/AudioRuntime/GameAudioController.swift",
+  "production_sha256": "2d52d3abf9fe951f8ce3505aac87ad48d9534f581883918cbc89f9fef7684d43",
+  "artifacts": {
+    "cat23-audio-state-check.log": {
+      "sha256": "eaf73dc925829490631f373481fac6fdb54a9d083d363103a62a9303a7b5ac6b",
+      "bytes": 594
+    },
+    "cat23-audio-state-check.swift": {
+      "sha256": "76e0bb38a8da57aa49a9c47e90a002eb676621da6a8b671457b6cf98e60f7cc9",
+      "bytes": 28959
+    },
+    "cat23-audio-state-check-build.log": {
+      "sha256": "7c2316cc395f6d6fa0cc95392ee0e995e79997f926cc6a471f435a7120f504c9",
+      "bytes": 760
+    },
+    "cat23-audio-controller-typecheck.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    }
+  }
+}

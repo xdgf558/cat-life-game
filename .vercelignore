@@ -1,2 +1,4 @@
-# Design review artifacts are not runtime assets.
+# Native client, source design files and local metadata are not website assets.
+native/
 docs/
+.git/

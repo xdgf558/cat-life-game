@@ -1,0 +1,149 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "9FAC6E55-E1CB-462F-A866-F30695E1E413.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_CF31F6AC-AB7C-4C53-BBC3-FE6E10EFC200.txt",
+        "timestamp": 1793589549.305
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "BA30311A-4E8C-4DFB-9F28-853F4524A889.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — the free starter set occupies four distinct slots_0_3216DA9F-F242-4A03-B87B-8EFCB3813A35.png",
+        "timestamp": 1793589454.136
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "B865DDE2-78F5-427B-B3DE-143D09015F55.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — selected female_scholarly profile portrait_0_30B4BE8E-D1B4-4491-BE54-8F43FC9F4D1C.png",
+        "timestamp": 1793589390.589
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "144EAECD-3FD2-4C28-BD34-75C597C2D314.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — three female appearances with a saved selection_0_3AEFA4F1-5F8F-43E4-8146-86BCAFE9AA97.png",
+        "timestamp": 1793589353.382
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "8430009B-894F-43F0-BF67-AA6E1995A5D0.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card female_scholarly_0_2D0DDC00-AEA3-45DD-8218-20BF8CCCC975.png",
+        "timestamp": 1793589342.255
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "847CC2CA-8C22-4F33-B6E3-D2109D6372F3.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card female_forest_0_02FAF159-E672-4CF0-8ED9-9CA830D87E54.png",
+        "timestamp": 1793589336.143
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "0595494E-39AC-4C47-8D1C-B2B4F5AC4299.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card female_sunny_0_990843AD-8132-46D7-A449-8D5E2B747256.png",
+        "timestamp": 1793589333.998
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "E4766BD3-B3B6-46A1-85BD-A9182C129CF2.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player — three male appearances with a saved selection_0_1CDD005B-3704-4A4D-A0CE-9E13385AE5D7.png",
+        "timestamp": 1793589329.202
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "353D8CA7-FECF-48F5-BB78-D8600FBDBE2B.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card male_scholarly_0_E80C33B7-942F-4052-94FC-7844CDF8797D.png",
+        "timestamp": 1793589319.85
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "CD4D68C2-80EB-489F-B1F1-B4D1C72F5FFB.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card male_forest_0_7A290E9E-5652-4896-866F-80D398685C81.png",
+        "timestamp": 1793589314.58
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "FD093B8F-DF04-4DB0-AFF6-58D287DCEED0.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Player artwork — visible card male_sunny_0_178A7916-F1E4-4B4F-8E61-3DBC7A999A49.png",
+        "timestamp": 1793589312.411
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "293BD490-5821-4828-9138-538EF420AA99.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone SE baseline_0_14B42411-8775-4813-94D4-4FFB8E722B8E.txt",
+        "timestamp": 1793589265.049
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testPlayerAvatarsAndFreeEquipmentPersistAcrossRelaunch"
+  },
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "EF900468-555F-48C9-940F-ADE36A1E1055.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — nested navigation closes back to the unchanged room_0_6AFF0092-EFC1-4FBC-94A2-82774CAE1B6E.png",
+        "timestamp": 1793589597.086
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "C709E20C-6F3F-4ED3-8CCC-0AE8A52F929E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — the third recent release is reachable; older history is hidden_0_14E195FB-906F-4383-8BB7-8AF8E7392093.png",
+        "timestamp": 1793589581.164
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000006",
+        "deviceName": "<DEVICE_NAME_7>",
+        "exportedFileName": "2E546343-A1BF-47A7-AAEA-2A63FEED812E.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Settings — version page at the top before scrolling_0_920CF191-8D92-4F33-8E08-6AD0697A4D1F.png",
+        "timestamp": 1793589572.074
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation"
+  }
+]

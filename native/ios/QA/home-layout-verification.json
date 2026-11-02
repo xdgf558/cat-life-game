@@ -1,0 +1,402 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.1.0 (14)",
+  "scope": "Home-screen controls only: horizontal resources, separate food information, care buttons on one row; room and cat presentation preserved.",
+  "coreTests": {
+    "result": "not-rerun-for-build14",
+    "productionInputsUnchangedFromBuild13": true,
+    "previousBuild": "0.1.0 (13)",
+    "previousPassed": 77,
+    "previousSuites": 8,
+    "previousEvidence": "settings-verification.json",
+    "previousLog": "settings-build13-test-logs/cat-home-name-core-tests.log",
+    "note": "77 is the previous build13 result, not a new build14 execution."
+  },
+  "uiTests": {
+    "globalBaselineBeforeThisBatch": {
+      "uniqueTests": 29,
+      "passedRuns": 96,
+      "failures": 10
+    },
+    "allAttemptsIncludingBuild13Baselines": {
+      "executed": 11,
+      "passed": 8,
+      "failures": 3
+    },
+    "build13AdditionalBaseline": {
+      "executed": 2,
+      "passed": 2,
+      "failures": 0
+    },
+    "build14Initial": {
+      "executed": 4,
+      "passed": 1,
+      "failures": 3
+    },
+    "build14Final": {
+      "executed": 5,
+      "passed": 5,
+      "failures": 0
+    },
+    "build14AllAttempts": {
+      "executed": 9,
+      "passed": 6,
+      "failures": 3
+    },
+    "finalDistinctMethods": 4,
+    "newUniqueMethods": 0,
+    "globalAggregate": {
+      "uniqueTests": 29,
+      "passedRuns": 104,
+      "failures": 13
+    },
+    "runs": [
+      {
+        "label": "baseline-se",
+        "stage": "build13-extra-baseline",
+        "build": "0.1.0 (13)",
+        "device": "SE",
+        "sourceLog": "<TMP>/cat-build14-baseline-se.log",
+        "log": "home-layout-build14-test-logs/cat-build14-baseline-se.log",
+        "logSha256": "1fc25b2275af982806ee950a614640f0ee42962492502d4339eb45905dd9504f",
+        "startedAtLocal": "2026-11-01 18:29:31.972",
+        "resultBundle": "<TMP>/cat-build14-baseline-se.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "succeeded",
+        "runnerSucceeded": true,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testLastFoodStillCompletesMealAtBowl"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "result": "passed",
+            "seconds": 106.768,
+            "logLine": 876
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "baseline-pro",
+        "stage": "build13-extra-baseline",
+        "build": "0.1.0 (13)",
+        "device": "Pro",
+        "sourceLog": "<TMP>/cat-build14-baseline-pro.log",
+        "log": "home-layout-build14-test-logs/cat-build14-baseline-pro.log",
+        "logSha256": "462a4b7a94eb8f562b25cda596c2617e7ab41ee6093955670afa79d5cbc5b056",
+        "startedAtLocal": "2026-11-01 18:32:18.908",
+        "resultBundle": "<TMP>/cat-build14-baseline-pro.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "succeeded",
+        "runnerSucceeded": true,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testLastFoodStillCompletesMealAtBowl"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "result": "passed",
+            "seconds": 127.542,
+            "logLine": 886
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "layout-se",
+        "stage": "build14-initial-layout",
+        "build": "0.1.0 (14)",
+        "device": "SE",
+        "sourceLog": "<TMP>/cat-build14-layout-se.log",
+        "log": "home-layout-build14-test-logs/cat-build14-layout-se.log",
+        "logSha256": "c5c9b7bdf3a72d310709b12f2f23b6b04bb7d6d14319c323b320acce8b3aee05",
+        "startedAtLocal": "2026-11-01 18:38:49.869",
+        "resultBundle": "<TMP>/cat-build14-layout-se.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "failed",
+        "runnerSucceeded": false,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testLastFoodStillCompletesMealAtBowl",
+          "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 2,
+        "passed": 0,
+        "failures": 2,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "result": "failed",
+            "seconds": 9.095,
+            "logLine": 72
+          },
+          {
+            "name": "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+            "result": "failed",
+            "seconds": 36.08,
+            "logLine": 270
+          }
+        ],
+        "observedFailureMessages": [
+          {
+            "line": 70,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:333: error: -[CatLifeUITests.RoomHomeUITests testLastFoodStillCompletesMealAtBowl] : XCTAssertGreaterThanOrEqual failed: (\"31.0\") is less than (\"44.0\")"
+          },
+          {
+            "line": 268,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:170: error: -[CatLifeUITests.RoomHomeUITests testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress] : XCTAssertGreaterThanOrEqual failed: (\"31.5\") is less than (\"44.0\")"
+          }
+        ]
+      },
+      {
+        "label": "layout-pro",
+        "stage": "build14-initial-layout",
+        "build": "0.1.0 (14)",
+        "device": "Pro",
+        "sourceLog": "<TMP>/cat-build14-layout-pro.log",
+        "log": "home-layout-build14-test-logs/cat-build14-layout-pro.log",
+        "logSha256": "29bee78533b60bc447393ae585ebf5ca93980a449dd407a53ebdcb0e664f8798",
+        "startedAtLocal": "2026-11-01 18:38:58.586",
+        "resultBundle": "<TMP>/cat-build14-layout-pro.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "failed",
+        "runnerSucceeded": false,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testLastFoodStillCompletesMealAtBowl",
+          "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 2,
+        "passed": 1,
+        "failures": 1,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "result": "failed",
+            "seconds": 15.427,
+            "logLine": 81
+          },
+          {
+            "name": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 39.422,
+            "logLine": 223
+          }
+        ],
+        "observedFailureMessages": [
+          {
+            "line": 79,
+            "text": "<REPO>/native/ios/CatLifeUITests/RoomHomeUITests.swift:333: error: -[CatLifeUITests.RoomHomeUITests testLastFoodStillCompletesMealAtBowl] : XCTAssertGreaterThanOrEqual failed: (\"31.0\") is less than (\"44.0\")"
+          }
+        ]
+      },
+      {
+        "label": "layout-se-final",
+        "stage": "build14-final-layout",
+        "build": "0.1.0 (14)",
+        "device": "SE",
+        "sourceLog": "<TMP>/cat-build14-layout-se-final.log",
+        "log": "home-layout-build14-test-logs/cat-build14-layout-se-final.log",
+        "logSha256": "77dad533296fe5ad0374722c271d4fe3c9d49c23e846327550ecf4e184ede59b",
+        "startedAtLocal": "2026-11-01 18:42:34.605",
+        "resultBundle": "<TMP>/cat-build14-layout-se-final.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "succeeded",
+        "runnerSucceeded": true,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testLastFoodStillCompletesMealAtBowl",
+          "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 2,
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "result": "passed",
+            "seconds": 148.27,
+            "logLine": 1184
+          },
+          {
+            "name": "testSettingsLanguageChangesRefreshScreensAndPersistWithoutResettingProgress",
+            "result": "passed",
+            "seconds": 216.101,
+            "logLine": 2176
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "layout-pro-final",
+        "stage": "build14-final-layout",
+        "build": "0.1.0 (14)",
+        "device": "Pro",
+        "sourceLog": "<TMP>/cat-build14-layout-pro-final.log",
+        "log": "home-layout-build14-test-logs/cat-build14-layout-pro-final.log",
+        "logSha256": "c300f00584f7615e8ae934020d8ec2af3684d161e84187c02443686d9da65f7d",
+        "startedAtLocal": "2026-11-01 18:42:42.909",
+        "resultBundle": "<TMP>/cat-build14-layout-pro-final.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "succeeded",
+        "runnerSucceeded": true,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testLastFoodStillCompletesMealAtBowl",
+          "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 2,
+        "passed": 2,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testLastFoodStillCompletesMealAtBowl",
+            "result": "passed",
+            "seconds": 181.63,
+            "logLine": 1194
+          },
+          {
+            "name": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 41.764,
+            "logLine": 1336
+          }
+        ],
+        "observedFailureMessages": []
+      },
+      {
+        "label": "extra-final:cat-build14-long-name-pro",
+        "stage": "build14-final-layout",
+        "build": "0.1.0 (14)",
+        "device": "Pro",
+        "sourceLog": "<TMP>/cat-build14-long-name-pro.log",
+        "log": "home-layout-build14-test-logs/cat-build14-long-name-pro.log",
+        "logSha256": "9774cf3c060e3b17cef561957af95125aef7539a488aa18645054dc5da507a14",
+        "startedAtLocal": "2026-11-01 18:47:30.620",
+        "resultBundle": "<TMP>/cat-build14-long-name-pro.xcresult",
+        "runnerComplete": true,
+        "runnerResult": "succeeded",
+        "runnerSucceeded": true,
+        "startedAndCompletedCasesMatch": true,
+        "suiteSummaryMatchesCompletionLines": true,
+        "expectedMethods": [
+          "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges"
+        ],
+        "expectedMethodsMatch": true,
+        "executed": 1,
+        "passed": 1,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testCustomHomeNamePersistsAcrossRelaunchAndLanguageChanges",
+            "result": "passed",
+            "seconds": 92.787,
+            "logLine": 340
+          }
+        ],
+        "observedFailureMessages": []
+      }
+    ],
+    "countingRule": "Count actual Test Case completion lines once. Repeated suite summaries do not add cases. All failed attempts remain counted. The two build13 baseline runs are separate from build14 coverage but included in the global accumulated runs; unique tests remain 29."
+  },
+  "sourceManifest": {
+    "path": "home-layout-build14/layout-tested-source-manifest.json",
+    "sha256": "145998abf46d2d1480dbbdd1248625a7a12533ac7107bfe11467549fb308a361",
+    "inputCount": 87,
+    "currentFilesMatch": false,
+    "note": "This immutable manifest records the previous layout-tested 0.1.0 (14) binary; only marketing version metadata changed afterward."
+  },
+  "preservedSceneAndAssets": {
+    "path": "home-layout-build14/preserved-scene-and-assets.json",
+    "sha256": "ffa5f5518303732f660ad7111a2fd910ee52b40f00b9c37991187838ee81bcbb",
+    "inputCount": 66,
+    "allHashesMatch": true
+  },
+  "coreComparisonManifest": {
+    "path": "build13-source-manifest.json",
+    "sha256": "f668fd8dde508b0f37c7444f2d0b679b399c3a2b1c059ce503cb640e5438510a",
+    "coreInputCount": 10
+  },
+  "archivedEvidence": [
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-baseline-se.log",
+      "source": "<TMP>/cat-build14-baseline-se.log",
+      "sha256": "1fc25b2275af982806ee950a614640f0ee42962492502d4339eb45905dd9504f"
+    },
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-baseline-pro.log",
+      "source": "<TMP>/cat-build14-baseline-pro.log",
+      "sha256": "462a4b7a94eb8f562b25cda596c2617e7ab41ee6093955670afa79d5cbc5b056"
+    },
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-layout-se.log",
+      "source": "<TMP>/cat-build14-layout-se.log",
+      "sha256": "c5c9b7bdf3a72d310709b12f2f23b6b04bb7d6d14319c323b320acce8b3aee05"
+    },
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-layout-pro.log",
+      "source": "<TMP>/cat-build14-layout-pro.log",
+      "sha256": "29bee78533b60bc447393ae585ebf5ca93980a449dd407a53ebdcb0e664f8798"
+    },
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-layout-se-final.log",
+      "source": "<TMP>/cat-build14-layout-se-final.log",
+      "sha256": "77dad533296fe5ad0374722c271d4fe3c9d49c23e846327550ecf4e184ede59b"
+    },
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-layout-pro-final.log",
+      "source": "<TMP>/cat-build14-layout-pro-final.log",
+      "sha256": "c300f00584f7615e8ae934020d8ec2af3684d161e84187c02443686d9da65f7d"
+    },
+    {
+      "path": "home-layout-build14-test-logs/cat-build14-long-name-pro.log",
+      "source": "<TMP>/cat-build14-long-name-pro.log",
+      "sha256": "9774cf3c060e3b17cef561957af95125aef7539a488aa18645054dc5da507a14"
+    }
+  ],
+  "screenshots": [
+    "home-layout-build14/baseline-pro-empty.png",
+    "home-layout-build14/baseline-se-empty.png",
+    "home-layout-build14/pro-empty.png",
+    "home-layout-build14/pro-home.png",
+    "home-layout-build14/pro-long-home-name.png",
+    "home-layout-build14/pro-restocked.png",
+    "home-layout-build14/reference.png",
+    "home-layout-build14/se-empty.png",
+    "home-layout-build14/se-english.png",
+    "home-layout-build14/se-first-layout.png",
+    "home-layout-build14/se-home.png",
+    "home-layout-build14/se-restocked.png",
+    "home-layout-build14/se-simplified.png",
+    "home-layout-build14/se-traditional.png"
+  ],
+  "limits": [
+    "Only the named SE/Pro UI workflows were rerun; this is not a full 29-test rerun.",
+    "The 77-test core pass is inherited from build13 and was not repeated in build14.",
+    "Visual/design comparison and physical-device installation/acceptance are separate root-owned evidence; no device success is inferred here."
+  ],
+  "designQA": "../design-qa.md",
+  "deviceEvidence": "build14-device-update.json",
+  "versionCorrection": "version-0.1.1-verification.json"
+}

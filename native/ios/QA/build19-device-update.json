@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-02",
+  "version": "0.4.0",
+  "build": 19,
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "installation": "passed, in place; no uninstall or reset",
+  "installedVersionQueried": true,
+  "installationURL": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000017/CatLife.app/",
+  "terminatedPreviousPID": 0,
+  "normalSave": {
+    "beforePath": "<TMP>/cat-player19-save-before.json",
+    "afterPath": "<TMP>/cat-player19-save-after.json",
+    "bytes": 3378,
+    "sha256": "6f15b4713955162875cfd2b57333e2b1c340a1a4075c203ca4062a6837635f33",
+    "byteIdentical": true,
+    "comparisonMoment": "after installation and before first new launch"
+  },
+  "launch": {
+    "cliSucceeded": true,
+    "newInstallProcessVerified": true,
+    "pid": 0,
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000017/CatLife.app/CatLife",
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build19-source-manifest.json",
+    "inputCount": 115,
+    "sha256": "ca23fc7fa612e15d6fb82a5ffa23d03ccc421e3cd1bc46c5293cde43e0660ffa",
+    "currentFilesMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "executableSHA256": "da7600d547f428ed0959aa3107eaf30f83594e1ae6a3d94087c1fe39a2a750bc",
+    "infoSHA256": "141d3f701b3e9381418cd9ef71e68ea2ae2a57af4ecf78f93a4406709bcac224",
+    "log": "player-build19/cat-player19-build-device-delivery.log",
+    "codesign": "passed"
+  },
+  "rawReceipts": [
+    "<TMP>/cat-player19-install-terminate.json",
+    "<TMP>/cat-player19-install-copy-before.json",
+    "<TMP>/cat-player19-device-install.json",
+    "<TMP>/cat-player19-install-copy-after.json",
+    "<TMP>/cat-player19-apps-after.json",
+    "<TMP>/cat-player19-device-launch.json",
+    "<TMP>/cat-player19-process-after.json"
+  ],
+  "userAcceptance": {
+    "status": "pending user testing of 0.4.0 (19)"
+  },
+  "limits": "Installation, unchanged pre-launch save and normal new-install process verified. No full automated physical-device interaction or long-session performance regression."
+}

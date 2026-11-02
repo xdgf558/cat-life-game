@@ -1,0 +1,53 @@
+{
+  "date": "2026-11-02",
+  "version": "0.4.2",
+  "build": 21,
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "installation": "passed, in place; no uninstall or reset",
+  "installedVersionQueried": true,
+  "installationURL": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000019/CatLife.app/",
+  "terminatedPreviousPID": 0,
+  "normalSave": {
+    "beforePath": "<TMP>/cat-avatar21-save-before.json",
+    "afterPath": "<TMP>/cat-avatar21-save-after.json",
+    "bytes": 4435,
+    "sha256": "d23ecfb85f7dbe545a45f28347143384d989b1c3f596220ede829337410d545c",
+    "byteIdentical": true,
+    "comparisonMoment": "after installation and before first new launch"
+  },
+  "launch": {
+    "cliSucceeded": true,
+    "newInstallProcessVerified": true,
+    "pid": 0,
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000019/CatLife.app/CatLife",
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build21-source-manifest.json",
+    "inputCount": 115,
+    "sha256": "d2aee6e0ef10e4722b7e88ee1eb526244dcfd2bb73eee17dcc5f6628269fb62c",
+    "allInputsMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "log": "avatar-navigation-build21/cat-avatar21-build-device.log",
+    "codesign": "passed",
+    "executableSHA256": "6c2d0e639fe58fe6891a927ae0ccc49bebc2e9b9b58e43f5f159aebc1ca6a854",
+    "assetsSHA256": "dd7b757a5c887cdfa6b2dbcd9cdde05fe9d5e1d910141675914e5517aa74a26e",
+    "infoSHA256": "6c4f8653a9315a87c9c1fa678c830ffe8d05e78f226176db82d71c51abb6f038"
+  },
+  "rawReceipts": [
+    "<TMP>/cat-avatar21-install-terminate.json",
+    "<TMP>/cat-avatar21-install-copy-before.json",
+    "<TMP>/cat-avatar21-device-install.json",
+    "<TMP>/cat-avatar21-install-copy-after.json",
+    "<TMP>/cat-avatar21-apps-after.json",
+    "<TMP>/cat-avatar21-device-launch.json",
+    "<TMP>/cat-avatar21-process-after.json"
+  ],
+  "userAcceptance": {
+    "status": "pending user testing of 0.4.2 (21)"
+  },
+  "limits": "Installation, unchanged pre-launch save and normal new-install process verified. No full automated physical-device interaction or long-session performance regression."
+}

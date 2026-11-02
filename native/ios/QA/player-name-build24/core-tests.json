@@ -1,0 +1,70 @@
+{
+  "version": "0.5.1",
+  "build": 24,
+  "date": "2026-11-02",
+  "scope": "Final native core test run including invisible-character hardening; not UI or device acceptance.",
+  "result": "passed",
+  "tests": 142,
+  "suites": 12,
+  "failed": 0,
+  "testRunDurationSeconds": 1.556,
+  "summary": "✔ Test run with 142 tests in 12 suites passed after 1.556 seconds.",
+  "sourceLogLabel": "cat24-core-final-tests.log",
+  "sourceLogSHA256": "d5937f6a299d45f2ab5c72789f5aedb36345ff614ca2bba99429823c6aa64a2e",
+  "newPlayerNameTests": {
+    "count": 8,
+    "source": "../../CatGameCore/Tests/CatGameCoreTests/PlayerNameTests.swift",
+    "suite": "Player names and non-destructive profile migration",
+    "tests": [
+      {
+        "name": "namesTrimSpacesAndCountVisibleGraphemeBoundaries",
+        "result": "passed"
+      },
+      {
+        "name": "controlsAndInvisibleNamesAreRejectedWithoutTrimmingThemAway",
+        "result": "passed"
+      },
+      {
+        "name": "invisibleLettersAndMarksAreRejectedAloneOrWithinVisibleNames",
+        "result": "passed"
+      },
+      {
+        "name": "preNameProfileLoadsWithoutRewritingOrLosingAnyProgress",
+        "result": "passed"
+      },
+      {
+        "name": "malformedNameFallsBackAloneWithoutRestoringAnOlderBackup",
+        "result": "passed"
+      },
+      {
+        "name": "validSavedNamesNormalizeWithoutRewritingTheSaveOnRead",
+        "result": "passed"
+      },
+      {
+        "name": "renameAndDefaultResetPersistWithoutChangingWorkEquipmentOrOtherState",
+        "result": "passed"
+      },
+      {
+        "name": "invalidRuntimeNamesCannotOverwritePrimaryOrBackup",
+        "result": "passed"
+      }
+    ]
+  },
+  "suiteNames": [
+    "Meal contact and docking clearance",
+    "Room floor and obstacle navigation",
+    "Native save durability",
+    "Native game rules",
+    "Career progression and durable work receipts",
+    "Furniture rest approach and return",
+    "Language, audio preferences and save compatibility",
+    "Player names and non-destructive profile migration",
+    "Persistent player sleep and cat recovery",
+    "Player appearances, equipment and captured work terms",
+    "Custom home names and durable progress",
+    "Furniture ownership and room layouts"
+  ],
+  "limitations": [
+    "Core tests do not establish final UI, installation or physical-device acceptance."
+  ]
+}

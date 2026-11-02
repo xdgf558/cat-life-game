@@ -1,0 +1,81 @@
+{
+  "date": "2026-11-02",
+  "version": "0.4.3",
+  "build": 22,
+  "scope": "Reference-based full-screen welcome illustration and real staged loading; no room/cat geometry or save schema changes.",
+  "progress": {
+    "stages": [
+      "read save: 0 → 1/3",
+      "synchronize and persist progress: 1/3 → 2/3",
+      "preload room textures: 2/3 → 1"
+    ],
+    "ready": "100% only when all stages finish; still waits for Enter home",
+    "failure": "remaining incomplete progress, retry, no early room entry",
+    "timerSimulation": false
+  },
+  "art": {
+    "reference": "../ArtSource/welcome-build22/reference.png",
+    "provenance": "../ArtSource/welcome-build22/README.md",
+    "assets": [
+      "welcome-arrival",
+      "welcome-arrival-compact"
+    ],
+    "runtimeTextBakedIn": false
+  },
+  "sourceManifest": {
+    "path": "build22-source-manifest.json",
+    "inputCount": 119,
+    "sha256": "ca27b6cbe3c919ceb87679137ffec74fabe52fcdcca9b295a11625af3319a06a",
+    "allInputsMatch": true
+  },
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "welcome-build22/build-logs/cat22-simulator-delivery-build.log"
+    },
+    "device": {
+      "result": "passed",
+      "log": "welcome-build22/build-logs/cat22-device-delivery-build.log",
+      "codesign": "passed on host; sandbox-only initial trust lookup could not access certificate trust service",
+      "executableSHA256": "b1b981c714d3d391c7918b78af7b21c041ecbdb217d652ef9e84e831ddfeb891",
+      "assetsSHA256": "c999ffcf2bff102ad3d4f59029f443e74649d98b12f1ef838d9d2029cb8db41b",
+      "infoSHA256": "e0812a1656fdb8c9e344a5b01dfefc8c8d1cdb1af115cb1f805887332fcf0865"
+    }
+  },
+  "coreTests": {
+    "rerun": false,
+    "reason": "CatGameCore and its tests unchanged; prior PR preflight has 129 passing tests / 11 suites.",
+    "evidence": "pr-review/preflight.json"
+  },
+  "uiTests": {
+    "totals": {
+      "executions": 13,
+      "passed": 7,
+      "historicalFailedExecutions": 6,
+      "distinctMethods": 5,
+      "newMethods": 0
+    },
+    "details": "welcome-build22/ui-results.json",
+    "latestChecks": "SE and Pro loading and persisted entry each passed. Final Pro uses delivery source; SE passed before English-only subtitle and indentation polish. Earlier successful language, retry, and version checks were not needlessly repeated.",
+    "historicalFailureCause": "welcomeHero background accessibility was occluded by ScrollView; intermediate ZStack alone did not fix it; explicit foreground image accessibility representation resolved it."
+  },
+  "visualQA": {
+    "result": "passed",
+    "report": "welcome-build22/design-qa.md",
+    "screens": [
+      "welcome-build22/pro-ready-final.png",
+      "welcome-build22/se-ready-final.png",
+      "welcome-build22/pro-en-final.png",
+      "welcome-build22/se-en-final.png"
+    ]
+  },
+  "device": {
+    "status": "installed, save preserved and user-opened new process confirmed",
+    "evidence": "build22-device-update.json"
+  },
+  "limits": [
+    "Physical-device visual/gameplay acceptance pending user feedback.",
+    "No iPad, landscape, largest accessibility text or long-session performance certification.",
+    "Image edit reconstructs minor art details; not pixel-identical source preservation."
+  ]
+}

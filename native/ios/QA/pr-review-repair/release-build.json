@@ -1,0 +1,19 @@
+{
+  "version": "0.5.2",
+  "build": 25,
+  "configuration": "Release iphoneos",
+  "signature": "passed",
+  "testMarkerCount": 0,
+  "checkedMarkers": [
+    "--ui-testing",
+    "--reset-ui-test-save",
+    "--career-save-failure-once",
+    "--recovery-end-failure-once",
+    "--slow-care-planning-test",
+    "GameStoreFixtures",
+    "RoomSceneDiagnostics",
+    "Audio diagnostics"
+  ],
+  "executableSHA256": "716a6d7e0a30240ecac2c9118b30660f280c8c3a0f85ca0dca4bb6075242a79c",
+  "installedOnDevice": false
+}

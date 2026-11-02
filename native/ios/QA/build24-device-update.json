@@ -1,0 +1,39 @@
+{
+  "date": "2026-11-02",
+  "version": "0.5.1",
+  "build": 24,
+  "deviceClass": "iPhone Air",
+  "installation": {
+    "result": "installed in place",
+    "installedVersionVerified": true,
+    "uninstalledOrReset": false
+  },
+  "savePreservation": {
+    "bytes": 4703,
+    "sha256": "ca4e2b5d089f8e12904d59d7f69ba9a246559447a8da1e20efab01f511a8bdc7",
+    "byteIdenticalBeforeFirstLaunch": true,
+    "ordinarySaveEdited": false,
+    "comparison": "Immediate pre-install save copied with separate command receipt; compared byte-for-byte with post-install save before first launch."
+  },
+  "launch": {
+    "normalCLI": "blocked by device lock",
+    "userOpenedNormally": true,
+    "newInstallProcessVerified": true,
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build24-source-manifest.json",
+    "inputCount": 136,
+    "sha256": "1403c2670d58e3b9faebec0ab786e63bac974b41ffe15e07d302596e6665b627",
+    "allInputsMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "codesign": "passed on host",
+    "executableSHA256": "0e51595452f3911f4ba5b94e1479c4c26f659c94a7788436544980f486dd9db8",
+    "assetsSHA256": "c999ffcf2bff102ad3d4f59029f443e74649d98b12f1ef838d9d2029cb8db41b",
+    "infoSHA256": "5adfe1341ac7665d00fa510dec6825ffd6890ac56bb0ad188d5d8f2c6dc3dcad"
+  },
+  "privacy": "Device, signing, process and installation identifiers omitted. Actual saves and raw receipts remain outside the repository.",
+  "userAcceptance": "Installation, save preservation and normal startup verified; hands-on rename acceptance awaits player feedback."
+}

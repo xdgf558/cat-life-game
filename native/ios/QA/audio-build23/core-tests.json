@@ -1,0 +1,16 @@
+{
+  "version": "0.5.0",
+  "build": 23,
+  "scope": "Audio preferences compatibility and persistence",
+  "tests": 134,
+  "suites": 11,
+  "passed": 134,
+  "failed": 0,
+  "newTests": 5,
+  "log": "test-logs/cat23-core-tests.log",
+  "productionAPI": "GameSettings.audio: AudioSettings; mutable musicEnabled/effectsEnabled/musicVolume/effectsVolume; volumes normalized on construction, decoding and assignment.",
+  "sourceSHA256": {
+    "Sources/CatGameCore/GameSettings.swift": "22a5266e3d69fab0b11206f85eaf9a11220982b33087cbeb0d63f17ed09dace8",
+    "Tests/CatGameCoreTests/GameSettingsTests.swift": "c5a21626364cbf300d673f54ba042f987c64d548d94d17db3a935b1b4e7be5c4"
+  }
+}

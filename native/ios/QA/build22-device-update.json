@@ -1,0 +1,43 @@
+{
+  "date": "2026-11-02",
+  "version": "0.4.3",
+  "build": 22,
+  "deviceClass": "iPhone Air",
+  "installation": {
+    "result": "installed in place",
+    "installedVersionVerified": true,
+    "uninstalledOrReset": false
+  },
+  "savePreservation": {
+    "bytes": 3752,
+    "sha256": "0b61c1d142db0abfa39ffab7dd2458930cb9e76e27706d658ab96bc93b2aed3d",
+    "byteIdenticalBeforeFirstLaunch": true,
+    "ordinarySaveEdited": false
+  },
+  "launch": {
+    "initialCLI": "denied because device auto-locked",
+    "userConfirmedOpenedInForeground": true,
+    "newInstallProcessVerified": true,
+    "testOrResetArgumentsUsed": false,
+    "reinstalledAfterUserOpened": false
+  },
+  "sourceManifest": {
+    "path": "build22-source-manifest.json",
+    "inputCount": 119,
+    "sha256": "ca27b6cbe3c919ceb87679137ffec74fabe52fcdcca9b295a11625af3319a06a",
+    "allInputsMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "log": "welcome-build22/build-logs/cat22-device-delivery-build.log",
+    "codesign": "passed on host; sandbox-only initial trust lookup could not access certificate trust service",
+    "executableSHA256": "b1b981c714d3d391c7918b78af7b21c041ecbdb217d652ef9e84e831ddfeb891",
+    "assetsSHA256": "c999ffcf2bff102ad3d4f59029f443e74649d98b12f1ef838d9d2029cb8db41b",
+    "infoSHA256": "e0812a1656fdb8c9e344a5b01dfefc8c8d1cdb1af115cb1f805887332fcf0865"
+  },
+  "privacy": "Device, installation, process and signing identifiers omitted; actual save payload and raw device receipts stay outside the repository.",
+  "userAcceptance": {
+    "status": "startup confirmed; welcome appearance and gameplay acceptance pending user feedback"
+  },
+  "limits": "Installation, pre-launch save preservation and normal new-install process verified; no full automated physical-device interaction or long-session performance regression."
+}

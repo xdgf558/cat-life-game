@@ -1,0 +1,53 @@
+[
+  {
+    "attachments": [
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "422DF2C9-3DA4-4195-959B-91C023D2AD64.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Home viewport — against the build 13 iPhone Pro baseline_0_1909BAFB-E37C-4119-923F-DC3F22D0B473.txt",
+        "timestamp": 1793586149
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "2A47D129-368C-4411-A991-3BE44BE3DA92.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Equipment — discounted work pays its unchanged gold and experience once_0_00D29659-4EBB-4B29-B785-618F38331B52.png",
+        "timestamp": 1793586078.658
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "8EA8302A-5B30-4468-A47E-16A9631D7C51.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — a saved equipped flyer shift resumes_0_6C032B1F-41F1-4805-B1FE-F8A83ADC4205.txt",
+        "timestamp": 1793586036.818
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "05DFCFE3-F84E-473C-8695-1217A522D4E9.txt",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Recovery clock — the equipped cafe shift uses its captured duration_0_BC79EB0A-3386-4763-B15A-C1AA82BCB490.txt",
+        "timestamp": 1793585885.036
+      },
+      {
+        "configurationName": "Test Scheme Action",
+        "deviceId": "00000000-0000-0000-0000-000000000004",
+        "deviceName": "<DEVICE_NAME_5>",
+        "exportedFileName": "241CA906-9BBC-4DEF-8527-A4D69EB665B2.png",
+        "isAssociatedWithFailure": false,
+        "suggestedHumanReadableName": "Equipment — actual cafe preview includes duration and cost reductions_0_8688AC71-80C8-4670-B6A1-63189518B663.png",
+        "timestamp": 1793585875.274
+      }
+    ],
+    "testIdentifier": "RoomHomeUITests/testEquippedWorkKeepsCapturedTermsAndSettlesOnce()",
+    "testIdentifierURL": "test://com.apple.xcode/CatLife/CatLifeUITests/RoomHomeUITests/testEquippedWorkKeepsCapturedTermsAndSettlesOnce"
+  }
+]

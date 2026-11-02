@@ -1,0 +1,227 @@
+{
+  "date": "2026-11-01",
+  "appVersion": "0.2.0 (17)",
+  "scope": "Persisted player sleep and time-based cat energy recovery",
+  "sourceManifest": {
+    "path": "build17-source-manifest.json",
+    "inputCount": 92,
+    "sha256": "03d4b5826f7a35812c2f7a265294367011576bab6c59a0fa1b2e21684e17a807"
+  },
+  "uiTestSourceSHA256": "7fc085c5478a1c66c8fdfd8172859966842c5f3ed6b31a3469efdfa6cd9819c4",
+  "coreTests": {
+    "result": "passed",
+    "count": 95,
+    "suites": 9,
+    "newTests": 18,
+    "log": "recovery-build17/cat-rest17-core-final.log"
+  },
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "recovery-build17/cat-rest17-build-sim-final.log",
+      "executableSHA256": "762cac0dd1b107cd6674d0ba45cbfa336a36b4cd47ca075d6c0d0c5c71d1f39e",
+      "infoSHA256": "c8e1f14f1d124c33d533f7f7fc7e8a9987b45721ebf10b3beb25239f6bc28718",
+      "testRunnerSHA256": "842786e1474e5c0e6743e79538389459cc600e803b1210edf05263e3f2290c6a"
+    },
+    "device": {
+      "result": "passed",
+      "log": "recovery-build17/cat-rest17-build-device-release.log",
+      "executableSHA256": "a0167d141b4c7460d1a7a2ac8f3f08ba89096814d8e3879bf2915ab16785526b",
+      "infoSHA256": "2887b0e46096cee47292ad8b4df7bcb630c20bcfbe1e8d2b137e032356f9bbe6",
+      "codesign": "passed"
+    }
+  },
+  "uiTests": {
+    "status": "passed",
+    "initialRuns": {
+      "executions": 10,
+      "passed": 9,
+      "failed": 1,
+      "failure": "SE version test expected 0.1.3 (16) although the actual UI showed 0.2.0 (17). Current source expects 17; final app/test package is being rebuilt in a new derived-data directory.",
+      "logs": [
+        "recovery-build17/cat-rest17-pro-recovery.log",
+        "recovery-build17/cat-rest17-se-recovery.log",
+        "recovery-build17/cat-rest17-pro-regression.log",
+        "recovery-build17/cat-rest17-se-regression.log"
+      ]
+    },
+    "finalExecutions": 10,
+    "finalUniqueMethods": 9,
+    "finalPassed": 10,
+    "finalFailed": 0,
+    "projectUniqueMethods": 37,
+    "runs": [
+      {
+        "device": "<DEVICE_NAME_29>",
+        "passed": 5,
+        "failed": 0,
+        "cases": [
+          {
+            "method": "testCatRestRecoversPartiallyWhenFedAndCapsAfterBackgroundCompletion",
+            "result": "passed",
+            "seconds": 101.574
+          },
+          {
+            "method": "testColdLaunchSettlesAnActiveCatRestWithoutReplayingOrAwardingTwice",
+            "result": "passed",
+            "seconds": 62.891
+          },
+          {
+            "method": "testFeedingDuringCatBedStepExitsSafelyAndCanRestAgain",
+            "result": "passed",
+            "seconds": 82.423
+          },
+          {
+            "method": "testFeedingDuringCushionStepExitsSafelyAndCanRestAgain",
+            "result": "passed",
+            "seconds": 84.612
+          },
+          {
+            "method": "testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork",
+            "result": "passed",
+            "seconds": 96.476
+          }
+        ],
+        "log": "recovery-build17/cat-rest17-pro-final.log",
+        "logSha256": "164e437df80db664644fd70a13057cebe3cef5356ec405f350a237617bb60938",
+        "resultBundle": "<TMP>/cat-rest17-pro-final.xcresult",
+        "attachments": "recovery-build17/pro-final/manifest.json"
+      },
+      {
+        "device": "iPhone SE (3rd generation)",
+        "passed": 5,
+        "failed": 0,
+        "cases": [
+          {
+            "method": "testCatBedSleepAndMovedCushionRestReachFurnitureWithoutSpendingSupplies",
+            "result": "passed",
+            "seconds": 91.801
+          },
+          {
+            "method": "testFailedCatRestEndRetriesOriginalPartialRecoveryWithoutAwardingPastWake",
+            "result": "passed",
+            "seconds": 52.871
+          },
+          {
+            "method": "testOfflinePlayerSleepSettlesThirtyMinutesOnceWithoutReseeding",
+            "result": "passed",
+            "seconds": 65.349
+          },
+          {
+            "method": "testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork",
+            "result": "passed",
+            "seconds": 95.544
+          },
+          {
+            "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+            "result": "passed",
+            "seconds": 47.481
+          }
+        ],
+        "log": "recovery-build17/cat-rest17-se-final.log",
+        "logSha256": "6a5e11bcc8a2ea8267adc66c8a7247b8e6f7dd73517ef27599a727889990d744",
+        "resultBundle": "<TMP>/cat-rest17-se-final.xcresult",
+        "attachments": "recovery-build17/se-final/manifest.json"
+      }
+    ]
+  },
+  "device": {
+    "status": "installed and normal process launch verified",
+    "date": "2026-11-02",
+    "installedVersion": "0.2.0 (17)",
+    "evidence": "build17-device-update.json",
+    "saveBytes": 2912,
+    "saveSHA256": "880644284cc35dc573fd93e45a10706a782c8f89fe61a845bcd6ce37918a05c7",
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "pid": 0,
+    "testOrResetArgumentsUsed": false,
+    "physicalInteractionAcceptance": "passed, reported by user on 2026-11-02",
+    "previousConnectionError": "CoreDevice 4016 resolved on reconnect",
+    "userAcceptance": {
+      "date": "2026-11-02",
+      "status": "passed",
+      "source": "User reported: testing passed",
+      "scope": "User acceptance of installed 0.2.0 (17); no new automated test runs or long-session performance claim."
+    }
+  },
+  "rules": {
+    "player": "20 stamina and 20 mood per real hour; no extra passive recovery during sleep; active until waking",
+    "cat": "Starts only after settled in placed bed/cushion; 12/9 seconds, proportional energy up to 20+floor(comfort/20); stop and settle on early wake; cold launch settles old interval without replay"
+  },
+  "limitations": [
+    "Only cat energy is recovered by furniture rest in this version.",
+    "Physical-device interaction acceptance remains distinct from build/install/process checks."
+  ],
+  "resolvedDuringQA": [
+    "Cold-launch load completion could apply a captured stale scenePhase after a newer active notification and stop the clock. Lifecycle now uses initial/current phase notifications only; action and phase transitions refresh now immediately. The player sleep UI case now measures real elapsed and countdown progression at start, foreground return and cold launch."
+  ],
+  "visualReview": {
+    "result": "passed within reviewed scope",
+    "reviewed": [
+      "recovery-build17/player-sleep-offline-se.png",
+      "recovery-build17/work-countdown-se.png",
+      "recovery-build17/version-se.png",
+      "recovery-build17/player-sleep-pro.png",
+      "recovery-build17/cat-energy-pro.png"
+    ],
+    "checks": [
+      "Scrollable Simplified Chinese recovery cards fit both tested screen sizes.",
+      "Cat profile displays recovered energy 100.",
+      "Version page displays 0.2.0 (17), recent 17/16/15 and hides 14.",
+      "Foreground clocks actually progress at start, foreground return and cold launch."
+    ],
+    "clockSamplesSeconds": {
+      "SE": {
+        "sleepStart": [
+          3,
+          5
+        ],
+        "sleepForeground": [
+          10,
+          12
+        ],
+        "sleepColdLaunch": [
+          34,
+          36
+        ],
+        "workCountdown": [
+          118,
+          116
+        ]
+      },
+      "Pro": {
+        "sleepStart": [
+          3,
+          5
+        ],
+        "sleepForeground": [
+          10,
+          12
+        ],
+        "sleepColdLaunch": [
+          35,
+          37
+        ],
+        "workCountdown": [
+          118,
+          116
+        ]
+      }
+    },
+    "limitations": [
+      "English and Traditional Chinese recovery strings/layout were reviewed in code; no new recovery-card screenshots for those languages.",
+      "No fresh numeric room-frame measurement in this run; layout geometry and artwork source preservation checked instead."
+    ]
+  },
+  "preservedInputs": {
+    "assetCount": 65,
+    "geometryAndActor": [
+      "CatGameCore/Sources/CatGameCore/FurnitureRestPlanner.swift",
+      "CatGameCore/Sources/CatGameCore/RoomNavigation.swift",
+      "CatLife/Scene/CatActor.swift",
+      "CatLife/Scene/RoomFloor.swift",
+      "CatLife/Scene/RoomFurniture.swift"
+    ],
+    "note": "Scene/Host changed to report rest sessions; RoomHomeView only changed its phase listener. No room, cat or furniture dimensions changed."
+  }
+}

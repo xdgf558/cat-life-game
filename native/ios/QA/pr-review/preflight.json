@@ -1,0 +1,51 @@
+{
+  "date": "2026-11-02",
+  "baseBranch": "main",
+  "baseSHA": "2d41d66e4b6440ca808a85942a9dde3bd2d246e5",
+  "branch": "codex/native-ios-0.4.2-review",
+  "appVersion": "0.4.2 (21)",
+  "freshChecks": {
+    "coreTests": {
+      "passed": 129,
+      "suites": 11,
+      "command": "swift test --package-path native/ios/CatGameCore --scratch-path <TMP>/cat-pr-core-check",
+      "log": "core-tests.log"
+    },
+    "simulatorBuildForTesting": {
+      "result": "passed",
+      "log": "simulator-build.log"
+    },
+    "infoPlist": "plutil -lint passed",
+    "projectGenerator": "ruby -c passed",
+    "stagedWhitespace": "passed; archived QA and exact image prompts retain original tool whitespace via .gitattributes"
+  },
+  "productionInputsComparedToBuild21": {
+    "unchanged": 114,
+    "formatOnly": [
+      "CatLife/Info.plist: removed one extra empty EOF line; decoded plist identical"
+    ],
+    "sourceManifest": "source-manifest.json",
+    "newFunctionalChanges": false
+  },
+  "uiEvidence": {
+    "rerunForPR": false,
+    "existingUniqueMethods": 45,
+    "cumulativePassedRuns": 159,
+    "cumulativeHistoricalFailures": 30,
+    "build21Executions": 4,
+    "build21Passed": 3,
+    "build21HistoricalFailures": 1,
+    "latestScopedChecks": "SE and Pro portrait/selection/relaunch and SE version checks passed; initial SE missed selection reason remains undetermined.",
+    "source": "../avatar-navigation-verification.json"
+  },
+  "deviceEvidence": "../build21-device-update.json",
+  "packaging": {
+    "included": "All uncommitted native program/runtime assets, ArtSource originals/prompts, docs/ios-room-home, and complete QA histories.",
+    "lfs": "QA PNG/JPG screenshots and MP4 videos only; runtime app art remains ordinary Git objects.",
+    "restoredQAlogFiles": 194,
+    "excluded": "OS .DS_Store and existing ignored build caches, DerivedData, xcuserstate and xcresult directories.",
+    "noWebGameplayChanges": true,
+    "privacy": "Host/device/signing identity metadata sanitized before any upload; original private commits excluded from public ancestry."
+  },
+  "publicArchiveSanitization": "sanitization.json"
+}

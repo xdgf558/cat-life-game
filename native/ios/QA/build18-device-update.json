@@ -1,0 +1,72 @@
+{
+  "date": "2026-11-02",
+  "version": "0.3.0",
+  "build": 18,
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "installation": "passed, in place; no uninstall or reset",
+  "installedVersionQueried": true,
+  "installationURL": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000016/CatLife.app/",
+  "terminatedPreviousPID": 0,
+  "normalSave": {
+    "beforePath": "<TMP>/cat-career18-save-before.json",
+    "afterPath": "<TMP>/cat-career18-save-after.json",
+    "bytes": 3261,
+    "sha256": "581cdf8552fb6475c92fa762007365683f31f72fd1973b753e8c7fea61ed41ed",
+    "byteIdentical": true,
+    "comparisonMoment": "after installation and before first new launch"
+  },
+  "launch": {
+    "cliSucceeded": false,
+    "newInstallProcessVerified": true,
+    "testOrResetArgumentsUsed": false,
+    "status": "passed after user opened the normal app; matching new-install process verified",
+    "initialCLIAttempt": {
+      "succeeded": false,
+      "error": "CoreDevice 10002 / FBSOpenApplicationErrorDomain Security 3",
+      "evidence": "career-build18/cat-career18-device-launch.log"
+    },
+    "pid": 0,
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000016/CatLife.app/CatLife",
+    "confirmation": "career-build18/user-open-confirmation.json",
+    "foreground": "user reported"
+  },
+  "sourceManifest": {
+    "path": "build18-source-manifest.json",
+    "inputCount": 93,
+    "sha256": "5484770ef8f5585ace19ac4430054f2342f245806ae17a746c04ce8cc184160f",
+    "currentFilesMatch": true
+  },
+  "signedBuild": {
+    "result": "passed",
+    "log": "career-build18/cat-career18-build-device-delivery.log",
+    "executableSHA256": "9bf0115546328bd0d2bca4a18d4988c28b071be4e8cc9ac347351c755919d9a9",
+    "infoSHA256": "655a0b4c1e337d47f38a5bae24e489c2adcf98fb83d0dd70e5a2ed9fa9f1eb59",
+    "codesign": "passed using system certificate trust service"
+  },
+  "provisioningChecks": {
+    "localCodesignPassed": true,
+    "profileCreation": "2026-08-22 02:08:03",
+    "profileExpiration": "2027-08-22 02:08:03",
+    "deviceIncluded": true,
+    "signerIncludedInProfile": true,
+    "applicationIdentifierMatchesProfile": true,
+    "teamMatches": true,
+    "note": "Read-only validation through the system certificate service; does not substitute for iOS developer trust."
+  },
+  "rawReceipts": [
+    "<TMP>/cat-career18-install-terminate.json",
+    "<TMP>/cat-career18-install-copy-before.json",
+    "<TMP>/cat-career18-device-install.json",
+    "<TMP>/cat-career18-install-copy-after.json",
+    "<TMP>/cat-career18-apps-after.json",
+    "<TMP>/cat-career18-device-launch.json",
+    "<TMP>/cat-career18-process-after-attempt.json",
+    "<TMP>/cat-career18-user-open-apps.json",
+    "<TMP>/cat-career18-user-open-processes.json"
+  ],
+  "userAcceptance": {
+    "status": "pending user testing of 0.3.0 (18)"
+  },
+  "limits": "Installation, pre-launch save equality and the new process are verified. Initial CLI launch was denied; the user subsequently opened the normal app. Full gameplay acceptance and long-session performance remain pending."
+}

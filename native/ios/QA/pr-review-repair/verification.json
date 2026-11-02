@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-02",
+  "version": "0.5.2",
+  "build": 25,
+  "status": {
+    "finished": "All listed review findings addressed; welcome22/audio23/name24 integrated; core, app persistence, targeted UI and production builds verified.",
+    "partiallyFinished": "Physical-device acceptance of build25 is outside this PR-only revision; latest installed version remains 0.5.1 (24).",
+    "broken": [],
+    "nextWork": "User review of the revised PR and subsequent physical-device acceptance."
+  },
+  "review": "README.md",
+  "coreTests": {
+    "passed": 152,
+    "suites": 13,
+    "report": "core-tests.json"
+  },
+  "appTests": {
+    "passed": 8,
+    "failed": 0,
+    "report": "app-tests.json"
+  },
+  "uiTests": {
+    "executions": 9,
+    "passed": 8,
+    "historicalFailures": 1,
+    "distinctMethods": 8,
+    "report": "ui-tests.json"
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "releaseSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "releaseTestMarkersFound": 0,
+    "report": "release-build.json",
+    "initialBuildFailure": "The newly added unit-test target was initially enabled for ordinary Release builds. Scheme entries now build test bundles only for testing; production builds passed afterward."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 143,
+    "sha256": "3536c109a1823803f5e79e9f66148ccdd388a3d34664d5d3c7d31ae6fb3404f0",
+    "allInputsMatch": true
+  },
+  "runtimeScopeNote": "Main targeted batch and store tests ran before whitespace-only EOF cleanup; final signed build and final SE recovery run use the recorded runtime manifest.",
+  "repository": {
+    "webSourcesChanged": false,
+    "allOriginalMediaPreserved": true,
+    "largeAssetsAndLogs": "Git LFS",
+    "defaultLFSDownload": "native/ios/CatLife/**",
+    "gitSizeReport": "git-size.json",
+    "ideIgnoreProbes": "passed",
+    "nativeExcludedFromWebDeployment": true
+  },
+  "privacy": "privacy.json",
+  "additionalRedactions": "additional-redactions.json",
+  "limitations": [
+    "No full historical 51-case UI sweep; eight relevant methods exercised.",
+    "Build25 was not installed on the physical iPhone; its current delivered version remains 0.5.1 (24).",
+    "Existing AVAudioSession simulator performance warnings remain unlocalized; these tests do not establish physical audio route behavior or long-session performance.",
+    "Git blob sizes exclude LFS payload and pre-existing web history; old GitHub PR snapshots may remain retained by the hosting service."
+  ]
+}

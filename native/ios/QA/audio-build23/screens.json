@@ -1,0 +1,98 @@
+[
+  {
+    "path": "screens/se-validated-1.png",
+    "caption": "Audio — saved work keeps its music in the room",
+    "test": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+    "run": "se-validated"
+  },
+  {
+    "path": "screens/se-validated-2.png",
+    "caption": "Audio — feeding reaches the bowl and completes once",
+    "test": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+    "run": "se-validated"
+  },
+  {
+    "path": "screens/pro-validated-1.png",
+    "caption": "Audio — saved work keeps its music in the room",
+    "test": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+    "run": "pro-validated"
+  },
+  {
+    "path": "screens/pro-validated-2.png",
+    "caption": "Audio — feeding reaches the bowl and completes once",
+    "test": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+    "run": "pro-validated"
+  },
+  {
+    "path": "screens/pro-settings-final-1.png",
+    "caption": "Audio — resumed home keeps music and saved game progress",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "pro-settings-final"
+  },
+  {
+    "path": "screens/pro-settings-final-2.png",
+    "caption": "Audio — restored preferences and playable effect preview",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "pro-settings-final"
+  },
+  {
+    "path": "screens/pro-settings-final-3.png",
+    "caption": "Audio — muted channels retain their independent volume preferences",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "pro-settings-final"
+  },
+  {
+    "path": "screens/pro-settings-final-4.txt",
+    "caption": "Audio slider — audioEffectsVolume displayed selection matches the persisted preference",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "pro-settings-final"
+  },
+  {
+    "path": "screens/pro-settings-final-5.txt",
+    "caption": "Audio slider — audioMusicVolume displayed selection matches the persisted preference",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "pro-settings-final"
+  },
+  {
+    "path": "screens/pro-settings-final-6.png",
+    "caption": "Audio — independent music and effect controls",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "pro-settings-final"
+  },
+  {
+    "path": "screens/se-settings-retry-1.png",
+    "caption": "Audio — resumed home keeps music and saved game progress",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "se-settings-retry"
+  },
+  {
+    "path": "screens/se-settings-retry-2.png",
+    "caption": "Audio — restored preferences and playable effect preview",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "se-settings-retry"
+  },
+  {
+    "path": "screens/se-settings-retry-3.png",
+    "caption": "Audio — muted channels retain their independent volume preferences",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "se-settings-retry"
+  },
+  {
+    "path": "screens/se-settings-retry-4.txt",
+    "caption": "Audio slider — audioEffectsVolume displayed selection matches the persisted preference",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "se-settings-retry"
+  },
+  {
+    "path": "screens/se-settings-retry-5.txt",
+    "caption": "Audio slider — audioMusicVolume displayed selection matches the persisted preference",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "se-settings-retry"
+  },
+  {
+    "path": "screens/se-settings-retry-6.png",
+    "caption": "Audio — independent music and effect controls",
+    "test": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback()",
+    "run": "se-settings-retry"
+  }
+]

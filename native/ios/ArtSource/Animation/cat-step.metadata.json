@@ -1,0 +1,151 @@
+{
+  "method": "Built-in image_gen.imagegen",
+  "generatedPath": "<USER_HOME>/.codex/generated_images/01a18ab1-f16c-7d83-afee-7e5481ad9c20/exec-73a0688d-3538-460d-a905-509d97b0d8e4.png",
+  "source": "cat-step.png",
+  "prompt": "cat-step.prompt.txt",
+  "references": [
+    "cat-walk.png",
+    "cat-rest.png"
+  ],
+  "dimensions": [
+    1774,
+    887
+  ],
+  "mode": "RGBA",
+  "sha256": "63e194750db77ac0355a7c108dc8f2ed0fc5e326b3313fc3fc4b4263152a30a2",
+  "originalPixelsPreserved": true,
+  "columns": 4,
+  "rows": 2,
+  "poses": [
+    "standing",
+    "front paw reaches",
+    "front paws supported higher",
+    "hind paw steps up",
+    "all paws supported",
+    "front paw reaches down",
+    "front paws down hind paws high",
+    "hind paw follows down"
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "cell": [
+        0,
+        0,
+        443,
+        443
+      ],
+      "alpha128BoundsInCell": [
+        29,
+        96,
+        403,
+        427
+      ]
+    },
+    {
+      "index": 1,
+      "cell": [
+        443,
+        0,
+        887,
+        443
+      ],
+      "alpha128BoundsInCell": [
+        40,
+        89,
+        417,
+        428
+      ]
+    },
+    {
+      "index": 2,
+      "cell": [
+        887,
+        0,
+        1330,
+        443
+      ],
+      "alpha128BoundsInCell": [
+        32,
+        70,
+        407,
+        420
+      ]
+    },
+    {
+      "index": 3,
+      "cell": [
+        1330,
+        0,
+        1774,
+        443
+      ],
+      "alpha128BoundsInCell": [
+        26,
+        43,
+        422,
+        418
+      ]
+    },
+    {
+      "index": 4,
+      "cell": [
+        0,
+        443,
+        443,
+        887
+      ],
+      "alpha128BoundsInCell": [
+        35,
+        41,
+        410,
+        381
+      ]
+    },
+    {
+      "index": 5,
+      "cell": [
+        443,
+        443,
+        887,
+        887
+      ],
+      "alpha128BoundsInCell": [
+        43,
+        44,
+        414,
+        398
+      ]
+    },
+    {
+      "index": 6,
+      "cell": [
+        887,
+        443,
+        1330,
+        887
+      ],
+      "alpha128BoundsInCell": [
+        29,
+        57,
+        433,
+        397
+      ]
+    },
+    {
+      "index": 7,
+      "cell": [
+        1330,
+        443,
+        1774,
+        887
+      ],
+      "alpha128BoundsInCell": [
+        20,
+        73,
+        421,
+        393
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "version": "0.5.1",
+  "build": 24,
+  "date": "2026-11-02",
+  "phase": "final UI run after invisible-character validation hardening; runtime source frozen",
+  "sourceTestResult": "passed",
+  "sourceTestSummary": {
+    "passedTests": 2,
+    "failedTests": 0
+  },
+  "sourceManifest": {
+    "file": "../build24-source-manifest.json",
+    "sha256": "1403c2670d58e3b9faebec0ab786e63bac974b41ffe15e07d302596e6665b627",
+    "entries": 136,
+    "allCurrentFilesMatch": true
+  },
+  "visibleReview": "Final Pro English/Traditional Chinese and SE saved-name/profile layouts inspected; no clipped name, overlap or unreachable tested action.",
+  "screens": [
+    {
+      "file": "player-name-english-pro.png",
+      "language": "en",
+      "pageTitle": "Character name",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 242266,
+      "sha256": "bf58fd55f08746accfd3864bbf15715e9571023e313e0f97b184acb9ea095f93",
+      "pngChunkTypes": [
+        "IHDR",
+        "sRGB",
+        "eXIf",
+        "iTXt",
+        "IDAT",
+        "IEND"
+      ],
+      "visibleName": "小橘的伙伴🐾",
+      "nameCounter": "6 / 12",
+      "savedNameUnchanged": true,
+      "saveButton": "disabled because the draft matches the saved name"
+    },
+    {
+      "file": "player-name-traditional-pro.png",
+      "language": "zh-Hant",
+      "pageTitle": "角色名字",
+      "width": 1206,
+      "height": 2622,
+      "bytes": 240839,
+      "sha256": "54d2091f7a292411d9038652a8be3fa6f2cbe856463972e30fadeb8972060e03",
+      "pngChunkTypes": [
+        "IHDR",
+        "sRGB",
+        "eXIf",
+        "iTXt",
+        "IDAT",
+        "IEND"
+      ],
+      "visibleName": "小橘的伙伴🐾",
+      "nameCounter": "6 / 12",
+      "savedNameUnchanged": true,
+      "saveButton": "disabled because the draft matches the saved name"
+    },
+    {
+      "file": "player-name-profile-se.png",
+      "language": "zh-Hans",
+      "width": 750,
+      "height": 1334,
+      "bytes": 271060,
+      "sha256": "aab38b00983cf1379dc566756d3ab43251b676a17d2c2368c64c3bf240c3c237",
+      "visibleReview": "Name remains separate from changed appearance; scrolled profile shows wrapped twelve-character name and visible pencil.",
+      "phase": "final frozen runtime source"
+    },
+    {
+      "file": "player-name-saved-se.png",
+      "language": "zh-Hans",
+      "width": 750,
+      "height": 1334,
+      "bytes": 168537,
+      "sha256": "cb9da1ad2f1529f18086d38559c5ba58af819513dcc67b23e577988d0d648e50",
+      "visibleReview": "Twelve-character Chinese and emoji name saved; preview and reset visible.",
+      "phase": "final frozen runtime source"
+    }
+  ],
+  "limitations": [
+    "Four selected simulator screenshots retained; physical-device acceptance remains separate.",
+    "No original attachment index, raw log or recording is included."
+  ],
+  "deviceClasses": [
+    "iPhone Pro simulator",
+    "iPhone SE (3rd generation) simulator"
+  ],
+  "sourceTests": [
+    "RoomHomeUITests.testPlayerNameRemainsUntranslatedAcrossLanguages",
+    "RoomHomeUITests.testPlayerNamePersistsAndPreservesAppearanceAndProgress"
+  ]
+}

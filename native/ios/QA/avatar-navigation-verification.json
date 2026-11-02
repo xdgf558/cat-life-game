@@ -1,0 +1,107 @@
+{
+  "date": "2026-11-02",
+  "version": "0.4.2",
+  "build": 21,
+  "scope": "Player bottom-navigation thumbnail follows the saved selected avatar; no scene geometry or art changes.",
+  "rootCause": "The Player tab always passed an empty asset and rendered the fixed person.crop.circle.fill symbol.",
+  "fix": "Resolve selected avatar from observable saved snapshot and pass the same value to artwork and accessibility description. Render existing artwork in a 31pt circular head/shoulder viewport at 1.85x. Default symbol remains for unselected appearance.",
+  "sourceManifest": {
+    "path": "build21-source-manifest.json",
+    "inputCount": 115,
+    "sha256": "d2aee6e0ef10e4722b7e88ee1eb526244dcfd2bb73eee17dcc5f6628269fb62c",
+    "allInputsMatch": true
+  },
+  "testSourceSHA256": "790355ff4ce967db4b0ca5acaecd862af305daadf8281af7dedeaf497bc37f2c",
+  "changedProductionInputs": [
+    "CatLife/Views/RoomHomeView.swift",
+    "CatLife/Info.plist",
+    "CatLife/Views/SettingsView.swift",
+    "CatLife/Localization/GameStrings.swift"
+  ],
+  "unchangedProductionInputs": 111,
+  "builds": {
+    "simulator": {
+      "result": "passed",
+      "log": "avatar-navigation-build21/cat-avatar21-build-sim.log"
+    },
+    "device": {
+      "result": "passed",
+      "log": "avatar-navigation-build21/cat-avatar21-build-device.log",
+      "codesign": "passed",
+      "executableSHA256": "6c2d0e639fe58fe6891a927ae0ccc49bebc2e9b9b58e43f5f159aebc1ca6a854",
+      "assetsSHA256": "dd7b757a5c887cdfa6b2dbcd9cdde05fe9d5e1d910141675914e5517aa74a26e",
+      "infoSHA256": "6c4f8653a9315a87c9c1fa678c830ffe8d05e78f226176db82d71c51abb6f038"
+    }
+  },
+  "coreTests": {
+    "rerun": false,
+    "reason": "Core and save logic unchanged; historical build19 result remains 129 tests / 11 suites."
+  },
+  "uiTests": {
+    "status": "passed latest relevant checks; initial SE failure retained",
+    "plannedExecutions": 3,
+    "newMethod": "testPlayerNavigationPortraitFollowsSelectionAndRelaunch",
+    "initial": {
+      "executions": 3,
+      "passed": 2,
+      "failed": 1,
+      "SE": {
+        "portraitResult": "failed: expected scholarly male on home, observed previous forest male; selection not separately confirmed before leaving picker",
+        "portraitSeconds": 92.503,
+        "versionResult": "passed",
+        "versionSeconds": 49.085,
+        "log": "avatar-navigation-build21/cat-avatar21-se-initial.log",
+        "attachments": "avatar-navigation-build21/se-initial/manifest.json"
+      },
+      "Pro": {
+        "portraitResult": "passed",
+        "portraitSeconds": 189.075,
+        "log": "avatar-navigation-build21/cat-avatar21-pro-initial.log",
+        "attachments": "avatar-navigation-build21/pro/manifest.json"
+      },
+      "testSourceSHA256": "e3b43adfe6aa70e03c0fc9d1fe423dee61d19a97868bd25e367fa30a62ba906a"
+    },
+    "checkpointChange": "Selection is now explicitly observed as saved in avatarSelectedID, then profileAvatarName, before closing the sheet. Original home thumbnail assertions unchanged. Value-wait failures attach screenshot and full AX hierarchy without retries or relaxed timeouts.",
+    "checkpointBuild": "avatar-navigation-build21/cat-avatar21-build-checkpoint.log",
+    "executions": 4,
+    "passed": 3,
+    "failed": 1,
+    "distinctMethods": 2,
+    "newUniqueMethods": 1,
+    "finalSE": {
+      "method": "testPlayerNavigationPortraitFollowsSelectionAndRelaunch",
+      "result": "passed",
+      "seconds": 220.284,
+      "log": "avatar-navigation-build21/cat-avatar21-se-checkpoint.log",
+      "resultBundle": "<TMP>/cat-avatar21-se-checkpoint.xcresult",
+      "attachments": "avatar-navigation-build21/se-final/manifest.json",
+      "testSourceSHA256": "790355ff4ce967db4b0ca5acaecd862af305daadf8281af7dedeaf497bc37f2c"
+    },
+    "failureAnalysis": "Initial SE run expected scholarly male but saw the preceding forest male on the home bar. That test had not verified the new choice before closing the picker; the precise cause of that missed step was not determined. After adding explicit saved-selection and profile checkpoints, all six choices and home portraits passed on SE with no production changes. Pro passed all six and relaunch in its initial execution. No retries or relaxed home assertions were added."
+  },
+  "device": {
+    "status": "installed in place; normal save byte-identical before first launch; normal new-install process verified",
+    "evidence": "build21-device-update.json",
+    "pid": 0,
+    "earlierCommunication": "Timed out before user reconnected/unlocked; subsequent communication succeeded."
+  },
+  "userAcceptance": "pending",
+  "visualReview": {
+    "result": "passed",
+    "checks": [
+      "Actual home screenshots for all six portraits on SE and Pro, plus unselected fallback and retained selection after relaunch",
+      "Faces, hairstyles, glasses and hats identifiable in existing 31pt icons; circle framing uses original unchanged PNGs",
+      "Home bar retains 70pt footprint and button/scroll geometry; SE room (0,20,375,436), Pro room (0,62,402,567) unchanged"
+    ],
+    "screens": [
+      "avatar-navigation-build21/home-player-portrait-se-final.png",
+      "avatar-navigation-build21/home-player-portrait-pro.png",
+      "avatar-navigation-build21/portrait-after-relaunch-se-final.png",
+      "avatar-navigation-build21/portrait-after-relaunch-pro.png"
+    ]
+  },
+  "limits": [
+    "Core tests not rerun; unchanged 129 tests / 11 suites result belongs to build19",
+    "User acceptance, long-session performance and full physical interaction regression pending"
+  ]
+}

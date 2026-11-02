@@ -1,0 +1,135 @@
+{
+  "date": "2026-10-31",
+  "appVersion": "0.1.0 (7)",
+  "scope": "Responsive bowl dragging with safe asynchronous placement validation and preserved layout save/cancel.",
+  "cause": "Build 6 ran candidate enumeration, feeding approach search and repeated deferred-grid rebuilds synchronously on the main thread for every touch move.",
+  "changes": [
+    "Touches only project the preview onto the existing bowl placement grid and update nodes; no route search or grid creation during moves.",
+    "Release resolves a reachable feeding placement on Task.detached using immutable geometry; the selected obstacle grid is returned with the validated position.",
+    "Placement stops at the first reachable feeding plan; each candidate reuses its navigation grid across staging points. Actual meals still select the shortest safe plan.",
+    "Saving stays disabled during the gesture and validation; cancellation remains available. Revision tokens reject old results after another drag, cancellation, exit, backgrounding or size changes including zero size.",
+    "Applying the verified draft skips redundant main-thread revalidation; arrangement requests 60 FPS, normal room returns to 30 FPS.",
+    "No save format or art/character scale changes."
+  ],
+  "performanceProbe": {
+    "evidence": "drag-performance-probe.json",
+    "environment": "macOS Swift -Onone; geometry CPU only, not iPhone frame/latency data",
+    "before31MovesMeanMS": 131.0918266451613,
+    "before31MovesWorstMS": 590.060042,
+    "after1550MovesMeanMS": 0.02113,
+    "after1550MovesWorstMS": 0.0775,
+    "routeCallsDuringPreview": 0,
+    "gridBuildsDuringPreview": 0
+  },
+  "uiTests": {
+    "result": "passed",
+    "passedRuns": 6,
+    "failures": 0,
+    "runs": [
+      {
+        "device": "<DEVICE_NAME_29> / iOS 27.0",
+        "stage": "async preview/validation implementation before final grid reuse and zero-size guard",
+        "passed": 3,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testBowlCanMoveToFloorBelowWallPicturesAndPersist",
+            "seconds": 95.742
+          },
+          {
+            "name": "testBowlDragRespondsAndCancelledValidationCannotOverwriteLayout",
+            "seconds": 46.716
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 84.076
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build7-pro.xcresult"
+      },
+      {
+        "device": "iPhone SE 3 / iOS 26.4.1",
+        "stage": "final source including grid reuse and zero-size guard",
+        "passed": 3,
+        "failures": 0,
+        "cases": [
+          {
+            "name": "testBowlCanMoveToFloorBelowWallPicturesAndPersist",
+            "seconds": 70.261
+          },
+          {
+            "name": "testBowlDragRespondsAndCancelledValidationCannotOverwriteLayout",
+            "seconds": 31.879
+          },
+          {
+            "name": "testNavigationRejectsWallDropAndFeedsFromLeftSide",
+            "seconds": 72.022
+          }
+        ],
+        "resultBundle": "<TMP>/cat-life-build7-se.xcresult"
+      }
+    ],
+    "metrics": [
+      {
+        "name": "Drag metrics — background placement pending before cancellation",
+        "values": {
+          "samples": "69",
+          "maxMoveMilliseconds": "0.33",
+          "resolving": "true",
+          "bowl": "0.586,0.404"
+        }
+      },
+      {
+        "name": "Drag metrics — placement validation completed",
+        "values": {
+          "samples": "26",
+          "maxMoveMilliseconds": "0.33",
+          "resolving": "false",
+          "bowl": "0.717,0.501"
+        }
+      }
+    ],
+    "coverage": [
+      "Sustained slow drags issue more than five updates under the 50 ms regression threshold",
+      "Cancel during a test-delayed background validation, reject late result, save and cold launch",
+      "Upper floor placement, persistence and actual mouth-food contact",
+      "Wall rejection/projection, left-side real feeding and pounce; zero cumulative collision/contact violations"
+    ]
+  },
+  "coreTests": {
+    "note": "Core package unchanged this turn; the 43 passing build 6 tests remain the last core-suite run."
+  },
+  "visualReview": {
+    "result": "passed",
+    "screenshots": [
+      "drag-placement-iphone-pro.png",
+      "drag-placement-iphone-se.png",
+      "drag-cancelled-iphone-pro.png",
+      "drag-cancelled-iphone-se.png"
+    ]
+  },
+  "physicalDevice": {
+    "date": "2026-10-31",
+    "device": "iPhone Air",
+    "os": "iOS 27.2",
+    "bundleIdentifier": "com.stationcat.catlife.native",
+    "appVersion": "0.1.0 (7)",
+    "preparedBuildMatchesCurrentSources": true,
+    "binaryHashMatchesVerifiedBuild": true,
+    "binarySHA256": "731e1a9e8484fbd07a5d27ad36158d11ff39e56c9abfeb53f13f6347bc8f87eb",
+    "signatureValidation": "passed",
+    "connection": "wired, paired, connected",
+    "installation": "passed; existing application updated in place",
+    "launch": "passed; application activated with no test or reset arguments",
+    "runningProcessVerified": true,
+    "processIdentifier": 0,
+    "uninstallOrSaveResetPerformed": false,
+    "saveHandling": "Existing application updated in place; no uninstall, test-save reset, or normal-save reset was performed. Save contents were not inspected.",
+    "physicalGameplayValidation": "Build 7 installation and launch verified; physical touch-to-display latency and subjective drag feel are not measured by simulator/probe tests."
+  },
+  "limitations": [
+    "Simulator timing measures the touch handler, not end-to-end physical touch latency.",
+    "Background validation can still take time for difficult wall drops (up to about 2.8 seconds in the macOS Debug geometry probe); the preview and cancel action stay responsive and only a validated result can be saved.",
+    "Only the food bowl is movable in the current native prototype."
+  ]
+}

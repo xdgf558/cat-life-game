@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-01",
+  "version": "0.1.3",
+  "build": 16,
+  "bundleIdentifier": "com.stationcat.catlife.native",
+  "device": "iPhone Air",
+  "installation": "passed, in place; no uninstall or reset",
+  "installedVersionQueried": true,
+  "normalSave": {
+    "beforePath": "<TMP>/cat-nav16-save-before.json",
+    "afterPath": "<TMP>/cat-nav16-save-after.json",
+    "bytes": 2912,
+    "sha256": "012f486032f9162eb1d096de51a831816995ffc446d15a3e5236c4368597b71e",
+    "byteIdentical": true,
+    "comparisonMoment": "after installation and before first new launch"
+  },
+  "launch": {
+    "cliSucceeded": true,
+    "newInstallProcessVerified": true,
+    "pid": 0,
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000014/CatLife.app/CatLife",
+    "testOrResetArgumentsUsed": false
+  },
+  "sourceManifest": {
+    "path": "build16-source-manifest.json",
+    "sha256": "5c0cd04ca4d90db89c58e800fecfd826195d711848362d3129c0ec25e237daab",
+    "inputCount": 91,
+    "currentFilesMatch": true
+  },
+  "rawReceipts": [
+    "<TMP>/cat-nav16-device-install.json",
+    "<TMP>/cat-nav16-apps-after.json",
+    "<TMP>/cat-nav16-device-launch.json",
+    "<TMP>/cat-nav16-process-after.json"
+  ],
+  "limits": "Normal CLI launch and matching new process verified; full physical-device interaction acceptance remains separate."
+}

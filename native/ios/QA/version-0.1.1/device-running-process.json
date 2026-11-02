@@ -1,0 +1,10 @@
+{
+  "source": "fresh devicectl process listing after user opened game; unrelated processes omitted",
+  "appVersion": "0.1.1",
+  "build": "14",
+  "process": {
+    "executable": "file:///private/var/containers/Bundle/Application/00000000-0000-0000-0000-000000000022/CatLife.app/CatLife",
+    "processIdentifier": 0
+  },
+  "userConfirmedForeground": true
+}
