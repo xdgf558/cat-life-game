@@ -1,0 +1,16 @@
+{
+  "version": "0.8.0",
+  "build": 33,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 4225,
+  "launch": "passed after user unlocked and opened app",
+  "runningProcessVerified": true,
+  "schemaAfterStartup": 2,
+  "identityOwnershipAndLayoutPreserved": true,
+  "userAcceptance": {
+    "status": "passed",
+    "source": "user confirmation in chat",
+    "date": "2026-11-03"
+  }
+}

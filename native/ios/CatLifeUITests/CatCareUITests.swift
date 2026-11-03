@@ -69,11 +69,12 @@ extension RoomHomeUITests {
         assertRoomFrame(initialFrame, in: app, context: "cold launch with empty food")
         tapAnimationControl("feedButton", in: app)
         waitForElement("buyFoodButton", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         for balance in [180, 160, 140] {
             tapAnimationControl("buyFoodButton", in: app)
             waitForObservedValue("shopGoldCount", "\(balance)", in: app)
         }
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "140", in: app)
         assertRoomFrame(initialFrame, in: app, context: "returning from restocking in the shop")
@@ -110,11 +111,12 @@ extension RoomHomeUITests {
         tap("feedButton", in: app)
         waitForElement("buyFoodButton", in: app)
         waitForValue("shopGoldCount", "200", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         tap("buyFoodButton", in: app)
         waitForValue("shopGoldCount", "180", in: app)
         attachScreenshot(app, named: "Shop — purchased one portion for 20 gold")
 
-        tap("closeSheetButton", in: app)
+        tap("tabHome", in: app)
         waitForValue("foodCount", "1", in: app)
         waitForValue("goldCount", "180", in: app)
         attachScreenshot(app, named: "Home — food restocked and balance updated")
@@ -142,10 +144,10 @@ extension RoomHomeUITests {
         // playing response can occur. Buying and animating must each happen once.
         tapAnimationControl("playButton", in: app)
         waitForElement("buyToyButton", in: app)
-        bringIntoView("buyToyButton", in: app)
+        scrollCareerPage("destinationScroll", to: "buyToyButton", in: app)
         tapAnimationControl("buyToyButton", in: app)
         waitForObservedValue("shopGoldCount", "165", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForAnimationPhase("idle", in: app, timeout: 18)
         tapAnimationControl("playButton", in: app)
         waitForAnimationPhase("playing", in: app, timeout: 4)
@@ -159,8 +161,8 @@ extension RoomHomeUITests {
     @MainActor
     func testQueuedCareCanBeCancelledByRoomArrangement() throws {
         let app = launchAnimationHome()
-        ensureHomeNavigationItemVisible("decorateButton", in: app)
-        let arrangeTouch = element("decorateButton", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        waitForElement("homeDecorateButton", in: app)
+        let arrangeTouch = element("homeDecorateButton", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
         tapAnimationControl("feedButton", in: app)
         waitForAnimationPhase("feeding", in: app, timeout: 4)
 

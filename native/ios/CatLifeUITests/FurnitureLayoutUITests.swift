@@ -4,7 +4,7 @@ extension RoomHomeUITests {
     @MainActor
     func testRoomArrangementCanSaveAndCancel() throws {
         let app = launchFreshHome()
-        tap("decorateButton", in: app)
+        tap("homeDecorateButton", in: app)
         waitForElement("layoutDoneButton", in: app)
         waitForElement("layoutCancelButton", in: app)
         attachScreenshot(app, named: "Arrangement — editing controls")
@@ -14,7 +14,7 @@ extension RoomHomeUITests {
         waitForBowlMoved(from: original, in: app)
         let moved = bowlPosition(in: app)
         tap("layoutDoneButton", in: app)
-        waitForElement("decorateButton", in: app)
+        waitForElement("homeDecorateButton", in: app)
         XCTAssertFalse(element("layoutDoneButton", in: app).exists)
 
         relaunchPreservingSave(app)
@@ -22,11 +22,11 @@ extension RoomHomeUITests {
         XCTAssertEqual(restored.dx, moved.dx, accuracy: 0.005)
         XCTAssertEqual(restored.dy, moved.dy, accuracy: 0.005)
 
-        tap("decorateButton", in: app)
+        tap("homeDecorateButton", in: app)
         dragBowl(from: restored, to: CGVector(dx: 0.80, dy: 0.83), in: app)
         waitForBowlMoved(from: restored, in: app)
         tap("layoutCancelButton", in: app)
-        waitForElement("decorateButton", in: app)
+        waitForElement("homeDecorateButton", in: app)
         XCTAssertFalse(element("layoutCancelButton", in: app).exists)
         let cancelled = bowlPosition(in: app)
         XCTAssertEqual(cancelled.dx, moved.dx, accuracy: 0.005)
@@ -40,7 +40,7 @@ extension RoomHomeUITests {
     func testFurnitureMovePersistsAndCancelledStorageRestoresRoom() throws {
         continueAfterFailure = false
         let app = launchFurnitureHome()
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         let editing = waitForFurniture(in: app, description: "furniture editing to open",
                                        matching: { $0.phase == "editing" && !$0.pending })
         let originalCabinet = try XCTUnwrap(editing.items.first { $0.id == "cabinet" })
@@ -73,7 +73,7 @@ extension RoomHomeUITests {
         let savedWall = try XCTUnwrap(restored.items.first { $0.id == "wallFlower" })
         let savedWallSource = artworkCoordinate(forRoomCoordinate: savedWall.position, in: app)
 
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         let wallEditing = waitForFurniture(in: app, description: "wall picture editing to open",
                                            matching: { $0.phase == "editing" && !$0.pending })
         let flower = try XCTUnwrap(wallEditing.items.first { $0.id == "wallFlower" })
@@ -94,10 +94,11 @@ extension RoomHomeUITests {
         tapAnimationControl("furnitureInventoryButton", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "1", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "8", in: app)
-        waitForElement("storedFurniture_cabinet", in: app)
+        selectBagFurniture("cabinet", in: app)
+        waitForObservedValue("inventoryFurniture_cabinet", "收纳中 · 可摆回房间", in: app)
         waitForElement("inventoryLayoutDraft", in: app)
         attachScreenshot(app, named: "Furniture — stored cabinet appears in the bag as an unsaved layout draft")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("layoutReturnButton", in: app)
         tapAnimationControl("layoutCancelButton", in: app)
         let cancelled = waitForFurniture(in: app, description: "cancelled furniture draft restored",
                                          matching: { $0.phase == "idle" && !$0.pending && $0.items.count == 9 })
@@ -110,10 +111,12 @@ extension RoomHomeUITests {
         XCTAssertEqual(returnedWallSource.dx, savedWallSource.dx, accuracy: 0.008)
         XCTAssertEqual(returnedWallSource.dy, savedWallSource.dy, accuracy: 0.008)
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "0", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "9", in: app)
-        XCTAssertFalse(element("storedFurniture_cabinet", in: app).exists)
+        selectBagFurniture("cabinet", in: app)
+        waitForObservedValue("inventoryFurniture_cabinet", "已摆在房间里", in: app)
         XCTAssertFalse(element("inventoryLayoutDraft", in: app).exists)
     }
 
@@ -123,7 +126,7 @@ extension RoomHomeUITests {
         let app = launchFurnitureHome()
         let expectedIDs = ["cabinet", "catTree", "catBed", "wallFlower", "wallCat",
                            "plantLarge", "plantSmall", "floorCushion", "flowerStool"]
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         let editing = waitForFurniture(in: app, description: "all original furniture available for editing",
                                        matching: { $0.phase == "editing" && !$0.pending })
         XCTAssertEqual(Set(editing.items.map(\.id)), Set(expectedIDs))
@@ -150,21 +153,26 @@ extension RoomHomeUITests {
         XCTAssertTrue(empty.items.isEmpty,
                       "A deliberately empty room must stay empty rather than restoring default furniture.")
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "9", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "0", in: app)
         for id in expectedIDs {
-            XCTAssertEqual(app.staticTexts.matching(identifier: "storedFurniture_\(id)").count, 1,
+            selectBagFurniture(id, in: app)
+            waitForObservedValue("inventoryFurniture_\(id)", "收纳中 · 可摆回房间", in: app)
+            XCTAssertEqual(app.buttons.matching(identifier: "inventoryFurniture_\(id)").count, 1,
                            "Every original furniture item must appear exactly once in the saved bag.")
         }
         attachScreenshot(app, named: "Furniture — all nine owned items remain in the bag after cold launch")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
 
         // Place both a floor item and a wall item into one new draft, then
         // cancel the entire draft. Neither item may duplicate or disappear.
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
-        bringIntoView("placeFurniture_cabinet", in: app)
+        selectBagFurniture("cabinet", in: app)
+        waitForElement("placeFurniture_cabinet", in: app)
         tapAnimationControl("placeFurniture_cabinet", in: app)
         let done = element("layoutDoneButton", in: app)
         _ = waitForFurniture(in: app, timeout: 25, description: "cabinet placed into a new empty-room draft",
@@ -172,7 +180,8 @@ extension RoomHomeUITests {
                                  && $0.items.count == 1 && $0.items.contains { $0.id == "cabinet" } })
         tapAnimationControl("furnitureInventoryButton", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "8", in: app)
-        bringIntoView("placeFurniture_wallFlower", in: app)
+        selectBagFurniture("wallFlower", in: app)
+        waitForElement("placeFurniture_wallFlower", in: app)
         tapAnimationControl("placeFurniture_wallFlower", in: app)
         _ = waitForFurniture(in: app, timeout: 25, description: "wall picture and cabinet both present in the draft",
                              matching: { $0.phase == "editing" && !$0.pending && done.exists && done.isEnabled
@@ -185,12 +194,15 @@ extension RoomHomeUITests {
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "9", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "0", in: app)
         XCTAssertFalse(element("inventoryLayoutDraft", in: app).exists)
         for id in expectedIDs {
-            XCTAssertEqual(app.staticTexts.matching(identifier: "storedFurniture_\(id)").count, 1,
+            selectBagFurniture(id, in: app)
+            waitForObservedValue("inventoryFurniture_\(id)", "收纳中 · 可摆回房间", in: app)
+            XCTAssertEqual(app.buttons.matching(identifier: "inventoryFurniture_\(id)").count, 1,
                            "Cancelling multiple placements must restore each item to the bag exactly once.")
         }
         attachScreenshot(app, named: "Furniture — cancelling floor and wall placements preserves all nine stored items")
@@ -200,7 +212,7 @@ extension RoomHomeUITests {
     func testFurnitureStorageAndReplacementPersistAndKeepFeedingReachable() throws {
         continueAfterFailure = false
         let app = launchFurnitureHome()
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         _ = waitForFurniture(in: app, description: "furniture editing to open",
                              matching: { $0.phase == "editing" && !$0.pending })
         _ = try selectFurniture("catTree", in: app)
@@ -215,10 +227,12 @@ extension RoomHomeUITests {
         XCTAssertFalse(stored.items.contains { $0.id == "catTree" },
                        "A saved stored item must not reappear in the room on launch.")
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "1", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "8", in: app)
-        waitForElement("storedFurniture_catTree", in: app)
+        selectBagFurniture("catTree", in: app)
+        waitForObservedValue("inventoryFurniture_catTree", "收纳中 · 可摆回房间", in: app)
         XCTAssertFalse(element("inventoryLayoutDraft", in: app).exists)
         attachScreenshot(app, named: "Furniture — stored cat tree survives a cold launch in the bag")
         let bagAccessibility = XCTAttachment(string: app.debugDescription)
@@ -226,8 +240,8 @@ extension RoomHomeUITests {
         bagAccessibility.lifetime = .keepAlways
         add(bagAccessibility)
         XCTAssertTrue(app.buttons["placeFurniture_catTree"].waitForExistence(timeout: 5),
-                      "Stored furniture must expose its own real placement button independently of the row label.")
-        bringIntoView("placeFurniture_catTree", in: app)
+                      "Selecting stored furniture must expose its own placement action in the fixed action bar.")
+        waitForElement("placeFurniture_catTree", in: app)
         tapAnimationControl("placeFurniture_catTree", in: app)
         let done = element("layoutDoneButton", in: app)
         _ = waitForFurniture(in: app, timeout: 25, description: "bag item placed back into a validated room draft",
@@ -241,11 +255,13 @@ extension RoomHomeUITests {
         XCTAssertEqual(replaced.items.count, 9)
         XCTAssertTrue(replaced.items.contains { $0.id == "catTree" })
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "0", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "9", in: app)
-        XCTAssertFalse(element("storedFurniture_catTree", in: app).exists)
-        tapAnimationControl("closeSheetButton", in: app)
+        selectBagFurniture("catTree", in: app)
+        waitForObservedValue("inventoryFurniture_catTree", "已摆在房间里", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
 

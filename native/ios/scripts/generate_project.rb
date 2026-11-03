@@ -10,6 +10,22 @@ unless system('/usr/bin/python3', '-B', File.join(__dir__, 'check_runtime_assets
 end
 require 'xcodeproj'
 
+# The gem's default identity hashes children too, renumbering entire targets when a source is added.
+class StableProjectUUIDGenerator < Xcodeproj::Project::UUIDGenerator
+  private
+
+  def path_component_for_object(object)
+    reference = object.isa == 'PBXBuildFile' ? (object.file_ref || object.product_ref) : object
+    [object.isa, reference.display_name,
+     reference.respond_to?(:path) ? reference.path : nil,
+     reference.respond_to?(:hierarchy_path) ? reference.hierarchy_path : nil].inspect
+  end
+
+  def verify_no_duplicates!(all_objects, all_new_objects)
+    abort 'Ambiguous project object identities; the Xcode project was not changed.' unless all_objects.size == all_new_objects.size
+  end
+end
+
 project_path = File.join(root, 'CatLife.xcodeproj')
 project = Xcodeproj::Project.new(project_path)
 project.root_object.compatibility_version = 'Xcode 14.0'
@@ -116,6 +132,7 @@ project.build_configurations.each do |config|
   config.build_settings['CLANG_ENABLE_MODULES'] = 'YES'
   config.build_settings['SWIFT_VERSION'] = '6.0'
 end
+StableProjectUUIDGenerator.new([project]).generate!
 project.save
 scheme = Xcodeproj::XCScheme.new
 scheme.add_build_target(app)

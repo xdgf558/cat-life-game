@@ -151,6 +151,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/room-background.imageset/room-background.png
 $(SRCROOT)/CatLife/Assets.xcassets/room-empty.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/room-empty.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/room-empty.imageset/room-empty.png
+$(SRCROOT)/CatLife/Assets.xcassets/town-map.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/town-map.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/town-map.imageset/town-map.png
 $(SRCROOT)/CatLife/Assets.xcassets/welcome-arrival-compact.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/welcome-arrival-compact.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/welcome-arrival-compact.imageset/welcome-arrival-compact.jpg
@@ -160,6 +163,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/welcome-arrival.imageset/welcome-arrival.jpg
 $(SRCROOT)/CatLife/Assets.xcassets/welcome-cat.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/welcome-cat.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/welcome-cat.imageset/welcome-cat.png
+$(SRCROOT)/CatLife/Assets.xcassets/welcome-homecoming.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/welcome-homecoming.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/welcome-homecoming.imageset/welcome-homecoming.png
 $(SRCROOT)/CatLife/Assets.xcassets/wood-plaque.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/wood-plaque.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/wood-plaque.imageset/wood-plaque.png

@@ -4,9 +4,10 @@ extension RoomHomeUITests {
     @MainActor
     func buyFoodForHomeNameProgressCheck(in app: XCUIApplication) {
         tapAnimationControl("tabShop", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         tapAnimationControl("buyFoodButton", in: app)
         waitForObservedValue("shopGoldCount", "180", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "4", in: app)
         waitForObservedValue("goldCount", "180", in: app)
     }
@@ -58,6 +59,11 @@ extension RoomHomeUITests {
         waitForElement(scrollIdentifier, in: app, file: file, line: line)
         let scroll = element(scrollIdentifier, in: app)
         let target = element(identifier, in: app)
+        if target.exists, target.isHittable, app.frame.contains(target.frame),
+           !scroll.descendants(matching: .any).matching(identifier: identifier).firstMatch.exists {
+            // Fixed action bars sit outside their scroll view and remain reachable.
+            return
+        }
         var searchingForward = false
         var movements: [String] = []
         for step in 0...maximumDrags {
@@ -126,6 +132,7 @@ extension RoomHomeUITests {
     func unobscuredScrollViewport(_ scroll: XCUIElement, in app: XCUIApplication) -> CGRect {
         let viewport = scroll.frame.intersection(app.frame)
         var contentTop = viewport.minY
+        var contentBottom = viewport.maxY
         // A SwiftUI scroll view may extend behind its translucent navigation
         // bar. XCTest can call a partly covered button hittable even though
         // its centre tap lands on that bar, so exclude the real bar geometry.
@@ -135,8 +142,14 @@ extension RoomHomeUITests {
                 contentTop = max(contentTop, min(frame.maxY, viewport.maxY))
             }
         }
+        for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar"] {
+            let bar = element(identifier, in: app)
+            if bar.exists, bar.frame.intersects(viewport), bar.frame.minY > contentTop {
+                contentBottom = min(contentBottom, bar.frame.minY)
+            }
+        }
         return CGRect(x: viewport.minX, y: contentTop,
-                      width: viewport.width, height: max(0, viewport.maxY - contentTop))
+                      width: viewport.width, height: max(0, contentBottom - contentTop))
     }
 
     @MainActor
@@ -215,24 +228,28 @@ extension RoomHomeUITests {
         XCTAssertTrue(resources.frame.insetBy(dx: -1, dy: -1).contains(gold), file: file, line: line)
         XCTAssertTrue(resources.frame.insetBy(dx: -1, dy: -1).contains(stamina), file: file, line: line)
 
-        let catInfo = element("homeCatInfo", in: app).frame
+        let card = element("homeCatInfo", in: app)
+        let catInfo = card.frame
+        XCTAssertTrue(["compact", "expanded"].contains(card.value as? String ?? ""),
+                      "The cat status card may relocate while avoiding the visible cat.", file: file, line: line)
+        XCTAssertTrue(app.frame.contains(catInfo), "The adaptive cat card must remain on screen.", file: file, line: line)
         let food = element("foodCount", in: app).frame
-        XCTAssertGreaterThanOrEqual(food.minX, catInfo.maxX - 1,
-                                    "Food stock must be to the right of the cat information, not underneath it.", file: file, line: line)
-        XCTAssertEqual(food.midY, catInfo.midY, accuracy: 1,
-                       "Cat information and food stock must share one horizontal row.", file: file, line: line)
-
-        let careIDs = ["feedButton", "cleanButton", "playButton"]
+        let feed = element("feedButton", in: app).frame
+        XCTAssertTrue(feed.insetBy(dx: -24, dy: -24).intersects(food),
+                      "Food stock belongs to the floating feed action.", file: file, line: line)
+        XCTAssertLessThanOrEqual(catInfo.maxX, feed.minX + 1,
+                                 "The compact cat card must leave the right-side actions clear.", file: file, line: line)
+        let careIDs = ["playButton", "cleanButton", "feedButton"]
         let care = careIDs.map { element($0, in: app).frame }
         for (index, identifier) in careIDs.enumerated() {
             let control = element(identifier, in: app)
             XCTAssertTrue(control.isHittable, "\(identifier) must remain reachable.", file: file, line: line)
             XCTAssertGreaterThanOrEqual(care[index].width, 44, file: file, line: line)
             XCTAssertGreaterThanOrEqual(care[index].height, 44, file: file, line: line)
-            XCTAssertEqual(care[index].midY, care[0].midY, accuracy: 1,
-                           "Feed, Clean and Play must stay on the same row even when food is empty.", file: file, line: line)
+            XCTAssertEqual(care[index].midX, care[0].midX, accuracy: 1,
+                           "Care actions must align in the right-side column.", file: file, line: line)
             if index > 0 {
-                XCTAssertLessThanOrEqual(care[index - 1].maxX, care[index].minX + 1,
+                XCTAssertLessThanOrEqual(care[index - 1].maxY, care[index].minY + 1,
                                          "Care button hit areas must not overlap.", file: file, line: line)
             }
         }
@@ -245,7 +262,7 @@ extension RoomHomeUITests {
             let target = element(identifier, in: app)
             let frame = target.frame
             XCTAssertEqual(app.buttons.matching(identifier: identifier).count, 1,
-                           "The destination must have one bottom entry, with no duplicate at the top.", file: file, line: line)
+                           "Each fixed destination must have one bottom entry.", file: file, line: line)
             XCTAssertTrue(bar.descendants(matching: .button).matching(identifier: identifier).firstMatch.exists,
                           "\(identifier) must belong to the horizontal bottom bar.", file: file, line: line)
             XCTAssertTrue(homeNavigationItemIsFullyVisible(identifier, in: app), file: file, line: line)
@@ -254,11 +271,9 @@ extension RoomHomeUITests {
             XCTAssertGreaterThanOrEqual(frame.width, 44, file: file, line: line)
             XCTAssertGreaterThanOrEqual(frame.height, 44, file: file, line: line)
             if index > 0 {
-                // Read both frames at the same scroll offset, including the
-                // preceding item if it has just moved outside the viewport.
                 let previous = element(homeNavigationIdentifiers[index - 1], in: app).frame
                 XCTAssertLessThanOrEqual(previous.maxX, frame.minX + 1,
-                                         "The eight destinations must keep their declared left-to-right order.", file: file, line: line)
+                                         "The five destinations must keep their declared left-to-right order.", file: file, line: line)
             }
             tabMeasurements.append("\(identifier)=\(frame); bar=\(bar.frame)")
         }
@@ -280,12 +295,12 @@ extension RoomHomeUITests {
                                    ("tabInventory", "inventoryFoodCount"), ("tabPlayer", "profileScroll")] {
             tapAnimationControl(tab, in: app, file: file, line: line)
             waitForElement(destination, in: app, file: file, line: line)
-            tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+            tapAnimationControl("tabHome", in: app, file: file, line: line)
             assertRoomFrame(roomFrame, in: app, context: "returning from \(tab)", file: file, line: line)
         }
         tapAnimationControl("tabTown", in: app, file: file, line: line)
-        XCTAssertTrue(app.navigationBars["我的猫咪"].waitForExistence(timeout: 8), file: file, line: line)
-        tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+        waitForElement("townMapScroll", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
         assertRoomFrame(roomFrame, in: app, context: "returning from Cats", file: file, line: line)
         tapAnimationControl("decorateButton", in: app, file: file, line: line)
         waitForElement("layoutCancelButton", in: app, file: file, line: line)
@@ -296,8 +311,8 @@ extension RoomHomeUITests {
         tapAnimationControl("layoutDoneButton", in: app, file: file, line: line)
         assertRoomFrame(roomFrame, in: app, context: "finishing arrangement from the bottom bar", file: file, line: line)
         tapAnimationControl("settingsButton", in: app, file: file, line: line)
-        waitForElement("settingsLanguageRow", in: app, file: file, line: line)
-        tapAnimationControl("settingsCloseButton", in: app, file: file, line: line)
+        waitForElement("languageOption_zh-Hans", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
         assertRoomFrame(roomFrame, in: app, context: "closing settings from the bottom bar", file: file, line: line)
         waitForObservedValue("foodCount", "3", in: app, file: file, line: line)
         waitForObservedValue("goldCount", "200", in: app, file: file, line: line)
@@ -307,16 +322,15 @@ extension RoomHomeUITests {
     @MainActor
     func assertKnownHomeViewportBaseline(in app: XCUIApplication,
                                                  file: StaticString = #filePath, line: UInt = #line) {
-        let window = app.frame.size
-        // Measured on build 13 before rearranging controls or adding Welcome;
-        // these reference dimensions must not be derived from the current UI.
-        if abs(window.width - 375) <= 0.5 && abs(window.height - 667) <= 0.5 {
-            assertRoomFrame(CGRect(x: 0, y: 20, width: 375, height: 436), in: app,
-                            context: "against the build 13 iPhone SE baseline", file: file, line: line)
-        } else if abs(window.width - 402) <= 0.5 && abs(window.height - 874) <= 0.5 {
-            assertRoomFrame(CGRect(x: 0, y: 62, width: 402, height: 567), in: app,
-                            context: "against the build 13 iPhone Pro baseline", file: file, line: line)
-        }
+        let room = element("roomScene", in: app)
+        let bar = element("homeNavigationBar", in: app)
+        waitForElement("roomScene", in: app, file: file, line: line)
+        XCTAssertEqual(room.frame.width, app.frame.width, accuracy: 0.5, file: file, line: line)
+        XCTAssertEqual(room.frame.minX, app.frame.minX, accuracy: 0.5, file: file, line: line)
+        XCTAssertGreaterThan(room.frame.height, app.frame.height * 0.65,
+                             "The redesigned room fills the canvas above the fixed bottom bar.", file: file, line: line)
+        XCTAssertGreaterThanOrEqual(room.frame.maxY + 1, bar.frame.minY, file: file, line: line)
+        XCTAssertLessThanOrEqual(room.frame.maxY, bar.frame.maxY + 1, file: file, line: line)
     }
 
     @MainActor
@@ -411,7 +425,7 @@ extension RoomHomeUITests {
     }
 
     private var homeNavigationIdentifiers: [String] {
-        ["tabHome", "tabWork", "tabShop", "tabInventory", "tabTown", "tabPlayer", "decorateButton", "settingsButton"]
+        ["tabHome", "tabWork", "tabShop", "tabTown", "tabMore"]
     }
 
     @MainActor
@@ -428,21 +442,22 @@ extension RoomHomeUITests {
     @MainActor
     func ensureHomeNavigationItemVisible(_ identifier: String, in app: XCUIApplication,
                                                   file: StaticString = #filePath, line: UInt = #line) {
+        let moreItems = ["tabInventory", "tabPlayer", "decorateButton", "settingsButton"]
+        if moreItems.contains(identifier) {
+            let target = element(identifier, in: app)
+            if target.exists && target.isHittable { return }
+            let more = element("tabMore", in: app)
+            XCTAssertTrue(more.waitForExistence(timeout: 8) && more.isHittable,
+                          "The fixed More entry must be visible before opening a utility.", file: file, line: line)
+            more.tap()
+            let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == true AND hittable == true"), object: target)
+            XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 8), .completed, file: file, line: line)
+            return
+        }
         guard homeNavigationIdentifiers.contains(identifier) else { return }
         waitForElement("homeNavigationBar", in: app, timeout: 8, file: file, line: line)
-        let bar = element("homeNavigationBar", in: app)
-        let target = element(identifier, in: app)
-        for _ in 0..<5 {
-            if homeNavigationItemIsFullyVisible(identifier, in: app) { return }
-            let viewport = bar.frame.intersection(app.frame)
-            XCTAssertTrue(target.exists, "The bottom bar must retain its eight named destinations.", file: file, line: line)
-            if target.frame.minX < viewport.minX { bar.swipeRight() }
-            else if target.frame.maxX > viewport.maxX { bar.swipeLeft() }
-            else { break }
-        }
         XCTAssertTrue(homeNavigationItemIsFullyVisible(identifier, in: app),
-                      "\(identifier) must scroll fully inside the bottom bar before it is tapped; target=\(target.frame), bar=\(bar.frame)",
-                      file: file, line: line)
+                      "\(identifier) must be fully visible in the fixed bar without swiping.", file: file, line: line)
     }
 
     @MainActor

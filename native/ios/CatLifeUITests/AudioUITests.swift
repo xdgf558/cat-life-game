@@ -2,6 +2,60 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testEmbeddedSettingsInlineAudioAndLanguageKeepNavigationAndPersist() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--audio-test"]
+        launchAndEnterHome(app)
+        let roomFrame = element("roomScene", in: app).frame
+        tapAnimationControl("settingsButton", in: app)
+        waitForElement("settingsScroll", in: app)
+        XCTAssertFalse(element("settingsCloseButton", in: app).exists)
+        XCTAssertFalse(element("settingsBackButton", in: app).exists)
+        assertFixedNavigationAvailable(in: app)
+        scrollPage("settingsScroll", to: "audioMusicVolume", allowDisabled: false, maximumDrags: 6, in: app)
+        let slider = app.sliders["audioMusicVolume"]
+        slider.adjust(toNormalizedSliderPosition: 0.6)
+        let displayed = try XCTUnwrap(slider.value as? String)
+        let percent = try XCTUnwrap(Int(displayed.replacingOccurrences(of: "%", with: "")))
+        XCTAssertNotEqual(percent, 35, "The inline control must perform a real volume edit.")
+        let expectedVolume = Double(percent) / 100
+        _ = try waitForAudio(in: app, description: "inline music volume is durably saved") {
+            abs($0.musicVolume - expectedVolume) < 0.001 && $0.musicEnabled && $0.effectsEnabled
+        }
+        tapSettingsRootControl("audioEffectsToggle", in: app)
+        _ = try waitForAudio(in: app, description: "inline effects toggle is durably saved") {
+            !$0.effectsEnabled && $0.musicEnabled
+        }
+        tapSettingsRootControl("languageOption_en", in: app)
+        assertSettingsLanguageSelection("en", in: app)
+        waitForLabel("settingsLanguageTitle", "Game language", in: app)
+        assertFixedNavigationAvailable(in: app)
+        attachScreenshot(app, named: "Settings redesign — inline audio and language with persistent navigation")
+        tapAnimationControl("tabHome", in: app)
+        waitForLabel("tabHome", "Home", in: app)
+        assertRoomFrame(roomFrame, in: app, context: "returning from inline settings")
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+
+        app.terminate()
+        app.launchArguments = arguments(reset: false) + ["--audio-test"]
+        launchAndEnterHome(app)
+        waitForLabel("tabHome", "Home", in: app)
+        _ = try waitForAudio(in: app, description: "inline settings survive cold launch") {
+            abs($0.musicVolume - expectedVolume) < 0.001 && $0.musicEnabled && !$0.effectsEnabled
+        }
+        tapAnimationControl("settingsButton", in: app)
+        assertSettingsLanguageSelection("en", in: app)
+        waitForObservedValue("audioMusicVolume", displayed, in: app)
+        waitForObservedValue("audioEffectsToggle", "0", in: app)
+        assertFixedNavigationAvailable(in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+    }
+
+    @MainActor
     func testAudioSettingsPersistAcrossRelaunchAndControlPlayback() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -151,7 +205,7 @@ extension RoomHomeUITests {
         bringIntoView("buyToyButton", in: app)
         tapAnimationControl("buyToyButton", in: app)
         waitForObservedValue("shopGoldCount", "165", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         let beforePlay = waitForNavigationPhase("idle", in: app, timeout: 10)
         tapAnimationControl("playButton", in: app)
         _ = try waitForAudio(in: app, description: "play cue at the cat's real pounce") {
@@ -172,7 +226,7 @@ extension RoomHomeUITests {
         _ = try waitForAudio(in: app, description: "sleep overrides the open Work page's music") {
             $0.currentTrack == "sleep" && $0.musicPlaying && $0.lastEffect == "sleep"
         }
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         _ = try waitForAudio(in: app, description: "sleep music follows the saved activity back home") {
             $0.currentTrack == "sleep" && $0.musicPlaying
         }
@@ -191,7 +245,7 @@ extension RoomHomeUITests {
         _ = try waitForAudio(in: app, description: "a committed shift plays its start cue") {
             $0.currentTrack == "work" && $0.musicPlaying && $0.lastEffect == "work-start"
         }
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         _ = try waitForAudio(in: app, description: "work music continues after closing the Work page") {
             $0.currentTrack == "work" && $0.musicPlaying
         }
@@ -224,15 +278,14 @@ extension RoomHomeUITests {
     @MainActor
     private func openAudioSettings(in app: XCUIApplication) {
         tapAnimationControl("settingsButton", in: app)
-        bringIntoView("settingsAudioRow", in: app)
-        tapAnimationControl("settingsAudioRow", in: app)
+        tapSettingsRootControl("settingsAudioRow", in: app)
         waitForElement("audioMusicToggle", in: app)
     }
 
     @MainActor
     private func closeAudioSettings(in app: XCUIApplication) {
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForElement("feedButton", in: app)
     }
 

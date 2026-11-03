@@ -6,18 +6,22 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchFreshHome()
         openCareerHome(in: app)
-        let viewport = unobscuredScrollViewport(element("destinationScroll", in: app), in: app)
-        for id in ["playerLevel", "selectedCareerName", "startWorkButton", "careerChooseJobButton",
-                   "workDetailsButton", "workRestButton"] {
+        for id in ["playerLevel", "selectedCareerName", "startWorkButton", "careerChooseJobButton"] {
             let target = element(id, in: app)
             XCTAssertTrue(target.exists && target.isHittable,
-                          "The compact Work home must expose \(id) without scrolling.")
-            XCTAssertTrue(viewport.contains(target.frame), "\(id) must fit the initial Work viewport.")
+                          "The Work dashboard must expose \(id) without scrolling.")
+            XCTAssertTrue(app.frame.contains(target.frame))
         }
+        let start = element("startWorkButton", in: app)
+        XCTAssertLessThanOrEqual(start.frame.maxY, element("homeNavigationBar", in: app).frame.minY)
         XCTAssertFalse(element("sleepStatus", in: app).exists,
                        "The complete recovery card belongs on its own page.")
-        XCTAssertEqual(careerDirectoryRowIDs(in: app), [])
-        attachScreenshot(app, named: "Work — compact root with current job and two clear entries")
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), [], "Search results stay on their own page.")
+        waitForElement("workJobTile_job_flyer", in: app)
+        XCTAssertFalse(element("workJobTile_job_store", in: app).isEnabled,
+                       "Locked quick choices cannot select or charge a shift.")
+        waitForObservedValue("workGridPage", "1/2", in: app)
+        attachScreenshot(app, named: "Work — paged two-column careers and fixed start action")
         openCareerRest(in: app)
         waitForObservedValue("sleepStatus", "awake", in: app)
         waitForObservedValue("playerStamina", "80", in: app)
@@ -86,7 +90,7 @@ extension RoomHomeUITests {
         openCareerRest(in: app)
         waitForObservedValue("playerStamina", "80", in: app)
         waitForObservedValue("playerMood", "80", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         assertKnownHomeViewportBaseline(in: app)
@@ -134,7 +138,7 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("sleepStartButton", in: app).isEnabled)
         closeCareerRest(in: app)
         attachScreenshot(app, named: "Work — future choice leaves the active cafe quote unchanged")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         waitForObservedValue("foodCount", "3", in: app)
     }
@@ -165,7 +169,7 @@ extension RoomHomeUITests {
         tapCareerControl("startWorkButton", in: app)
         try assertVisibleTimerChanges("workCountdown", increasing: false, upperBound: 120, in: app,
                                       context: "the selected flyer job counts down")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         relaunchPreservingSave(app)
         openCareerHome(in: app)
         waitForObservedValue("selectedCareerName", "job_flyer", in: app)
@@ -179,7 +183,7 @@ extension RoomHomeUITests {
         closeCareerRest(in: app)
         XCTAssertFalse(element("startWorkButton", in: app).exists,
                        "The active shift must not expose a second Start action.")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         waitForObservedValue("foodCount", "3", in: app)
 
@@ -205,7 +209,7 @@ extension RoomHomeUITests {
         openCareerRest(in: app)
         waitForObservedValue("playerStamina", "50", in: app)
         waitForObservedValue("playerMood", "80", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         relaunchPreservingSave(app)
         openCareerHome(in: app)
         waitForObservedValue("selectedCareerName", "job_cat_cafe_manager", in: app)
@@ -213,7 +217,7 @@ extension RoomHomeUITests {
         openCareerRest(in: app)
         waitForObservedValue("playerStamina", "50", in: app)
         waitForObservedValue("playerMood", "80", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         assertKnownHomeViewportBaseline(in: app)
     }
@@ -256,7 +260,7 @@ extension RoomHomeUITests {
         XCTAssertTrue(element("careerSelect_job_store", in: app).isEnabled)
         tapAnimationControl("careerSelect_job_store", in: app)
         waitForObservedValue("selectedCareerName", "job_store", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "260", in: app)
 
         // The fixture flag intentionally remains, but without reset it must
@@ -273,7 +277,7 @@ extension RoomHomeUITests {
                                                levelBefore: 1, levelAfter: 2, expAfter: 12, in: app)
         XCTAssertEqual(restoredID, resultID)
         closeCareerResult(in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "260", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         assertKnownHomeViewportBaseline(in: app)
@@ -315,7 +319,7 @@ extension RoomHomeUITests {
         openCareerRest(in: app)
         waitForObservedValue("playerStamina", "80", in: app)
         waitForObservedValue("playerMood", "88", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "360", in: app)
         app.terminate()
         app.launchArguments = arguments(reset: false) + ["--career-active-fixture"]
@@ -327,7 +331,7 @@ extension RoomHomeUITests {
         openCareerResult(in: app)
         waitForObservedValue("workResultID", resultID, in: app)
         closeCareerResult(in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "360", in: app)
         waitForObservedValue("foodCount", "3", in: app)
     }
@@ -351,11 +355,10 @@ extension RoomHomeUITests {
         var savedResultID: String?
         for language in languages {
             tapAnimationControl("settingsButton", in: app)
-            tapAnimationControl("settingsLanguageRow", in: app)
+            scrollCareerPage("settingsScroll", to: "languageOption_\(language.code)", in: app)
             tapAnimationControl("languageOption_\(language.code)", in: app)
             assertSettingsLanguageSelection(language.code, in: app)
-            tapAnimationControl("settingsBackButton", in: app)
-            tapAnimationControl("settingsCloseButton", in: app)
+            tapAnimationControl("tabHome", in: app)
             openCareerHome(in: app)
             waitForObservedValue("playerLevel", "2", in: app)
             waitForObservedValue("playerExperience", "12", in: app)
@@ -402,7 +405,7 @@ extension RoomHomeUITests {
             scrollCareerPage("careerResultScroll", to: "workResultGold", in: app)
             attachScreenshot(app, named: "Career — the same saved result is readable in \(language.code)")
             closeCareerResult(in: app)
-            tapAnimationControl("closeSheetButton", in: app)
+            tapAnimationControl("tabHome", in: app)
             waitForObservedValue("goldCount", "260", in: app)
             waitForObservedValue("foodCount", "3", in: app)
             assertKnownHomeViewportBaseline(in: app)
@@ -420,7 +423,7 @@ extension RoomHomeUITests {
                        "An active shift must not offer a second start action.")
         attachScreenshot(app, named: "Work — active shift countdown")
 
-        tap("closeSheetButton", in: app)
+        tap("tabHome", in: app)
         waitForValue("staminaCount", "70", in: app)
         waitForValue("goldCount", "200", in: app)
         relaunchPreservingSave(app)

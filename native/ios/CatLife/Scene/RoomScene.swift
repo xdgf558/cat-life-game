@@ -27,6 +27,18 @@ final class RoomScene: SKScene {
     }
 
     var onCatTapped: (() -> Void)?
+    var onCatNeedAnchorChanged: ((CGPoint?) -> Void)? {
+        didSet { needAnchorSampler = CatNeedAnchorSampler(); updateThought() }
+    }
+    private var needAnchorSampler = CatNeedAnchorSampler()
+    var onCatVisualFrameChanged: ((CGRect?) -> Void)? {
+        didSet { visualFrameSampler = CatVisualFrameSampler() }
+    }
+    private var visualFrameSampler = CatVisualFrameSampler()
+    var canShowCatNeed: Bool {
+        presentationActive && !editing && !presentationBusy && !cat.isPerforming
+            && !cat.isHidden && bowlPlanningRequest == nil
+    }
     var onFurnitureSelected: ((String?) -> Void)?
     var onFurnitureMoved: ((String, NormalizedPoint) -> Void)?
     var onFurniturePlacementFinished: ((String, Bool) -> Void)?
@@ -152,6 +164,9 @@ final class RoomScene: SKScene {
         // SpriteKit calls this even when size is assigned the same value.
         // Reappearing over a sheet must not cancel an active meal or its queue.
         guard oldSize != size else { return }
+#if DEBUG
+        diagnostics.recordPresentationEvent("resize \(oldSize) -> \(size), active=\(presentationActive)")
+#endif
         cancelCameraInteraction()
         if activeRest != nil, deferredRoomLayoutFromSize == nil,
            oldSize.width > 0, oldSize.height > 0 {
@@ -195,6 +210,22 @@ final class RoomScene: SKScene {
         updateFurnitureLayers()
         toy.zPosition = 1_001 - toy.position.y
         thought.zPosition = 2_000
+        if let onCatNeedAnchorChanged {
+            // SpriteKit conversion includes camera pan, zoom and scene resize.
+            let anchor = canShowCatNeed && view != nil
+                ? convertPoint(toView: CGPoint(x: frame.midX, y: frame.maxY)) : nil
+            if needAnchorSampler.sample(anchor, at: currentTime) { onCatNeedAnchorChanged(anchor) }
+        }
+        if let onCatVisualFrameChanged {
+            var projected: CGRect?
+            if presentationActive, !cat.isHidden, view != nil {
+                let topLeft = convertPoint(toView: CGPoint(x: frame.minX, y: frame.maxY))
+                let bottomRight = convertPoint(toView: CGPoint(x: frame.maxX, y: frame.minY))
+                projected = CGRect(x: min(topLeft.x, bottomRight.x), y: min(topLeft.y, bottomRight.y),
+                                   width: abs(bottomRight.x - topLeft.x), height: abs(bottomRight.y - topLeft.y))
+            }
+            if visualFrameSampler.sample(projected, at: currentTime) { onCatVisualFrameChanged(projected) }
+        }
 #if DEBUG
         if bowlPlanningRequest == nil, diagnostics.enabled,
            diagnostics.sample(at: currentTime, cat: cat, floor: floor, navigation: navigation,
@@ -435,6 +466,8 @@ final class RoomScene: SKScene {
     func setPresentationActive(_ active: Bool) {
         presentationActive = active
         if !active {
+            needAnchorSampler = CatNeedAnchorSampler()
+            visualFrameSampler = CatVisualFrameSampler()
             cancelCameraInteraction()
             cancelBowlPlanning(keepingRequest: true)
         }
@@ -745,6 +778,9 @@ final class RoomScene: SKScene {
         updateThought()
     }
     private func cancelPresentation(at point: CGPoint) {
+#if DEBUG
+        diagnostics.recordPresentationEvent("cancel \(presentationPhase), active=\(presentationActive), size=\(size)")
+#endif
         revision += 1
         cancelCarePlanning()
         suspendedCareKind = nil
@@ -896,7 +932,8 @@ final class RoomScene: SKScene {
                                 ownedFurniture: ownedFurniture, furnitureWorld: furnitureWorld, floor: floor)
     }
     private func updateThought() {
-        thought.isHidden = editing || bowlPlanningRequest != nil || presentationBusy || (latest?.activeCat?.satiety ?? 100) >= 50
+        thought.isHidden = onCatNeedAnchorChanged != nil || editing || bowlPlanningRequest != nil
+            || presentationBusy || (latest?.activeCat?.satiety ?? 100) >= 50
     }
     private func showCareParticles() { artwork.showCareParticles(cat: cat, reducedMotion: reducedMotion) }
     private func scenePoint(_ point: NormalizedPoint) -> CGPoint {

@@ -9,8 +9,6 @@ struct WelcomeView: View {
     var releaseTestLoad: (() -> Void)?
     #endif
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @ScaledMetric(relativeTo: .largeTitle) private var titleSize: CGFloat = 38
 
     private var ready: Bool { !store.isLoading && !store.loadFailed && store.snapshot != nil }
     private var version: String {
@@ -22,101 +20,82 @@ struct WelcomeView: View {
     private var percentage: String { "\(Int((store.startupProgress * 100).rounded()))%" }
 
     var body: some View {
-        ZStack {
-            artwork.ignoresSafeArea()
-            GeometryReader { geometry in
-                let fullHeight = geometry.size.height + geometry.safeAreaInsets.top + geometry.safeAreaInsets.bottom
-                let compact = fullHeight < 740
-                let scrolls = dynamicTypeSize.isAccessibilitySize || geometry.size.width > geometry.size.height
-                ScrollView {
+        GeometryReader { geometry in
+            let compact = geometry.size.height < 700
+            ScrollView {
+                VStack(spacing: compact ? 14 : 20) {
                     VStack(spacing: 0) {
-                        heading(compact: compact)
-                            .padding(.top, max(4, fullHeight * (compact ? 0.035 : 0.065) - geometry.safeAreaInsets.top))
-                        Spacer(minLength: scrolls ? 180 : 24)
-                            .frame(maxWidth: .infinity)
-                            // The foreground scroll view otherwise hides the
-                            // full-bleed image from VoiceOver's reading order.
-                            .accessibilityRepresentation {
-                                Image("welcome-arrival")
-                                    .accessibilityLabel(GameStrings.text("welcome.hero"))
-                                    .accessibilityIdentifier("welcomeHero")
-                            }
-                        entry(compact: compact)
-                            .padding(.bottom, compact ? 16 : 12)
+                        HomeNamePlaque(name: GameStrings.text("home.name"), height: compact ? 88 : 108)
+                            .accessibilityIdentifier("welcomeTitle")
+                        Text("Cat Life Diary").font(.system(size: 12, weight: .heavy))
+                            .foregroundStyle(RoomTheme.secondary).padding(.top, -14)
                     }
-                    .frame(maxWidth: 520)
-                    .padding(.horizontal, compact ? 25 : 28)
-                    .frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                    .rotationEffect(.degrees(-1.5))
+                    Image("welcome-homecoming").resizable().scaledToFill()
+                        .frame(height: compact ? 204 : min(318, geometry.size.height * 0.41))
+                        .frame(maxWidth: .infinity).clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 32))
+                        .overlay(RoundedRectangle(cornerRadius: 32).strokeBorder(.white, lineWidth: 5))
+                        .shadow(color: RoomTheme.ink.opacity(0.12), radius: 0, y: 6)
+                        .accessibilityLabel(GameStrings.text("welcome.hero"))
+                        .accessibilityIdentifier("welcomeHero")
+                    Text(GameStrings.text("welcome.subtitle"))
+                        .font(.system(size: compact ? 13 : 15, weight: .bold))
+                        .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center)
+                    entry(compact: compact)
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .scrollIndicators(.hidden)
+                .padding(.horizontal, 24).padding(.vertical, 12)
+                .frame(maxWidth: 500).frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
+            .scrollBounceBehavior(.basedOnSize).scrollIndicators(.hidden)
         }
+        .background(LinearGradient(colors: [RoomTheme.wood.opacity(0.58), RoomTheme.cream, RoomTheme.cream],
+                                   startPoint: .top, endPoint: .bottom).ignoresSafeArea())
         .accessibilityIdentifier("welcomeScreen")
     }
 
-    private var artwork: some View {
-        GeometryReader { geometry in
-            let name = geometry.size.width / geometry.size.height > 0.5
-                ? "welcome-arrival-compact" : "welcome-arrival"
-            ZStack {
-                // Separate wide-phone art preserves full-body proportions on
-                // SE. The soft extension is only needed for wider viewports.
-                Image(name)
-                    .resizable().scaledToFill()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .clipped().blur(radius: 22)
-                    .accessibilityHidden(true)
-                Image(name)
-                    .resizable().scaledToFit()
-                    .frame(width: geometry.size.width, height: geometry.size.height)
-                    .accessibilityHidden(true)
-            }
-            .clipped()
+    private var journey: some View {
+        HStack(spacing: 8) {
+            GameIconTile(symbol: "briefcase.fill", tint: RoomTheme.gold, background: RoomTheme.gold.opacity(0.2), size: 44)
+            GeometryReader { geometry in
+                let progress = min(1, max(0, store.startupProgress))
+                ZStack(alignment: .leading) {
+                    Capsule().fill(RoomTheme.track).frame(height: 8)
+                    Capsule().fill(RoomTheme.mint).frame(width: geometry.size.width * progress, height: 8)
+                    ForEach([0.4, 0.75], id: \.self) { point in
+                        Circle().fill(progress >= point ? RoomTheme.mint : RoomTheme.paper)
+                            .frame(width: 16, height: 16).overlay(Circle().strokeBorder(.white, lineWidth: 3))
+                            .offset(x: geometry.size.width * point - 8)
+                    }
+                    GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 30, tint: RoomTheme.gold)
+                        .padding(3).background(RoomTheme.paper, in: Circle())
+                        .overlay(Circle().strokeBorder(.white, lineWidth: 2))
+                        .offset(x: max(0, geometry.size.width - 36) * progress)
+                }
+                .frame(height: 44)
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: progress)
+            }.frame(height: 44)
+            GameIconTile(symbol: "house.fill", tint: ready ? .white : RoomTheme.darkMint,
+                         background: ready ? RoomTheme.mint : RoomTheme.paleMint, size: 44)
         }
-    }
-
-    private func heading(compact: Bool) -> some View {
-        VStack(spacing: compact ? 7 : 9) {
-            Label(GameStrings.text("welcome.kicker"), systemImage: "pawprint.fill")
-                .font(.system(size: compact ? 12 : 13, weight: .semibold, design: .rounded))
-                .foregroundStyle(RoomTheme.darkMint)
-                .padding(.horizontal, 16).padding(.vertical, 7)
-                .background(RoomTheme.paleMint.opacity(0.85), in: Capsule())
-
-            Text(GameStrings.text("home.name"))
-                .font(.system(size: compact ? titleSize * 0.91 : titleSize, weight: .heavy, design: .rounded))
-                .tracking(1)
-                .foregroundStyle(RoomTheme.ink)
-                .multilineTextAlignment(.center)
-                .lineLimit(2).minimumScaleFactor(0.75)
-                .accessibilityIdentifier("welcomeTitle")
-
-            Text(GameStrings.text("welcome.subtitle"))
-                .font(.system(size: compact ? 13 : 14, weight: .medium, design: .rounded))
-                .foregroundStyle(RoomTheme.secondary)
-                .multilineTextAlignment(.center)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(GameStrings.text("welcome.progress"))
+        .accessibilityValue(percentage).accessibilityIdentifier("welcomeProgress")
     }
 
     private func entry(compact: Bool) -> some View {
         VStack(spacing: compact ? 9 : 10) {
-            VStack(spacing: 7) {
-                status
-                ProgressView(value: store.startupProgress, total: 1)
-                    .tint(RoomTheme.mint)
-                    .scaleEffect(x: 1, y: 1.8, anchor: .center)
-                    .frame(height: 8)
-                    .animation(reduceMotion ? nil : .easeOut(duration: 0.25), value: store.startupProgress)
-                    .accessibilityLabel(GameStrings.text("welcome.progress"))
-                    .accessibilityValue(percentage)
-                    .accessibilityIdentifier("welcomeProgress")
+            VStack(spacing: 14) {
+                journey
+                HStack(alignment: .top) {
+                    status
+                    if !store.isLoading && !store.loadFailed {
+                        Spacer(minLength: 4)
+                        Text(percentage).font(.system(size: 13, weight: .heavy)).foregroundStyle(RoomTheme.secondary)
+                    }
+                }
             }
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(store.loadFailed || store.startupNotice != nil ? RoomTheme.paper.opacity(0.94) : .clear,
-                        in: RoundedRectangle(cornerRadius: 13))
+            .padding(16).gameCard(cornerRadius: 28).padding(.bottom, compact ? 10 : 18)
 
             if store.loadFailed {
                 Button {
@@ -132,7 +111,7 @@ struct WelcomeView: View {
                     HStack(spacing: 12) {
                         Image(systemName: "house.fill").font(.system(size: 23, weight: .semibold))
                             .accessibilityHidden(true)
-                        Text(GameStrings.text("welcome.enter"))
+                        Text(GameStrings.text(ready ? "welcome.enter" : "welcome.homecoming"))
                         Spacer(minLength: 0)
                         Image(systemName: "arrow.right").font(.body.weight(.bold))
                             .accessibilityHidden(true)
@@ -155,7 +134,7 @@ struct WelcomeView: View {
             }
             #endif
 
-            Text(GameStrings.format("welcome.version", version))
+            Text(GameStrings.format("welcome.version", "\(version) (\(build))"))
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(RoomTheme.secondary)
                 .padding(.top, compact ? 7 : 10)

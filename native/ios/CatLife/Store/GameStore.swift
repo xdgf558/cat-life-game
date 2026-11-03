@@ -778,7 +778,6 @@ final class GameStore {
         guard !isDecorating else { return }
         audio.play(.catMeow, userInitiated: true)
         inspectedCatID = cat?.id
-        activeSheet = .town
     }
 
     @discardableResult

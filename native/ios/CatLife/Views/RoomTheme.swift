@@ -23,6 +23,11 @@ enum RoomTheme {
     static let ink = Color(red: 0.38, green: 0.24, blue: 0.15)
     static let secondary = Color(red: 0.51, green: 0.38, blue: 0.27)
     static let wood = Color(red: 0.94, green: 0.79, blue: 0.57)
+    static let coral = Color(red: 0.85, green: 0.44, blue: 0.31)
+    static let sky = Color(red: 0.36, green: 0.66, blue: 0.84)
+    static let lilac = Color(red: 0.54, green: 0.36, blue: 0.65)
+    static let track = Color(red: 0.94, green: 0.88, blue: 0.78)
+    static let chipBg = Color(red: 0.95, green: 0.89, blue: 0.80)
     static let gold = Color(red: 0.89, green: 0.61, blue: 0.12)
 }
 
@@ -88,20 +93,24 @@ struct HomeNamePlaque: View {
 }
 
 struct MintButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundStyle(.white)
             .padding(.horizontal, 18)
             .padding(.vertical, 13)
             .frame(minHeight: 48)
-            .background(RoomTheme.mint, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: 22, style: .continuous).fill(RoomTheme.mint)
+                    .shadow(color: RoomTheme.darkMint.opacity(isEnabled ? 1 : 0.15), radius: 0, y: configuration.isPressed ? 1 : 4)
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: 22, style: .continuous)
                     .strokeBorder(.white.opacity(0.35), lineWidth: 2)
             }
-            .shadow(color: RoomTheme.darkMint.opacity(0.16), radius: 3, y: 3)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .opacity(configuration.isPressed ? 0.85 : 1)
+.contentShape(Rectangle())
+            .offset(y: configuration.isPressed ? 3 : 0)
+            .opacity(isEnabled ? 1 : 0.5)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }
@@ -113,36 +122,16 @@ struct SoftButtonStyle: ButtonStyle {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, minHeight: 44)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .background {
+                RoundedRectangle(cornerRadius: 18, style: .continuous).fill(RoomTheme.paper)
+                    .shadow(color: RoomTheme.ink.opacity(0.12), radius: 0, y: configuration.isPressed ? 1 : 4)
+            }
             .overlay {
                 RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .strokeBorder(.white.opacity(0.8), lineWidth: 1)
+                    .strokeBorder(.white.opacity(0.95), lineWidth: 2)
             }
-            .shadow(color: RoomTheme.ink.opacity(0.08), radius: 2, y: 2)
-            .opacity(configuration.isPressed ? 0.7 : 1)
-    }
-}
-
-/// Compact home actions share a fixed hit area so the last portion changing
-/// Feed to Buy food cannot change the room viewport above them.
-struct HomeCareButtonStyle: ButtonStyle {
-    var prominent = false
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(prominent ? .white : RoomTheme.ink)
-            .padding(.horizontal, 8)
-            .frame(maxWidth: .infinity)
-            .frame(height: 48)
-            .background(prominent ? RoomTheme.mint : RoomTheme.paper,
-                        in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .strokeBorder(.white.opacity(prominent ? 0.35 : 0.85), lineWidth: prominent ? 2 : 1)
-            }
-            .shadow(color: (prominent ? RoomTheme.darkMint : RoomTheme.ink).opacity(0.12), radius: 3, y: 3)
-            .scaleEffect(configuration.isPressed ? 0.97 : 1)
-            .opacity(configuration.isPressed ? 0.8 : 1)
+.contentShape(Rectangle())
+            .offset(y: configuration.isPressed ? 3 : 0)
             .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
     }
 }

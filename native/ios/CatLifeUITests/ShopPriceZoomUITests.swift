@@ -6,14 +6,13 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchFreshHome()
         tapAnimationControl("tabShop", in: app)
-        for (id, button, price) in [("food", "buyFoodButton", "20 金币"),
-                                    ("litter", "buyLitterButton", "18 金币"),
-                                    ("toy", "buyToyButton", "35 金币")] {
+        for (button, price) in [("buyFoodButton", "20 金币"),
+                                 ("buyLitterButton", "18 金币"),
+                                 ("buyToyButton", "35 金币")] {
             scrollCareerPage("destinationScroll", to: button, in: app)
-            waitForLabel("shopPrice_\(id)", price, in: app)
-            waitForLabel(button, "购买", in: app)
+            waitForLabel(button, price, in: app, contains: true)
         }
-        attachScreenshot(app, named: "Shop — supply prices beside names and consistent Buy buttons")
+        attachScreenshot(app, named: "Shop — consistent prices inside two-column purchase buttons")
         scrollCareerPage("destinationScroll", to: "shopCategory_furniture", in: app)
         tapAnimationControl("shopCategory_furniture", in: app)
         waitForLabel("shopItem_potted_plant", "120 金币", in: app, contains: true)
@@ -32,7 +31,7 @@ extension RoomHomeUITests {
             waitForElement("shopInsufficientGold_\(id)", in: app)
         }
         attachScreenshot(app, named: "Shop — insufficient gold gives a visible explanation")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "13", in: app)
         waitForObservedValue("goldCount", "0", in: app)
         relaunchPreservingSave(app)
@@ -50,6 +49,8 @@ extension RoomHomeUITests {
         let room = element("roomScene", in: app)
         let original = try zoomState(in: app)
         XCTAssertEqual(original.scale, 1, accuracy: 0.001)
+        tapAnimationControl("homeCareVisibilityButton", in: app)
+        waitForObservedValue("homeCareVisibilityButton", "hidden", in: app)
         element("roomPinchSurface", in: app).pinch(withScale: 2, velocity: 1)
         let magnified = try waitForZoom(0.625, in: app)
         XCTAssertEqual(magnified.layout, original.layout)
@@ -61,11 +62,15 @@ extension RoomHomeUITests {
         XCTAssertEqual(overview.number("cameraX"), overview.number("worldWidth") / 2, accuracy: 0.5)
         XCTAssertEqual(overview.number("cameraY"), overview.number("worldHeight") / 2, accuracy: 0.5)
         XCTAssertEqual(overview.layout, original.layout)
+        tapAnimationControl("homeCareVisibilityButton", in: app)
+        waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "5,000", in: app)
         attachScreenshot(app, named: "Room — pinch out shows the complete expanded room")
 
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
+        tapAnimationControl("layoutTrayToggle", in: app)
+        waitForObservedValue("layoutTrayToggle", "collapsed", in: app)
         element("roomPinchSurface", in: app).pinch(withScale: 2, velocity: 1)
         _ = try waitForZoom(0.75, in: app)
         element("roomPinchSurface", in: app).pinch(withScale: 0.4, velocity: -1)

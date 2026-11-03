@@ -2,34 +2,53 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
-    func testHorizontalHomeNavigationScrollsWithoutActivatingAndKeepsRoomStable() throws {
+    func testFixedHomeNavigationIgnoresSwipesAndKeepsRoomStable() throws {
         continueAfterFailure = false
         let app = launchNavigationHome()
         assertKnownHomeViewportBaseline(in: app)
         let roomFrame = element("roomScene", in: app).frame
         let before = navigationState(in: app)
-        ensureHomeNavigationItemVisible("tabHome", in: app)
+        let fixed = ["tabHome", "tabWork", "tabShop", "tabTown", "tabMore"]
         let bar = element("homeNavigationBar", in: app)
-        let homeBeforeSwipe = element("tabHome", in: app).frame
-        attachScreenshot(app, named: "Navigation — left end shows the home destinations")
-        bar.swipeLeft()
-        XCTAssertLessThan(element("tabHome", in: app).frame.minX, homeBeforeSwipe.minX - 10,
-                          "A real left swipe must move the horizontal strip.")
+        let originalFrames = fixed.map { element($0, in: app).frame }
+        for id in fixed { XCTAssertTrue(homeNavigationItemIsFullyVisible(id, in: app)) }
+        attachScreenshot(app, named: "Navigation — five fixed destinations visible together")
+        for swipeLeft in [true, false] {
+            if swipeLeft { bar.swipeLeft() } else { bar.swipeRight() }
+            for (id, expected) in zip(fixed, originalFrames) {
+                let actual = element(id, in: app).frame
+                XCTAssertEqual(actual.minX, expected.minX, accuracy: 0.5)
+                XCTAssertEqual(actual.minY, expected.minY, accuracy: 0.5)
+                XCTAssertEqual(actual.width, expected.width, accuracy: 0.5)
+                XCTAssertTrue(homeNavigationItemIsFullyVisible(id, in: app))
+            }
+            XCTAssertTrue(element("tabHome", in: app).isSelected,
+                          "Dragging over the fixed bar must not activate a destination.")
+            for id in fixed.dropFirst() { XCTAssertFalse(element(id, in: app).isSelected) }
+            assertNavigationSwipeStayedHome(in: app)
+            assertRoomFrame(roomFrame, in: app, context: "after swiping over the fixed bottom bar")
+        }
+        tapAnimationControl("tabMore", in: app)
+        waitForElement("moreMenu", in: app)
+        XCTAssertTrue(element("tabMore", in: app).isSelected)
+        for id in ["tabInventory", "tabPlayer", "decorateButton", "settingsButton"] {
+            XCTAssertTrue(element(id, in: app).isHittable)
+        }
+        attachScreenshot(app, named: "Navigation — More opens four utilities above the fixed bar")
+        tapAnimationControl("tabMore", in: app)
+        let menuClosed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                   object: element("moreMenu", in: app))
+        XCTAssertEqual(XCTWaiter.wait(for: [menuClosed], timeout: 5), .completed)
         assertNavigationSwipeStayedHome(in: app)
-        attachScreenshot(app, named: "Navigation — swiping left reveals arrangement and settings without opening them")
-        bar.swipeRight()
-        XCTAssertTrue(homeNavigationItemIsFullyVisible("tabHome", in: app))
-        assertNavigationSwipeStayedHome(in: app)
-        assertRoomFrame(roomFrame, in: app, context: "after swiping the bottom strip both ways")
-
-        assertHomeControlRows(in: app, stage: "eight scrollable bottom entries")
+        assertRoomFrame(roomFrame, in: app, context: "after opening and closing More")
+        assertHomeControlRows(in: app, stage: "five fixed bottom entries")
         verifyHomeNavigationTabs(in: app, roomFrame: roomFrame)
         let after = waitForNavigationPhase("idle", in: app, timeout: 8)
         XCTAssertEqual(after.bowl.dx, before.bowl.dx, accuracy: 0.005)
         XCTAssertEqual(after.bowl.dy, before.bowl.dy, accuracy: 0.005)
         XCTAssertEqual(after.completedMeals, before.completedMeals)
         waitForObservedValue("catSatiety", "35", in: app)
-        attachScreenshot(app, named: "Navigation — all eight destinations return to the unchanged room")
+        attachScreenshot(app, named: "Navigation — fixed destinations and utilities return to unchanged room")
     }
 
     @MainActor
@@ -123,7 +142,7 @@ extension RoomHomeUITests {
         waitForLabel("welcomeEnterButton", "进入小家", in: app, file: file, line: line)
         waitForElement("welcomeHero", in: app, file: file, line: line)
         waitForElement("welcomeNotice", in: app, file: file, line: line)
-        waitForObservedValue("welcomeVersion", "0.7.0 (31)", in: app, file: file, line: line)
+        waitForObservedValue("welcomeVersion", "0.8.0 (33)", in: app, file: file, line: line)
         waitForObservedValue("welcomeProgress", "100%", in: app, file: file, line: line)
         // This may be a real offline-work or recovery notice, so assert that
         // it is readable without replacing it with a fixed ready message.
@@ -146,8 +165,10 @@ extension RoomHomeUITests {
     private func assertNavigationSwipeStayedHome(in app: XCUIApplication,
                                                  file: StaticString = #filePath, line: UInt = #line) {
         _ = waitForNavigationPhase("idle", in: app, timeout: 8, file: file, line: line)
-        XCTAssertFalse(element("closeSheetButton", in: app).exists, file: file, line: line)
-        XCTAssertFalse(element("settingsCloseButton", in: app).exists, file: file, line: line)
+        XCTAssertFalse(element("moreMenu", in: app).exists, file: file, line: line)
+        for id in ["destinationScroll", "profileScroll", "settingsScroll", "townMapScroll"] {
+            XCTAssertFalse(element(id, in: app).exists, file: file, line: line)
+        }
         XCTAssertFalse(element("layoutCancelButton", in: app).exists, file: file, line: line)
         XCTAssertTrue(element("feedButton", in: app).isHittable, file: file, line: line)
         waitForObservedValue("foodCount", "3", in: app, file: file, line: line)

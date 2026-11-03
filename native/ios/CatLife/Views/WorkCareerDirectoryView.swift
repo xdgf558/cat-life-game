@@ -65,7 +65,7 @@ struct WorkCareerDirectoryView: View {
                     .foregroundStyle(RoomTheme.secondary).padding(24).frame(maxWidth: .infinity)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("careerEmptyState")
                 } else {
-                    VStack(spacing: 10) {
+                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                         ForEach(Array(jobs[CareerDirectory.pageRange(careerPage, count: jobs.count)])) { job in
                             careerRow(job)
                         }
@@ -108,31 +108,10 @@ struct WorkCareerDirectoryView: View {
     }
 
     private func careerRow(_ job: WorkJob) -> some View {
-        Button { careerSearchFocused = false; onSelect(job.id) } label: {
-            HStack(spacing: 12) {
-                Image(systemName: WorkJobPresentation.symbol(job.id)).font(.title3).frame(width: 28)
-                    .foregroundStyle(playerLevel >= job.unlockLevel ? RoomTheme.darkMint : RoomTheme.secondary)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(WorkJobPresentation.name(job.id)).font(.headline).multilineTextAlignment(.leading)
-                        .accessibilityIdentifier("careerJobName_\(job.id)")
-                    Text(playerLevel >= job.unlockLevel ? GameStrings.text(selectedJobID == job.id ? "career.selected" : "career.available")
-                         : GameStrings.format("career.unlock", job.unlockLevel))
-                        .font(.caption).foregroundStyle(RoomTheme.secondary)
-                        .accessibilityHidden(true)
-                }
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.caption.weight(.bold)).accessibilityHidden(true)
-            }
-            .padding(14).frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
-            .contentShape(Rectangle())
+        WorkCareerCard(job: job, selected: selectedJobID == job.id, unlocked: playerLevel >= job.unlockLevel) {
+            careerSearchFocused = false
+            onSelect(job.id)
         }
-        .buttonStyle(.plain).accessibilityElement(children: .contain)
-        .accessibilityLabel(WorkJobPresentation.name(job.id))
-        .accessibilityValue(playerLevel >= job.unlockLevel
-            ? GameStrings.text(selectedJobID == job.id ? "career.selected" : "career.available")
-            : GameStrings.format("career.unlock", job.unlockLevel))
         .accessibilityIdentifier("careerJobRow_\(job.id)")
     }
 }

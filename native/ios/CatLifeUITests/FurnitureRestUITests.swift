@@ -19,7 +19,7 @@ extension RoomHomeUITests {
 
         // Move the cushion through the real arrangement flow. The next rest
         // must use its saved new position, including after a cold launch.
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         var editing = waitForFurniture(in: app, description: "cushion arrangement to open",
                                         matching: { $0.phase == "editing" && !$0.pending })
         let original = try XCTUnwrap(editing.items.first { $0.id == "floorCushion" })
@@ -63,7 +63,7 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchRestHome()
         let sleeping = try beginFurnitureRest("catBed", in: app)
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         let editing = waitForFurniture(in: app, timeout: 30, description: "cat leaves the bed before arrangement becomes ready",
                                        matching: { $0.phase == "editing" && !$0.pending && $0.restFurniture == nil
                                            && $0.restPhase == "none"
@@ -81,13 +81,15 @@ extension RoomHomeUITests {
         XCTAssertEqual(restored.items.count, 8)
         XCTAssertFalse(restored.items.contains { $0.id == "catBed" })
         tapAnimationControl("tabInventory", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryFurnitureTab", in: app)
         tapAnimationControl("inventoryFurnitureTab", in: app)
         waitForObservedValue("inventoryStoredFurnitureCount", "1", in: app)
         waitForObservedValue("inventoryPlacedFurnitureCount", "8", in: app)
-        waitForElement("storedFurniture_catBed", in: app)
+        selectBagFurniture("catBed", in: app)
+        waitForObservedValue("inventoryFurniture_catBed", "收纳中 · 可摆回房间", in: app)
         XCTAssertFalse(element("inventoryLayoutDraft", in: app).exists)
         attachScreenshot(app, named: "Rest — previously occupied bed is saved safely in the furniture bag")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         completeFurnitureFeed(in: app, remainingFood: 2)
         waitForObservedValue("catSatiety", "60", in: app)
         waitForObservedValue("goldCount", "200", in: app)
@@ -119,7 +121,7 @@ extension RoomHomeUITests {
         waitForObservedValue("inventoryFoodCount", "2", in: app)
         waitForObservedValue("inventoryLitterCount", "2", in: app)
         waitForObservedValue("inventoryToyUses", "0", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         let saved = relaunchRestHome(app)
         XCTAssertNil(saved.restFurniture, "A finished transient rest must not resume after a cold launch.")
         waitForObservedValue("foodCount", "2", in: app)
@@ -130,7 +132,7 @@ extension RoomHomeUITests {
     func testFeedingDuringCushionStepExitsSafelyAndCanRestAgain() throws {
         continueAfterFailure = false
         let app = launchRestHome()
-        tapAnimationControl("decorateButton", in: app)
+        tapAnimationControl("homeDecorateButton", in: app)
         var editing = waitForFurniture(in: app, description: "cushion arrangement for an unobstructed step to open",
                                         matching: { $0.phase == "editing" && !$0.pending })
         let original = try XCTUnwrap(editing.items.first { $0.id == "floorCushion" })
@@ -274,7 +276,7 @@ extension RoomHomeUITests {
         waitForObservedValue("inventoryFoodCount", "2", in: app)
         waitForObservedValue("inventoryLitterCount", "2", in: app)
         waitForObservedValue("inventoryToyUses", "0", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         _ = relaunchRestHome(app)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("catSatiety", "60", in: app)

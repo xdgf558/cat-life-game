@@ -338,11 +338,10 @@ extension RoomHomeUITests {
     private func purchaseToyAndCompleteNavigationPlay(in app: XCUIApplication,
                                                        file: StaticString = #filePath, line: UInt = #line) {
         tapAnimationControl("playButton", in: app, file: file, line: line)
-        waitForElement("buyToyButton", in: app, file: file, line: line)
-        bringIntoView("buyToyButton", in: app)
+        scrollCareerPage("destinationScroll", to: "buyToyButton", in: app, file: file, line: line)
         tapAnimationControl("buyToyButton", in: app, file: file, line: line)
         waitForObservedValue("shopGoldCount", "165", in: app, file: file, line: line)
-        tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
         let before = waitForNavigationPhase("idle", in: app, timeout: 5, file: file, line: line)
         tapAnimationControl("playButton", in: app, file: file, line: line)
         waitForNavigationPhase("playing", in: app, timeout: 5, file: file, line: line)

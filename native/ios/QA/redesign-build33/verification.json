@@ -1,0 +1,233 @@
+{
+  "schema": 1,
+  "version": "0.8.0",
+  "build": 33,
+  "finished": [
+    "ten-screen native UI redesign",
+    "fixed five-tab shell",
+    "existing gameplay wired to redesigned controls",
+    "simulator visual and interaction regression",
+    "signed Release build",
+    "in-place phone install and running process verified",
+    "user-confirmed physical iPhone acceptance"
+  ],
+  "partiallyFinished": [],
+  "broken": [],
+  "deferredByUser": [
+    "neighbor visits",
+    "prototype-only new gameplay"
+  ],
+  "core": {
+    "passed": 189,
+    "suites": 17
+  },
+  "app": {
+    "passed": 72
+  },
+  "assetCheckerTests": 19,
+  "runtimeAssets": 70,
+  "localizationKeysPerLanguage": 577,
+  "ui": {
+    "uniqueScenarios": 13,
+    "latestDeviceExecutions": 16,
+    "latestAllPassed": true,
+    "latest": [
+      {
+        "run": "se-ui-4",
+        "method": "testRedesignReferenceScreensCapture",
+        "status": "passed",
+        "seconds": 183.65
+      },
+      {
+        "run": "se-regression-2",
+        "method": "testRedesignReferenceWorkResultCapture",
+        "status": "passed",
+        "seconds": 36.566
+      },
+      {
+        "run": "pro-ui-4",
+        "method": "testRedesignReferenceScreensCapture",
+        "status": "passed",
+        "seconds": 285.499
+      },
+      {
+        "run": "pro-regression-2",
+        "method": "testRedesignReferenceWorkResultCapture",
+        "status": "passed",
+        "seconds": 38.713
+      },
+      {
+        "run": "se-delivery",
+        "method": "testRedesignHUDAndArrangementTrayToggleWithoutResizingOrChangingFurniture",
+        "status": "passed",
+        "seconds": 54.544
+      },
+      {
+        "run": "pro-delivery",
+        "method": "testSettingsDismissalResumesAnInProgressMeal",
+        "status": "passed",
+        "seconds": 113.869
+      },
+      {
+        "run": "se-regression-2",
+        "method": "testRedesignFiveFixedTabsAndMoreKeepUtilitiesReachableWithoutChangingSave",
+        "status": "passed",
+        "seconds": 85.366
+      },
+      {
+        "run": "se-ui-4",
+        "method": "testTownMapDirectoryAndSelectedBagCarePreserveResources",
+        "status": "passed",
+        "seconds": 157.893
+      },
+      {
+        "run": "se-ui-4",
+        "method": "testWelcomeCannotEnterUntilTheRealSaveLoadFinishes",
+        "status": "passed",
+        "seconds": 41.914
+      },
+      {
+        "run": "se-navigation-recheck",
+        "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+        "status": "passed",
+        "seconds": 75.225
+      },
+      {
+        "run": "pro-ui-4",
+        "method": "testEmbeddedSettingsInlineAudioAndLanguageKeepNavigationAndPersist",
+        "status": "passed",
+        "seconds": 192.064
+      },
+      {
+        "run": "pro-ui-4",
+        "method": "testRedesignQuickCareerSelectionAndShopCardsChargeOnceAndPersist",
+        "status": "passed",
+        "seconds": 268.844
+      },
+      {
+        "run": "se-regression-2",
+        "method": "testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch",
+        "status": "passed",
+        "seconds": 75.01
+      },
+      {
+        "run": "se-delivery",
+        "method": "testRedesignProfilePortraitAndAllFourStageSlotsRemainTappable",
+        "status": "passed",
+        "seconds": 143.089
+      },
+      {
+        "run": "pro-final",
+        "method": "testPersistentSaveFailureRemainsRetryableWithoutChargingFailedActions",
+        "status": "passed",
+        "seconds": 122.484
+      },
+      {
+        "run": "pro-delivery",
+        "method": "testRedesignProfilePortraitAndAllFourStageSlotsRemainTappable",
+        "status": "passed",
+        "seconds": 141.742
+      }
+    ],
+    "earlierFailures": [
+      {
+        "run": "se-final",
+        "method": "testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch"
+      },
+      {
+        "run": "se-final",
+        "method": "testRedesignFiveFixedTabsAndMoreKeepUtilitiesReachableWithoutChangingSave"
+      },
+      {
+        "run": "pro-final",
+        "method": "testSettingsDismissalResumesAnInProgressMeal"
+      },
+      {
+        "run": "se-capture-initial",
+        "method": "testRedesignReferenceScreensCapture"
+      },
+      {
+        "run": "se-capture-initial",
+        "method": "testRedesignReferenceWorkResultCapture"
+      },
+      {
+        "run": "pro-capture-initial",
+        "method": "testRedesignReferenceScreensCapture"
+      },
+      {
+        "run": "pro-capture-initial",
+        "method": "testRedesignReferenceWorkResultCapture"
+      },
+      {
+        "run": "pro-capture-2",
+        "method": "testRedesignReferenceScreensCapture"
+      },
+      {
+        "run": "se-capture-3",
+        "method": "testRedesignReferenceScreensCapture"
+      },
+      {
+        "run": "pro-regression-2",
+        "method": "testSettingsDismissalResumesAnInProgressMeal"
+      },
+      {
+        "run": "pro-ui-4",
+        "method": "testSettingsDismissalResumesAnInProgressMeal"
+      },
+      {
+        "run": "se-ui-4",
+        "method": "testRedesignFiveFixedTabsAndMoreKeepUtilitiesReachableWithoutChangingSave"
+      },
+      {
+        "run": "pro-capture-3",
+        "method": "testRedesignReferenceScreensCapture"
+      },
+      {
+        "run": "pro-capture-3",
+        "method": "testSettingsDismissalResumesAnInProgressMeal"
+      },
+      {
+        "run": "se-navigation-recheck",
+        "method": "testRedesignFiveFixedTabsAndMoreKeepUtilitiesReachableWithoutChangingSave"
+      },
+      {
+        "run": "se-capture-2",
+        "method": "testRedesignReferenceScreensCapture"
+      }
+    ],
+    "scope": "Selected affected flows, not the entire historical UI suite."
+  },
+  "release": {
+    "version": "0.8.0",
+    "build": 33,
+    "inputCount": 208,
+    "inputSHA256": "1e27bfb2e6f5238484e37af6840269cbfdbc9f888b00f3095816b2b40ffd5dae",
+    "binarySHA256": "284fa1c9557d9cdeafa9b35facd57de13f1b98c95388af3dd62444d80e04cf72",
+    "signatureVerified": true
+  },
+  "deviceDelivery": {
+    "version": "0.8.0",
+    "build": 33,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4225,
+    "launch": "passed after user unlocked and opened app",
+    "runningProcessVerified": true,
+    "schemaAfterStartup": 2,
+    "identityOwnershipAndLayoutPreserved": true,
+    "userAcceptance": {
+      "status": "passed",
+      "source": "user confirmation in chat",
+      "date": "2026-11-03"
+    }
+  },
+  "notChecked": [
+    "iPad and landscape",
+    "largest Dynamic Type sizes",
+    "live VoiceOver navigation",
+    "long-term performance"
+  ],
+  "nextWork": [
+    "PR code review"
+  ]
+}

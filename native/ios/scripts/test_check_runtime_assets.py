@@ -6,6 +6,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from unittest.mock import patch
 from pathlib import Path
 
@@ -112,6 +113,64 @@ class RuntimeAssetPreflightTests(unittest.TestCase):
         self.assertIn(DOWNLOAD_COMMAND, result.stderr)
         self.assertIn("the Xcode project was not changed", result.stderr)
         self.assertEqual(project.read_bytes(), before)
+
+    def test_generator_is_repeatable_and_source_changes_preserve_existing_object_ids(self):
+        scripts = Path(__file__).resolve().parent
+        for filename in ("generate_project.rb", "check_runtime_assets.py"):
+            (self.root / "scripts" / filename).write_bytes((scripts / filename).read_bytes())
+        for relative in ("CatLife/A/Shared.swift", "CatLife/B/Shared.swift", "CatLife/ZScene.swift",
+                         "CatLifeUITests/RoomTests.swift", "CatLifeTests/StoreTests.swift"):
+            source = self.root / relative
+            source.parent.mkdir(parents=True, exist_ok=True)
+            source.write_text("// Source-only fixture; no compilation.\n")
+        project = self.root / "CatLife.xcodeproj"
+
+        def generate():
+            result = subprocess.run(["ruby", str(self.root / "scripts/generate_project.rb")],
+                                    capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertNotIn("duplicate UUID", result.stderr)
+            return ((project / "project.pbxproj").read_bytes(),
+                    (project / "xcshareddata/xcschemes/CatLife.xcscheme").read_bytes())
+
+        def objects():
+            result = subprocess.run(["ruby", "-rxcodeproj", "-rjson", "-e",
+                                     "puts JSON.generate(Xcodeproj::Project.open(ARGV[0]).to_hash)",
+                                     str(project)], capture_output=True, text=True, check=True)
+            return json.loads(result.stdout)["objects"]
+
+        baseline = generate()
+        self.assertEqual(generate(), baseline)
+        original = objects()
+        for reference in ET.fromstring(baseline[1]).iter("BuildableReference"):
+            self.assertEqual(original[reference.attrib["BlueprintIdentifier"]]["isa"], "PBXNativeTarget")
+        for value in original.values():
+            if value["isa"] == "PBXContainerItemProxy":
+                self.assertEqual(original[value["remoteGlobalIDString"]]["isa"], "PBXNativeTarget")
+
+        for relative in ("CatLife/MFeature.swift", "CatLifeUITests/AddedTests.swift", "CatLifeTests/AddedTests.swift"):
+            with self.subTest(source=relative):
+                added = self.root / relative
+                added.write_text("// One additional source file.\n")
+                _, scheme = generate()
+                updated = objects()
+                added_ids = set(updated) - set(original)
+                self.assertEqual(len(added_ids), 2)  # File reference and source-build entry.
+                self.assertTrue(set(original).issubset(updated))
+
+                def remove_added_references(value):
+                    if isinstance(value, list):
+                        return [remove_added_references(item) for item in value
+                                if not isinstance(item, str) or item not in added_ids]
+                    if isinstance(value, dict):
+                        return {key: remove_added_references(item) for key, item in value.items()}
+                    return value
+
+                for identifier, value in original.items():
+                    self.assertEqual(remove_added_references(updated[identifier]), value)
+                self.assertEqual(scheme, baseline[1])
+                added.unlink()
+                self.assertEqual(generate(), baseline)
 
     def test_refresh_declares_concrete_media_metadata_and_directory_sandbox_inputs(self):
         with contextlib.redirect_stdout(io.StringIO()):

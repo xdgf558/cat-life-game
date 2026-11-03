@@ -8,6 +8,13 @@ extension RoomHomeUITests {
         openPlayerProfile(in: app)
         assertCompactProfileRoot(in: app)
         assertProfileValue("profilePlayerName", "铲屎官", in: app)
+        tapProfileControl("profileStageSlot_head", in: app)
+        waitForElement("equipmentScroll", in: app)
+        waitForObservedValue("equippedItem_head", "none", in: app)
+        tapAnimationControl("profileBackButton", in: app)
+        waitForElement("profileScroll", in: app)
+        XCTAssertFalse(element("profileWardrobeScroll", in: app).exists,
+                       "A dressing-stage slot returns directly to its profile entry.")
 
         tapProfileControl("profileAttributesButton", in: app)
         waitForElement("profileAttributesSheet", in: app)
@@ -244,15 +251,19 @@ extension RoomHomeUITests {
             XCTAssertFalse(element(identifier, in: app).exists,
                 "\(identifier) belongs to a detail page, not the compact profile root.", file: file, line: line)
         }
-        let viewport = unobscuredScrollViewport(element("profileScroll", in: app), in: app)
         for identifier in ["profileAttributesButton", "profileRenameButton", "profileChooseAvatar",
-                           "profileWardrobeButton", "profileBonusesButton"] {
+                           "profileWardrobeButton", "profileBonusesButton", "profileStageSlot_head",
+                           "profileStageSlot_body", "profileStageSlot_feet", "profileStageSlot_accessory"] {
+            scrollCareerPage("profileScroll", to: identifier, in: app, file: file, line: line)
+            let viewport = unobscuredScrollViewport(element("profileScroll", in: app), in: app)
             let target = element(identifier, in: app)
             XCTAssertTrue(target.exists && target.isEnabled && target.isHittable,
-                          "The compact root must expose \(identifier) directly.", file: file, line: line)
+                          "The dressing stage must keep \(identifier) reachable.", file: file, line: line)
             XCTAssertTrue(viewport.contains(target.frame),
-                          "\(identifier) should fit without scrolling the root page.", file: file, line: line)
+                          "\(identifier) must scroll clear of the fixed footer.", file: file, line: line)
         }
+        assertFixedNavigationAvailable(in: app, file: file, line: line)
+        scrollCareerPage("profileScroll", to: "profilePlayerName", in: app, file: file, line: line)
     }
 
     @MainActor
@@ -282,9 +293,10 @@ extension RoomHomeUITests {
             }
         }
         waitForObservedValue("shopGoldCount", "200", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         tapAnimationControl("buyFoodButton", in: app)
         waitForObservedValue("shopGoldCount", "180", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "4", in: app)
         waitForObservedValue("goldCount", "180", in: app)
     }
@@ -314,11 +326,10 @@ extension RoomHomeUITests {
     @MainActor
     private func selectPlayerNameTestLanguage(_ code: String, in app: XCUIApplication) {
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsLanguageRow", in: app)
-        tapAnimationControl("languageOption_\(code)", in: app)
+
+        tapSettingsRootControl("languageOption_\(code)", in: app)
         assertSettingsLanguageSelection(code, in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
     }
 
     @MainActor

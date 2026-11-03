@@ -2,6 +2,71 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testTownMapPresentsBackgroundSaveFailureBeforeAutomaticRecovery() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--career-active-fixture", "--career-save-failure-once"]
+        launchAndEnterHome(app)
+        tapAnimationControl("tabTown", in: app)
+        waitForElement("townMapScroll", in: app)
+
+        // This shift finishes about 45 seconds after launch. Its one failed
+        // settlement retries after two seconds, so observe the alert directly.
+        let failure = app.alerts["这次操作还没有保存"]
+        XCTAssertTrue(failure.waitForExistence(timeout: 55),
+                      "Background save failure must be presented while the player stays on the map.")
+        XCTAssertTrue(element("townMapScroll", in: app).exists)
+        let recovered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: failure)
+        XCTAssertEqual(XCTWaiter.wait(for: [recovered], timeout: 8), .completed)
+        XCTAssertFalse(element("saveStatusBanner", in: app).exists)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "360", in: app)
+        XCTAssertFalse(app.alerts.firstMatch.exists,
+                       "Returning home must not present a delayed map error after saving has recovered.")
+    }
+
+    @MainActor
+    func testTownMapAndCatProfileKeepOneSaveAlertOwnerAndPersistentRetry() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--save-outage-test"]
+        launchAndEnterHome(app)
+        tapAnimationControl("feedButton", in: app)
+        dismissExpectedSaveFailure(in: app)
+
+        tapAnimationControl("tabTown", in: app)
+        waitForElement("townMapScroll", in: app)
+        assertPersistentSaveRetryVisible(in: app)
+        tapPersistentSaveRetry(in: app)
+        dismissExpectedSaveFailure(in: app)
+        assertPersistentSaveRetryVisible(in: app)
+
+        openTownCollection(in: app)
+        tapAnimationControl("catProfile_cat_001", in: app)
+        waitForObservedValue("catProfileScroll", "cat_001", in: app)
+        assertPersistentSaveRetryVisible(in: app)
+        tapPersistentSaveRetry(in: app)
+        dismissExpectedSaveFailure(in: app)
+        assertPersistentSaveRetryVisible(in: app)
+        tapPersistentSaveRetry(in: app)
+        dismissExpectedSaveFailure(in: app)
+        assertPersistentSaveRetryVisible(in: app)
+        attachScreenshot(app, named: "Save recovery — cat profile retains its own retry after dismissing the alert")
+
+        tapAnimationControl("closeSheetButton", in: app)
+        waitForElement("townMapScroll", in: app)
+        XCTAssertFalse(app.alerts.firstMatch.exists,
+                       "Closing the cat profile must not reveal a duplicate map alert underneath it.")
+        assertPersistentSaveRetryVisible(in: app)
+        tapPersistentSaveRetry(in: app)
+        dismissExpectedSaveFailure(in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+        waitForObservedValue("goldCount", "200", in: app)
+        assertPersistentSaveRetryVisible(in: app)
+    }
+
+    @MainActor
     func testPersistentSaveFailureRemainsRetryableWithoutChargingFailedActions() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
@@ -23,11 +88,11 @@ extension RoomHomeUITests {
         // A new explicit purchase must report its own failure even after the
         // first alert was dismissed. Neither intent can publish or charge early.
         tapAnimationControl("tabShop", in: app)
-        waitForElement("buyFoodButton", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         tapAnimationControl("buyFoodButton", in: app)
         dismissExpectedSaveFailure(in: app)
         waitForObservedValue("shopGoldCount", "200", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         assertPersistentSaveRetryVisible(in: app)
@@ -35,7 +100,7 @@ extension RoomHomeUITests {
 
         // The lasting entry must attempt storage again; it must not disappear
         // or claim success while the same injected outage is still active.
-        tapAnimationControl("saveStatusRetryButton", in: app)
+        tapPersistentSaveRetry(in: app)
         dismissExpectedSaveFailure(in: app)
         assertPersistentSaveRetryVisible(in: app)
         waitForObservedValue("foodCount", "3", in: app)
@@ -70,6 +135,7 @@ extension RoomHomeUITests {
         let alert = app.alerts.firstMatch
         XCTAssertTrue(alert.waitForExistence(timeout: 8),
                       "Each explicit failed action must present a fresh error.", file: file, line: line)
+        XCTAssertEqual(app.alerts.count, 1, "Only the visible page should own the save alert.", file: file, line: line)
         XCTAssertTrue(alert.staticTexts["这次操作还没有保存"].exists, file: file, line: line)
         alert.buttons["完成"].tap()
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: alert)
@@ -77,13 +143,23 @@ extension RoomHomeUITests {
     }
 
     @MainActor
+    private func tapPersistentSaveRetry(in app: XCUIApplication,
+                                       file: StaticString = #filePath, line: UInt = #line) {
+        assertPersistentSaveRetryVisible(in: app, file: file, line: line)?.tap()
+    }
+
+    @MainActor
+    @discardableResult
     private func assertPersistentSaveRetryVisible(in app: XCUIApplication,
-                                                  file: StaticString = #filePath, line: UInt = #line) {
+                                                  file: StaticString = #filePath, line: UInt = #line) -> XCUIElement? {
         waitForElement("saveStatusBanner", in: app, file: file, line: line)
-        let retry = element("saveStatusRetryButton", in: app)
-        let available = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"), object: retry)
+        // The sheet and its covered parent both remain in the accessibility tree.
+        let retries = app.buttons.matching(identifier: "saveStatusRetryButton")
+        let available = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            retries.allElementsBoundByIndex.contains { $0.isEnabled && $0.isHittable }
+        }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [available], timeout: 8), .completed,
                        "Dismissing an alert must leave a usable save retry entry.", file: file, line: line)
+        return retries.allElementsBoundByIndex.first { $0.isEnabled && $0.isHittable }
     }
 }

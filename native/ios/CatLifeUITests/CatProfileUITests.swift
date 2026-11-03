@@ -8,7 +8,7 @@ extension RoomHomeUITests {
         app.launchArguments = arguments(reset: true) + ["--cat-collection-fixture"]
         launchAndEnterHome(app)
         let room = element("roomScene", in: app).frame
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         waitForObservedValue("catCount", "9", in: app)
         assertCatPage([1, 2, 3, 4], page: "1/3", in: app)
         XCTAssertFalse(element("catProfileSatiety", in: app).exists)
@@ -39,16 +39,18 @@ extension RoomHomeUITests {
         assertCatPage([9], page: "3/3", in: app)
         XCTAssertFalse(element("catPageNext", in: app).isEnabled)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "小橘", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         assertRoomFrame(room, in: app, context: "renaming a different cat")
         relaunchPreservingSave(app)
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         assertCatPage([1, 2, 3, 4], page: "1/3", in: app)
         tapAnimationControl("catPageNext", in: app)
         waitForLabel("catProfile_cat_006", "团子🐾", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         tapAnimationControl("homeCatProfileButton", in: app)
         waitForObservedValue("catProfileScroll", "cat_001", in: app)
         waitForObservedValue("catProfileName", "小橘", in: app)
@@ -186,10 +188,8 @@ extension RoomHomeUITests {
     @MainActor
     func selectCatTestLanguage(_ code: String, in app: XCUIApplication) {
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsLanguageRow", in: app)
-        tapAnimationControl("languageOption_\(code)", in: app)
-        waitForElement("settingsBackButton", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapSettingsRootControl("languageOption_\(code)", in: app)
+        waitForObservedValue("languageOption_\(code)", "selected", in: app)
+        tapAnimationControl("tabHome", in: app)
     }
 }

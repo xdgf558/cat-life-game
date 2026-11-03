@@ -17,72 +17,85 @@ struct SettingsView: View {
     @State private var hasUnsubmittedAudioChanges = false
     @State private var audioSaveGeneration = 0
     @FocusState private var nameFieldFocused: Bool
-    @Environment(\.dismiss) private var dismiss
 
-    private enum Destination: Hashable { case homeName, language, updates, audio }
+    private enum Destination: Hashable { case homeName, updates, audio }
 
     var body: some View {
         NavigationStack(path: $path) {
             page {
-                HStack(spacing: 16) {
-                    GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 64, tint: RoomTheme.gold)
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(GameStrings.text("home.name"))
-                            .font(.system(.title3, design: .rounded, weight: .bold))
-                        Text(GameStrings.text("settings.subtitle"))
-                            .font(.subheadline).foregroundStyle(RoomTheme.secondary)
+                GamePageHeading(title: GameStrings.text("settings.title"),
+                                subtitle: GameStrings.text("redesign.settings.subtitle"),
+                                symbol: "gearshape.fill", tint: RoomTheme.secondary,
+                                background: RoomTheme.chipBg)
+                VStack(alignment: .leading, spacing: 12) {
+                    sectionTitle("settings.audio")
+                    VStack(spacing: 18) {
+                        audioControl(.music, compact: true)
+                        audioControl(.effects, compact: true)
+                        NavigationLink(value: Destination.audio) {
+                            HStack {
+                                Text(GameStrings.text("redesign.settings.audioDetails"))
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                            }
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(RoomTheme.darkMint).frame(minHeight: 32)
+                            .contentShape(Rectangle())
+                        }
+                        .accessibilityIdentifier("settingsAudioRow")
                     }
+                    .padding(16).gameCard()
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    sectionTitle("settings.language").accessibilityIdentifier("settingsLanguageTitle")
+                    languageSegments
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    sectionTitle("redesign.settings.homeGroup")
+                    VStack(spacing: 0) {
+                        NavigationLink(value: Destination.homeName) {
+                            settingRow(symbol: "house.fill", title: "settings.homeName",
+                                       value: store.homeDisplayName, tint: RoomTheme.mint)
+                        }
+                        .accessibilityIdentifier("settingsHomeNameRow")
+                        Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
+                        NavigationLink(value: Destination.updates) {
+                            settingRow(symbol: "clock.arrow.circlepath", title: "settings.updates",
+                                       value: AppVersion.current.display, tint: RoomTheme.gold)
+                        }
+                        .accessibilityIdentifier("settingsUpdatesRow")
+                    }
+                    .buttonStyle(.plain).gameCard()
+                }
+                HStack(spacing: 8) {
+                    Image(systemName: store.hasSaveFailure ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
+                        .foregroundStyle(store.hasSaveFailure ? RoomTheme.coral : RoomTheme.darkMint)
+                    Text(GameStrings.text(store.hasSaveFailure ? "save.writeTitle" : "redesign.settings.localSave"))
+                        .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                     Spacer(minLength: 0)
+                    if store.hasSaveFailure {
+                        Button(GameStrings.text("save.retry")) { store.retrySaving() }
+                            .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.darkMint)
+                            .frame(minHeight: 44).disabled(store.isBusy)
+                            .accessibilityIdentifier("settingsRetrySaveButton")
+                    }
                 }
-                .padding(.vertical, 8)
-
-                VStack(spacing: 0) {
-                    NavigationLink(value: Destination.homeName) {
-                        settingRow(symbol: "house.fill", title: "settings.homeName",
-                                   detail: "settings.homeNameDetail", value: store.homeDisplayName)
-                    }
-                    .accessibilityIdentifier("settingsHomeNameRow")
-                    Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 70)
-                    NavigationLink(value: Destination.language) {
-                        settingRow(symbol: "globe", title: "settings.language",
-                                   detail: "settings.languageDetail", value: nativeName(store.language))
-                    }
-                    .accessibilityIdentifier("settingsLanguageRow")
-                    Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 70)
-                    NavigationLink(value: Destination.updates) {
-                        settingRow(symbol: "clock.arrow.circlepath", title: "settings.updates",
-                                   detail: "settings.updatesDetail", value: AppVersion.current.display)
-                    }
-                    .accessibilityIdentifier("settingsUpdatesRow")
-                    Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 70)
-                    NavigationLink(value: Destination.audio) {
-                        settingRow(symbol: "speaker.wave.2.fill", title: "settings.audio",
-                                   detail: "settings.audioDetail", value: audioSummary)
-                    }
-                    .accessibilityIdentifier("settingsAudioRow")
-                }
-                .buttonStyle(.plain)
-                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+                .accessibilityIdentifier("settingsSaveState")
+                Text(GameStrings.text("home.name") + " · " + AppVersion.current.localizedDisplay)
+                    .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                    .frame(maxWidth: .infinity).multilineTextAlignment(.center)
+                    .padding(.bottom, 12)
             }
+            .accessibilityIdentifier("settingsScroll")
+            .onAppear { loadAudioDraft() }
+            .onDisappear { saveAudioDraft() }
             .navigationTitle(GameStrings.text("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if path.isEmpty {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { dismiss() } label: {
-                            Image(systemName: "xmark").font(.body.weight(.semibold))
-                                .frame(minWidth: 44, minHeight: 44)
-                        }
-                        .accessibilityLabel(GameStrings.text("common.close"))
-                        .accessibilityIdentifier("settingsCloseButton")
-                    }
-                }
-            }
+            .toolbar(path.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: Destination.self) { destination in
                 Group {
                     switch destination {
                     case .homeName: homeNamePage
-                    case .language: languagePage
                     case .updates: updatesPage
                     case .audio: audioPage
                     }
@@ -101,7 +114,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) { SaveStatusBanner(store: store) }
         .fontDesign(.rounded)
         .foregroundStyle(RoomTheme.ink)
         .tint(RoomTheme.darkMint)
@@ -110,13 +122,12 @@ struct SettingsView: View {
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif
-        .saveRecoveryAlert(store: store)
     }
 
     private func page<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24, content: content)
-                .padding(20)
+                .padding(16)
                 .frame(maxWidth: 560)
                 .frame(maxWidth: .infinity)
         }
@@ -126,53 +137,60 @@ struct SettingsView: View {
         .toolbarBackground(.visible, for: .navigationBar)
     }
 
-    private func settingRow(symbol: String, title: String, detail: String, value: String) -> some View {
-        HStack(spacing: 14) {
-            Image(systemName: symbol)
-                .font(.system(size: 22, weight: .semibold))
-                .foregroundStyle(RoomTheme.darkMint)
-                .frame(width: 40, height: 44)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 5) {
-                Text(GameStrings.text(title)).font(.headline)
-                Text(GameStrings.text(detail))
-                    .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                Text(value)
-                    .font(.subheadline.weight(.medium)).foregroundStyle(RoomTheme.darkMint)
+    private func sectionTitle(_ key: String) -> some View {
+        Text(GameStrings.text(key)).font(.system(size: 13, weight: .heavy))
+            .foregroundStyle(RoomTheme.secondary).padding(.leading, 4)
+    }
+
+    private func settingRow(symbol: String, title: String, value: String, tint: Color) -> some View {
+        HStack(spacing: 12) {
+            GameIconTile(symbol: symbol, tint: tint, background: tint.opacity(0.15), size: 38)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(GameStrings.text(title)).font(.system(size: 15, weight: .heavy))
+                Text(value).font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
             }
             Spacer(minLength: 0)
-            Image(systemName: "chevron.right")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(RoomTheme.secondary)
-                .accessibilityHidden(true)
+            Image(systemName: "chevron.right").font(.system(size: 12, weight: .bold))
+                .foregroundStyle(RoomTheme.secondary).accessibilityHidden(true)
         }
-        .padding(16)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentShape(Rectangle())
+        .padding(16).frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
     }
 
-    private var languagePage: some View {
-        page {
-            Text(GameStrings.text("settings.languageHint"))
-                .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-            VStack(spacing: 0) {
-                ForEach(GameLanguage.allCases, id: \.self) { language in
-                    if language != GameLanguage.allCases.first {
-                        Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.horizontal, 18)
-                    }
-                    languageRow(language)
+    private var languageSegments: some View {
+        HStack(spacing: 4) {
+            ForEach(GameLanguage.allCases, id: \.self) { language in
+                Button { store.setLanguage(language) } label: {
+                    Text(nativeName(language)).font(.system(size: 12, weight: .heavy))
+                        .lineLimit(1).minimumScaleFactor(0.75)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .foregroundStyle(language == store.language ? RoomTheme.darkMint : RoomTheme.secondary)
+                        .background(language == store.language ? RoomTheme.paper : .clear, in: Capsule())
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain).disabled(store.isBusy)
+                .accessibilityIdentifier("languageOption_" + language.rawValue)
+                .accessibilityAddTraits(language == store.language ? .isSelected : [])
+                #if DEBUG
+                .accessibilityValue(ProcessInfo.processInfo.arguments.contains("--ui-testing")
+                    ? (language == store.language ? "selected" : "unselected") : "")
+                #endif
             }
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
         }
-        .navigationTitle(GameStrings.text("settings.language"))
+        .padding(4).background(RoomTheme.chipBg, in: Capsule())
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("settingsLanguageSegments")
     }
 
-    private var audioSummary: String {
-        let settings = store.audioSettings
-        return GameStrings.format("settings.audioSummary",
-            settings.musicEnabled ? audioPercent(settings.musicVolume) : GameStrings.text("audio.off"),
-            settings.effectsEnabled ? audioPercent(settings.effectsVolume) : GameStrings.text("audio.off"))
+    private func audioControl(_ channel: SettingsAudioControl.Channel, compact: Bool = false) -> some View {
+        SettingsAudioControl(channel: channel, compact: compact, settings: $audioDraft,
+                             onChange: { hasUnsubmittedAudioChanges = true },
+                             onCommit: saveAudioDraft)
+    }
+
+    private func loadAudioDraft() {
+        guard !hasUnsubmittedAudioChanges, !isSavingAudio else { return }
+        audioDraft = store.pendingAudioSettings ?? store.audioSettings
+        hasLoadedAudioDraft = true
     }
 
     private var audioPage: some View {
@@ -181,12 +199,8 @@ struct SettingsView: View {
                 .font(.subheadline).foregroundStyle(RoomTheme.secondary)
 
             VStack(spacing: 18) {
-                audioCard(title: "audio.music", detail: "audio.musicDetail", volumeTitle: "audio.musicVolume",
-                          enabled: \.musicEnabled, volume: \.musicVolume,
-                          toggleID: "audioMusicToggle", sliderID: "audioMusicVolume")
-                audioCard(title: "audio.effects", detail: "audio.effectsDetail", volumeTitle: "audio.effectsVolume",
-                          enabled: \.effectsEnabled, volume: \.effectsVolume,
-                          toggleID: "audioEffectsToggle", sliderID: "audioEffectsVolume")
+                audioControl(.music)
+                audioControl(.effects)
                 Button { store.previewSoundEffect() } label: {
                     Label(GameStrings.text("audio.preview"), systemImage: "play.fill")
                         .font(.headline).frame(maxWidth: .infinity, minHeight: 26)
@@ -214,58 +228,9 @@ struct SettingsView: View {
             // A page can reappear while its previous request is waiting behind
             // another save. Keep that draft, or restore the Store's latest intent
             // when opening a new editor after a failed or unfinished write.
-            guard !hasUnsubmittedAudioChanges, !isSavingAudio else { return }
-            audioDraft = store.pendingAudioSettings ?? store.audioSettings
-            hasLoadedAudioDraft = true
+            loadAudioDraft()
         }
         .onDisappear { saveAudioDraft() }
-    }
-
-    private func audioCard(title: String, detail: String, volumeTitle: String,
-                           enabled: WritableKeyPath<AudioSettings, Bool>,
-                           volume: WritableKeyPath<AudioSettings, Double>,
-                           toggleID: String, sliderID: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Toggle(GameStrings.text(title), isOn: Binding(
-                get: { audioDraft[keyPath: enabled] },
-                set: { value in
-                    guard audioDraft[keyPath: enabled] != value else { return }
-                    audioDraft[keyPath: enabled] = value
-                    hasUnsubmittedAudioChanges = true
-                    saveAudioDraft()
-                }))
-                .font(.headline).tint(RoomTheme.mint)
-                .accessibilityIdentifier(toggleID)
-            Text(GameStrings.text(detail))
-                .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                Text(GameStrings.text(volumeTitle)).font(.subheadline)
-                Spacer(minLength: 8)
-                Text(audioPercent(audioDraft[keyPath: volume]))
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                    .foregroundStyle(RoomTheme.darkMint)
-            }
-            Slider(value: Binding(get: { audioDraft[keyPath: volume] },
-                                  set: { value in
-                                      guard audioDraft[keyPath: volume] != value else { return }
-                                      audioDraft[keyPath: volume] = value
-                                      hasUnsubmittedAudioChanges = true
-                                  }),
-                   in: 0...1, step: 0.05,
-                   onEditingChanged: { editing in if !editing { saveAudioDraft() } })
-                .tint(RoomTheme.mint)
-                .disabled(!audioDraft[keyPath: enabled])
-                .accessibilityLabel(GameStrings.text(volumeTitle))
-                .accessibilityValue(audioPercent(audioDraft[keyPath: volume]))
-                .accessibilityIdentifier(sliderID)
-        }
-        .padding(18)
-        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
-    }
-
-    private func audioPercent(_ value: Double) -> String {
-        "\(Int((value * 100).rounded()))%"
     }
 
     private func saveAudioDraft() {
@@ -398,33 +363,6 @@ struct SettingsView: View {
         homeNameDraft.trimmingCharacters(in: .whitespacesAndNewlines).count
     }
 
-    private func languageRow(_ language: GameLanguage) -> some View {
-        let selected = language == store.language
-        #if DEBUG
-        let testing = ProcessInfo.processInfo.arguments.contains("--ui-testing")
-        #endif
-        return Button { store.setLanguage(language) } label: {
-            HStack(spacing: 16) {
-                Text(nativeName(language)).font(.body.weight(.semibold))
-                Spacer(minLength: 10)
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(selected ? RoomTheme.darkMint : RoomTheme.wood)
-                    .accessibilityHidden(true)
-            }
-            .padding(20)
-            .frame(maxWidth: .infinity, minHeight: 68)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(store.isBusy)
-        .accessibilityIdentifier("languageOption_" + language.rawValue)
-        #if DEBUG
-        .accessibilityValue(testing ? (selected ? "selected" : "unselected") : "")
-        #endif
-        .accessibilityAddTraits(selected ? .isSelected : [])
-    }
-
     private var updatesPage: some View {
         page {
             VStack(alignment: .leading, spacing: 12) {
@@ -484,68 +422,5 @@ struct SettingsView: View {
         case .traditionalChinese: "繁體中文"
         case .english: "English"
         }
-    }
-}
-
-private struct AppVersion: Sendable {
-    let version: String
-    let build: String
-    static let current = AppVersion(
-        version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—",
-        build: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—")
-    var display: String { "\(version) (\(build))" }
-    var buildNumber: Int { Int(build) ?? 0 }
-    @MainActor var localizedDisplay: String { GameStrings.format("settings.versionFormat", version, build) }
-}
-
-private struct AppRelease: Identifiable, Sendable {
-    let build: Int
-    let version: String
-    let date: String
-    var id: Int { build }
-
-    // Keep release history as data. Only the latest three entries for this
-    // installed binary are rendered; older entries have no hidden UI elements.
-    private static let history: [AppRelease] = [
-        .init(build: 32, version: "0.7.1", date: "2026-11-03"),
-        .init(build: 31, version: "0.7.0", date: "2026-11-03"),
-        .init(build: 30, version: "0.6.2", date: "2026-11-03"),
-        .init(build: 29, version: "0.6.1", date: "2026-11-03"),
-        .init(build: 28, version: "0.6.0", date: "2026-11-03"),
-        .init(build: 27, version: "0.5.4", date: "2026-11-03"),
-        .init(build: 26, version: "0.5.3", date: "2026-11-02"),
-        .init(build: 25, version: "0.5.2", date: "2026-11-02"),
-        .init(build: 24, version: "0.5.1", date: "2026-11-02"),
-        .init(build: 23, version: "0.5.0", date: "2026-11-02"),
-        .init(build: 22, version: "0.4.3", date: "2026-11-02"),
-        .init(build: 21, version: "0.4.2", date: "2026-11-02"),
-        .init(build: 20, version: "0.4.1", date: "2026-11-02"),
-        .init(build: 19, version: "0.4.0", date: "2026-11-02"),
-        .init(build: 18, version: "0.3.0", date: "2026-11-02"),
-        .init(build: 17, version: "0.2.0", date: "2026-11-01"),
-        .init(build: 16, version: "0.1.3", date: "2026-11-01"),
-        .init(build: 15, version: "0.1.2", date: "2026-11-01"),
-        .init(build: 14, version: "0.1.1", date: "2026-11-01"),
-        .init(build: 13, version: "0.1.0", date: "2026-11-01"),
-        .init(build: 12, version: "0.1.0", date: "2026-11-01"),
-        .init(build: 11, version: "0.1.0", date: "2026-11-01"),
-        .init(build: 10, version: "0.1.0", date: "2026-10-31")
-    ]
-    static var recent: [AppRelease] {
-        Array(history.filter { $0.build <= AppVersion.current.buildNumber }
-            .sorted { $0.build > $1.build }.prefix(3))
-    }
-
-    @MainActor var localizedDate: String {
-        let parser = DateFormatter()
-        parser.locale = Locale(identifier: "en_US_POSIX")
-        parser.timeZone = TimeZone(secondsFromGMT: 0)
-        parser.dateFormat = "yyyy-MM-dd"
-        guard let value = parser.date(from: date) else { return date }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: GameLocalization.shared.language.rawValue)
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateStyle = .medium
-        return formatter.string(from: value)
     }
 }

@@ -10,8 +10,7 @@ extension RoomHomeUITests {
         waitForObservedValue("tabPlayer", "还没有选择形象", in: app)
         let barFrame = element("homeNavigationBar", in: app).frame
         let playerTabSize = element("tabPlayer", in: app).frame.size
-        let contentWidth = element("settingsButton", in: app).frame.maxX
-            - element("tabHome", in: app).frame.minX
+        let menuFrame = element("moreMenu", in: app).frame
         attachScreenshot(app, named: "Player navigation — unselected fallback on the real home bar")
 
         let names = ["晴日男生", "森系男生", "书卷男生", "晴日女生", "森系女生", "书卷女生"]
@@ -28,14 +27,14 @@ extension RoomHomeUITests {
             // Inspect the actual home entry after the sheet closes. The
             // portrait inside the profile cannot prove this bug is fixed.
             assertPlayerNavigationPortrait(name, barFrame: barFrame, tabSize: playerTabSize,
-                                              contentWidth: contentWidth, in: app)
+                                              menuFrame: menuFrame, in: app)
             assertKnownHomeViewportBaseline(in: app)
             attachScreenshot(app, named: "Player navigation — home portrait \(id)")
         }
 
         relaunchPreservingSave(app)
         assertPlayerNavigationPortrait("书卷女生", barFrame: barFrame, tabSize: playerTabSize,
-                                          contentWidth: contentWidth, in: app)
+                                          menuFrame: menuFrame, in: app)
         assertKnownHomeViewportBaseline(in: app)
         attachScreenshot(app, named: "Player navigation — female_scholarly retained after cold launch")
         // The last selected portrait must still open the same profile.
@@ -153,7 +152,7 @@ extension RoomHomeUITests {
         waitForObservedValue("activeWorkDurationSeconds", "1530", in: app)
         try assertVisibleTimerChanges("workCountdown", increasing: false, upperBound: 1530, in: app,
                                       context: "the equipped cafe shift uses its captured duration")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         openPlayerProfile(in: app)
         assertProfileValue("profileStatus", "working", in: app)
         assertProfileValue("profileStamina", "57", in: app)
@@ -167,13 +166,13 @@ extension RoomHomeUITests {
         openCareerHome(in: app)
         assertWorkQuote(duration: 1530, stamina: 43, mood: 16, in: app)
         waitForObservedValue("activeWorkDurationSeconds", "1530", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         relaunchPreservingSave(app)
         openCareerHome(in: app)
         scrollRecoveryCard(to: "activeWorkDurationSeconds", in: app)
         waitForObservedValue("activeWorkDurationSeconds", "1530", in: app)
         assertWorkQuote(duration: 1530, stamina: 43, mood: 16, in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         openPlayerProfile(in: app)
         assertProfileValue("profileEquippedCount", "3", in: app)
         assertProfileValue("equipmentSlot_feet", "none", in: app)
@@ -205,7 +204,7 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Equipment — discounted work pays its unchanged gold and experience once")
         closeCareerResult(in: app)
         assertWorkQuote(duration: 102, stamina: 9, mood: 4, in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "260", in: app)
         openPlayerProfile(in: app)
         assertProfileValue("profileStamina", "71", in: app)
@@ -222,7 +221,7 @@ extension RoomHomeUITests {
         openCareerResult(in: app)
         waitForObservedValue("workResultID", resultID, in: app)
         closeCareerResult(in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "260", in: app)
         assertKnownHomeViewportBaseline(in: app)
     }
@@ -257,13 +256,12 @@ extension RoomHomeUITests {
         ]
         for language in languages {
             tapAnimationControl("settingsButton", in: app)
-            tapAnimationControl("settingsLanguageRow", in: app)
-            tapAnimationControl("languageOption_\(language.code)", in: app)
+
+            tapSettingsRootControl("languageOption_\(language.code)", in: app)
             assertSettingsLanguageSelection(language.code, in: app)
-            tapAnimationControl("settingsBackButton", in: app)
-            tapAnimationControl("settingsCloseButton", in: app)
+            tapAnimationControl("tabHome", in: app)
             openPlayerProfile(in: app)
-            XCTAssertTrue(app.navigationBars[language.title].waitForExistence(timeout: 8))
+            assertFixedNavigationAvailable(in: app)
             assertProfileValue("profileAvatarName", "female_sunny", in: app)
             waitForLabel("profileAvatarName", language.avatarNames[3], in: app)
             waitForLabel("profileAttributesButton", language.openAttributes, in: app)
@@ -314,28 +312,31 @@ extension RoomHomeUITests {
 
     @MainActor
     private func assertPlayerNavigationPortrait(_ name: String, barFrame: CGRect,
-                                                 tabSize: CGSize, contentWidth: CGFloat,
+                                                 tabSize: CGSize, menuFrame: CGRect,
                                                  in app: XCUIApplication,
                                                  file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertFalse(element("profileScroll", in: app).exists,
-                       "Check the home portrait only after closing the player sheet.", file: file, line: line)
+                       "Check the utility portrait only after leaving the player page.", file: file, line: line)
         ensureHomeNavigationItemVisible("tabPlayer", in: app, file: file, line: line)
         waitForObservedValue("tabPlayer", name, in: app, file: file, line: line)
         let bar = element("homeNavigationBar", in: app)
-        let tab = element("tabPlayer", in: app)
-        XCTAssertTrue(homeNavigationItemIsFullyVisible("tabPlayer", in: app), file: file, line: line)
-        XCTAssertTrue(tab.isEnabled, file: file, line: line)
-        XCTAssertTrue(element("feedButton", in: app).isHittable, file: file, line: line)
-        XCTAssertTrue(bar.descendants(matching: .button).matching(identifier: "tabPlayer").firstMatch.exists,
-                      "The selected portrait must remain the real bottom navigation entry.", file: file, line: line)
+        let menu = element("moreMenu", in: app)
+        let tile = element("tabPlayer", in: app)
+        XCTAssertTrue(tile.isEnabled && tile.isHittable, file: file, line: line)
+        XCTAssertTrue(menu.frame.contains(tile.frame), file: file, line: line)
+        XCTAssertTrue(menu.descendants(matching: .button).matching(identifier: "tabPlayer").firstMatch.exists,
+                      "The selected portrait must remain the actual Player entry in More.", file: file, line: line)
         XCTAssertEqual(bar.frame, barFrame,
-                       "Changing a portrait must not resize or move the horizontal bar.", file: file, line: line)
-        XCTAssertEqual(tab.frame.size, tabSize,
-                       "The portrait must keep the original player button hit area.", file: file, line: line)
-        let currentWidth = element("settingsButton", in: app).frame.maxX
-            - element("tabHome", in: app).frame.minX
-        XCTAssertEqual(currentWidth, contentWidth, accuracy: 0.5,
-                       "Changing a portrait must not change the eight-item scroll range.", file: file, line: line)
+                       "Changing a portrait must not resize or move the fixed bottom bar.", file: file, line: line)
+        XCTAssertEqual(tile.frame.size, tabSize,
+                       "The portrait must keep the Player tile's original hit area.", file: file, line: line)
+        XCTAssertEqual(menu.frame, menuFrame,
+                       "All six portraits must fit without changing the utility menu layout.", file: file, line: line)
+        attachScreenshot(app, named: "More — saved player portrait \(name)")
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
+        XCTAssertFalse(element("moreMenu", in: app).exists, file: file, line: line)
+        XCTAssertTrue(element("feedButton", in: app).isHittable, file: file, line: line)
+        assertFixedNavigationAvailable(in: app, file: file, line: line)
     }
 
     @MainActor

@@ -8,6 +8,7 @@ struct RoomSceneHost: View {
     let isActive: Bool
     let reducedMotion: Bool
     @State private var scene = RoomScene(size: CGSize(width: 390, height: 480))
+    let catNeedPresentation: CatNeedPresentation
     #if DEBUG
     @State private var animationPhase = "idle"
     @State private var navigationStatus = ""
@@ -47,7 +48,7 @@ struct RoomSceneHost: View {
 
     var body: some View {
         GeometryReader { geometry in
-            NativeRoomCanvas(scene: scene, isActive: isActive, canvasSize: geometry.size)
+            let canvas = NativeRoomCanvas(scene: scene, isActive: isActive, canvasSize: geometry.size)
                 .allowsHitTesting(!store.isSavingLayout)
                 .onAppear {
                     scene.scaleMode = .resizeFill
@@ -65,6 +66,10 @@ struct RoomSceneHost: View {
                     scene.onPlacementPendingChanged = { store.setLayoutResolving($0) }
                     scene.reducedMotion = effectiveReducedMotion
                     scene.onCatTapped = { store.inspectCat() }
+                    let presentation = catNeedPresentation
+                    presentation.canvasOrigin = geometry.frame(in: .global).origin
+                    scene.onCatNeedAnchorChanged = { [weak presentation] point in presentation?.anchor = point }
+                    scene.onCatVisualFrameChanged = { [weak presentation] frame in presentation?.localCatFrame = frame }
                     scene.onSound = { store.playSceneSound($0) }
                     scene.onBowlTapped = { store.feed() }
                     scene.onBowlMoved = { store.moveBowl(to: $0) }
@@ -78,13 +83,22 @@ struct RoomSceneHost: View {
                 }
                 .onChange(of: isActive) { _, active in
                     scene.setPresentationActive(active)
-                    if !active { scene.cancelPlacementPreview() }
+                    if !active {
+                        catNeedPresentation.anchor = nil
+                        catNeedPresentation.localCatFrame = nil
+                        scene.cancelPlacementPreview()
+                    }
                 }
                 .onDisappear {
                     scene.setPresentationActive(false)
+                    scene.onCatNeedAnchorChanged = nil
+                    scene.onCatVisualFrameChanged = nil
+                    catNeedPresentation.anchor = nil
+                    catNeedPresentation.localCatFrame = nil
                     scene.cancelPlacementPreview()
                 }
                 .onChange(of: geometry.size) { _, size in scene.size = size }
+                .onChange(of: geometry.frame(in: .global).origin) { _, origin in catNeedPresentation.canvasOrigin = origin }
                 .onChange(of: effectiveReducedMotion) { _, value in scene.reducedMotion = value }
                 .onChange(of: store.sceneSnapshot) { _, _ in refreshScene() }
                 .onChange(of: store.isDecorating) { _, _ in refreshScene() }
@@ -94,46 +108,61 @@ struct RoomSceneHost: View {
                     refreshScene()
                     if let feedback = store.feedback { scene.playFeedback(kind: feedback.kind, catID: feedback.catID) }
                 }
-                .accessibilityElement(children: .ignore)
-                .accessibilityLabel(GameStrings.text("accessibility.cat"))
-                .accessibilityIdentifier("roomScene")
-                .accessibilityValue(sceneAccessibilityValue)
-                .accessibilityAddTraits(.isButton)
-                .accessibilityAction { store.inspectCat() }
-                .accessibilityAction(named: Text(GameStrings.text("care.feed"))) { store.feed() }
-                .accessibilityAction(named: Text(GameStrings.text("rest.bedAction"))) { scene.restInFurniture(kind: .catBed) }
-                .accessibilityAction(named: Text(GameStrings.text("rest.cushionAction"))) { scene.restInFurniture(kind: .floorCushion) }
-                .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.focusCat"))) { scene.resetCamera() }
-                .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomIn"))) { scene.zoomIn() }
-                .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomOut"))) { scene.zoomOut() }
-                .overlay(alignment: .bottomLeading) {
-                    if (store.snapshot?.home.roomLevel ?? 1) > 1 {
-                        Button { scene.resetCamera() } label: {
-                            Label(GameStrings.text("homeUpgrade.focusCat"), systemImage: "scope")
-                                .font(.caption.weight(.semibold))
-                                .padding(.horizontal, 12).frame(minHeight: 44)
-                                .background(RoomTheme.paper.opacity(0.95), in: Capsule())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("focusCatButton")
-                        .accessibilityHint(GameStrings.text("homeUpgrade.zoomHint"))
-                        .padding(.leading, 12).padding(.bottom, 28)
+            ZStack {
+                canvas.accessibilityHidden(true)
+                // Keep only the active SwiftUI surface in the accessibility tree.
+                if isActive { accessibleRoom }
+            }
+            .overlay {
+                CatNeedBubble(store: store, presentation: catNeedPresentation,
+                              canvasSize: geometry.size, isActive: isActive,
+                              canAct: { scene.canShowCatNeed })
+            }
+            .overlay(alignment: .topLeading) {
+                if isActive, (store.snapshot?.home.roomLevel ?? 1) > 1, !store.isDecorating {
+                    Button { scene.resetCamera() } label: {
+                        Label(GameStrings.text("homeUpgrade.focusCat"), systemImage: "scope")
+                            .font(.caption.weight(.semibold))
+                            .padding(.horizontal, 12).frame(minHeight: 44)
+                            .background(RoomTheme.paper.opacity(0.95), in: Capsule())
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("focusCatButton")
+                    .accessibilityHint(GameStrings.text("homeUpgrade.zoomHint"))
+                    .padding(.leading, 12).padding(.top, 240)
                 }
-                #if DEBUG
-                .overlay {
-                    if furnitureTesting {
-                        // XCTest pinches start at element corners; keep both fingers clear of the overlaid HUD.
-                        Color.clear
-                            .frame(width: geometry.size.width * 0.7, height: geometry.size.height * 0.5)
-                            .accessibilityElement()
-                            .accessibilityLabel("Room pinch surface")
-                            .accessibilityIdentifier("roomPinchSurface")
-                            .allowsHitTesting(false)
-                    }
+            }
+            #if DEBUG
+            .overlay {
+                if furnitureTesting, isActive {
+                    // The UI journey hides the care HUD/tray before using this pinch surface.
+                    Color.clear
+                        .frame(width: geometry.size.width * 0.7, height: geometry.size.height * 0.5)
+                        .accessibilityElement()
+                        .accessibilityLabel("Room pinch surface")
+                        .accessibilityIdentifier("roomPinchSurface")
+                        .allowsHitTesting(false)
                 }
-                #endif
+            }
+            #endif
         }
+    }
+
+    private var accessibleRoom: some View {
+        Color.clear
+            .allowsHitTesting(false)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(GameStrings.text("accessibility.cat"))
+            .accessibilityIdentifier("roomScene")
+            .accessibilityValue(sceneAccessibilityValue)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { store.inspectCat() }
+            .accessibilityAction(named: Text(GameStrings.text("care.feed"))) { store.feed() }
+            .accessibilityAction(named: Text(GameStrings.text("rest.bedAction"))) { scene.restInFurniture(kind: .catBed) }
+            .accessibilityAction(named: Text(GameStrings.text("rest.cushionAction"))) { scene.restInFurniture(kind: .floorCushion) }
+            .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.focusCat"))) { scene.resetCamera() }
+            .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomIn"))) { scene.zoomIn() }
+            .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomOut"))) { scene.zoomOut() }
     }
 
     private var sceneAccessibilityValue: String {
@@ -180,6 +209,8 @@ private struct NativeRoomCanvas: UIViewRepresentable {
         view.ignoresSiblingOrder = true
         view.backgroundColor = .clear
         view.isMultipleTouchEnabled = true
+        view.isAccessibilityElement = false
+        view.accessibilityElementsHidden = true
         view.addGestureRecognizer(context.coordinator.pinch)
         context.coordinator.setActive(isActive)
         configure(view)
