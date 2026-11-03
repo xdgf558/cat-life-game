@@ -1,6 +1,6 @@
 # Native iOS redesign — 0.8.0 (33)
 
-final result: passed (simulator visual/interaction QA; installed phone process verified; user acceptance pending)
+final result: passed (simulator visual/interaction QA; installed phone process verified; user confirmed physical-device acceptance on 2026-11-03)
 
 ## Scope and source
 
@@ -45,3 +45,5 @@ This is a native app; browser console checks do not apply. iPad, landscape, larg
 189 Core tests across 17 suites and 72 App tests passed. 16 latest device/scenario executions covering 13 distinct UI journeys passed. The keyboard regression now completes the original meal after saving a name, consumes exactly one portion and retains the expected gold. Selected evidence includes `comparison-04.png`, `comparison-09.png`, `overview.png` and the full-size captures under `screens/`.
 
 Release 0.8.0 (33) passed signature verification and was installed in place. All 4,225 original save bytes matched before first launch. Initial launch was blocked by lock screen; after the user unlocked/opened the app, the exact installed process was verified and schema 2, identity, ownership and room layout remained intact. No reinstall or test fixture was used on the phone.
+
+The user confirmed physical iPhone acceptance passed on 2026-11-03 and requested a review PR. This confirmation is additional to the recorded automated checks; no build or gameplay changes were made during PR preparation.

@@ -8,11 +8,10 @@
     "existing gameplay wired to redesigned controls",
     "simulator visual and interaction regression",
     "signed Release build",
-    "in-place phone install and running process verified"
+    "in-place phone install and running process verified",
+    "user-confirmed physical iPhone acceptance"
   ],
-  "partiallyFinished": [
-    "user acceptance of the redesigned experience"
-  ],
+  "partiallyFinished": [],
   "broken": [],
   "deferredByUser": [
     "neighbor visits",
@@ -215,16 +214,20 @@
     "launch": "passed after user unlocked and opened app",
     "runningProcessVerified": true,
     "schemaAfterStartup": 2,
-    "identityOwnershipAndLayoutPreserved": true
+    "identityOwnershipAndLayoutPreserved": true,
+    "userAcceptance": {
+      "status": "passed",
+      "source": "user confirmation in chat",
+      "date": "2026-11-03"
+    }
   },
   "notChecked": [
     "iPad and landscape",
     "largest Dynamic Type sizes",
     "live VoiceOver navigation",
-    "long-term performance",
-    "user gameplay acceptance"
+    "long-term performance"
   ],
   "nextWork": [
-    "user verifies visual preference and touch feel"
+    "PR code review"
   ]
 }

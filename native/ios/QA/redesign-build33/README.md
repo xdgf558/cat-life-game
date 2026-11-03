@@ -9,3 +9,5 @@ The home HUD includes three floating care actions, prioritized cat needs and a s
 New runtime art: `town-map` and `welcome-homecoming`, generated for this update with the built-in image generator. Existing cat, player, furniture and room assets are reused. New images are tracked with Git LFS. Runtime inventory: 70 hydrated media files.
 
 Validation is complete: 189 Core tests, 72 App tests and 16 latest device/scenario UI executions passed. 0.8.0 (33) was installed in place; all 4,225 prelaunch save bytes matched, and the installed process plus stable save fields were verified after the user opened the app. See `verification.json`, `device-delivery.json` and `design-qa.md`. Raw build logs, device identifiers, test save files and xcresult bundles remain outside the repository.
+
+Physical iPhone acceptance was confirmed by the user on 2026-11-03. The change is ready for PR review; this preparation updates QA documentation only and does not change the installed 0.8.0 (33) app.
