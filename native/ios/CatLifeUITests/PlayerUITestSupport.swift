@@ -172,6 +172,70 @@ extension RoomHomeUITests {
     }
 
     @MainActor
+    func openCareerRest(in app: XCUIApplication,
+                        file: StaticString = #filePath, line: UInt = #line) {
+        tapCareerControl("workRestButton", in: app, file: file, line: line)
+        waitForElement("workRestScroll", in: app, file: file, line: line)
+        scrollCareerPage("workRestScroll", to: "sleepStatus", in: app, file: file, line: line)
+    }
+
+    @MainActor
+    func closeCareerRest(in app: XCUIApplication,
+                         file: StaticString = #filePath, line: UInt = #line) {
+        tapAnimationControl("workRestBackButton", in: app, file: file, line: line)
+        waitForElement("playerLevel", in: app, file: file, line: line)
+    }
+
+    @MainActor
+    func tapCareerRestControl(_ identifier: String, in app: XCUIApplication,
+                              file: StaticString = #filePath, line: UInt = #line) {
+        scrollCareerPage("workRestScroll", to: identifier, in: app, file: file, line: line)
+        tapAnimationControl(identifier, in: app, file: file, line: line)
+    }
+
+    @MainActor
+    func tapCareerDirectoryControl(_ identifier: String, in app: XCUIApplication,
+                                   file: StaticString = #filePath, line: UInt = #line) {
+        scrollCareerPage("careerJobsScroll", to: identifier, in: app, file: file, line: line)
+        tapAnimationControl(identifier, in: app, file: file, line: line)
+    }
+
+    @MainActor
+    func revealCareerDirectoryJob(_ id: String, in app: XCUIApplication,
+                                  file: StaticString = #filePath, line: UInt = #line) {
+        waitForElement("careerJobsScroll", in: app, file: file, line: line)
+        let indicator = element("careerPageIndicator", in: app)
+        guard let value = indicator.value as? String,
+              let pageCount = value.split(separator: "/").last.flatMap({ Int($0) }), pageCount > 0 else {
+            XCTFail("The career directory must expose a bounded page count.", file: file, line: line)
+            return
+        }
+        for _ in 1..<pageCount where element("careerPagePrevious", in: app).isEnabled {
+            scrollCareerPage("careerJobsScroll", to: "careerPagePrevious", in: app, file: file, line: line)
+            tapAnimationControl("careerPagePrevious", in: app, file: file, line: line)
+        }
+        for page in 0..<pageCount {
+            if element("careerJobRow_\(id)", in: app).exists {
+                scrollCareerPage("careerJobsScroll", to: "careerJobRow_\(id)", in: app, file: file, line: line)
+                return
+            }
+            guard page + 1 < pageCount, element("careerPageNext", in: app).isEnabled else { break }
+            scrollCareerPage("careerJobsScroll", to: "careerPageNext", in: app, file: file, line: line)
+            tapAnimationControl("careerPageNext", in: app, file: file, line: line)
+        }
+        XCTFail("Career \(id) was not found within the current directory's \(pageCount) pages.", file: file, line: line)
+    }
+
+    @MainActor
+    func openCareerDetailsFromDirectory(_ id: String, in app: XCUIApplication,
+                                        file: StaticString = #filePath, line: UInt = #line) {
+        revealCareerDirectoryJob(id, in: app, file: file, line: line)
+        tapAnimationControl("careerJobRow_\(id)", in: app, file: file, line: line)
+        waitForElement("careerDetailScroll", in: app, file: file, line: line)
+        scrollCareerPage("careerDetailScroll", to: "careerSelect_\(id)", in: app, file: file, line: line)
+    }
+
+    @MainActor
     func openCareerResult(in app: XCUIApplication,
                                    file: StaticString = #filePath, line: UInt = #line) {
         if !element("workResultID", in: app).exists {

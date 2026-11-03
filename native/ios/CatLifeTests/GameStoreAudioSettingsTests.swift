@@ -142,6 +142,57 @@ final class GameStoreAudioSettingsTests: XCTestCase {
         XCTAssertEqual(maximumConcurrentSaves, 1)
     }
 
+    @MainActor
+    func testSupersededAudioFailureDoesNotAlertWhileNewestIntentStillSaves() async throws {
+        try await verifySupersededAudioFailure(latestFails: false)
+    }
+
+    @MainActor
+    func testNewestAudioFailureStillAlertsAfterSupersededFailure() async throws {
+        try await verifySupersededAudioFailure(latestFails: true)
+    }
+
+    @MainActor
+    private func verifySupersededAudioFailure(latestFails: Bool) async throws {
+        let repository = AudioSettingsSaveRepository(mutedSnapshot())
+        let store = GameStore(repository: repository)
+        await store.load()
+        let original = store.audioSettings
+        await repository.setWritesFailing(true)
+        await repository.holdNextSaves(2)
+        defer { Task { await repository.releaseAllSaves() } }
+        var earlier = original
+        earlier.musicVolume = 0.8
+        let first = Task { await store.updateAudioSettings(earlier) }
+        try await eventually("The superseded write must be held in flight") {
+            await repository.isSaveBlocked
+        }
+        let latest = Task { await store.updateAudioSettings(original) }
+        try await eventually("The latest intent must replace the older request") {
+            store.pendingAudioSettings == original
+        }
+        // Each write captures storage availability independently.
+        await repository.setWritesFailing(latestFails)
+        await repository.releaseNextSave()
+        try await eventually("The new request must start after the older failure") {
+            let blocked = await repository.isSaveBlocked
+            return store.hasSaveFailure && blocked
+        }
+        XCTAssertFalse(store.showSaveError, "A stale preference failure must not interrupt the newer choice.")
+        XCTAssertFalse(store.audioSettingsSaveFailed)
+        XCTAssertEqual(store.pendingAudioSettings, original)
+        await repository.releaseNextSave()
+        let superseded = await first.value
+        let saved = await latest.value
+        XCTAssertFalse(superseded)
+        XCTAssertEqual(saved, !latestFails)
+        XCTAssertEqual(store.audioSettings, original)
+        XCTAssertEqual(store.hasSaveFailure, latestFails)
+        XCTAssertEqual(store.showSaveError, latestFails)
+        XCTAssertEqual(store.audioSettingsSaveFailed, latestFails)
+        XCTAssertEqual(store.pendingAudioSettings, latestFails ? original : nil)
+    }
+
     private func mutedSnapshot() -> GameSnapshot {
         var snapshot = GameSnapshot.fresh(now: Date())
         snapshot.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
@@ -188,6 +239,8 @@ private actor AudioSettingsSaveRepository: GameSaveRepository {
     }
 
     func loadOrCreate(now: Date) async throws -> GameSnapshot { savedSnapshot }
+
+    func checkWritable() throws { if writesFailing { throw SimulatedWriteError.unavailable } }
 
     func save(_ snapshot: GameSnapshot) async throws {
         let fails = writesFailing

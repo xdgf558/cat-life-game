@@ -1,0 +1,122 @@
+{
+  "runs": [
+    {
+      "revision": "initial",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCareerSelectionAndSavedResultTranslateInAllThreeLanguages()",
+          "result": "Failed",
+          "seconds": 59.034
+        },
+        {
+          "name": "RoomHomeUITests/testCompactWorkDirectoryPagesFiltersSearchAndLockedPreviewPreserveState()",
+          "result": "Failed",
+          "seconds": 121.456
+        },
+        {
+          "name": "RoomHomeUITests/testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork()",
+          "result": "Failed",
+          "seconds": 135.292
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+          "result": "Passed",
+          "seconds": 54.26
+        }
+      ]
+    },
+    {
+      "revision": "initial",
+      "deviceClass": "iPhone 18 Pro",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testActiveCareerCompletesInBackgroundAndKeepsOnePersistentResult()",
+          "result": "Failed",
+          "seconds": 97.828
+        },
+        {
+          "name": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+          "result": "Failed",
+          "seconds": 39.507
+        },
+        {
+          "name": "RoomHomeUITests/testChoosingFutureCareerKeepsActiveJobAndCapturedTerms()",
+          "result": "Passed",
+          "seconds": 137.277
+        },
+        {
+          "name": "RoomHomeUITests/testEquippedWorkKeepsCapturedTermsAndSettlesOnce()",
+          "result": "Passed",
+          "seconds": 514.884
+        }
+      ]
+    },
+    {
+      "revision": "final",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCareerSelectionAndSavedResultTranslateInAllThreeLanguages()",
+          "result": "Passed",
+          "seconds": 361.576
+        },
+        {
+          "name": "RoomHomeUITests/testCompactWorkDirectoryPagesFiltersSearchAndLockedPreviewPreserveState()",
+          "result": "Passed",
+          "seconds": 127.987
+        },
+        {
+          "name": "RoomHomeUITests/testPlayerSleepPersistsAcrossRelaunchAndIsMutuallyExclusiveWithWork()",
+          "result": "Passed",
+          "seconds": 176.546
+        }
+      ]
+    },
+    {
+      "revision": "final",
+      "deviceClass": "iPhone 18 Pro",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testActiveCareerCompletesInBackgroundAndKeepsOnePersistentResult()",
+          "result": "Passed",
+          "seconds": 140.352
+        },
+        {
+          "name": "RoomHomeUITests/testAudioTracksFollowSleepWorkAndCare()",
+          "result": "Passed",
+          "seconds": 121.204
+        },
+        {
+          "name": "RoomHomeUITests/testCompactWorkDirectoryPagesFiltersSearchAndLockedPreviewPreserveState()",
+          "result": "Passed",
+          "seconds": 146.992
+        }
+      ]
+    }
+  ],
+  "executions": 14,
+  "passed": 9,
+  "historicalFailures": 5,
+  "distinctMethods": 8,
+  "finalRevisionAllPassed": true,
+  "failureFollowup": [
+    {
+      "initial": "Three cases stopped at a missing Done button on nested Work pages.",
+      "resolution": "Explicit shared Done toolbar item added to root, directory, details, rest and result. All affected cases rerun."
+    },
+    {
+      "initial": "English selected-job accessibility label combined job name and selection status.",
+      "resolution": "Localized status moved into accessibilityValue; exact-name three-language assertions preserved."
+    },
+    {
+      "initial": "Care-audio case never observed the initial feed effect.",
+      "evidence": "The recorded tap was centered on the enabled/hittable button; food stayed 3, satiety 35 and navigation idle. No action committed, no resource loss, no save-error banner. The transient cause was not established.",
+      "resolution": "No audio/gameplay code or assertion was changed; rerun result recorded above."
+    }
+  ],
+  "infrastructureOnly": [
+    "Attempted pre-change screenshot run could not launch the relocated old build26 app bundle; no test case executed.",
+    "One rerun launch collided with an existing result path; no test case executed. Separate paths then used."
+  ]
+}

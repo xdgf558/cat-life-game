@@ -1,0 +1,91 @@
+{
+  "date": "2026-11-03",
+  "version": "0.6.1",
+  "build": 29,
+  "status": {
+    "finished": "Unified supply price display and one-tap purchase controls; upgraded-room pinch zoom, safe gesture transitions, fixed world/save coordinates, accessibility zoom actions, signed builds and focused simulator verification. In-place installation and byte-identical pre-launch save verified. Normal startup and the exact installed-version process verified after user unlock.",
+    "partiallyFinished": "Player acceptance of physical pinch gestures and long-session use is pending.",
+    "broken": [],
+    "nextWork": "Player checks the unified shop prices and room pinch zoom on the installed version."
+  },
+  "coreTests": {
+    "executedThisBuild": false,
+    "inheritedPassed": 168,
+    "unchangedInputs": 32,
+    "report": "core-inherited.json"
+  },
+  "appTests": {
+    "passed": 35,
+    "failed": 0,
+    "newZoomTests": 5,
+    "report": "app-tests.json"
+  },
+  "uiTests": {
+    "executions": 12,
+    "passed": 9,
+    "historicalFailures": 3,
+    "distinctMethods": 6,
+    "finalRevisionAllPassed": true
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "report": "release-build.json"
+  },
+  "localization": {
+    "keysPerLanguage": 467,
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "report": "localization.json"
+  },
+  "visualInspection": {
+    "screenshots": [
+      "room-overview-pro.png",
+      "room-overview-se.png",
+      "room-reset-after-meal-se.png",
+      "room-zoom-in-pro.png",
+      "shop-supplies-pro.png",
+      "shop-supplies-se.png"
+    ],
+    "result": "Inspected small/large supply price rows, full-room overview, 1.6x zoom and reset-after-meal screenshots; HUD is unchanged and no room borders are exposed."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 205,
+    "sha256": "2fe163ab1b7c8a00aaaccb9aa5e798ea219fe4121901f3d5c4d49351b7a7e72f",
+    "allInputsMatch": true
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "rawLogsCommitted": false,
+    "newScreenshots": "Git LFS"
+  },
+  "limitations": [
+    "Six targeted UI methods; not the entire historical suite, iPad, Dynamic Type or live VoiceOver testing.",
+    "Core sources and tests are unchanged; inherited 168 passed core tests were not rerun.",
+    "Physical gesture feel and long-session use require player acceptance."
+  ],
+  "notes": [
+    "Three initial pinch failures were caused by automated touches landing on HUD/care overlays; retained in ui-tests.json. Final five UI executions passed.",
+    "Zoom applies only after room expansion. Level-one rooms stay at normal scale. The camera zoom is temporary and resets on relaunch; furniture placements persist.",
+    "Only a DEBUG accessibility target was added to aim XCTest gestures; runtime signature/binary checks exclude test fixtures and that target from Release."
+  ],
+  "device": {
+    "version": "0.6.1",
+    "build": 29,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 3962,
+    "saveSHA256": "8b5ed78473f13384c7253803ef9655532e02661a61a81230bb7ea55fd09a5984",
+    "launch": "passed; user opened normally after unlocking",
+    "runningProcessVerified": true,
+    "userAcceptance": "pending",
+    "installationRetry": "First transfer timed out at 60 seconds; prior installed version confirmed as 0.6.0. Retry completed with a longer transfer timeout.",
+    "initialLaunchFailure": "iOS device locked",
+    "launchConfirmedDate": "2026-11-03"
+  }
+}

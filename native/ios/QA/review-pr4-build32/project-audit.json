@@ -1,0 +1,77 @@
+{
+  "baselineCommit": "e1bff173237726496a099be118a45bd90de437d9",
+  "method": "xcodeproj object tree normalized by semantic UUID names; compare complete tree after removing only observed added file/build references and the new script input. Scheme XML attributes/element order normalized by target names.",
+  "currentProjectSHA256": "1d4e7f667f15b98c5235d55025c05cfcc268fddb070fd331b7875c244e2c2a4d",
+  "currentSchemeSHA256": "1664d0f1305ac27bfd6168d7613476cbcb556105b62d4ce08bc722435389053f",
+  "addedFileReferences": [
+    "CatSpriteLibraryTests.swift",
+    "GameNoticeCenterTests.swift",
+    "RoomLayoutPublicationTests.swift",
+    "Scene/CatAtlasRegistration.swift",
+    "Scene/RoomLayoutPlanning.swift",
+    "Scene/RoomSceneInteraction.swift",
+    "Views/WorkCareerDirectoryView.swift",
+    "Views/WorkJobPresentation.swift",
+    "Views/WorkRestView.swift",
+    "Views/WorkResultView.swift"
+  ],
+  "removedFileReferences": [
+
+  ],
+  "addedPreflightInput": "$(SRCROOT)/scripts/runtime_assets.xcfilelist",
+  "normalizedProjectMatchesExceptExpectedAdditions": true,
+  "normalizedSchemeUnchanged": true,
+  "targets": [
+    {
+      "name": "CatLife",
+      "sourcesAdded": [
+        "Scene/CatAtlasRegistration.swift",
+        "Scene/RoomLayoutPlanning.swift",
+        "Scene/RoomSceneInteraction.swift",
+        "Views/WorkCareerDirectoryView.swift",
+        "Views/WorkJobPresentation.swift",
+        "Views/WorkRestView.swift",
+        "Views/WorkResultView.swift"
+      ],
+      "sourcesRemoved": [
+
+      ],
+      "resourcesUnchanged": true,
+      "frameworksUnchanged": true,
+      "buildSettingsUnchanged": true,
+      "dependenciesUnchanged": true,
+      "productTypeUnchanged": true
+    },
+    {
+      "name": "CatLifeUITests",
+      "sourcesAdded": [
+
+      ],
+      "sourcesRemoved": [
+
+      ],
+      "resourcesUnchanged": true,
+      "frameworksUnchanged": true,
+      "buildSettingsUnchanged": true,
+      "dependenciesUnchanged": true,
+      "productTypeUnchanged": true
+    },
+    {
+      "name": "CatLifeTests",
+      "sourcesAdded": [
+        "CatSpriteLibraryTests.swift",
+        "GameNoticeCenterTests.swift",
+        "RoomLayoutPublicationTests.swift"
+      ],
+      "sourcesRemoved": [
+
+      ],
+      "resourcesUnchanged": true,
+      "frameworksUnchanged": true,
+      "buildSettingsUnchanged": true,
+      "dependenciesUnchanged": true,
+      "productTypeUnchanged": true
+    }
+  ],
+  "scope": "Read-only project/scheme semantic comparison. No build, signing, runtime or device test performed by this audit."
+}

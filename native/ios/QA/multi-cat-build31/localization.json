@@ -1,0 +1,10 @@
+{
+  "languages": [
+    "zh-Hans",
+    "zh-Hant",
+    "en"
+  ],
+  "keysPerLanguage": 523,
+  "keyParity": true,
+  "formatSignaturesMatch": true
+}

@@ -1,0 +1,167 @@
+{
+  "executions": 20,
+  "passed": 12,
+  "failed": 8,
+  "distinctMethods": 8,
+  "latestResultByMethod": {
+    "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats": "passed",
+    "RoomHomeUITests/testCatAdoptionShowsLockedRequirementsInAllLanguagesWithoutCharging": "passed",
+    "RoomHomeUITests/testCompanionCareChangesOnlySelectedCatAndSurvivesRelaunch": "passed",
+    "RoomHomeUITests/testFailedAdoptionAndCompanionSaveRemainRetryableWithoutDoubleCharge": "passed",
+    "RoomHomeUITests/testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests": "passed",
+    "RoomHomeUITests/testSwitchingCompanionCancelsOldCareAndRestWithoutReplayingCallbacks": "passed",
+    "RoomHomeUITests/testCatCollectionPagesAndIndividualNamesPreserveOtherCatsAndHome": "passed",
+    "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation": "passed"
+  },
+  "runs": [
+    {
+      "run": "se-adoption",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "failed",
+          "seconds": 22.295
+        },
+        {
+          "name": "RoomHomeUITests/testCatAdoptionShowsLockedRequirementsInAllLanguagesWithoutCharging",
+          "result": "passed",
+          "seconds": 92.109
+        },
+        {
+          "name": "RoomHomeUITests/testCompanionCareChangesOnlySelectedCatAndSurvivesRelaunch",
+          "result": "passed",
+          "seconds": 57.609
+        },
+        {
+          "name": "RoomHomeUITests/testFailedAdoptionAndCompanionSaveRemainRetryableWithoutDoubleCharge",
+          "result": "failed",
+          "seconds": 22.152
+        }
+      ]
+    },
+    {
+      "run": "se-final",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "failed",
+          "seconds": 28.271
+        },
+        {
+          "name": "RoomHomeUITests/testCatAdoptionShowsLockedRequirementsInAllLanguagesWithoutCharging",
+          "result": "passed",
+          "seconds": 92.629
+        },
+        {
+          "name": "RoomHomeUITests/testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests",
+          "result": "failed",
+          "seconds": 93.124
+        },
+        {
+          "name": "RoomHomeUITests/testFailedAdoptionAndCompanionSaveRemainRetryableWithoutDoubleCharge",
+          "result": "failed",
+          "seconds": 34.933
+        },
+        {
+          "name": "RoomHomeUITests/testSwitchingCompanionCancelsOldCareAndRestWithoutReplayingCallbacks",
+          "result": "passed",
+          "seconds": 108.826
+        }
+      ]
+    },
+    {
+      "run": "pro-final",
+      "deviceClass": "large iPhone simulator",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "failed",
+          "seconds": 39.226
+        },
+        {
+          "name": "RoomHomeUITests/testCatCollectionPagesAndIndividualNamesPreserveOtherCatsAndHome",
+          "result": "failed",
+          "seconds": 81.226
+        },
+        {
+          "name": "RoomHomeUITests/testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests",
+          "result": "failed",
+          "seconds": 109.748
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+          "result": "passed",
+          "seconds": 62.277
+        }
+      ]
+    },
+    {
+      "run": "profile-rerun",
+      "deviceClass": "large iPhone simulator",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCatCollectionPagesAndIndividualNamesPreserveOtherCatsAndHome",
+          "result": "passed",
+          "seconds": 114.059
+        }
+      ]
+    },
+    {
+      "run": "se-recheck",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "passed",
+          "seconds": 91.836
+        },
+        {
+          "name": "RoomHomeUITests/testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests",
+          "result": "passed",
+          "seconds": 105.945
+        },
+        {
+          "name": "RoomHomeUITests/testFailedAdoptionAndCompanionSaveRemainRetryableWithoutDoubleCharge",
+          "result": "passed",
+          "seconds": 70.628
+        }
+      ]
+    },
+    {
+      "run": "pro-recheck",
+      "deviceClass": "large iPhone simulator",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "passed",
+          "seconds": 109.359
+        },
+        {
+          "name": "RoomHomeUITests/testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests",
+          "result": "passed",
+          "seconds": 120.795
+        }
+      ]
+    },
+    {
+      "run": "se-cold-load",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "passed",
+          "seconds": 88.803
+        }
+      ]
+    }
+  ],
+  "resolvedIssues": [
+    "Native confirmationDialog was a popover with no visible Cancel: replaced with an explicit two-button alert.",
+    "The automatic storage probe closes a save error alert; tests wait for that closure and verify failed purchases were not replayed.",
+    "Tests now expect locale-formatted 1,000 in accessibility values.",
+    "One original nine-cat rename tap did not respond; the same binary and same complete test passed alone without code changes. Cause not established."
+  ],
+  "finalChangeVerification": "After the initial companion-load guard, all 47 App tests and the full small-screen adoption/name/switch/cold-launch flow passed again."
+}

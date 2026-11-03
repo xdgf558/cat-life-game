@@ -1,0 +1,9 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "configuration": "Release",
+  "signature": "passed",
+  "binarySHA256": "af93f3633f3bcb83494475e24d7fe73769ea04d8c83b1daad7e1c452e78406d7",
+  "debugMarkerCheck": "passed",
+  "testBundlesPresent": false
+}

@@ -20,7 +20,7 @@ struct GameEngineTests {
     @Test func feedingConsumesFoodAndAppliesWebRule() {
         var state = GameSnapshot.fresh(now: now)
         let outcome = GameEngine.feed(&state, catID: "cat_001", now: now)
-        #expect(outcome == ActionOutcome(kind: .feed, messageKey: "care.fed", amount: 1))
+        #expect(outcome == ActionOutcome(success: .fed, amount: 1))
         #expect(state.inventory.food == 2)
         #expect(state.cats[0].satiety == 60)
         #expect(state.cats[0].mood == 89)

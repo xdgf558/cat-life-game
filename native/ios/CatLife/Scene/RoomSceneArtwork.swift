@@ -81,7 +81,7 @@ final class RoomSceneArtwork {
             scene?.addChild(node)
         }
         let spec = RoomFurnitureSpec.forItem(item)
-        let width = spec.width * artworkTransform.scale
+        let width = spec.width * artworkTransform.visualScale
         let ratio = texture.size().height / max(1, texture.size().width)
         node.size = CGSize(width: width, height: width * ratio)
         node.anchorPoint = CGPoint(x: 0.5, y: spec.anchorY)

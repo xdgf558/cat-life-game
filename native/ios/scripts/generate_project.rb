@@ -20,7 +20,8 @@ app = project.new_target(:application, 'CatLife', :ios, '17.0')
 preflight = app.new_shell_script_build_phase('Check Runtime Assets')
 preflight.shell_path = '/bin/sh'
 preflight.shell_script = '/usr/bin/python3 -B "$SRCROOT/scripts/check_runtime_assets.py" --root "$SRCROOT"'
-preflight.input_paths = ['$(SRCROOT)/scripts/check_runtime_assets.py', '$(SRCROOT)/scripts/runtime_assets.json']
+preflight.input_paths = ['$(SRCROOT)/scripts/check_runtime_assets.py', '$(SRCROOT)/scripts/runtime_assets.json',
+                         '$(SRCROOT)/scripts/runtime_assets.xcfilelist']
 preflight.input_file_list_paths = ['$(SRCROOT)/scripts/runtime_assets.xcfilelist']
 preflight.always_out_of_date = '1'
 preflight.show_env_vars_in_log = '0'

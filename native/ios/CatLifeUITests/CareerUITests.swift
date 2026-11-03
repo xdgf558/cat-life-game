@@ -2,6 +2,144 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testCompactWorkDirectoryPagesFiltersSearchAndLockedPreviewPreserveState() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        openCareerHome(in: app)
+        let viewport = unobscuredScrollViewport(element("destinationScroll", in: app), in: app)
+        for id in ["playerLevel", "selectedCareerName", "startWorkButton", "careerChooseJobButton",
+                   "workDetailsButton", "workRestButton"] {
+            let target = element(id, in: app)
+            XCTAssertTrue(target.exists && target.isHittable,
+                          "The compact Work home must expose \(id) without scrolling.")
+            XCTAssertTrue(viewport.contains(target.frame), "\(id) must fit the initial Work viewport.")
+        }
+        XCTAssertFalse(element("sleepStatus", in: app).exists,
+                       "The complete recovery card belongs on its own page.")
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), [])
+        attachScreenshot(app, named: "Work — compact root with current job and two clear entries")
+        openCareerRest(in: app)
+        waitForObservedValue("sleepStatus", "awake", in: app)
+        waitForObservedValue("playerStamina", "80", in: app)
+        waitForObservedValue("playerMood", "80", in: app)
+        attachScreenshot(app, named: "Work — recovery attributes on a separate page")
+        closeCareerRest(in: app)
+        tapCareerControl("workDetailsButton", in: app)
+        waitForElement("careerDetailScroll", in: app)
+        waitForElement("careerSelect_job_flyer", in: app)
+        tapAnimationControl("careerDetailBackButton", in: app)
+        waitForElement("playerLevel", in: app)
+        XCTAssertFalse(element("careerJobsScroll", in: app).exists,
+                       "A direct current-job preview must return to Work home.")
+
+        tapCareerControl("careerChooseJobButton", in: app)
+        waitForObservedValue("careerPageIndicator", "1/2", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app),
+                       ["job_flyer", "job_it_engineer", "job_petshop", "job_store"])
+        attachScreenshot(app, named: "Work — bounded four-job directory")
+        XCTAssertFalse(element("careerPagePrevious", in: app).isEnabled)
+        tapCareerDirectoryControl("careerPageNext", in: app)
+        waitForObservedValue("careerPageIndicator", "2/2", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_cat_cafe_manager"])
+        XCTAssertFalse(element("careerPageNext", in: app).isEnabled)
+        tapCareerDirectoryControl("careerJobRow_job_cat_cafe_manager", in: app)
+        scrollCareerPage("careerDetailScroll", to: "careerSelect_job_cat_cafe_manager", in: app)
+        XCTAssertFalse(element("careerSelect_job_cat_cafe_manager", in: app).isEnabled)
+        waitForLabel("careerLocked_job_cat_cafe_manager", "10", in: app, contains: true)
+        attachScreenshot(app, named: "Work — locked career remains previewable without a charge")
+        tapAnimationControl("careerDetailBackButton", in: app)
+        waitForObservedValue("careerPageIndicator", "2/2", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_cat_cafe_manager"])
+
+        tapCareerDirectoryControl("careerFilter_locked", in: app)
+        waitForObservedValue("careerFilter_locked", "selected", in: app)
+        waitForObservedValue("careerPageIndicator", "1/1", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app),
+                       ["job_cat_cafe_manager", "job_it_engineer", "job_petshop", "job_store"])
+        enterCareerSearch("猫", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_cat_cafe_manager"])
+        tapCareerDirectoryControl("careerJobRow_job_cat_cafe_manager", in: app)
+        waitForElement("careerDetailScroll", in: app)
+        tapAnimationControl("careerDetailBackButton", in: app)
+        waitForObservedValue("careerSearchField", "猫", in: app)
+        waitForObservedValue("careerFilter_locked", "selected", in: app)
+        waitForObservedValue("careerPageIndicator", "1/1", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_cat_cafe_manager"])
+        tapCareerDirectoryControl("careerFilter_available", in: app)
+        waitForElement("careerEmptyState", in: app)
+        waitForObservedValue("careerPageIndicator", "1/1", in: app)
+        waitForElement("careerPagePrevious", in: app)
+        waitForElement("careerPageNext", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), [])
+        XCTAssertFalse(element("careerPagePrevious", in: app).isEnabled)
+        XCTAssertFalse(element("careerPageNext", in: app).isEnabled)
+        tapCareerDirectoryControl("careerSearchClearButton", in: app)
+        waitForElement("careerJobRow_job_flyer", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_flyer"])
+        XCTAssertFalse(element("careerEmptyState", in: app).exists)
+        tapCareerDirectoryControl("careerFilter_all", in: app)
+        waitForObservedValue("careerPageIndicator", "1/2", in: app)
+        XCTAssertEqual(careerDirectoryRowIDs(in: app).count, 4)
+        tapAnimationControl("careerJobsBackButton", in: app)
+        waitForObservedValue("selectedCareerName", "job_flyer", in: app)
+        XCTAssertFalse(element("workCountdown", in: app).exists)
+        openCareerRest(in: app)
+        waitForObservedValue("playerStamina", "80", in: app)
+        waitForObservedValue("playerMood", "80", in: app)
+        tapAnimationControl("closeSheetButton", in: app)
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+        assertKnownHomeViewportBaseline(in: app)
+    }
+
+    @MainActor
+    func testChoosingFutureCareerKeepsActiveJobAndCapturedTerms() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--career-level10-fixture"]
+        launchAndEnterHome(app)
+        openCareerHome(in: app)
+        tapCareerControl("careerChooseJobButton", in: app)
+        openCareerDetailsFromDirectory("job_cat_cafe_manager", in: app)
+        tapAnimationControl("careerSelect_job_cat_cafe_manager", in: app)
+        waitForObservedValue("selectedCareerName", "job_cat_cafe_manager", in: app)
+        assertWorkQuote(duration: 1800, stamina: 50, mood: 20, in: app)
+        XCTAssertFalse(element("workCountdown", in: app).exists,
+                       "Choosing a career must not begin or charge a shift.")
+        openCareerRest(in: app)
+        waitForObservedValue("playerStamina", "100", in: app)
+        waitForObservedValue("playerMood", "100", in: app)
+        closeCareerRest(in: app)
+        tapCareerControl("startWorkButton", in: app)
+        waitForObservedValue("activeWorkDurationSeconds", "1800", in: app)
+        tapCareerControl("careerChooseJobButton", in: app)
+        openCareerDetailsFromDirectory("job_flyer", in: app)
+        tapAnimationControl("careerSelect_job_flyer", in: app)
+        waitForObservedValue("careerNextJobName", "job_flyer", in: app)
+        waitForObservedValue("selectedCareerName", "job_cat_cafe_manager", in: app)
+        waitForObservedValue("activeWorkDurationSeconds", "1800", in: app)
+        assertWorkQuote(duration: 1800, stamina: 50, mood: 20, in: app)
+        XCTAssertFalse(element("startWorkButton", in: app).exists)
+        tapCareerControl("workDetailsButton", in: app)
+        waitForElement("careerSelect_job_cat_cafe_manager", in: app)
+        XCTAssertFalse(element("careerSelect_job_flyer", in: app).exists,
+                       "Current-job details must describe the active shift, not the next selection.")
+        tapAnimationControl("careerDetailBackButton", in: app)
+        waitForObservedValue("careerNextJobName", "job_flyer", in: app)
+        openCareerRest(in: app)
+        waitForObservedValue("sleepStatus", "working", in: app)
+        waitForObservedValue("playerStamina", "50", in: app)
+        waitForObservedValue("playerMood", "80", in: app)
+        scrollCareerPage("workRestScroll", to: "sleepStartButton", in: app)
+        XCTAssertFalse(element("sleepStartButton", in: app).isEnabled)
+        closeCareerRest(in: app)
+        attachScreenshot(app, named: "Work — future choice leaves the active cafe quote unchanged")
+        tapAnimationControl("closeSheetButton", in: app)
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+    }
+
+    @MainActor
     func testCareerLocksSelectionAndActiveShiftPersistWithoutChargingTwice() throws {
         continueAfterFailure = false
         let app = launchFreshHome()
@@ -13,13 +151,15 @@ extension RoomHomeUITests {
         tapCareerControl("careerChooseJobButton", in: app)
         for (id, level) in [("job_store", 2), ("job_petshop", 4),
                             ("job_it_engineer", 6), ("job_cat_cafe_manager", 10)] {
-            scrollCareerPage("careerJobsScroll", to: "careerSelect_\(id)", in: app)
+            openCareerDetailsFromDirectory(id, in: app)
             XCTAssertFalse(element("careerSelect_\(id)", in: app).isEnabled,
                            "A level-one player must not start a locked career.")
             waitForLabel("careerLocked_\(id)", "\(level)", in: app, contains: true)
+            tapAnimationControl("careerDetailBackButton", in: app)
+            waitForElement("careerJobsScroll", in: app)
         }
         attachScreenshot(app, named: "Career — future jobs show their real level requirements")
-        scrollCareerPage("careerJobsScroll", to: "careerSelect_job_flyer", in: app)
+        openCareerDetailsFromDirectory("job_flyer", in: app)
         tapAnimationControl("careerSelect_job_flyer", in: app)
         waitForObservedValue("selectedCareerName", "job_flyer", in: app)
         tapCareerControl("startWorkButton", in: app)
@@ -30,14 +170,15 @@ extension RoomHomeUITests {
         openCareerHome(in: app)
         waitForObservedValue("selectedCareerName", "job_flyer", in: app)
         waitForElement("workCountdown", in: app)
-        scrollRecoveryCard(to: "sleepStatus", in: app)
+        openCareerRest(in: app)
         waitForObservedValue("sleepStatus", "working", in: app)
         waitForObservedValue("playerStamina", "70", in: app)
         waitForObservedValue("playerMood", "75", in: app)
+        scrollCareerPage("workRestScroll", to: "sleepStartButton", in: app)
         XCTAssertFalse(element("sleepStartButton", in: app).isEnabled)
-        if element("startWorkButton", in: app).exists {
-            XCTAssertFalse(element("startWorkButton", in: app).isEnabled)
-        }
+        closeCareerRest(in: app)
+        XCTAssertFalse(element("startWorkButton", in: app).exists,
+                       "The active shift must not expose a second Start action.")
         tapAnimationControl("closeSheetButton", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         waitForObservedValue("foodCount", "3", in: app)
@@ -50,7 +191,7 @@ extension RoomHomeUITests {
         openCareerHome(in: app)
         waitForObservedValue("playerLevel", "10", in: app)
         tapCareerControl("careerChooseJobButton", in: app)
-        scrollCareerPage("careerJobsScroll", to: "careerSelect_job_cat_cafe_manager", in: app)
+        openCareerDetailsFromDirectory("job_cat_cafe_manager", in: app)
         XCTAssertTrue(element("careerSelect_job_cat_cafe_manager", in: app).isEnabled)
         tapAnimationControl("careerSelect_job_cat_cafe_manager", in: app)
         waitForObservedValue("selectedCareerName", "job_cat_cafe_manager", in: app)
@@ -61,7 +202,7 @@ extension RoomHomeUITests {
                                       context: "the cafe shift uses thirty real minutes")
         let seconds = try XCTUnwrap(displayedTimerSeconds(element("workCountdown", in: app).label))
         XCTAssertGreaterThan(seconds, 1700)
-        scrollRecoveryCard(to: "sleepStatus", in: app)
+        openCareerRest(in: app)
         waitForObservedValue("playerStamina", "50", in: app)
         waitForObservedValue("playerMood", "80", in: app)
         tapAnimationControl("closeSheetButton", in: app)
@@ -69,7 +210,7 @@ extension RoomHomeUITests {
         openCareerHome(in: app)
         waitForObservedValue("selectedCareerName", "job_cat_cafe_manager", in: app)
         waitForElement("workCountdown", in: app)
-        scrollRecoveryCard(to: "sleepStatus", in: app)
+        openCareerRest(in: app)
         waitForObservedValue("playerStamina", "50", in: app)
         waitForObservedValue("playerMood", "80", in: app)
         tapAnimationControl("closeSheetButton", in: app)
@@ -111,7 +252,7 @@ extension RoomHomeUITests {
         waitForObservedValue("workResultID", resultID, in: app)
         closeCareerResult(in: app)
         tapCareerControl("careerChooseJobButton", in: app)
-        scrollCareerPage("careerJobsScroll", to: "careerSelect_job_store", in: app)
+        openCareerDetailsFromDirectory("job_store", in: app)
         XCTAssertTrue(element("careerSelect_job_store", in: app).isEnabled)
         tapAnimationControl("careerSelect_job_store", in: app)
         waitForObservedValue("selectedCareerName", "job_store", in: app)
@@ -151,6 +292,10 @@ extension RoomHomeUITests {
                                       context: "a previously saved pet-shop shift resumes")
         let remaining = try XCTUnwrap(displayedTimerSeconds(element("workCountdown", in: app).label))
         let expectedCompletion = Date().addingTimeInterval(TimeInterval(remaining + 2))
+        tapCareerControl("careerChooseJobButton", in: app)
+        openCareerDetailsFromDirectory("job_flyer", in: app)
+        XCTAssertTrue(element("careerDetailScroll", in: app).exists,
+                      "Settlement must replace the nested job preview, not only the Work root.")
         XCUIDevice.shared.press(.home)
         waitForAppBackground(in: app)
         let deadline = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -159,6 +304,7 @@ extension RoomHomeUITests {
         XCTAssertEqual(XCTWaiter.wait(for: [deadline], timeout: TimeInterval(remaining + 6)), .completed)
         app.activate()
         waitForElement("workResultID", in: app, timeout: 15)
+        XCTAssertFalse(element("careerDetailScroll", in: app).exists)
         let resultID = try assertCareerResult(job: "job_petshop", gold: 160, experience: 52,
                                              levelBefore: 4, levelAfter: 4, expAfter: 52, in: app)
         attachScreenshot(app, named: "Career — returning from background opens the real completed result")
@@ -166,7 +312,7 @@ extension RoomHomeUITests {
         waitForObservedValue("playerLevel", "4", in: app)
         waitForObservedValue("playerExperience", "52", in: app)
         XCTAssertFalse(element("workCountdown", in: app).exists)
-        scrollRecoveryCard(to: "sleepStatus", in: app)
+        openCareerRest(in: app)
         waitForObservedValue("playerStamina", "80", in: app)
         waitForObservedValue("playerMood", "88", in: app)
         tapAnimationControl("closeSheetButton", in: app)
@@ -218,10 +364,17 @@ extension RoomHomeUITests {
             XCTAssertTrue(app.navigationBars[language.jobsTitle].waitForExistence(timeout: 8))
             for (id, name) in zip(ids, language.names) {
                 let identifier = "careerJobName_\(id)"
-                scrollCareerPage("careerJobsScroll", to: identifier, in: app)
+                revealCareerDirectoryJob(id, in: app)
                 waitForLabel(identifier, name, in: app)
                 XCTAssertTrue(element(identifier, in: app).isHittable)
             }
+            enterCareerSearch(language.names[0], in: app)
+            waitForObservedValue("careerPageIndicator", "1/1", in: app)
+            XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_flyer"],
+                           "Search must use the selected language's visible career name.")
+            tapCareerDirectoryControl("careerSearchClearButton", in: app)
+            waitForObservedValue("careerPageIndicator", "1/2", in: app)
+            XCTAssertEqual(careerDirectoryRowIDs(in: app).count, 4)
             attachScreenshot(app, named: "Career — translated job list in \(language.code)")
             tapAnimationControl("careerJobsBackButton", in: app)
             openCareerResult(in: app)
@@ -278,4 +431,25 @@ extension RoomHomeUITests {
                        "The shift must be restored instead of allowing duplicate work.")
         attachScreenshot(app, named: "Work — active shift restored after cold launch")
     }
+    @MainActor
+    private func careerDirectoryRowIDs(in app: XCUIApplication) -> [String] {
+        app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "careerJobRow_"))
+            .allElementsBoundByIndex.map { String($0.identifier.dropFirst("careerJobRow_".count)) }.sorted()
+    }
+
+    @MainActor
+    private func enterCareerSearch(_ query: String, in app: XCUIApplication,
+                                   file: StaticString = #filePath, line: UInt = #line) {
+        scrollCareerPage("careerJobsScroll", to: "careerSearchField", in: app, file: file, line: line)
+        let field = element("careerSearchField", in: app)
+        field.tap()
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 8), file: file, line: line)
+        field.typeText(query + "\n")
+        let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                  object: app.keyboards.firstMatch)
+        XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 8), .completed,
+                       "Submitting search should reveal the directory again.", file: file, line: line)
+        waitForObservedValue("careerSearchField", query, in: app, file: file, line: line)
+    }
+
 }

@@ -1,0 +1,17 @@
+{
+  "version": "0.6.0",
+  "build": 28,
+  "minimumOSVersion": "17.0",
+  "debugSimulator": "passed",
+  "signedReleaseDevice": "passed",
+  "signatureValid": true,
+  "debugFixtureMarkersPresent": [],
+  "testBundleCount": 0,
+  "runtimeAssetCount": 58,
+  "executableSHA256": "24eb13dc71f5e1d65136e75651f56390b6357de9340d72a9011ee528ce1d0203",
+  "warnings": [
+    "Existing generated-package sysroot notice during the initial build.",
+    "AppIntents metadata skipped because the game does not link AppIntents.",
+    "Existing iPad all-orientations/full-screen warning; this delivery is validated on iPhone sizes."
+  ]
+}

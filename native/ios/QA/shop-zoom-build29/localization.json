@@ -1,0 +1,169 @@
+{
+  "version": "0.6.1",
+  "build": 29,
+  "verificationType": "static-source-review",
+  "result": "passed-no-defect-found",
+  "localization": {
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "keyCountPerLanguage": 467,
+    "newKeyCountPerLanguage": 5,
+    "newKeys": [
+      "homeUpgrade.zoomHint",
+      "homeUpgrade.zoomIn",
+      "homeUpgrade.zoomOut",
+      "releases.29.body",
+      "releases.29.title"
+    ],
+    "threeLanguageKeyParity": true,
+    "formatPlaceholderParity": true,
+    "duplicateKeys": {
+      "chinese": [],
+      "traditionalChinese": [],
+      "english": []
+    },
+    "missingKeys": {
+      "chinese": [],
+      "traditionalChinese": [],
+      "english": []
+    },
+    "formatMismatches": [],
+    "changedExistingKeys": {
+      "chinese": [],
+      "traditionalChinese": [],
+      "english": []
+    }
+  },
+  "pricePresentation": {
+    "sharedListPriceHelper": "ShopView.priceText",
+    "categories": [
+      "supplies",
+      "furniture",
+      "equipment"
+    ],
+    "supplyPriceIdentifiers": [
+      "shopPrice_food",
+      "shopPrice_litter",
+      "shopPrice_toy"
+    ],
+    "prices": {
+      "food": 20,
+      "litter": 18,
+      "toy": 35
+    },
+    "purchaseLabelKey": "shop.purchase",
+    "purchaseStyle": "MintButtonStyle + headline",
+    "insufficientGoldDisablesPurchase": true,
+    "insufficientGoldMessageKey": "shop.goldRequired",
+    "directSupplyActionsPreserved": true
+  },
+  "legacyButtonCompatibility": {
+    "result": "compatible-by-source-review",
+    "retainedIdentifiers": [
+      "buyFoodButton",
+      "buyLitterButton",
+      "buyToyButton"
+    ],
+    "referencesByIdentifier": {
+      "buyToyButton": 15,
+      "buyFoodButton": 11
+    },
+    "filesReviewed": [
+      {
+        "file": "CatLifeUITests/AudioUITests.swift",
+        "identifierReferences": {
+          "buyToyButton": 3
+        }
+      },
+      {
+        "file": "CatLifeUITests/CarePlanningUITests.swift",
+        "identifierReferences": {
+          "buyToyButton": 3
+        }
+      },
+      {
+        "file": "CatLifeUITests/CatCareUITests.swift",
+        "identifierReferences": {
+          "buyFoodButton": 4,
+          "buyToyButton": 3
+        }
+      },
+      {
+        "file": "CatLifeUITests/CatNavigationUITests.swift",
+        "identifierReferences": {
+          "buyToyButton": 3
+        }
+      },
+      {
+        "file": "CatLifeUITests/HomeSettingsUITests.swift",
+        "identifierReferences": {
+          "buyFoodButton": 1
+        }
+      },
+      {
+        "file": "CatLifeUITests/InventoryUITests.swift",
+        "identifierReferences": {
+          "buyToyButton": 3
+        }
+      },
+      {
+        "file": "CatLifeUITests/PlayerNameUITests.swift",
+        "identifierReferences": {
+          "buyFoodButton": 2
+        }
+      },
+      {
+        "file": "CatLifeUITests/RoomHomeUITestSupport.swift",
+        "identifierReferences": {
+          "buyFoodButton": 2
+        }
+      },
+      {
+        "file": "CatLifeUITests/SaveRecoveryUITests.swift",
+        "identifierReferences": {
+          "buyFoodButton": 2
+        }
+      }
+    ],
+    "oldPriceLabelAssertionsFound": false,
+    "oldCallersUseAffordableInitialOrExpectedBalances": true,
+    "intentionalBehaviorChange": "Insufficient-gold supply purchases are disabled with an inline message. Identifiers, immediate purchase actions and existing per-purchase quantities remain unchanged.",
+    "scope": "Review of existing tracked UI call sites and shared navigation helpers, not a rerun of those tests."
+  },
+  "priceTestReview": {
+    "file": "CatLifeUITests/ShopPriceZoomUITests.swift",
+    "method": "testSupplyPricesMatchOtherCategoriesAndOneTapPurchasesRemainAtomic",
+    "sourceReviewResult": "no-defect-found",
+    "checks": [
+      "Three localized price labels and Buy button labels",
+      "Furniture/equipment list prices remain present",
+      "Ten 20-gold food purchases from a 200-gold fresh save, without opening details",
+      "All three supply buttons disabled at zero gold with corresponding inline messages",
+      "13 food and zero gold retained after relaunch"
+    ],
+    "localeInThisMethod": "zh-Hans",
+    "helperAllowsDisabledControls": true,
+    "runtimeExecutedByThisReview": false
+  },
+  "releaseCopyReview": {
+    "result": "consistent-with-source",
+    "notes": [
+      "Supplies retain direct purchase with prices below names and an explicit insufficient-gold message.",
+      "Release wording restricts pinch zoom to upgraded rooms, matching the worldScale > 1 guards.",
+      "Zoom in and Zoom out strings are wired to accessibility actions; existing Find Cat naming remains."
+    ]
+  },
+  "reviewedSourceSHA256": {
+    "CatLife/Localization/GameStrings.swift": "bb47bb9afd0174e86fe609628ae4b81c6ef1621f5b71350320dbd62cbd7f9192",
+    "CatLife/Views/ShopView.swift": "fd73f5ae9c26cd82dcafe74f3f54cdcf7aa453d4948680b3d73d80e2172f2b05",
+    "CatLifeUITests/ShopPriceZoomUITests.swift": "d05627319563ffde4af5955f37eb11ead8dd61e740c97e57e9de7acbf5de387c"
+  },
+  "limitations": [
+    "No Xcode build, simulator execution, device operation or screenshot inspection was performed in this review.",
+    "Three-language checks establish key/format parity and wording, not rendered layout acceptance.",
+    "The new price UI method purchases food; litter/toy actions were checked statically and retain their previous store calls."
+  ]
+}

@@ -1,0 +1,72 @@
+{
+  "executions": 8,
+  "passed": 8,
+  "failed": 0,
+  "distinctMethods": 6,
+  "runs": [
+    {
+      "deviceClass": "iPhone SE (3rd generation)",
+      "run": "se-first",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCatCollectionPagesAndIndividualNamesPreserveOtherCatsAndHome()",
+          "result": "Passed",
+          "seconds": 106.953
+        },
+        {
+          "name": "RoomHomeUITests/testCatRenameValidationCancellationLanguagesAndResetPersist()",
+          "result": "Passed",
+          "seconds": 170.516
+        },
+        {
+          "name": "RoomHomeUITests/testFailedCatRenameKeepsDraftAndSavedNameUntilManualRetry()",
+          "result": "Passed",
+          "seconds": 62.807
+        }
+      ]
+    },
+    {
+      "deviceClass": "iPhone 17 Pro",
+      "run": "pro-first",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCatCollectionPagesAndIndividualNamesPreserveOtherCatsAndHome()",
+          "result": "Passed",
+          "seconds": 130.437
+        },
+        {
+          "name": "RoomHomeUITests/testCatRenameValidationCancellationLanguagesAndResetPersist()",
+          "result": "Passed",
+          "seconds": 195.278
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+          "result": "Passed",
+          "seconds": 52.698
+        }
+      ]
+    },
+    {
+      "deviceClass": "iPhone SE (3rd generation)",
+      "run": "se-recovery",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCatRestRecoversPartiallyWhenFedAndCapsAfterBackgroundCompletion()",
+          "result": "Passed",
+          "seconds": 112.968
+        }
+      ]
+    },
+    {
+      "deviceClass": "iPhone SE (3rd generation)",
+      "run": "se-rest-failure",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testFailedCatRestEndRetriesOriginalPartialRecoveryWithoutAwardingPastWake()",
+          "result": "Passed",
+          "seconds": 55.201
+        }
+      ]
+    }
+  ]
+}

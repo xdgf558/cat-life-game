@@ -9,32 +9,31 @@ extension RoomHomeUITests {
         waitForObservedValue("sleepStatus", "awake", in: app)
         waitForObservedValue("playerStamina", "80", in: app)
         waitForObservedValue("playerMood", "80", in: app)
-        scrollRecoveryCard(to: "sleepStartButton", in: app)
+        scrollCareerPage("workRestScroll", to: "sleepStartButton", in: app)
         tapAnimationControl("sleepStartButton", in: app)
         waitForObservedValue("sleepStatus", "asleep", in: app)
         waitForElement("sleepElapsed", in: app)
-        try assertVisibleTimerChanges("sleepElapsed", increasing: true, in: app,
+        try assertVisibleTimerChanges("sleepElapsed", increasing: true, scrollIdentifier: "workRestScroll", in: app,
                                       context: "after starting sleep")
         XCTAssertFalse(element("sleepStartButton", in: app).exists)
-        XCTAssertFalse(element("startWorkButton", in: app).isEnabled,
-                       "A sleeping player cannot start a work shift.")
+        assertSleepPreventsWorkThenReturnToRest(in: app)
         attachScreenshot(app, named: "Recovery — player sleeping with work unavailable")
 
         XCUIDevice.shared.press(.home)
         waitForAppBackground(in: app)
         app.activate()
         waitForObservedValue("sleepStatus", "asleep", in: app)
-        try assertVisibleTimerChanges("sleepElapsed", increasing: true, in: app,
+        try assertVisibleTimerChanges("sleepElapsed", increasing: true, scrollIdentifier: "workRestScroll", in: app,
                                       context: "after returning to the foreground")
-        XCTAssertFalse(element("startWorkButton", in: app).isEnabled)
+        assertSleepPreventsWorkThenReturnToRest(in: app)
         relaunchPreservingSave(app)
         openPlayerSleepCard(in: app)
         waitForObservedValue("sleepStatus", "asleep", in: app)
         waitForElement("sleepElapsed", in: app)
-        try assertVisibleTimerChanges("sleepElapsed", increasing: true, in: app,
+        try assertVisibleTimerChanges("sleepElapsed", increasing: true, scrollIdentifier: "workRestScroll", in: app,
                                       context: "after restoring sleep on cold launch")
-        XCTAssertFalse(element("startWorkButton", in: app).isEnabled)
-        scrollRecoveryCard(to: "sleepWakeButton", in: app)
+        assertSleepPreventsWorkThenReturnToRest(in: app)
+        scrollCareerPage("workRestScroll", to: "sleepWakeButton", in: app)
         tapAnimationControl("sleepWakeButton", in: app)
         waitForObservedValue("sleepStatus", "awake", in: app)
         waitForObservedValue("playerStamina", "80", in: app)
@@ -47,14 +46,15 @@ extension RoomHomeUITests {
         waitForObservedValue("playerStamina", "80", in: app)
         waitForObservedValue("playerMood", "80", in: app)
         XCTAssertFalse(element("sleepWakeButton", in: app).exists)
+        closeCareerRest(in: app)
         bringWorkStartIntoView(in: app)
         tapAnimationControl("startWorkButton", in: app)
         waitForElement("workCountdown", in: app)
         try assertVisibleTimerChanges("workCountdown", increasing: false, upperBound: 120, in: app,
                                       context: "after starting the two-minute work shift")
-        scrollRecoveryCard(to: "sleepStatus", in: app)
+        openCareerRest(in: app)
         waitForObservedValue("sleepStatus", "working", in: app)
-        waitForElement("sleepStartButton", in: app)
+        scrollCareerPage("workRestScroll", to: "sleepStartButton", in: app)
         XCTAssertFalse(element("sleepStartButton", in: app).isEnabled,
                        "A running work shift cannot also start player sleep.")
         XCTAssertFalse(element("sleepWakeButton", in: app).exists)
@@ -76,7 +76,7 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", "180", in: app)
         openPlayerSleepCard(in: app)
         assertPlayerSleepRecovery(stamina: 50, mood: 60, status: "asleep", in: app)
-        XCTAssertFalse(element("startWorkButton", in: app).isEnabled)
+        assertSleepPreventsWorkThenReturnToRest(in: app)
         attachScreenshot(app, named: "Recovery — real load settles the past thirty minutes to 50 stamina and 60 mood")
 
         // Retain the fixture flag while removing reset: this must load the
@@ -86,7 +86,7 @@ extension RoomHomeUITests {
         launchAndEnterHome(app)
         openPlayerSleepCard(in: app)
         assertPlayerSleepRecovery(stamina: 50, mood: 60, status: "asleep", in: app)
-        scrollRecoveryCard(to: "sleepWakeButton", in: app)
+        scrollCareerPage("workRestScroll", to: "sleepWakeButton", in: app)
         tapAnimationControl("sleepWakeButton", in: app)
         assertPlayerSleepRecovery(stamina: 50, mood: 60, status: "awake", in: app)
         XCTAssertFalse(element("sleepWakeButton", in: app).exists)
@@ -163,8 +163,9 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", "200", in: app)
         attachRecoveryDiagnostics(completed, in: app, named: "Recovery — one background rest reaches its cap and ends")
         tapAnimationControl("tabTown", in: app)
-        scrollRecoveryCard(to: "catEnergy", in: app)
-        waitForObservedValue("catEnergy", "100", in: app)
+        tapAnimationControl("catProfile_cat_001", in: app)
+        scrollCareerPage("catProfileScroll", to: "catProfileEnergy", in: app)
+        waitForObservedValue("catProfileEnergy", "100", in: app)
         attachScreenshot(app, named: "Recovery — the real cat profile shows the recovered energy")
     }
 
@@ -289,9 +290,20 @@ extension RoomHomeUITests {
     @MainActor
     private func openPlayerSleepCard(in app: XCUIApplication,
                                       file: StaticString = #filePath, line: UInt = #line) {
-        tapAnimationControl("tabWork", in: app, file: file, line: line)
-        waitForElement("sleepStatus", in: app, file: file, line: line)
-        scrollRecoveryCard(to: "sleepStatus", in: app, file: file, line: line)
+        openCareerHome(in: app, file: file, line: line)
+        openCareerRest(in: app, file: file, line: line)
+    }
+
+    @MainActor
+    private func assertSleepPreventsWorkThenReturnToRest(in app: XCUIApplication,
+                                                        file: StaticString = #filePath, line: UInt = #line) {
+        closeCareerRest(in: app, file: file, line: line)
+        scrollCareerPage("destinationScroll", to: "startWorkButton", in: app, file: file, line: line)
+        waitForElement("startWorkButton", in: app, file: file, line: line)
+        XCTAssertFalse(element("startWorkButton", in: app).isEnabled,
+                       "A sleeping player cannot start a work shift.", file: file, line: line)
+        openCareerRest(in: app, file: file, line: line)
+        waitForObservedValue("sleepStatus", "asleep", in: app, file: file, line: line)
     }
 
     @MainActor

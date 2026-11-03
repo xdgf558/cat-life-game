@@ -110,6 +110,158 @@ struct FileSaveRepositoryTests {
         #expect(try Data(contentsOf: repository.saveURL) == future)
     }
 
+    @Test func schemaOnePurchasesAndSelectedCowMigrateOnlyOnSuccessfulSave() async throws {
+        let folder = try directory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        var expected = GameSnapshot.fresh(now: now)
+        expected.player.level = 4
+        expected.player.gold = 5000
+        expected.player.profile.name = "Milo"
+        expected.home.name = "Quiet home"
+        expected.settings.language = .traditionalChinese
+        #expect(GameEngine.upgradeHome(&expected, toLevel: 2, now: now).succeeded)
+        #expect(GameEngine.purchaseEquipment(&expected, itemID: "advanced_cap", now: now).succeeded)
+        #expect(GameEngine.equipItem(&expected, itemID: "advanced_cap", now: now).succeeded)
+        #expect(GameEngine.adoptCat(&expected, catID: CatCatalog.cowCatID, now: now).succeeded)
+        #expect(GameEngine.selectCompanion(&expected, catID: CatCatalog.cowCatID, now: now).succeeded)
+        expected.cats[1].customName = "Milk🐾"
+        #expect(GameEngine.startWork(&expected, now: now).succeeded)
+        #expect(GameEngine.startCatRest(&expected, catID: CatCatalog.cowCatID,
+            furnitureID: "catBed", sessionID: "migration-rest", now: now).succeeded)
+        try await repository.save(expected, now: now)
+        var legacy = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: repository.saveURL)) as? [String: Any])
+        legacy["schemaVersion"] = 1
+        let legacyBytes = try JSONSerialization.data(withJSONObject: legacy, options: [.sortedKeys])
+        try legacyBytes.write(to: repository.saveURL)
+
+        let migrated = try await repository.loadOrCreate(now: now.addingTimeInterval(60))
+        #expect(migrated == expected)
+        #expect(migrated.schemaVersion == 2 && migrated.activeCat?.appearance == .cow)
+        #expect(await repository.lastLoadDisposition == .loaded)
+        #expect(try Data(contentsOf: repository.saveURL) == legacyBytes)
+        var invalid = migrated
+        invalid.player.gold = -1
+        await #expect(throws: SaveRepositoryError.invalidSnapshot) { try await repository.save(invalid) }
+        #expect(try Data(contentsOf: repository.saveURL) == legacyBytes)
+
+        try await repository.save(migrated, now: now)
+        let saved = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: repository.saveURL)) as? [String: Any])
+        #expect(saved["schemaVersion"] as? Int == 2)
+        #expect(try Data(contentsOf: repository.backupURL) == legacyBytes)
+        #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
+        try Data("interrupted migrated primary".utf8).write(to: repository.saveURL)
+        #expect(try await repository.loadOrCreate(now: now) == expected)
+        #expect(await repository.lastLoadDisposition == .recoveredBackup)
+        try await repository.save(expected, now: now)
+        #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
+    }
+
+    @Test func originalSchemaOneWithoutNewFieldsKeepsProgressAndReceivesDefaults() async throws {
+        let folder = try directory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        var expected = GameSnapshot.fresh(now: now)
+        expected.player.gold = 572
+        expected.inventory.food = 11
+        expected.cats[0].intimacy = 37
+        try await repository.save(expected, now: now)
+        var legacy = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: repository.saveURL)) as? [String: Any])
+        legacy["schemaVersion"] = 1
+        legacy.removeValue(forKey: "activeCatID")
+        legacy.removeValue(forKey: "settings")
+        var cats = try #require(legacy["cats"] as? [[String: Any]])
+        cats[0].removeValue(forKey: "appearance")
+        cats[0].removeValue(forKey: "customName")
+        legacy["cats"] = cats
+        var home = try #require(legacy["home"] as? [String: Any])
+        home.removeValue(forKey: "roomLevel")
+        legacy["home"] = home
+        let legacyBytes = try JSONSerialization.data(withJSONObject: legacy, options: [.sortedKeys])
+        try legacyBytes.write(to: repository.saveURL)
+
+        let migrated = try await repository.loadOrCreate(now: now)
+        #expect(migrated == expected)
+        #expect(migrated.schemaVersion == 2 && migrated.home.roomLevel == 1)
+        #expect(migrated.activeCat?.appearance == .orange)
+        #expect(try Data(contentsOf: repository.saveURL) == legacyBytes)
+        try await repository.save(migrated, now: now)
+        #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
+    }
+
+    @Test func unsupportedSchemaIsRejectedBeforeAnyGameplayFieldsDecode() throws {
+        for version in [0, 3, 99] {
+            let data = Data("{\"schemaVersion\":\(version),\"player\":null,\"cats\":\"future-format\"}".utf8)
+            #expect(throws: SaveRepositoryError.unsupportedSchemaVersion(version)) {
+                try JSONDecoder().decode(GameSnapshot.self, from: data)
+            }
+        }
+    }
+
+    @Test func storageProbeLeavesPrimaryCheckpointAndDirectoryContentsUnchanged() async throws {
+        let folder = try directory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        var state = try await repository.loadOrCreate(now: now)
+        state.player.gold += 5
+        try await repository.save(state, now: now)
+        let primary = try Data(contentsOf: repository.saveURL)
+        let backup = try Data(contentsOf: repository.backupURL)
+        let modifiedAt = try FileManager.default.attributesOfItem(atPath: repository.saveURL.path)[.modificationDate] as? Date
+        let checkpointAt = try FileManager.default.attributesOfItem(atPath: repository.backupURL.path)[.modificationDate] as? Date
+        let files = try Set(FileManager.default.contentsOfDirectory(atPath: folder.path))
+        for _ in 0..<3 { try await repository.checkWritable() }
+        #expect(try Data(contentsOf: repository.saveURL) == primary)
+        #expect(try Data(contentsOf: repository.backupURL) == backup)
+        #expect(try FileManager.default.attributesOfItem(atPath: repository.saveURL.path)[.modificationDate] as? Date == modifiedAt)
+        #expect(try FileManager.default.attributesOfItem(atPath: repository.backupURL.path)[.modificationDate] as? Date == checkpointAt)
+        #expect(try Set(FileManager.default.contentsOfDirectory(atPath: folder.path)) == files)
+    }
+
+    @Test func failedStorageProbeDoesNotReplaceAFileBlockingTheDirectory() async throws {
+        let folder = try directory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        var state = try await repository.loadOrCreate(now: now)
+        state.player.gold += 5
+        try await repository.save(state, now: now)
+        let primary = try Data(contentsOf: repository.saveURL)
+        let backup = try Data(contentsOf: repository.backupURL)
+        let files = try Set(FileManager.default.contentsOfDirectory(atPath: folder.path))
+        let blocked = FileSaveRepository(directory: repository.saveURL)
+        await #expect(throws: (any Error).self) { try await blocked.checkWritable() }
+        #expect(try Data(contentsOf: repository.saveURL) == primary)
+        #expect(try Data(contentsOf: repository.backupURL) == backup)
+        #expect(try Set(FileManager.default.contentsOfDirectory(atPath: folder.path)) == files)
+    }
+
+    @Test func storageProbeHonorsPrimaryAndCheckpointProtectionWithoutRepairingFiles() async throws {
+        let folder = try directory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        _ = try await repository.loadOrCreate(now: now)
+        let primary = try Data(contentsOf: repository.saveURL)
+        let future = Data("{\"schemaVersion\":99,\"unknownFields\":true}".utf8)
+        try future.write(to: repository.saveURL)
+        await #expect(throws: SaveRepositoryError.unsupportedSchemaVersion(99)) { try await repository.checkWritable() }
+        #expect(try Data(contentsOf: repository.saveURL) == future)
+        let corrupt = Data("broken primary".utf8)
+        try corrupt.write(to: repository.saveURL)
+        await #expect(throws: (any Error).self) { try await repository.checkWritable() }
+        #expect(try Data(contentsOf: repository.saveURL) == corrupt)
+        try primary.write(to: repository.saveURL)
+        try future.write(to: repository.backupURL)
+        await #expect(throws: SaveRepositoryError.unsupportedSchemaVersion(99)) { try await repository.checkWritable() }
+        #expect(try Data(contentsOf: repository.backupURL) == future)
+        // A normal save can replace a broken checkpoint from the valid primary.
+        try corrupt.write(to: repository.backupURL)
+        try await repository.checkWritable()
+        #expect(try Data(contentsOf: repository.backupURL) == corrupt)
+        #expect(try Data(contentsOf: repository.saveURL) == primary)
+        #expect(try Set(FileManager.default.contentsOfDirectory(atPath: folder.path))
+            == Set([repository.saveURL.lastPathComponent, repository.backupURL.lastPathComponent]))
+    }
+
     @Test func invalidStateCannotOverwriteValidSave() async throws {
         let folder = try directory()
         defer { try? FileManager.default.removeItem(at: folder) }

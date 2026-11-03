@@ -1,0 +1,110 @@
+{
+  "version": "0.6.2",
+  "build": 30,
+  "verificationType": "static-source-review",
+  "result": "passed",
+  "source": "CatLife/Localization/GameStrings.swift",
+  "sourceSHA256": "099f7c166ff1368f2132ec2aeec1efb086871a61be3d855bb339e862257b5b09",
+  "localization": {
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "keyCountPerLanguage": 492,
+    "newKeyCountPerLanguage": 25,
+    "newKeys": [
+      "catDirectory.count",
+      "catDirectory.empty",
+      "catDirectory.next",
+      "catDirectory.page",
+      "catDirectory.previous",
+      "catName.count",
+      "catName.edit",
+      "catName.fieldLabel",
+      "catName.hint",
+      "catName.invalid",
+      "catName.placeholder",
+      "catName.preview",
+      "catName.reset",
+      "catName.resetDone",
+      "catName.save",
+      "catName.saveFailed",
+      "catName.saved",
+      "catName.title",
+      "catName.unsavedHint",
+      "catProfile.daily",
+      "catProfile.missing",
+      "catProfile.title",
+      "catProfile.wellbeing",
+      "releases.30.body",
+      "releases.30.title"
+    ],
+    "threeLanguageKeyParity": true,
+    "formatPlaceholderParity": true,
+    "duplicateKeys": {
+      "chinese": [],
+      "traditionalChinese": [],
+      "english": []
+    },
+    "missingKeys": [],
+    "formatMismatches": [],
+    "historicalReleaseCopyUnchanged": true,
+    "changedExistingKeys": {
+      "chinese": [
+        "accessibility.cat",
+        "action.clean",
+        "action.feed",
+        "action.full",
+        "action.play",
+        "care.needToy",
+        "layout.bowl",
+        "rest.goBed",
+        "rest.goCushion"
+      ],
+      "traditionalChinese": [
+        "accessibility.cat",
+        "action.clean",
+        "action.feed",
+        "action.full",
+        "action.play",
+        "care.needToy",
+        "layout.bowl",
+        "rest.goBed",
+        "rest.goCushion"
+      ],
+      "english": [
+        "accessibility.cat",
+        "layout.bowl",
+        "rest.goBed",
+        "rest.goCushion"
+      ]
+    }
+  },
+  "catNameBehavior": {
+    "customNameTakesPrecedence": true,
+    "explicitCustomDefaultNameRemainsUntranslated": true,
+    "legacyDefaultCatNameStillLocalized": true,
+    "otherLegacyCatNamesPreserved": true,
+    "verification": "Verified source branch order; runtime coverage requested from App test owner."
+  },
+  "copyReview": {
+    "release30MatchesScope": true,
+    "doesNotClaimNewCatAcquisition": true,
+    "fixedDefaultNamesRemovedFromRuntimeCareHints": true,
+    "catAccessibilityAction": "View profile in all three languages"
+  },
+  "existingTestCompatibility": {
+    "oldFixedNameMessageAssertionsFound": false,
+    "reviewedTargets": [
+      "CatLifeTests",
+      "CatLifeUITests",
+      "CatGameCoreTests"
+    ],
+    "scope": "Static search of changed existing message literals; UI behavior is verified separately."
+  },
+  "limitations": [
+    "No build, simulator or device execution performed for this report.",
+    "Key and placeholder parity do not establish rendered layout or VoiceOver acceptance."
+  ]
+}

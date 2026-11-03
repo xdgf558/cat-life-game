@@ -1,0 +1,98 @@
+{
+  "date": "2026-11-03",
+  "version": "0.7.1",
+  "build": 32,
+  "status": {
+    "finished": "Schema 2 migration/version protection; shared background-prepared animation registration; atomic room-layout publication; typed and bounded notices; stale audio failure suppression; separate storage probe; precise asset preflight errors; focused scene/work extraction. Signed package installed and running; migration preservation verified.",
+    "partiallyFinished": "RoomScene and GameStore remain large coordination files. Physical gameplay acceptance, old-device timing and long-session validation pending.",
+    "broken": [],
+    "nextWork": "Review updated PR #4; user checks physical gameplay."
+  },
+  "coreTests": {
+    "passed": 189,
+    "suites": 17,
+    "newTests": 6
+  },
+  "appTests": {
+    "passed": 62,
+    "failed": 0,
+    "newTests": 15
+  },
+  "assetSelfTests": {
+    "passed": 19,
+    "runtimeFilesHydrated": 68
+  },
+  "uiTests": {
+    "distinctMethods": 11,
+    "executions": 12,
+    "passedExecutions": 11,
+    "historicalFailures": 1,
+    "latestMethodResults": "all passed",
+    "report": "ui-tests.json"
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "debugTestMarkersAbsent": true,
+    "initialFailure": "Four touch-handler forwarding argument labels were incorrect after extraction. Corrected; subsequent Debug and Release builds passed."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 248,
+    "sha256": "88525307c73b432b2c30dc5becd05b803037c2645d6c3040b4b83499ce1c9f69",
+    "allInputsMatch": true
+  },
+  "localization": {
+    "version": "0.7.1",
+    "build": 32,
+    "keysPerLanguage": 527,
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "matchingKeys": true,
+    "matchingFormatSpecifiers": true
+  },
+  "projectSemantics": {
+    "normalizedComparison": "passed",
+    "report": "project-audit.json"
+  },
+  "visualInspection": {
+    "screenshots": [
+      "bowl-restored-se.png",
+      "cow-bed-pro.png",
+      "cow-meal-pro.png",
+      "expanded-room-se.png",
+      "updates-se.png",
+      "work-home-se.png"
+    ],
+    "result": "Small-screen work, expanded room, restored feeding and version UI checked; large-screen cow mouth contact and bed support checked."
+  },
+  "device": {
+    "version": "0.7.1",
+    "build": 32,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4241,
+    "saveSHA256": "ff83fddd96767d8fd51fb49939128637f3b485a868d6a701f3c6fafb12a472e4",
+    "launch": "passed after user unlock",
+    "runningProcessVerified": true,
+    "schemaAfterStartup": 2,
+    "identityOwnershipAndLayoutPreserved": true,
+    "userAcceptance": "pending"
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "rawLogsCommitted": false,
+    "screenshots": "Git LFS"
+  },
+  "limitations": [
+    "Already released old app error text cannot be retroactively changed; schema 1 saves only gain downgrade protection after a successful schema 2 save.",
+    "RoomScene 1104 lines and GameStore 920 lines remain; WorkDestinationView is 442 lines after page extraction.",
+    "One initial center-tap feed failure was not reproduced on unchanged binary/full test; cause remains unknown and the failed run is retained.",
+    "No full historical UI suite, iPad, all Dynamic Type sizes or live VoiceOver session.",
+    "No older physical device switch timing, long-session memory measurement or actual downgraded-install test."
+  ]
+}

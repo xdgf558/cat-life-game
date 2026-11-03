@@ -167,9 +167,9 @@ struct WelcomeView: View {
     @ViewBuilder private var status: some View {
         if store.loadFailed {
             VStack(spacing: 6) {
-                Label(GameStrings.text("save.loadTitle"), systemImage: "exclamationmark.circle")
+                Label(GameStrings.text(store.needsNewerVersion ? "save.newerVersionTitle" : "save.loadTitle"), systemImage: "exclamationmark.circle")
                     .font(.headline)
-                Text(GameStrings.text("save.loadBody"))
+                Text(GameStrings.text(store.needsNewerVersion ? "save.newerVersionBody" : "save.loadBody"))
                     .font(.footnote)
             }
             .foregroundStyle(RoomTheme.secondary)

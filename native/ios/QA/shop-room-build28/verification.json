@@ -1,0 +1,92 @@
+{
+  "date": "2026-11-03",
+  "version": "0.6.0",
+  "build": 28,
+  "status": {
+    "finished": "Categorized shop, four advanced equipment items, two repeatable furniture purchases, three room levels with real expanded floor and camera browsing; compatibility, atomic saves, simulator regression, signed in-place installation and normal device launch verified.",
+    "partiallyFinished": "Player acceptance of the new gameplay on the physical device is pending.",
+    "broken": [],
+    "nextWork": "Player checks shop/equipment and room renovation on the installed version."
+  },
+  "coreTests": {
+    "passed": 168,
+    "suites": 15,
+    "newTests": 14,
+    "report": "core-tests.json"
+  },
+  "appTests": {
+    "passed": 30,
+    "failed": 0,
+    "report": "app-tests.json"
+  },
+  "uiTests": {
+    "executions": 14,
+    "passed": 13,
+    "historicalFailures": 1,
+    "distinctMethods": 7,
+    "finalRevisionAllPassed": true,
+    "report": "ui-tests.json"
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "report": "release-build.json"
+  },
+  "localization": {
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "keysPerLanguage": 462,
+    "report": "localization.json"
+  },
+  "visualInspection": {
+    "screenshots": [
+      "equipment-en-se.png",
+      "expanded-home-pro.png",
+      "expanded-home-se.png",
+      "expanded-placement-pro.png",
+      "expanded-placement-se.png",
+      "furniture-bag-se.png",
+      "upgrade-max-se.png",
+      "upgrade-zh-hant-se.png"
+    ],
+    "result": "Inspected SE and Pro expansion/placement, final full stamina display, furniture inventory, upgrade capacity and localized shop/upgrade pages. Room viewport and physical cat/furniture sizes stay fixed."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 203,
+    "sha256": "752b892ee522f986d446f0cf6ba1d7ac93f3dcb2bc97f9c57b145f4ef2502e5b",
+    "allInputsMatch": true
+  },
+  "device": {
+    "version": "0.6.0",
+    "build": 28,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4734,
+    "saveSHA256": "80d4ca08016c8443a2c2bc4c26830f12baeb8855982563d9e6297a6f048db0c2",
+    "launch": "passed; normal launch after device unlock",
+    "runningProcessVerified": true,
+    "initialLaunchFailure": "iOS device locked",
+    "launchConfirmedDate": "2026-11-03",
+    "userAcceptance": "pending"
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "rawLogsCommitted": false,
+    "newScreenshots": "Git LFS"
+  },
+  "limitations": [
+    "Targeted seven-method UI regression; not a full historical UI suite, iPad or accessibility Dynamic Type sweep.",
+    "Four advanced equipment items reuse the existing slot artwork; room expansion reuses the existing empty-room architecture with independent world and sprite scales.",
+    "Price balance, long-session play and physical gameplay acceptance require player feedback."
+  ],
+  "notes": [
+    "The original 0.5.4 device acceptance was confirmed by the user before this development started.",
+    "The initial localized gold assertion failure is retained in ui-tests.json; no purchase logic failure occurred.",
+    "A late review found that changing unplaced inventory could interrupt feeding; the final Scene regression verifies pending and active care remain intact."
+  ]
+}

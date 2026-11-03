@@ -1,0 +1,13 @@
+{
+  "version": "0.5.4",
+  "build": 27,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 3940,
+  "saveSHA256": "dd3a5741528e40758a99d9ef1df1c6e2c3bfc1a6d5edf554fa9c33ff48013c1f",
+  "launch": "passed; normal launch and installed app process verified after unlock",
+  "runningProcessVerified": true,
+  "initialLaunchFailure": "iOS device locked",
+  "launchConfirmedDate": "2026-11-03",
+  "userAcceptance": "passed; user confirmed on 2026-11-03"
+}

@@ -8,7 +8,16 @@ import CatGameCore
 struct RoomArtworkTransform: Sendable {
     let sceneSize: CGSize
     let artworkSize: CGSize
+    let viewportSize: CGSize
+
+    init(sceneSize: CGSize, artworkSize: CGSize, viewportSize: CGSize? = nil) {
+        self.sceneSize = sceneSize
+        self.artworkSize = artworkSize
+        self.viewportSize = viewportSize ?? sceneSize
+    }
+
     var scale: CGFloat { max(sceneSize.width / artworkSize.width, sceneSize.height / artworkSize.height) }
+    var visualScale: CGFloat { max(viewportSize.width / artworkSize.width, viewportSize.height / artworkSize.height) }
     func point(_ normalized: NormalizedPoint) -> CGPoint {
         CGPoint(x: sceneSize.width / 2 + (normalized.x - 0.5) * artworkSize.width * scale,
                 y: sceneSize.height / 2 + (0.5 - normalized.y) * artworkSize.height * scale)
@@ -60,7 +69,7 @@ struct RoomFurnitureWorld: Sendable {
 
     func footprint(_ item: FurnitureItem) -> CGSize {
         let spec = RoomFurnitureSpec.forItem(item)
-        return CGSize(width: spec.footprint.width * transform.scale, height: spec.footprint.height * transform.scale)
+        return CGSize(width: spec.footprint.width * transform.visualScale, height: spec.footprint.height * transform.visualScale)
     }
 
     func rectangle(_ item: FurnitureItem, at center: CGPoint) -> CGRect {
@@ -179,7 +188,7 @@ extension RoomFurnitureWorld {
         var supportBand: CGRect?
         if item.kind == .catBed {
             let spec = RoomFurnitureSpec.forItem(item)
-            let width = spec.width * transform.scale
+            let width = spec.width * transform.visualScale
             // The unchanged bed PNG's alpha>24 crop is (86,44)..(1477,961).
             // The low yellow opening is at y≈805 in source pixels, about .17
             // up the cropped texture. The green vertical side is not support.

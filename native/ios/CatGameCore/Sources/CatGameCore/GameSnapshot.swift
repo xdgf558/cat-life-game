@@ -2,10 +2,12 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 1
+    public static let currentSchemaVersion = 2
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
+    public var activeCatID: String
+    public var activeCat: CatState? { cats.first { $0.id == activeCatID } }
     public var inventory: InventoryState
     public var home: HomeState
     public var meta: SaveMetadata
@@ -13,10 +15,11 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
-                meta: SaveMetadata, settings: GameSettings = GameSettings()) {
+                meta: SaveMetadata, settings: GameSettings = GameSettings(), activeCatID: String? = nil) {
         self.schemaVersion = schemaVersion
         self.player = player
         self.cats = cats
+        self.activeCatID = activeCatID ?? cats.first?.id ?? ""
         self.inventory = inventory
         self.home = home
         self.meta = meta
@@ -24,14 +27,23 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, inventory, home, meta, settings
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings
     }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        schemaVersion = try values.decode(Int.self, forKey: .schemaVersion)
+        let version = try values.decode(Int.self, forKey: .schemaVersion)
+        guard (1...Self.currentSchemaVersion).contains(version) else {
+            throw SaveRepositoryError.unsupportedSchemaVersion(version)
+        }
+        // Older fields keep their defaults; the next durable save upgrades the header.
+        schemaVersion = Self.currentSchemaVersion
         player = try values.decode(PlayerState.self, forKey: .player)
-        cats = try values.decode([CatState].self, forKey: .cats)
+        let decodedCats = try values.decode([CatState].self, forKey: .cats)
+        cats = decodedCats
+        // Selection is a display preference; a stale ID must not roll back cats or purchases.
+        let selected = try? values.decode(String.self, forKey: .activeCatID)
+        activeCatID = selected.flatMap { id in decodedCats.first { $0.id == id }?.id } ?? decodedCats.first?.id ?? ""
         inventory = try values.decode(InventoryState.self, forKey: .inventory)
         home = try values.decode(HomeState.self, forKey: .home)
         meta = try values.decode(SaveMetadata.self, forKey: .meta)
@@ -40,7 +52,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {
         GameSnapshot(player: PlayerState(staminaUpdatedAt: now),
-                     cats: [CatState(id: "cat_001", name: "小橘", now: now)],
+                     cats: [CatState(id: CatCatalog.initialCatID, name: "小橘", now: now)],
                      inventory: InventoryState(), home: HomeState(),
                      meta: SaveMetadata(createdAt: now, lastSyncAt: now))
     }
@@ -151,6 +163,8 @@ public struct ActiveWork: Codable, Equatable, Sendable, Identifiable {
 public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public var id: String
     public var name: String
+    public var customName: String?
+    public var appearance: CatAppearance
     public var satiety: Int
     public var cleanliness: Int
     public var mood: Int
@@ -166,9 +180,12 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public init(id: String, name: String, satiety: Int = 35, cleanliness: Int = 75,
                 mood: Int = 85, intimacy: Int = 12, energy: Int = 80,
                 health: Int = 90, isPregnant: Bool = false, now: Date,
-                activeRest: CatRest? = nil, lastRestSessionID: String? = nil) {
+                activeRest: CatRest? = nil, lastRestSessionID: String? = nil,
+                customName: String? = nil, appearance: CatAppearance = .orange) {
         self.id = id
         self.name = name
+        self.customName = customName
+        self.appearance = appearance
         self.satiety = satiety
         self.cleanliness = cleanliness
         self.mood = mood
@@ -179,6 +196,31 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         self.decayTracker = CatDecayTracker(now: now)
         self.activeRest = activeRest
         self.lastRestSessionID = lastRestSessionID ?? activeRest?.id
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, customName, appearance, satiety, cleanliness, mood, intimacy, energy, health
+        case isPregnant, decayTracker, activeRest, lastRestSessionID
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        // A malformed cosmetic override cannot roll back the cat's progress.
+        customName = (try? values.decode(String.self, forKey: .customName)).flatMap(CatNameRules.normalized)
+        appearance = values.contains(.appearance)
+            ? try values.decode(CatAppearance.self, forKey: .appearance) : .orange
+        satiety = try values.decode(Int.self, forKey: .satiety)
+        cleanliness = try values.decode(Int.self, forKey: .cleanliness)
+        mood = try values.decode(Int.self, forKey: .mood)
+        intimacy = try values.decode(Int.self, forKey: .intimacy)
+        energy = try values.decode(Int.self, forKey: .energy)
+        health = try values.decode(Int.self, forKey: .health)
+        isPregnant = try values.decode(Bool.self, forKey: .isPregnant)
+        decayTracker = try values.decode(CatDecayTracker.self, forKey: .decayTracker)
+        activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)
+        lastRestSessionID = try values.decodeIfPresent(String.self, forKey: .lastRestSessionID)
     }
 }
 
@@ -245,18 +287,20 @@ public struct HomeState: Codable, Equatable, Sendable {
     public var bowlPosition: NormalizedPoint
     public var comfortScore: Int
     public var furniture: [FurniturePlacement]
+    public var roomLevel: Int
 
     public init(bowlPosition: NormalizedPoint = .init(x: 0.76, y: 0.79),
                 comfortScore: Int = 30,
                 furniture: [FurniturePlacement] = FurnitureCatalog.defaultPlacements,
-                name: String? = nil) {
+                name: String? = nil, roomLevel: Int = 1) {
         self.name = name
         self.bowlPosition = bowlPosition
         self.comfortScore = comfortScore
         self.furniture = furniture
+        self.roomLevel = roomLevel
     }
 
-    private enum CodingKeys: String, CodingKey { case name, bowlPosition, comfortScore, furniture }
+    private enum CodingKeys: String, CodingKey { case name, bowlPosition, comfortScore, furniture, roomLevel }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -268,6 +312,9 @@ public struct HomeState: Codable, Equatable, Sendable {
         furniture = values.contains(.furniture)
             ? try values.decode([FurniturePlacement].self, forKey: .furniture)
             : FurnitureCatalog.defaultPlacements
+        // Unlike cosmetic names, purchased room progress must not be silently
+        // reset. Only an absent field belongs to the schema-1 migration.
+        roomLevel = values.contains(.roomLevel) ? try values.decode(Int.self, forKey: .roomLevel) : 1
     }
 }
 

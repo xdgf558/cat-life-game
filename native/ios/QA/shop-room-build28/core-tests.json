@@ -1,0 +1,17 @@
+{
+  "result": "passed",
+  "tests": 168,
+  "suites": 15,
+  "newTests": 14,
+  "framework": "Swift Testing",
+  "scope": [
+    "All existing Core suites",
+    "Equipment purchase, duplicates, costs and unlocks",
+    "Furniture instance IDs and ownership limits",
+    "Atomic room upgrades, fixed active work quotes and rest recovery",
+    "Room capacity and non-destructive legacy over-capacity layouts",
+    "Missing roomLevel migration and real repository round-trip",
+    "Invalid levels rejected without overwriting existing saves"
+  ],
+  "rawLogCommitted": false
+}

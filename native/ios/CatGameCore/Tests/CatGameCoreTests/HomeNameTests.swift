@@ -53,7 +53,7 @@ struct HomeNameTests {
         let reopened = FileSaveRepository(directory: folder)
         let loaded = try await reopened.loadOrCreate(now: now.addingTimeInterval(600))
         #expect(loaded == expected)
-        #expect(loaded.home.name == nil && loaded.schemaVersion == 1)
+        #expect(loaded.home.name == nil && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         #expect(await reopened.lastLoadDisposition == .loaded)
         #expect(try Data(contentsOf: repository.saveURL) == legacy)
     }

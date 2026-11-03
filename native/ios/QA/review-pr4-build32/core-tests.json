@@ -1,0 +1,8 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "passed": 189,
+  "suites": 17,
+  "newTests": 6,
+  "scope": "Full CatGameCore package, including schema 1 migration, future schema rejection, storage probe boundaries and typed action outcomes."
+}

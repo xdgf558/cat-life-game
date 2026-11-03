@@ -64,6 +64,10 @@ struct RoomHomeView: View {
         .sheet(item: $store.activeSheet) { destination in
             if destination == .player {
                 PlayerProfileView(store: store)
+            } else if destination == .work {
+                WorkDestinationView(store: store)
+            } else if destination == .town {
+                CatCollectionView(store: store, initialCatID: store.inspectedCatID)
             } else {
                 HomeDestinationSheet(destination: destination, store: store)
             }
@@ -88,6 +92,8 @@ struct RoomHomeView: View {
             .overlay(alignment: .bottom) {
                 if let toast = store.toast, !toast.isEmpty {
                     Text(toast)
+                        .lineLimit(6)
+                        .accessibilityLabel(toast)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16).padding(.vertical, 10)
@@ -148,6 +154,7 @@ struct RoomHomeView: View {
                     .accessibilityValue("\(snapshot.player.stamina)")
                     .accessibilityIdentifier("staminaCount")
             }
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 10).padding(.vertical, 9)
             .background(RoomTheme.paper.opacity(0.98), in: Capsule())
             .accessibilityElement(children: .contain)
@@ -169,12 +176,19 @@ struct RoomHomeView: View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 HStack(spacing: 10) {
-                    GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
-                        .background(RoomTheme.wood.opacity(0.18), in: Circle())
+                    Button { store.inspectCat() } label: {
+                        GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
+                                 symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
+                            .background(RoomTheme.wood.opacity(0.18), in: Circle())
+                    }
+                    .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catProfile.title"))
+                    .accessibilityIdentifier("homeCatProfileButton")
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(store.cat.map(GameStrings.catName) ?? "")
+                        Text(verbatim: store.cat.map(GameStrings.catName) ?? "")
                             .font(.system(size: 23, weight: .heavy, design: .rounded))
                             .lineLimit(1).minimumScaleFactor(0.8)
+                            .accessibilityIdentifier("homeCatName")
+                            .accessibilityValue(Text(verbatim: store.cat.map(GameStrings.catName) ?? ""))
                         Text(store.catStatus)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(RoomTheme.secondary)
@@ -283,16 +297,26 @@ struct RoomHomeView: View {
             }
             .frame(height: 48)
 
-            Button { store.openFurnitureInventory() } label: {
-                Label(GameStrings.text("layout.furnitureBag"), systemImage: "sofa.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(RoomTheme.paleMint, in: Capsule())
+            HStack(spacing: 8) {
+                Button { store.openFurnitureInventory() } label: {
+                    Label(GameStrings.text("layout.furnitureBag"), systemImage: "sofa.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoomTheme.paleMint, in: Capsule())
+                }
+                .accessibilityIdentifier("furnitureInventoryButton")
+                Button { store.openHomeUpgrade() } label: {
+                    Label(GameStrings.text("homeUpgrade.entry"), systemImage: "house.and.flag.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoomTheme.paper, in: Capsule())
+                }
+                .disabled(store.isBusy || store.placingFurnitureID != nil)
+                .accessibilityIdentifier("homeUpgradeButton")
             }
+            .font(.system(size: 13, weight: .semibold))
+            .lineLimit(1).minimumScaleFactor(0.75)
             .buttonStyle(.plain)
             .foregroundStyle(RoomTheme.darkMint)
             .disabled(store.isSavingLayout || store.isResolvingLayout)
-            .accessibilityIdentifier("furnitureInventoryButton")
 
             HStack(spacing: 14) {
                 Button(GameStrings.text("layout.cancel")) { store.cancelDecorating() }
@@ -319,7 +343,10 @@ struct RoomHomeView: View {
                     tab("tab.work", asset: "icon-work", symbol: "briefcase.fill", identifier: "tabWork", width: itemWidth, selected: store.activeSheet == .work) { store.activeSheet = .work }
                     tab("tab.shop", asset: "icon-shop", symbol: "storefront.fill", identifier: "tabShop", width: itemWidth, selected: store.activeSheet == .shop) { store.activeSheet = .shop }
                     tab("tab.inventory", asset: "icon-inventory", symbol: "backpack.fill", identifier: "tabInventory", width: itemWidth, selected: store.activeSheet == .inventory) { store.openInventory() }
-                    tab("tab.town", asset: "icon-town", symbol: "pawprint.fill", identifier: "tabTown", width: itemWidth, selected: store.activeSheet == .town) { store.activeSheet = .town }
+                    tab("tab.town", asset: "icon-town", symbol: "pawprint.fill", identifier: "tabTown", width: itemWidth, selected: store.activeSheet == .town) {
+                        store.inspectedCatID = nil
+                        store.activeSheet = .town
+                    }
                     tab("tab.player", asset: "", symbol: "person.crop.circle.fill", identifier: "tabPlayer", width: itemWidth, selected: store.activeSheet == .player, avatar: avatar) { store.activeSheet = .player }
                         .accessibilityValue(GameStrings.text(avatar?.nameKey ?? "player.avatar.unselected"))
                     tab("layout.edit", asset: "", symbol: "sofa.fill", identifier: "decorateButton", width: itemWidth, selected: false) { store.beginDecorating() }

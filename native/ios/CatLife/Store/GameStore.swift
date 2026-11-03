@@ -3,7 +3,7 @@ import Observation
 import CatGameCore
 
 enum HomeSheet: String, Identifiable {
-    case work, shop, inventory, town, player
+    case work, shop, inventory, town, player, upgrade
     var id: String { rawValue }
 }
 
@@ -14,6 +14,7 @@ enum InventoryCategory: String {
 struct RoomFeedback: Equatable {
     let id = UUID()
     let kind: ActionKind
+    let catID: String
 }
 
 @MainActor
@@ -26,6 +27,7 @@ final class GameStore {
     private(set) var startupPhase = "welcome.loadingSave"
     private(set) var isBusy = false
     private(set) var loadFailed = false
+    private(set) var needsNewerVersion = false
     // Welcome presentation belongs to this process, not the durable game save.
     private(set) var hasEnteredHome = false
     var startupNotice: String? { notices.startupNotice }
@@ -40,6 +42,7 @@ final class GameStore {
         didSet { if oldValue != isShowingSettings { playNavigationSound() } }
     }
     var inventoryCategory: InventoryCategory = .supplies
+    var inspectedCatID: String?
     private(set) var now = Date()
     var toast: String? { notices.toast }
     private(set) var feedback: RoomFeedback?
@@ -118,7 +121,7 @@ final class GameStore {
         self.repository = repository
     }
 
-    var cat: CatState? { snapshot?.cats.first }
+    var cat: CatState? { snapshot?.activeCat }
     var audioSettings: AudioSettings { snapshot?.settings.audio ?? AudioSettings() }
 
     private func syncAudio() {
@@ -192,7 +195,10 @@ final class GameStore {
                     audioSaveRequest?.completion = nil
                     audioSettingsSaveFailed = true
                 }
-                recordSaveFailure(userInitiated: explicitAttempt)
+                // A superseded request still records storage health, but only
+                // the latest intent may interrupt the player with an alert.
+                recordSaveFailure(showAlert: audioSaveRequest?.id == request.id,
+                                  userInitiated: explicitAttempt)
             }
             isBusy = false
             drainPendingSynchronization()
@@ -216,6 +222,14 @@ final class GameStore {
     }
 
     var placedFurnitureCount: Int { sceneSnapshot?.home.furniture.count ?? 0 }
+
+    var furnitureCapacity: Int { HomeCatalog.level(snapshot?.home.roomLevel ?? 1)?.capacity ?? 9 }
+    var canPlaceMoreFurniture: Bool { placedFurnitureCount < furnitureCapacity }
+    var canUpgradeHome: Bool { HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil }
+    var furnitureCapacityNotice: String {
+        canUpgradeHome ? GameStrings.text("homeUpgrade.capacityReached")
+            : GameStrings.format("room.capacityReachedMax", furnitureCapacity)
+    }
 
     var selectedFurniture: FurnitureItem? {
         guard let id = selectedFurnitureID,
@@ -246,9 +260,11 @@ final class GameStore {
 
     // Capture the physical arrival/exit time immediately. Save operations are
     // serialized; waiting for an unrelated write must not extend a short rest.
-    func setRestingFurniture(id: String?, sessionID: String) {
-        guard let cat else { return }
+    func setRestingFurniture(id: String?, sessionID: String, catID: String? = nil) {
+        guard let catID = catID ?? cat?.id,
+              snapshot?.cats.contains(where: { $0.id == catID }) == true else { return }
         if let id {
+            guard catID == cat?.id else { return }
             guard presentedRestSessionID != sessionID else { return }
             restingFurnitureID = id
             presentedRestSessionID = sessionID
@@ -256,7 +272,7 @@ final class GameStore {
             restingFurnitureID = nil
             presentedRestSessionID = nil
         }
-        restTransitions.append(RestTransition(catID: cat.id, furnitureID: id,
+        restTransitions.append(RestTransition(catID: catID, furnitureID: id,
                                                sessionID: sessionID, occurredAt: Date()))
         processNextRestTransition()
     }
@@ -310,18 +326,27 @@ final class GameStore {
                                exitsRest: context.transitions.contains { $0.furnitureID == nil })
         #endif
         try await repository.save(context.candidate)
+        if context.candidate.activeCatID != context.original.activeCatID {
+            restingFurnitureID = nil
+            presentedRestSessionID = nil
+            feedback = nil
+        }
         snapshot = context.candidate
         acknowledgeTransitions(context.transitions)
-        saveRetry.succeeded()
-        showSaveError = false
-        restRetryTask?.cancel()
-        restRetryTask = nil
+        clearSaveFailure()
         if let receipt = context.candidate.player.lastWorkResult,
            receipt.id != context.original.player.lastWorkResult?.id {
             pendingWorkResultID = receipt.id
             audio.play(.workComplete)
             showNotice(GameStrings.format("action.workFinished", receipt.goldReward))
         }
+    }
+
+    private func clearSaveFailure() {
+        saveRetry.succeeded()
+        showSaveError = false
+        restRetryTask?.cancel()
+        restRetryTask = nil
     }
 
     private func recordSaveFailure(showAlert: Bool = true, userInitiated: Bool = false) {
@@ -359,6 +384,7 @@ final class GameStore {
         isBusy = true
         isLoading = true
         loadFailed = false
+        needsNewerVersion = false
         startupProgress = 0
         startupPhase = "welcome.loadingSave"
         defer {
@@ -381,6 +407,9 @@ final class GameStore {
             loadDisposition = await repository.lastLoadDisposition
         } catch {
             loadFailed = true
+            if case SaveRepositoryError.unsupportedSchemaVersion(let version) = error {
+                needsNewerVersion = version > GameSnapshot.currentSchemaVersion
+            }
             snapshot = nil
             return
         }
@@ -472,6 +501,20 @@ final class GameStore {
     func buyFood() { perform { GameEngine.buyFood(&$0, quantity: 1, now: $1) } }
     func buyLitter() { perform { GameEngine.buyLitter(&$0, quantity: 1, now: $1) } }
     func buyToy() { perform { GameEngine.buyToy(&$0, quantity: 1, now: $1) } }
+    func buyEquipment(itemID: String) {
+        perform { GameEngine.purchaseEquipment(&$0, itemID: itemID, now: $1) }
+    }
+    func buyFurniture(offerID: String) {
+        perform { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
+    }
+    func upgradeHome(toLevel: Int) {
+        guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+        perform { GameEngine.upgradeHome(&$0, toLevel: toLevel, now: $1) }
+    }
+    func openHomeUpgrade() {
+        guard !isBusy, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+        activeSheet = .upgrade
+    }
     func startWork(jobID: String = "job_flyer") {
         perform { GameEngine.startWork(&$0, jobID: jobID, now: $1) }
     }
@@ -529,6 +572,32 @@ final class GameStore {
             recordSaveFailure(showAlert: false, userInitiated: true)
             // The name editor keeps the draft and presents an inline error.
             // Its saved display name remains unchanged for a safe retry.
+            return false
+        }
+    }
+
+    @discardableResult
+    func renameCat(id: String, to rawName: String?) async -> Bool {
+        guard !isBusy, !isDecorating, var context = saveContext(),
+              let index = context.candidate.cats.firstIndex(where: { $0.id == id }) else { return false }
+        let name: String?
+        if let rawName {
+            guard let normalized = CatNameRules.normalized(rawName) else { return false }
+            name = normalized
+        } else {
+            name = nil
+        }
+        guard context.candidate.cats[index].customName != name else { return true }
+        context.candidate.cats[index].customName = name
+        isBusy = true
+        defer { isBusy = false; drainPendingSynchronization() }
+        do {
+            try await commit(context)
+            audio.play(.tap, userInitiated: true)
+            return true
+        } catch {
+            // Keep the durable name; the editor owns its draft for a retry.
+            recordSaveFailure(showAlert: false, userInitiated: true)
             return false
         }
     }
@@ -640,7 +709,7 @@ final class GameStore {
         if let index = furniture.firstIndex(where: { $0.itemID == id }) {
             furniture[index].position = point
         } else {
-            guard placingFurnitureID == id else { return }
+            guard placingFurnitureID == id, canPlaceMoreFurniture else { return }
             furniture.append(FurniturePlacement(itemID: id, position: point))
         }
         draftFurniture = furniture
@@ -657,6 +726,10 @@ final class GameStore {
     func placeFurniture(id: String) {
         guard !isBusy, !isSavingLayout, !isResolvingLayout,
               storedFurniture.contains(where: { $0.id == id }) else { return }
+        guard canPlaceMoreFurniture else {
+            showNotice(furnitureCapacityNotice)
+            return
+        }
         if !isDecorating { beginDecorating() }
         guard isDecorating else { return }
         activeSheet = nil
@@ -704,7 +777,35 @@ final class GameStore {
     func inspectCat() {
         guard !isDecorating else { return }
         audio.play(.catMeow, userInitiated: true)
+        inspectedCatID = cat?.id
         activeSheet = .town
+    }
+
+    @discardableResult
+    func adoptCat(catID: String) async -> Bool {
+        await changeCat { GameEngine.adoptCat(&$0, catID: catID, now: $1) }
+    }
+
+    @discardableResult
+    func selectCompanion(catID: String) async -> Bool {
+        await changeCat { GameEngine.selectCompanion(&$0, catID: catID, now: $1) }
+    }
+
+    private func changeCat(_ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
+        guard !isBusy, !isDecorating, var context = saveContext() else { return false }
+        isBusy = true
+        defer { isBusy = false; drainPendingSynchronization() }
+        let outcome = action(&context.candidate, Date())
+        do {
+            // Publish the new companion only after the entire transaction is durable.
+            if context.candidate != context.original { try await commit(context) }
+            if outcome.succeeded { playCommittedSound(outcome.kind) }
+            showNotice(message(for: outcome))
+            return outcome.succeeded
+        } catch {
+            recordSaveFailure(userInitiated: true)
+            return false
+        }
     }
 
     private func perform(finishesLayout: Bool = false, returnsToRoom: Bool = false,
@@ -729,7 +830,7 @@ final class GameStore {
                 if finishesLayout && outcome.succeeded { clearLayoutDraft() }
                 if outcome.succeeded {
                     if returnsToRoom && activeSheet == .inventory { activeSheet = nil }
-                    feedback = RoomFeedback(kind: outcome.kind)
+                    feedback = RoomFeedback(kind: outcome.kind, catID: context.candidate.activeCatID)
                     playCommittedSound(outcome.kind)
                 }
                 showNotice(message(for: outcome))
@@ -754,15 +855,26 @@ final class GameStore {
         guard var context = saveContext() else { return }
         lastSyncCheck = Date()
         _ = GameEngine.synchronize(&context.candidate, now: lastSyncCheck)
-        // A retry probes storage even if the failed user action was rolled back.
-        guard hasSaveFailure || requiresDurableSave(context.candidate, comparedTo: context.original) else {
+        let needsSave = requiresDurableSave(context.candidate, comparedTo: context.original)
+        guard hasSaveFailure || needsSave else {
             acknowledgeTransitions(context.transitions)
             return
         }
         isBusy = true
         Task {
-            do { try await commit(context) }
-            catch { recordSaveFailure(userInitiated: userInitiated) }
+            do {
+                if needsSave { try await commit(context) }
+                else {
+                    // Probe the directory without rewriting the unchanged save
+                    // or rotating its checkpoint after a rolled-back action.
+                    #if DEBUG
+                    try fixtures.checkStorageProbe()
+                    #endif
+                    try await repository.checkWritable()
+                    acknowledgeTransitions(context.transitions)
+                    clearSaveFailure()
+                }
+            } catch { recordSaveFailure(userInitiated: userInitiated) }
             isBusy = false
             drainPendingSynchronization()
         }

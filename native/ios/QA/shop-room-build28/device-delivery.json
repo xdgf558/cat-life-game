@@ -1,0 +1,13 @@
+{
+  "version": "0.6.0",
+  "build": 28,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 4734,
+  "saveSHA256": "80d4ca08016c8443a2c2bc4c26830f12baeb8855982563d9e6297a6f048db0c2",
+  "launch": "passed; normal launch after device unlock",
+  "runningProcessVerified": true,
+  "initialLaunchFailure": "iOS device locked",
+  "launchConfirmedDate": "2026-11-03",
+  "userAcceptance": "pending"
+}

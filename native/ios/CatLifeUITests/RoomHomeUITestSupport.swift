@@ -141,9 +141,10 @@ extension RoomHomeUITests {
 
     @MainActor
     func assertVisibleTimerChanges(_ identifier: String, increasing: Bool, upperBound: Int? = nil,
+                                            scrollIdentifier: String = "destinationScroll",
                                             in app: XCUIApplication, context: String,
                                             file: StaticString = #filePath, line: UInt = #line) throws {
-        scrollRecoveryCard(to: identifier, in: app, file: file, line: line)
+        scrollCareerPage(scrollIdentifier, to: identifier, in: app, file: file, line: line)
         let timer = element(identifier, in: app)
         let initialLabel = timer.label
         let initial = try XCTUnwrap(displayedTimerSeconds(initialLabel),

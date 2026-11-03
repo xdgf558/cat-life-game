@@ -1,0 +1,80 @@
+{
+  "date": "2026-11-03",
+  "version": "0.5.4",
+  "build": 27,
+  "status": {
+    "finished": "Compact work home, four-row paginated/searchable/filterable career directory, separate details/rest/results, shared recovery and Done navigation; in-place device installation with unchanged pre-launch save.",
+    "partiallyFinished": "None",
+    "broken": [],
+    "nextWork": "0.6.0 shop, equipment and room expansion."
+  },
+  "appTests": {
+    "passed": 23,
+    "failed": 0,
+    "report": "app-tests.json"
+  },
+  "coreTests": {
+    "rerun": false,
+    "inheritedFrom": "../review-round2-build26/core-tests.json",
+    "passed": 154,
+    "suites": 14,
+    "unchangedGameplayFiles": 45,
+    "manifest": "unchanged-gameplay-manifest.json"
+  },
+  "uiTests": {
+    "executions": 14,
+    "passed": 9,
+    "historicalFailures": 5,
+    "distinctMethods": 8,
+    "finalRevisionAllPassed": true,
+    "report": "ui-tests.json"
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "report": "release-build.json"
+  },
+  "visualInspection": {
+    "screenshots": [
+      "home-se.png",
+      "home-pro.png",
+      "directory-se.png",
+      "directory-pro.png",
+      "rest-se.png",
+      "locked-detail-se.png"
+    ],
+    "result": "Inspected at final simulator sizes: readable unclipped work summary and four career rows, visible paging and separate rest/details navigation."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 194,
+    "sha256": "2ca85d2bb8729c5279f1d0b811c1d6d24c9cc15e7f966ca7a2ed0cec38d48bb2",
+    "allInputsMatch": true
+  },
+  "device": {
+    "version": "0.5.4",
+    "build": 27,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 3940,
+    "saveSHA256": "dd3a5741528e40758a99d9ef1df1c6e2c3bfc1a6d5edf554fa9c33ff48013c1f",
+    "launch": "passed; normal launch and installed app process verified after unlock",
+    "runningProcessVerified": true,
+    "initialLaunchFailure": "iOS device locked",
+    "launchConfirmedDate": "2026-11-03",
+    "userAcceptance": "passed; user confirmed on 2026-11-03"
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "rawLogsCommitted": false,
+    "newScreenshots": "Git LFS"
+  },
+  "limitations": [
+    "Targeted eight-method UI regression, not a full 56-method or Dynamic Type sweep.",
+    "101-entry pagination is a unit-test input; the shipped catalog still has five careers.",
+    "The legacy unknown-job detail fallback was statically reviewed and built; its Core captured-reward compatibility has historical coverage, without a dedicated new UI fixture.",
+    "An initial care-audio run recorded a feed tap that did not commit (food unchanged); the transient cause remains unknown. The unmodified complete care/audio test passed on the final revision.",
+    "Automated checks do not measure prolonged play or physical listening; user confirmed device acceptance on 2026-11-03."
+  ]
+}

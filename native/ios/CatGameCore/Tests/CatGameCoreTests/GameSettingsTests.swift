@@ -49,7 +49,7 @@ struct GameSettingsTests {
         let loaded = try await reopened.loadOrCreate(now: now.addingTimeInterval(600))
         #expect(loaded == expected)
         #expect(loaded.settings.language == nil)
-        #expect(loaded.schemaVersion == 1)
+        #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         #expect(await reopened.lastLoadDisposition == .loaded)
         #expect(try Data(contentsOf: repository.saveURL) == legacy)
     }

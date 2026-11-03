@@ -1,0 +1,120 @@
+{
+  "runs": [
+    {
+      "revision": "initial",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testRoomAndEquipmentRequirementsAreVisibleBeforeSpending()",
+          "result": "Passed",
+          "seconds": 34.34
+        },
+        {
+          "name": "RoomHomeUITests/testShopPurchasesEquipmentAndFurniturePersistWithoutDuplicateCharges()",
+          "result": "Failed",
+          "seconds": 31.594
+        }
+      ]
+    },
+    {
+      "revision": "main",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testRoomAndEquipmentRequirementsAreVisibleBeforeSpending()",
+          "result": "Passed",
+          "seconds": 33.207
+        },
+        {
+          "name": "RoomHomeUITests/testRoomExpansionPreservesScaleSupportsPanPlacementAndFeedingAfterRelaunch()",
+          "result": "Passed",
+          "seconds": 98.543
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+          "result": "Passed",
+          "seconds": 48.742
+        },
+        {
+          "name": "RoomHomeUITests/testShopAndRenovationTranslateIntoEnglishAndTraditionalChinese()",
+          "result": "Passed",
+          "seconds": 66.479
+        },
+        {
+          "name": "RoomHomeUITests/testShopPurchasesEquipmentAndFurniturePersistWithoutDuplicateCharges()",
+          "result": "Passed",
+          "seconds": 119.76
+        }
+      ]
+    },
+    {
+      "revision": "main",
+      "deviceClass": "iPhone 18 Pro",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCarePlansRunOffMainThreadAndConsumeSuppliesOnce()",
+          "result": "Passed",
+          "seconds": 56.788
+        },
+        {
+          "name": "RoomHomeUITests/testFeedingWakesRestingCatBeforeWalkingToBowl()",
+          "result": "Passed",
+          "seconds": 89.309
+        },
+        {
+          "name": "RoomHomeUITests/testRoomExpansionPreservesScaleSupportsPanPlacementAndFeedingAfterRelaunch()",
+          "result": "Passed",
+          "seconds": 98.471
+        }
+      ]
+    },
+    {
+      "revision": "final",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testRoomExpansionPreservesScaleSupportsPanPlacementAndFeedingAfterRelaunch()",
+          "result": "Passed",
+          "seconds": 98.858
+        },
+        {
+          "name": "RoomHomeUITests/testShopPurchasesEquipmentAndFurniturePersistWithoutDuplicateCharges()",
+          "result": "Passed",
+          "seconds": 118.853
+        }
+      ]
+    },
+    {
+      "revision": "final",
+      "deviceClass": "iPhone 18 Pro",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCarePlansRunOffMainThreadAndConsumeSuppliesOnce()",
+          "result": "Passed",
+          "seconds": 54.22
+        },
+        {
+          "name": "RoomHomeUITests/testRoomExpansionPreservesScaleSupportsPanPlacementAndFeedingAfterRelaunch()",
+          "result": "Passed",
+          "seconds": 101.487
+        }
+      ]
+    }
+  ],
+  "executions": 14,
+  "passed": 13,
+  "historicalFailures": 1,
+  "distinctMethods": 7,
+  "finalRevisionAllPassed": true,
+  "failureFollowup": [
+    {
+      "initial": "The equipment purchase committed correctly, but a UI assertion expected 4640 while accessibility presented the localized 4,640.",
+      "resolution": "Corrected localized amount expectations; the complete purchase, equip, inventory and relaunch flow passed in the main and final revisions."
+    }
+  ],
+  "finalChangesValidated": [
+    "Unplaced inventory no longer rebuilds a live care route; pending and active care covered by the final App Scene test.",
+    "Resource capsule retains complete stamina text with four-digit gold.",
+    "Maximum-level capacity guidance offers storage rather than an impossible further upgrade."
+  ]
+}

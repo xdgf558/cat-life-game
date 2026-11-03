@@ -6,6 +6,7 @@ import json
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from check_runtime_assets import DOWNLOAD_COMMAND, LFS_HEADER, MANIFEST, SANDBOX_INPUTS, inspect, main
@@ -29,6 +30,10 @@ class RuntimeAssetPreflightTests(unittest.TestCase):
         (self.root / MANIFEST).write_text(json.dumps({"schemaVersion": 1, "resources": [
             self.png.relative_to(self.root).as_posix(), self.caf.relative_to(self.root).as_posix()
         ]}))
+        inputs = ["CatLife/Assets.xcassets", "CatLife/Assets.xcassets/Contents.json",
+                  "CatLife/Assets.xcassets/AppIcon.appiconset", "CatLife/Assets.xcassets/AppIcon.appiconset/Contents.json",
+                  self.png.relative_to(self.root).as_posix(), "CatLife/Audio", self.caf.relative_to(self.root).as_posix()]
+        (self.root / SANDBOX_INPUTS).write_text("\n".join("$(SRCROOT)/" + path for path in sorted(inputs)) + "\n")
 
     def test_hydrated_resources_pass(self):
         resources, errors = inspect(self.root)
@@ -52,37 +57,37 @@ class RuntimeAssetPreflightTests(unittest.TestCase):
         self.png.unlink()
         self.caf.unlink()
         _, errors = inspect(self.root)
-        self.assertEqual(sum("missing runtime resource" in value for value in errors), 2)
+        self.assertEqual(sum("missing runtime resource" in value.message for value in errors), 2)
 
     def test_inventory_catches_an_entire_deleted_imageset(self):
         self.png.unlink()
         (self.png.parent / "Contents.json").unlink()
         self.png.parent.rmdir()
         _, errors = inspect(self.root)
-        self.assertTrue(any("AppIcon.png: missing runtime resource" in value for value in errors))
+        self.assertTrue(any("AppIcon.png: missing runtime resource" in value.message for value in errors))
 
     def test_new_catalog_reference_is_checked_before_inventory_refresh(self):
         metadata = self.png.parent / "Contents.json"
         metadata.write_text('{"images":[{"filename":"new-image.png"}]}')
         _, errors = inspect(self.root)
-        self.assertTrue(any("new-image.png: missing runtime resource" in value for value in errors))
+        self.assertTrue(any("new-image.png: missing runtime resource" in value.message for value in errors))
 
     def test_empty_or_invalid_headers_fail(self):
         self.png.write_bytes(b"")
         self.caf.write_bytes(b"not a CAF")
         _, errors = inspect(self.root)
-        self.assertTrue(any("empty runtime resource" in value for value in errors))
-        self.assertTrue(any("invalid or truncated CAF header" in value for value in errors))
+        self.assertTrue(any("empty runtime resource" in value.message for value in errors))
+        self.assertTrue(any("invalid or truncated CAF header" in value.message for value in errors))
 
     def test_catalog_paths_cannot_escape_runtime_assets(self):
         (self.png.parent / "Contents.json").write_text('{"images":[{"filename":"../../../private.png"}]}')
         _, errors = inspect(self.root)
-        self.assertTrue(any("invalid catalog metadata" in value for value in errors))
+        self.assertTrue(any("invalid catalog metadata" in value.message for value in errors))
 
     def test_missing_inventory_fails_without_silently_regenerating_it(self):
         (self.root / MANIFEST).unlink()
         _, errors = inspect(self.root)
-        self.assertTrue(any("invalid or missing runtime inventory" in value for value in errors))
+        self.assertTrue(any("invalid or missing runtime inventory" in value.message for value in errors))
         self.assertFalse((self.root / MANIFEST).exists())
 
     def test_explicit_refresh_does_not_record_unhydrated_media(self):
@@ -115,6 +120,112 @@ class RuntimeAssetPreflightTests(unittest.TestCase):
         for path in [self.png, self.caf, self.png.parent / "Contents.json",
                      self.png.parent, self.png.parent.parent, self.caf.parent]:
             self.assertIn("$(SRCROOT)/" + path.relative_to(self.root).as_posix(), inputs)
+
+    def failure_output(self):
+        stderr = io.StringIO()
+        with contextlib.redirect_stderr(stderr):
+            self.assertEqual(main(["--root", str(self.root)]), 1)
+        return stderr.getvalue()
+
+    def test_missing_sandbox_list_points_to_restore_or_explicit_refresh(self):
+        (self.root / SANDBOX_INPUTS).unlink()
+        output = self.failure_output()
+        self.assertIn(SANDBOX_INPUTS, output)
+        self.assertIn("Restore", output)
+        self.assertIn("--update-manifest", output)
+        self.assertNotIn(DOWNLOAD_COMMAND, output)
+        self.assertFalse((self.root / SANDBOX_INPUTS).exists())
+
+    def test_stale_sandbox_list_is_not_a_media_download_error(self):
+        path = self.root / SANDBOX_INPUTS
+        path.write_text(path.read_text().replace("$(SRCROOT)/CatLife/Assets.xcassets/Contents.json\n", ""))
+        before = path.read_bytes()
+        output = self.failure_output()
+        self.assertIn("stale sandbox input list", output)
+        self.assertIn("--update-manifest", output)
+        self.assertNotIn(DOWNLOAD_COMMAND, output)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_unreadable_sandbox_list_reports_access_and_inventory_recovery(self):
+        read_text = Path.read_text
+
+        def denied(path, *args, **kwargs):
+            if path == self.root / SANDBOX_INPUTS:
+                raise PermissionError("fixture denial")
+            return read_text(path, *args, **kwargs)
+
+        with patch.object(Path, "read_text", denied):
+            output = self.failure_output()
+        self.assertIn("PermissionError", output)
+        self.assertIn("check file access permissions", output)
+        self.assertIn("--update-manifest", output)
+        self.assertNotIn(DOWNLOAD_COMMAND, output)
+
+    def test_invalid_inventory_does_not_recommend_lfs_for_hydrated_media(self):
+        (self.root / MANIFEST).write_text("broken JSON")
+        output = self.failure_output()
+        self.assertIn("invalid or missing runtime inventory", output)
+        self.assertIn("--update-manifest", output)
+        self.assertNotIn(DOWNLOAD_COMMAND, output)
+
+    def test_explicit_refresh_updates_stale_lists_and_is_deterministic(self):
+        added = self.caf.with_name("sfx-new.caf")
+        added.write_bytes(self.caf.read_bytes())
+        output = self.failure_output()
+        self.assertIn("stale runtime inventory", output)
+        self.assertIn("stale sandbox input list", output)
+        self.assertNotIn(DOWNLOAD_COMMAND, output)
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["--root", str(self.root), "--update-manifest"]), 0)
+        before = [(self.root / name).read_bytes() for name in (MANIFEST, SANDBOX_INPUTS)]
+        self.assertEqual(inspect(self.root)[1], [])
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(main(["--root", str(self.root), "--update-manifest"]), 0)
+        self.assertEqual([(self.root / name).read_bytes() for name in (MANIFEST, SANDBOX_INPUTS)], before)
+
+    def test_generator_rejects_missing_or_stale_sandbox_list_before_replacing_project(self):
+        scripts = Path(__file__).resolve().parent
+        for filename in ("generate_project.rb", "check_runtime_assets.py"):
+            (self.root / "scripts" / filename).write_bytes((scripts / filename).read_bytes())
+        project = self.root / "CatLife.xcodeproj/project.pbxproj"
+        project.parent.mkdir()
+        project.write_text("existing project must remain untouched\n")
+        before = project.read_bytes()
+        for state in ("missing", "stale"):
+            with self.subTest(state=state):
+                if state == "missing":
+                    (self.root / SANDBOX_INPUTS).unlink()
+                else:
+                    (self.root / SANDBOX_INPUTS).write_text("$(SRCROOT)/CatLife/Audio\n")
+                result = subprocess.run(["ruby", str(self.root / "scripts/generate_project.rb")],
+                                        capture_output=True, text=True, check=False)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(SANDBOX_INPUTS, result.stderr)
+                self.assertIn("--update-manifest", result.stderr)
+                self.assertNotIn(DOWNLOAD_COMMAND, result.stderr)
+                self.assertIn("the Xcode project was not changed", result.stderr)
+                self.assertEqual(project.read_bytes(), before)
+
+    def test_mixed_inventory_and_pointer_failures_keep_both_recovery_instructions(self):
+        (self.root / SANDBOX_INPUTS).unlink()
+        self.caf.write_bytes(LFS_HEADER)
+        output = self.failure_output()
+        self.assertIn(DOWNLOAD_COMMAND, output)
+        self.assertIn("--update-manifest", output)
+
+    def test_unreadable_media_reports_permissions_without_a_download_hint(self):
+        open_file = Path.open
+
+        def denied(path, *args, **kwargs):
+            if path == self.caf:
+                raise PermissionError("fixture denial")
+            return open_file(path, *args, **kwargs)
+
+        with patch.object(Path, "open", denied):
+            output = self.failure_output()
+        self.assertIn("unreadable runtime resource", output)
+        self.assertIn("Xcode script sandbox inputs", output)
+        self.assertNotIn(DOWNLOAD_COMMAND, output)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,94 @@
+{
+  "date": "2026-11-03",
+  "version": "0.7.0",
+  "build": 31,
+  "status": {
+    "finished": "Cow-cat adoption with explicit confirmation, player/room/coin requirements, independent care and names, durable companion selection, per-cat callbacks, ten image assets, three languages, signed builds and simulator validation. In-place physical installation, byte-identical pre-launch save and normal installed-version process confirmed.",
+    "partiallyFinished": "Physical player acceptance remains pending.",
+    "broken": [],
+    "nextWork": "User checks adoption, companion switching, care and relaunch on iPhone."
+  },
+  "coreTests": {
+    "passed": 183,
+    "suites": 17,
+    "newTests": 9
+  },
+  "appTests": {
+    "passed": 47,
+    "failed": 0,
+    "newTests": 7
+  },
+  "uiTests": {
+    "distinctMethods": 8,
+    "latestMethodResults": "all passed",
+    "executions": 20,
+    "passed": 12,
+    "historicalFailedExecutions": 8,
+    "report": "ui-tests.json"
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "report": "release-build.json"
+  },
+  "localization": {
+    "keysPerLanguage": 523,
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ]
+  },
+  "assets": {
+    "newImages": 10,
+    "animationClips": 7,
+    "framesPerClip": 8,
+    "generator": "built-in image_gen",
+    "prompts": "../../ArtSource/cow-cat-build31/prompts.json",
+    "runtimeFilesHydrated": 68
+  },
+  "visualInspection": {
+    "screenshots": [
+      "adoption-english-se.png",
+      "adoption-retry-se.png",
+      "adoption-traditional-se.png",
+      "collection-pro.png",
+      "collection-se.png",
+      "cow-bed-se.png",
+      "cow-cushion-se.png",
+      "cow-home-pro.png",
+      "cow-meal-pro.png",
+      "cow-meal-se.png",
+      "switch-rest-se.png"
+    ],
+    "result": "Compact small/large cat collection, chosen cow with synced home portrait/name, multilingual adoption requirements and disabled action, and actual meal/bed/cushion placement inspected. Per-frame collision, mouth contact, fore/rear paw support and safe exit assertions passed for cow on both screen sizes."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 238,
+    "sha256": "c1845dad244fef30c24ab729403faf7156e7223fbe355ef565cd58c121c54bdf",
+    "allInputsMatch": true
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "rawLogsCommitted": false,
+    "screenshotsAndImages": "Git LFS"
+  },
+  "device": {
+    "version": "0.7.0",
+    "build": 31,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4196,
+    "saveSHA256": "86033c8c358b6cf9dbe0351939ef1d616fd8418ae502e756c9bf12f7894f0c3e",
+    "launch": "passed",
+    "runningProcessVerified": true,
+    "userAcceptance": "pending"
+  },
+  "limitations": [
+    "Room displays one selected companion; no simultaneous cats, hospital, breeding or third cat.",
+    "Eight targeted UI methods, not the complete historical suite; no iPad, accessibility text-size or live VoiceOver session.",
+    "Long-session testing and physical player acceptance remain pending."
+  ]
+}

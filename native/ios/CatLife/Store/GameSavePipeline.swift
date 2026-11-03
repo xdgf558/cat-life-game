@@ -6,6 +6,7 @@ protocol GameSaveRepository: Sendable {
     var lastLoadDisposition: SaveLoadDisposition { get async }
     func loadOrCreate(now: Date) async throws -> GameSnapshot
     func save(_ state: GameSnapshot) async throws
+    func checkWritable() async throws
 }
 
 extension FileSaveRepository: GameSaveRepository {}

@@ -1,0 +1,39 @@
+{
+  "version": "0.6.2",
+  "build": 30,
+  "framework": "Swift Testing",
+  "result": "passed",
+  "executed": 174,
+  "passed": 174,
+  "failed": 0,
+  "suiteCount": 16,
+  "suites": [
+    "Custom home names and durable progress",
+    "Persistent player sleep and cat recovery",
+    "Public actions retain synchronized progress",
+    "Meal contact and docking clearance",
+    "Furniture rest approach and return",
+    "Purchases and room growth",
+    "Room floor and obstacle navigation",
+    "Player appearances, equipment and captured work terms",
+    "Native game rules",
+    "Individual cat names and compatible saves",
+    "ActionFailureTests",
+    "Career progression and durable work receipts",
+    "Furniture ownership and room layouts",
+    "Language, audio preferences and save compatibility",
+    "Native save durability",
+    "Player names and non-destructive profile migration"
+  ],
+  "newCatNameTests": [
+    "namesUseVisibleGraphemeLimitsAndRejectInvisibleInput",
+    "oldCatsWithoutOverridesLoadWithoutRewritingAnyProgress",
+    "malformedOverrideRecoversOnlyThatFieldAndNeverAnOlderBackup",
+    "savedOverridesNormalizeWhileExplicitDefaultNameRemainsAnOverride",
+    "independentNamesAndDefaultResetRoundTripWithWorkAndRestUntouched",
+    "invalidRuntimeOverridesCannotOverwritePrimaryOrBackup"
+  ],
+  "failures": [],
+  "seconds": 0.816,
+  "scope": "Full Core test run for this build, including six new cat-name compatibility and persistence tests. Parameterized test methods retain the test count reported by Swift Testing."
+}

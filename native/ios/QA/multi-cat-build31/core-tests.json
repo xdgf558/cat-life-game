@@ -1,0 +1,15 @@
+{
+  "version": "0.7.0",
+  "build": 31,
+  "result": "passed",
+  "tests": 183,
+  "suites": 17,
+  "newTests": 9,
+  "coverage": [
+    "legacy selection and appearance migration",
+    "adoption requirements and one-time cost",
+    "independent names and elapsed care",
+    "rest settlement and stale callbacks",
+    "saved active companion"
+  ]
+}

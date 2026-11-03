@@ -1,0 +1,100 @@
+{
+  "runs": [
+    {
+      "revision": "se-first",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testInitialRoomIgnoresPinchWithoutAccidentalCareActions()",
+          "result": "Passed",
+          "seconds": 35.112
+        },
+        {
+          "name": "RoomHomeUITests/testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch()",
+          "result": "Failed",
+          "seconds": 22.974
+        },
+        {
+          "name": "RoomHomeUITests/testSupplyPricesMatchOtherCategoriesAndOneTapPurchasesRemainAtomic()",
+          "result": "Passed",
+          "seconds": 99.531
+        }
+      ]
+    },
+    {
+      "revision": "pro-first",
+      "deviceClass": "iPhone 17 Pro",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch()",
+          "result": "Failed",
+          "seconds": 28.85
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation()",
+          "result": "Passed",
+          "seconds": 52.307
+        },
+        {
+          "name": "RoomHomeUITests/testSupplyPricesMatchOtherCategoriesAndOneTapPurchasesRemainAtomic()",
+          "result": "Passed",
+          "seconds": 121.325
+        }
+      ]
+    },
+    {
+      "revision": "se-pinch-diagnostic",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch()",
+          "result": "Failed",
+          "seconds": 22.97
+        }
+      ]
+    },
+    {
+      "revision": "se-final",
+      "deviceClass": "iPhone SE (3rd generation)",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testInitialRoomIgnoresPinchWithoutAccidentalCareActions()",
+          "result": "Passed",
+          "seconds": 34.348
+        },
+        {
+          "name": "RoomHomeUITests/testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch()",
+          "result": "Passed",
+          "seconds": 76.332
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsDismissalResumesAnInProgressMeal()",
+          "result": "Passed",
+          "seconds": 72.147
+        }
+      ]
+    },
+    {
+      "revision": "pro-final",
+      "deviceClass": "iPhone 17 Pro",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testCarePlansRunOffMainThreadAndConsumeSuppliesOnce()",
+          "result": "Passed",
+          "seconds": 55.281
+        },
+        {
+          "name": "RoomHomeUITests/testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch()",
+          "result": "Passed",
+          "seconds": 86.312
+        }
+      ]
+    }
+  ],
+  "executions": 12,
+  "passed": 9,
+  "historicalFailures": 3,
+  "distinctMethods": 6,
+  "finalRevisionAllPassed": true,
+  "initialFailureExplanation": "Three automated pinch-out attempts began on the overlaid HUD/care panel instead of the SKView. The exported touch coordinates and unchanged camera scale confirmed that the room never received both touches. A DEBUG-only non-hit-testing accessibility target now keeps the public XCTest pinch gesture inside the exposed room. Final SE and Pro gesture, placement, meal and relaunch checks pass; production camera math was unchanged."
+}

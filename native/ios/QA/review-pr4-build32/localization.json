@@ -1,0 +1,12 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "keysPerLanguage": 527,
+  "languages": [
+    "zh-Hans",
+    "zh-Hant",
+    "en"
+  ],
+  "matchingKeys": true,
+  "matchingFormatSpecifiers": true
+}

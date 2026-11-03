@@ -1,0 +1,13 @@
+{
+  "version": "0.5.4",
+  "build": 27,
+  "signaturePass": true,
+  "releaseMarkersChecked": 22,
+  "releaseTestMarkersFound": [],
+  "releaseTestBundles": 0,
+  "executableSHA256": "b1bf18c22bfb9c5f6a8795f5a376d5f41cbe3607890aa56739fb87cfb625d5ca",
+  "debugSimulatorBuild": "passed",
+  "signedReleaseDeviceBuild": "passed",
+  "runtimeFilesChecked": 58,
+  "finalNavigationAndLegacyDetailIncluded": true
+}

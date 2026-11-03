@@ -61,6 +61,21 @@ public actor FileSaveRepository {
         try await save(state, now: Date())
     }
 
+    /// Probe the same storage directory without rewriting gameplay or rotating its checkpoint.
+    public func checkWritable() throws {
+        try ensureDirectory()
+        if FileManager.default.fileExists(atPath: saveURL.path) {
+            _ = try decode(Data(contentsOf: saveURL))
+        }
+        _ = try shouldRotateBackup(now: Date())
+        let probe = directory.appendingPathComponent(".cat-life-save-check-\(UUID().uuidString).tmp")
+        let data = Data("CatLife save check".utf8)
+        defer { try? FileManager.default.removeItem(at: probe) }
+        try data.write(to: probe, options: .atomic)
+        guard try Data(contentsOf: probe) == data else { throw CocoaError(.fileReadCorruptFile) }
+        try FileManager.default.removeItem(at: probe)
+    }
+
     /// The explicit clock makes checkpoint rotation deterministic in durability tests.
     public func save(_ state: GameSnapshot, now: Date) async throws {
         guard now.timeIntervalSince1970.isFinite else { throw SaveRepositoryError.invalidSnapshot }
@@ -173,12 +188,7 @@ public actor FileSaveRepository {
     }
 
     private func decode(_ data: Data) throws -> GameSnapshot {
-        struct Header: Decodable { var schemaVersion: Int }
         let decoder = JSONDecoder()
-        let version = try decoder.decode(Header.self, from: data).schemaVersion
-        guard version == GameSnapshot.currentSchemaVersion else {
-            throw SaveRepositoryError.unsupportedSchemaVersion(version)
-        }
         decoder.dateDecodingStrategy = .custom { decoder in
             let container = try decoder.singleValueContainer()
             let string = try container.decode(String.self)
