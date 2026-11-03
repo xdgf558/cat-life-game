@@ -30,7 +30,7 @@ public enum GameEngine {
             now: effectiveTime(state, now: now), appearance: offer.appearance))
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
-        return ActionOutcome(kind: .purchase, messageKey: "cat.adopted", amount: offer.price)
+        return ActionOutcome(success: .catAdopted, amount: offer.price)
     }
 
     public static func selectCompanion(_ state: inout GameSnapshot, catID: String,
@@ -43,7 +43,7 @@ public enum GameEngine {
             finishCatRest(&state, index: index, now: effectiveTime(state, now: now))
         }
         state.activeCatID = catID
-        return ActionOutcome(messageKey: "cat.companionSelected")
+        return ActionOutcome(success: .companionSelected)
     }
 
     public static func selectAvatar(_ state: inout GameSnapshot, avatarID: String,
@@ -52,7 +52,7 @@ public enum GameEngine {
         guard synchronized.succeeded else { return synchronized }
         guard PlayerCatalog.avatar(id: avatarID) != nil else { return failure(.playerAvatarMissing) }
         state.player.profile.avatarID = avatarID
-        return ActionOutcome(messageKey: "player.avatarSaved")
+        return ActionOutcome(success: .avatarSaved)
     }
 
     public static func equipItem(_ state: inout GameSnapshot, itemID: String,
@@ -62,7 +62,7 @@ public enum GameEngine {
         guard let item = PlayerCatalog.item(id: itemID) else { return failure(.equipmentItemMissing) }
         guard state.player.profile.ownedEquipmentIDs.contains(itemID) else { return failure(.equipmentNotOwned) }
         state.player.profile.equipped[item.slot] = item.id
-        return ActionOutcome(messageKey: "equipment.equipped")
+        return ActionOutcome(success: .equipped)
     }
 
     public static func unequipSlot(_ state: inout GameSnapshot, slot: EquipmentSlot,
@@ -70,7 +70,7 @@ public enum GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         state.player.profile.equipped.removeValue(forKey: slot)
-        return ActionOutcome(messageKey: "equipment.unequipped")
+        return ActionOutcome(success: .unequipped)
     }
 
     public static func equipStarterSet(_ state: inout GameSnapshot,
@@ -84,7 +84,7 @@ public enum GameEngine {
         for item in items {
             state.player.profile.equipped[item.slot] = item.id
         }
-        return ActionOutcome(messageKey: "equipment.starterEquipped")
+        return ActionOutcome(success: .starterEquipped)
     }
 
     /// The same deterministic preview is captured by startWork. Locked careers
@@ -111,7 +111,7 @@ public enum GameEngine {
         guard candidate.player.activeWork == nil else { return failure(.sleepWorkActive) }
         candidate.player.activeSleep = PlayerSleep(startedAt: effectiveTime(candidate, now: now))
         state = candidate
-        return ActionOutcome(kind: .sleepStarted, messageKey: "sleep.started")
+        return ActionOutcome(success: .sleepStarted)
     }
 
     public static func wakeUp(_ state: inout GameSnapshot, now: Date = Date()) -> ActionOutcome {
@@ -124,7 +124,7 @@ public enum GameEngine {
         state.player.staminaUpdatedAt = state.player.stamina == 100
             ? timestamp : timestamp.addingTimeInterval(-awakeRemainder)
         state.player.activeSleep = nil
-        return ActionOutcome(kind: .sleepEnded, messageKey: "sleep.ended")
+        return ActionOutcome(success: .sleepEnded)
     }
 
     public static func startCatRest(_ state: inout GameSnapshot, catID: String, furnitureID: String,
@@ -153,7 +153,7 @@ public enum GameEngine {
         candidate.cats[index].lastRestSessionID = sessionID
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
-        return ActionOutcome(kind: .catRestStarted, messageKey: "rest.started")
+        return ActionOutcome(success: .catRestStarted)
     }
 
     public static func endCatRest(_ state: inout GameSnapshot, catID: String,
@@ -166,7 +166,7 @@ public enum GameEngine {
         guard let rest = state.cats[index].activeRest,
               sessionID == nil || sessionID == rest.id else { return ActionOutcome() }
         finishCatRest(&state, index: index, now: effectiveTime(state, now: now))
-        return ActionOutcome(kind: .catRestEnded, messageKey: "rest.ended")
+        return ActionOutcome(success: .catRestEnded)
     }
 
     public static func feed(_ state: inout GameSnapshot, catID: String,
@@ -187,7 +187,7 @@ public enum GameEngine {
         state.cats[index].mood = cap(state.cats[index].mood + 4)
         state.cats[index].decayTracker.satiety = max(state.cats[index].decayTracker.satiety, timestamp)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
-        return ActionOutcome(kind: .feed, messageKey: "care.fed", amount: units)
+        return ActionOutcome(success: .fed, amount: units)
     }
 
     public static func clean(_ state: inout GameSnapshot, catID: String,
@@ -205,7 +205,7 @@ public enum GameEngine {
         state.cats[index].health = cap(state.cats[index].health + 4)
         state.cats[index].decayTracker.cleanliness = max(
             state.cats[index].decayTracker.cleanliness, timestamp)
-        return ActionOutcome(kind: .clean, messageKey: "care.cleaned", amount: 1)
+        return ActionOutcome(success: .cleaned, amount: 1)
     }
 
     public static func play(_ state: inout GameSnapshot, catID: String,
@@ -227,25 +227,25 @@ public enum GameEngine {
         state.player.mood = cap(state.player.mood + 4)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.cats[index].decayTracker.energy = max(state.cats[index].decayTracker.energy, timestamp)
-        return ActionOutcome(kind: .play, messageKey: "care.played", amount: 1)
+        return ActionOutcome(success: .played, amount: 1)
     }
 
     public static func buyFood(_ state: inout GameSnapshot, quantity: Int = 1,
                                now: Date = Date()) -> ActionOutcome {
         buy(&state, quantity: quantity, unitPrice: foodPrice, unitsPerItem: 1,
-            stock: \.food, key: "shop.foodPurchased", now: now)
+            stock: \.food, success: .foodPurchased, now: now)
     }
 
     public static func buyLitter(_ state: inout GameSnapshot, quantity: Int = 1,
                                  now: Date = Date()) -> ActionOutcome {
         buy(&state, quantity: quantity, unitPrice: litterPrice, unitsPerItem: 1,
-            stock: \.litter, key: "shop.litterPurchased", now: now)
+            stock: \.litter, success: .litterPurchased, now: now)
     }
 
     public static func buyToy(_ state: inout GameSnapshot, quantity: Int = 1,
                               now: Date = Date()) -> ActionOutcome {
         buy(&state, quantity: quantity, unitPrice: toyPrice, unitsPerItem: toyUsesPerPurchase,
-            stock: \.toys, key: "shop.toyPurchased", now: now)
+            stock: \.toys, success: .toyPurchased, now: now)
     }
 
     public static func purchaseEquipment(_ state: inout GameSnapshot, itemID: String,
@@ -259,7 +259,7 @@ public enum GameEngine {
         guard state.player.gold >= offer.price else { return failure(.shopGoldRequired, amount: offer.price) }
         state.player.gold -= offer.price
         state.player.profile.ownedEquipmentIDs.append(itemID)
-        return ActionOutcome(kind: .purchase, messageKey: "shop.equipmentPurchased", amount: offer.price)
+        return ActionOutcome(success: .equipmentPurchased, amount: offer.price)
     }
 
     public static func purchaseFurniture(_ state: inout GameSnapshot, offerID: String,
@@ -275,7 +275,7 @@ public enum GameEngine {
         guard state.player.gold >= offer.price else { return failure(.shopGoldRequired, amount: offer.price) }
         state.player.gold -= offer.price
         state.inventory.furniture.append(FurnitureItem(id: instanceID, kind: offer.kind))
-        return ActionOutcome(kind: .purchase, messageKey: "shop.furniturePurchased", amount: offer.price)
+        return ActionOutcome(success: .furniturePurchased, amount: offer.price)
     }
 
     public static func upgradeHome(_ state: inout GameSnapshot, toLevel: Int,
@@ -292,7 +292,7 @@ public enum GameEngine {
         finishAllCatRests(&state, now: effectiveTime(state, now: now))
         state.player.gold -= next.upgradeCost
         state.home.roomLevel = next.level
-        return ActionOutcome(kind: .purchase, messageKey: "home.upgraded", amount: next.upgradeCost)
+        return ActionOutcome(success: .homeUpgraded, amount: next.upgradeCost)
     }
 
     /// Base career values mirror the web catalog. Rewards are captured at
@@ -320,7 +320,7 @@ public enum GameEngine {
                                             goldReward: job.goldReward, expReward: job.expReward, quote: quote)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
-        return ActionOutcome(kind: .workStarted, messageKey: "work.started")
+        return ActionOutcome(success: .workStarted)
     }
 
     /// Applies whole elapsed intervals, preserving the fractional remainder.
@@ -379,7 +379,7 @@ public enum GameEngine {
                 goldReward: goldAwarded, expReward: work.expReward,
                 levelBefore: levelBefore, levelAfter: progress.level, expAfter: progress.exp)
             state.player.activeWork = nil
-            return ActionOutcome(kind: .workFinished, messageKey: "work.finished", amount: goldAwarded)
+            return ActionOutcome(success: .workFinished, amount: goldAwarded)
         }
         return ActionOutcome()
     }
@@ -393,7 +393,7 @@ public enum GameEngine {
         let position = NormalizedPoint(x: min(1, max(0, position.x)), y: min(1, max(0, position.y)))
         if position != state.home.bowlPosition { finishAllCatRests(&state, now: effectiveTime(state, now: now)) }
         state.home.bowlPosition = position
-        return ActionOutcome(kind: .layout, messageKey: "room.layoutSaved")
+        return ActionOutcome(success: .layoutSaved)
     }
 
     /// Commit the complete draft only after every coordinate and owned-item
@@ -417,12 +417,12 @@ public enum GameEngine {
         }
         state.home.bowlPosition = bowlPosition
         state.home.furniture = furniture
-        return ActionOutcome(kind: .layout, messageKey: "room.layoutSaved")
+        return ActionOutcome(success: .layoutSaved)
     }
 
     private static func buy(_ state: inout GameSnapshot, quantity: Int, unitPrice: Int,
                             unitsPerItem: Int, stock: WritableKeyPath<InventoryState, Int>,
-                            key: String, now: Date) -> ActionOutcome {
+                            success: ActionSuccess, now: Date) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard (1...999).contains(quantity) else { return failure(.shopInvalidQuantity) }
@@ -434,7 +434,7 @@ public enum GameEngine {
         }
         state.player.gold -= cost
         state.inventory[keyPath: stock] += count
-        return ActionOutcome(kind: .purchase, messageKey: key, amount: count)
+        return ActionOutcome(success: success, amount: count)
     }
 
     private static func cap(_ value: Int) -> Int { min(100, max(0, value)) }
@@ -499,7 +499,7 @@ public enum GameEngine {
     }
 
     private static func failure(_ reason: ActionFailure, amount: Int = 0) -> ActionOutcome {
-        ActionOutcome(amount: amount, failure: reason)
+        ActionOutcome(failure: reason, amount: amount)
     }
 
     private static func elapsedSteps(from: Date, to: Date, interval: TimeInterval) -> Int {

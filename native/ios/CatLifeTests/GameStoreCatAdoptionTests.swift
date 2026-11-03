@@ -292,6 +292,8 @@ private actor CatAdoptionSaveRepository: GameSaveRepository {
     func latestAttempt() -> GameSnapshot? { attempts.last }
     func loadOrCreate(now: Date) async throws -> GameSnapshot { savedSnapshot }
 
+    func checkWritable() throws { if writesFailing { throw CatAdoptionTestFailure.unavailable } }
+
     func save(_ snapshot: GameSnapshot) async throws {
         let fails = writesFailing
         attempts.append(snapshot)

@@ -41,20 +41,74 @@ public enum ActionFailure: String, Equatable, Sendable {
     case workStaminaRequired = "work.staminaRequired"
 }
 
-public struct ActionOutcome: Equatable, Sendable {
-    public var kind: ActionKind
-    public var succeeded: Bool
-    public var messageKey: String
-    /// Resource units consumed/granted, or gold paid out for completed work.
-    public var amount: Int
-    public let failure: ActionFailure?
+public enum ActionSuccess: String, Equatable, Sendable {
+    case catAdopted = "cat.adopted"
+    case companionSelected = "cat.companionSelected"
+    case avatarSaved = "player.avatarSaved"
+    case equipped = "equipment.equipped"
+    case unequipped = "equipment.unequipped"
+    case starterEquipped = "equipment.starterEquipped"
+    case sleepStarted = "sleep.started"
+    case sleepEnded = "sleep.ended"
+    case catRestStarted = "rest.started"
+    case catRestEnded = "rest.ended"
+    case fed = "care.fed"
+    case cleaned = "care.cleaned"
+    case played = "care.played"
+    case equipmentPurchased = "shop.equipmentPurchased"
+    case furniturePurchased = "shop.furniturePurchased"
+    case homeUpgraded = "home.upgraded"
+    case workStarted = "work.started"
+    case workFinished = "work.finished"
+    case layoutSaved = "room.layoutSaved"
+    case foodPurchased = "shop.foodPurchased"
+    case litterPurchased = "shop.litterPurchased"
+    case toyPurchased = "shop.toyPurchased"
 
-    public init(kind: ActionKind = .none, succeeded: Bool = true,
-                messageKey: String = "", amount: Int = 0, failure: ActionFailure? = nil) {
-        self.kind = kind
-        self.succeeded = failure == nil && succeeded
-        self.messageKey = failure?.rawValue ?? messageKey
+    public var kind: ActionKind {
+        switch self {
+        case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
+             .foodPurchased, .litterPurchased, .toyPurchased: return .purchase
+        case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped: return .none
+        case .sleepStarted: return .sleepStarted
+        case .sleepEnded: return .sleepEnded
+        case .catRestStarted: return .catRestStarted
+        case .catRestEnded: return .catRestEnded
+        case .fed: return .feed
+        case .cleaned: return .clean
+        case .played: return .play
+        case .workStarted: return .workStarted
+        case .workFinished: return .workFinished
+        case .layoutSaved: return .layout
+        }
+    }
+}
+
+public struct ActionOutcome: Equatable, Sendable {
+    public let success: ActionSuccess?
+    public let failure: ActionFailure?
+    public var kind: ActionKind { success?.kind ?? .none }
+    public var succeeded: Bool { failure == nil }
+    public var messageKey: String { failure?.rawValue ?? success?.rawValue ?? "" }
+    /// Resource units consumed/granted, or gold paid out for completed work.
+    public let amount: Int
+
+    /// Synchronization or an already-completed action can succeed without a notice.
+    public init() {
+        success = nil
+        failure = nil
+        amount = 0
+    }
+
+    public init(success: ActionSuccess, amount: Int = 0) {
+        self.success = success
+        failure = nil
         self.amount = amount
+    }
+
+    public init(failure: ActionFailure, amount: Int = 0) {
+        success = nil
         self.failure = failure
+        self.amount = amount
     }
 }

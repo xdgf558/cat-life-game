@@ -315,7 +315,7 @@ final class GameStorePersistenceTests: XCTestCase {
             store.showSaveError = false
             action()
             try await eventually("Each manual failure must finish and report itself") {
-                let count = await repository.attempts.count
+                let count = await repository.attempts.count + repository.probeCount
                 return count == baseline + offset + 1 && !store.isBusy
             }
             XCTAssertTrue(store.showSaveError)
@@ -330,6 +330,11 @@ final class GameStorePersistenceTests: XCTestCase {
             !store.isBusy && !store.hasSaveFailure
         }
         XCTAssertFalse(store.showSaveError)
+        let durableWrites = await repository.attempts.count
+        let probes = await repository.probeCount
+        XCTAssertEqual(durableWrites, baseline + 2, "Retries with no gameplay changes must not rewrite saves.")
+        XCTAssertEqual(probes, 2)
+        XCTAssertEqual(store.snapshot, before)
         XCTAssertEqual(store.snapshot?.player.gold, before.player.gold)
         XCTAssertEqual(store.snapshot?.inventory, before.inventory)
         XCTAssertEqual(store.snapshot?.cats, before.cats)
@@ -407,6 +412,20 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertTrue(store.toast?.contains(GameStrings.format("action.workFinished", 60)) == true)
         XCTAssertTrue(store.toast?.contains(GameStrings.text("action.purchase")) == true)
         XCTAssertEqual(store.snapshot?.player.gold, seed.player.gold + 60 - 20)
+    }
+
+    @MainActor
+    func testNewerSchemaHasAnUpdatePromptInsteadOfCorruptionOrReset() async throws {
+        let repository = NewerSchemaRepository()
+        let store = GameStore(repository: repository)
+        await store.load()
+        XCTAssertTrue(store.loadFailed)
+        XCTAssertTrue(store.needsNewerVersion)
+        XCTAssertNil(store.snapshot)
+        XCTAssertFalse(store.isBusy)
+        XCTAssertFalse(store.hasEnteredHome)
+        let writes = await repository.writes
+        XCTAssertEqual(writes, 0)
     }
 
     private func mutedSnapshot(now: Date = Date()) -> GameSnapshot {
@@ -546,6 +565,7 @@ private actor MemorySaveRepository: GameSaveRepository {
     private(set) var savedSnapshot: GameSnapshot
     private(set) var readCount = 0
     private(set) var attempts: [SaveAttempt] = []
+    private(set) var probeCount = 0
     private(set) var activeSaveCalls = 0
     private(set) var maximumConcurrentSaveCalls = 0
     private var writesFailing: Bool
@@ -570,6 +590,11 @@ private actor MemorySaveRepository: GameSaveRepository {
         return savedSnapshot
     }
 
+    func checkWritable() throws {
+        probeCount += 1
+        if writesFailing { throw SimulatedWriteError.unavailable }
+    }
+
     func save(_ snapshot: GameSnapshot) async throws {
         let fails = writesFailing
         activeSaveCalls += 1
@@ -580,4 +605,14 @@ private actor MemorySaveRepository: GameSaveRepository {
         if fails { throw SimulatedWriteError.unavailable }
         savedSnapshot = snapshot
     }
+}
+
+private actor NewerSchemaRepository: GameSaveRepository {
+    let lastLoadDisposition = SaveLoadDisposition.loaded
+    private(set) var writes = 0
+    func loadOrCreate(now: Date) throws -> GameSnapshot {
+        throw SaveRepositoryError.unsupportedSchemaVersion(GameSnapshot.currentSchemaVersion + 1)
+    }
+    func save(_ state: GameSnapshot) throws { writes += 1 }
+    func checkWritable() throws { throw SaveRepositoryError.unsupportedSchemaVersion(GameSnapshot.currentSchemaVersion + 1) }
 }

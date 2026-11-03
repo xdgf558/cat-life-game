@@ -11,7 +11,6 @@ struct WorkDestinationView: View {
     @State private var careerSearch = ""
     @State private var careerFilter = CareerDirectory.Filter.all
     @State private var careerPage = 0
-    @FocusState private var careerSearchFocused: Bool
 
     private enum CareerRoute: Hashable { case jobs, job(String), rest, result }
 
@@ -57,7 +56,6 @@ struct WorkDestinationView: View {
         #endif
         .onChange(of: store.pendingWorkResultID, initial: true) { _, id in
             guard let id, id == store.snapshot?.player.lastWorkResult?.id else { return }
-            careerSearchFocused = false
             careerPath = [.result]
             store.consumeWorkResultPresentation()
         }
@@ -67,20 +65,6 @@ struct WorkDestinationView: View {
     private var playerLevel: Int { store.snapshot?.player.level ?? 1 }
     private var playerExp: Int { store.snapshot?.player.exp ?? 0 }
 
-    private func jobName(_ id: String) -> String {
-        GameStrings.text(WorkCatalog.job(id: id) == nil ? "work.name" : "jobs.\(id).name")
-    }
-
-    private func jobSymbol(_ id: String) -> String {
-        switch id {
-        case "job_store": "storefront.fill"
-        case "job_petshop": "pawprint.fill"
-        case "job_it_engineer": "laptopcomputer"
-        case "job_cat_cafe_manager": "cup.and.saucer.fill"
-        default: "newspaper.fill"
-        }
-    }
-
     private var work: some View {
         VStack(spacing: 16) {
             careerProgress
@@ -88,7 +72,7 @@ struct WorkDestinationView: View {
             VStack(spacing: 0) {
                 workEntry("career.choose", symbol: "list.bullet", id: "careerChooseJobButton",
                           subtitle: store.snapshot?.player.activeWork == nil ? nil
-                            : GameStrings.format("career.nextJob", jobName(selectedJobID))) {
+                            : GameStrings.format("career.nextJob", WorkJobPresentation.name(selectedJobID))) {
                     careerPath = [.jobs]
                 }
                 Divider().padding(.leading, 48)
@@ -146,12 +130,12 @@ struct WorkDestinationView: View {
             let quote = active == nil ? preview(job) : active?.quote
             let seconds = shiftSeconds(job, captured: active, quote: quote)
             HStack(spacing: 12) {
-                Image(systemName: jobSymbol(job.id))
+                Image(systemName: WorkJobPresentation.symbol(job.id))
                     .font(.system(size: 23, weight: .semibold)).foregroundStyle(RoomTheme.darkMint)
                     .frame(width: 44, height: 44)
                     .background(RoomTheme.mint.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
                     .accessibilityHidden(true)
-                Text(jobName(job.id)).font(.system(size: 21, weight: .bold))
+                Text(WorkJobPresentation.name(job.id)).font(.system(size: 21, weight: .bold))
                     .accessibilityIdentifier("selectedCareerName").accessibilityValue(job.id)
             }
             jobRewards(job, quotedSeconds: seconds, captured: active)
@@ -261,131 +245,15 @@ struct WorkDestinationView: View {
         Label(GameStrings.format("career.expReward", captured?.expReward ?? job.expReward), systemImage: "sparkle")
     }
 
-    private var filteredJobs: [WorkJob] {
-        CareerDirectory.matching(WorkCatalog.all, level: playerLevel, query: careerSearch, filter: careerFilter,
-                                 locale: Locale(identifier: store.language.rawValue)) { jobName($0.id) }
-    }
-
-    private var directoryPage: Int { CareerDirectory.clampedPage(careerPage, count: filteredJobs.count) }
-
     private var careerChoices: some View {
-        ScrollView {
-            VStack(spacing: 16) {
-                HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(RoomTheme.secondary).accessibilityHidden(true)
-                    TextField(GameStrings.text("career.search.placeholder"), text: $careerSearch)
-                        .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .submitLabel(.search).focused($careerSearchFocused)
-                        .onSubmit { careerSearchFocused = false }
-                        .accessibilityIdentifier("careerSearchField")
-                    if !careerSearch.isEmpty {
-                        Button { careerSearch = ""; careerSearchFocused = false } label: {
-                            Image(systemName: "xmark.circle.fill").frame(width: 44, height: 44)
-                        }
-                        .buttonStyle(.plain).foregroundStyle(RoomTheme.secondary)
-                        .accessibilityLabel(GameStrings.text("career.search.clear"))
-                        .accessibilityIdentifier("careerSearchClearButton")
-                    }
-                }
-                .padding(.leading, 12).padding(.trailing, careerSearch.isEmpty ? 12 : 0)
-                .frame(minHeight: 48)
-                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
-                HStack(spacing: 6) {
-                    ForEach(CareerDirectory.Filter.allCases, id: \.self) { filter in
-                        Button { careerFilter = filter; careerSearchFocused = false } label: {
-                            Text(GameStrings.text("career.filter.\(filter.rawValue)"))
-                                .font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .background(careerFilter == filter ? RoomTheme.paleMint : RoomTheme.paper,
-                                            in: RoundedRectangle(cornerRadius: 14))
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("careerFilter_\(filter.rawValue)")
-                        .accessibilityValue(careerFilter == filter ? "selected" : "unselected")
-                        .accessibilityAddTraits(careerFilter == filter ? .isSelected : [])
-                    }
-                }
-                let jobs = filteredJobs
-                if jobs.isEmpty {
-                    VStack(spacing: 12) {
-                        Image(systemName: "magnifyingglass").font(.title).accessibilityHidden(true)
-                        Text(GameStrings.text("career.empty")).font(.subheadline).multilineTextAlignment(.center)
-                    }
-                    .foregroundStyle(RoomTheme.secondary).padding(24).frame(maxWidth: .infinity)
-                    .accessibilityElement(children: .combine).accessibilityIdentifier("careerEmptyState")
-                } else {
-                    VStack(spacing: 10) {
-                        ForEach(Array(jobs[CareerDirectory.pageRange(careerPage, count: jobs.count)])) { job in
-                            careerRow(job)
-                        }
-                    }
-                }
-                HStack(spacing: 8) {
-                    Button { careerPage = directoryPage - 1; careerSearchFocused = false } label: {
-                        Label(GameStrings.text("career.page.previous"), systemImage: "chevron.left")
-                            .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
-                    }
-                    .buttonStyle(.plain).disabled(directoryPage == 0)
-                    .accessibilityIdentifier("careerPagePrevious")
-                    Text(GameStrings.format("career.page.indicator", directoryPage + 1, CareerDirectory.pageCount(for: jobs.count)))
-                        .font(.subheadline.monospacedDigit()).fixedSize()
-                        .accessibilityIdentifier("careerPageIndicator")
-                        .accessibilityValue("\(directoryPage + 1)/\(CareerDirectory.pageCount(for: jobs.count))")
-                    Button { careerPage = directoryPage + 1; careerSearchFocused = false } label: {
-                        HStack(spacing: 5) {
-                            Text(GameStrings.text("career.page.next"))
-                            Image(systemName: "chevron.right").accessibilityHidden(true)
-                        }.font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
-                    }
-                    .buttonStyle(.plain).disabled(directoryPage + 1 >= CareerDirectory.pageCount(for: jobs.count))
-                    .accessibilityIdentifier("careerPageNext")
-                }
-                .foregroundStyle(RoomTheme.darkMint)
+        WorkCareerDirectoryView(playerLevel: playerLevel, selectedJobID: selectedJobID, language: store.language,
+            careerSearch: $careerSearch, careerFilter: $careerFilter, careerPage: $careerPage) { id in
+                careerPath.append(.job(id))
             }
-            .padding(20).frame(maxWidth: 520).frame(maxWidth: .infinity)
-        }
-        .scrollDismissesKeyboard(.interactively)
-        .accessibilityIdentifier("careerJobsScroll")
-        .background(RoomTheme.cream)
-        .navigationTitle(GameStrings.text("career.jobs"))
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            careerBackButton("careerJobsBackButton")
-            careerDoneButton
-        }
-        .onChange(of: careerSearch) { _, _ in careerPage = 0 }
-        .onChange(of: careerFilter) { _, _ in careerPage = 0 }
-        .onChange(of: filteredJobs.count) { _, count in careerPage = CareerDirectory.clampedPage(careerPage, count: count) }
-    }
-
-    private func careerRow(_ job: WorkJob) -> some View {
-        Button { careerSearchFocused = false; careerPath.append(.job(job.id)) } label: {
-            HStack(spacing: 12) {
-                Image(systemName: jobSymbol(job.id)).font(.title3).frame(width: 28)
-                    .foregroundStyle(playerLevel >= job.unlockLevel ? RoomTheme.darkMint : RoomTheme.secondary)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(jobName(job.id)).font(.headline).multilineTextAlignment(.leading)
-                        .accessibilityIdentifier("careerJobName_\(job.id)")
-                    Text(playerLevel >= job.unlockLevel ? GameStrings.text(selectedJobID == job.id ? "career.selected" : "career.available")
-                         : GameStrings.format("career.unlock", job.unlockLevel))
-                        .font(.caption).foregroundStyle(RoomTheme.secondary)
-                        .accessibilityHidden(true)
-                }
-                Spacer(minLength: 4)
-                Image(systemName: "chevron.right").font(.caption.weight(.bold)).accessibilityHidden(true)
+            .toolbar {
+                careerBackButton("careerJobsBackButton")
+                careerDoneButton
             }
-            .padding(14).frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain).accessibilityElement(children: .contain)
-        .accessibilityLabel(jobName(job.id))
-        .accessibilityValue(playerLevel >= job.unlockLevel
-            ? GameStrings.text(selectedJobID == job.id ? "career.selected" : "career.available")
-            : GameStrings.format("career.unlock", job.unlockLevel))
-        .accessibilityIdentifier("careerJobRow_\(job.id)")
     }
 
     private func careerDetail(_ id: String) -> some View {
@@ -396,9 +264,9 @@ struct WorkDestinationView: View {
                 let seconds = shiftSeconds(job, captured: active, quote: quote)
                 VStack(alignment: .leading, spacing: 20) {
                     HStack(spacing: 14) {
-                        Image(systemName: jobSymbol(job.id)).font(.largeTitle).foregroundStyle(RoomTheme.darkMint)
+                        Image(systemName: WorkJobPresentation.symbol(job.id)).font(.largeTitle).foregroundStyle(RoomTheme.darkMint)
                             .accessibilityHidden(true)
-                        Text(jobName(job.id)).font(.title2.weight(.bold))
+                        Text(WorkJobPresentation.name(job.id)).font(.title2.weight(.bold))
                             .accessibilityIdentifier("careerJobName_\(job.id)")
                     }
                     Text(GameStrings.text("jobs.\(job.id).detail")).foregroundStyle(RoomTheme.secondary)
@@ -524,7 +392,6 @@ struct WorkDestinationView: View {
     @ToolbarContentBuilder private func careerBackButton(_ id: String) -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             Button {
-                careerSearchFocused = false
                 if !careerPath.isEmpty { careerPath.removeLast() }
             } label: {
                 Label(GameStrings.text("common.back"), systemImage: "chevron.left")
@@ -542,172 +409,23 @@ struct WorkDestinationView: View {
     }
 
     private var restPage: some View {
-        ScrollView {
-            playerRest.padding(20).frame(maxWidth: 520).frame(maxWidth: .infinity)
-        }
-        .accessibilityIdentifier("workRestScroll").background(RoomTheme.cream)
-        .navigationTitle(GameStrings.text("sleep.title")).navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            careerBackButton("workRestBackButton")
-            careerDoneButton
-        }
+        WorkRestView(store: store)
+            .toolbar {
+                careerBackButton("workRestBackButton")
+                careerDoneButton
+            }
     }
 
     private var workResult: some View {
-        ScrollView {
-            if let result = store.snapshot?.player.lastWorkResult {
-                VStack(spacing: 22) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 52)).foregroundStyle(RoomTheme.darkMint)
-                    Text(GameStrings.text("career.resultSubtitle"))
-                        .font(.title3.weight(.bold)).multilineTextAlignment(.center)
-                        .accessibilityIdentifier("workResultID").accessibilityValue(result.id)
-                    VStack(alignment: .leading, spacing: 18) {
-                        Text(jobName(result.jobID)).font(.title2.weight(.bold))
-                            .accessibilityIdentifier("workResultJob").accessibilityValue(result.jobID)
-                        Text(verbatim: result.completedAt.formatted(.dateTime.month().day().hour().minute()
-                            .locale(Locale(identifier: store.language.rawValue))))
-                            .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                            .accessibilityIdentifier("workResultCompletedAt")
-                        resultValue("career.resultGold", result.goldReward, id: "workResultGold")
-                        resultValue("career.resultExp", result.expReward, id: "workResultExp")
-                        Divider()
-                        HStack(spacing: 12) {
-                            Text(GameStrings.format("career.level", result.levelBefore))
-                                .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-                                .accessibilityIdentifier("workResultLevelBefore").accessibilityValue("\(result.levelBefore)")
-                            Image(systemName: "arrow.right").foregroundStyle(RoomTheme.secondary)
-                            Text(GameStrings.format("career.level", result.levelAfter))
-                                .font(.headline).foregroundStyle(RoomTheme.darkMint)
-                                .accessibilityIdentifier("workResultLevelAfter").accessibilityValue("\(result.levelAfter)")
-                        }
-                        Text(GameStrings.format("career.exp", result.expAfter,
-                                                WorkCatalog.requiredExperience(forLevel: result.levelAfter)))
-                            .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-                            .accessibilityIdentifier("workResultExpAfter").accessibilityValue("\(result.expAfter)")
-                        if !result.newlyUnlockedJobIDs.isEmpty {
-                            Text(GameStrings.text("career.newJobs")).font(.headline)
-                            ForEach(result.newlyUnlockedJobIDs, id: \.self) { id in
-                                Label(jobName(id), systemImage: jobSymbol(id))
-                                    .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
-                                    .accessibilityIdentifier("careerUnlocked_\(id)")
-                            }
-                        }
-                    }
-                    .padding(22).frame(maxWidth: .infinity, alignment: .leading)
-                    .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
-                    Text(GameStrings.text("career.resultSaved"))
-                        .font(.footnote).foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center)
+        WorkResultView(store: store) { careerPath.removeAll() }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
                     Button { careerPath.removeAll() } label: {
-                        Text(GameStrings.text("career.resultDone")).font(.headline).frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(MintButtonStyle())
-                    .accessibilityIdentifier("careerResultDoneButton")
+                        Label(GameStrings.text("common.back"), systemImage: "chevron.left")
+                    }.foregroundStyle(RoomTheme.darkMint)
                 }
-                .padding(20).frame(maxWidth: 520).frame(maxWidth: .infinity)
+                careerDoneButton
             }
-        }
-        .accessibilityIdentifier("careerResultScroll")
-        .background(RoomTheme.cream)
-        .navigationTitle(GameStrings.text("career.resultTitle"))
-        .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { careerPath.removeAll() } label: {
-                    Label(GameStrings.text("common.back"), systemImage: "chevron.left")
-                }.foregroundStyle(RoomTheme.darkMint)
-            }
-            careerDoneButton
-        }
-    }
-
-    private func resultValue(_ key: String, _ value: Int, id: String) -> some View {
-        HStack {
-            Text(GameStrings.text(key)).font(.subheadline)
-            Spacer()
-            Text("+\(value)").font(.title2.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(GameStrings.text(key)).accessibilityValue("\(value)")
-        .accessibilityIdentifier(id)
-    }
-
-    private var playerRest: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Label(GameStrings.text("sleep.title"), systemImage: "moon.stars.fill")
-                .font(.system(size: 23, weight: .bold, design: .rounded))
-                .foregroundStyle(RoomTheme.darkMint)
-            Text(GameStrings.text("sleep.subtitle"))
-                .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-            stat("sleep.stamina", value: store.snapshot?.player.stamina ?? 0)
-                .accessibilityIdentifier("playerStamina")
-            stat("sleep.mood", value: store.snapshot?.player.mood ?? 0)
-                .accessibilityIdentifier("playerMood")
-
-            let sleeping = store.snapshot?.player.activeSleep != nil
-            let working = store.snapshot?.player.activeWork != nil
-            Text(sleeping ? GameStrings.text("sleep.sleeping") :
-                    (store.snapshot?.player.activeWork.map {
-                        GameStrings.format("career.working", jobName($0.jobID))
-                    } ?? GameStrings.text("sleep.awake")))
-                .font(.headline)
-                .accessibilityIdentifier("sleepStatus")
-                .accessibilityValue(sleeping ? "asleep" : (working ? "working" : "awake"))
-
-            if let sleep = store.snapshot?.player.activeSleep {
-                Text(GameStrings.format("sleep.elapsed", sleepDuration(since: sleep.startedAt)))
-                    .font(.system(size: 22, weight: .semibold, design: .rounded)).monospacedDigit()
-                    .accessibilityIdentifier("sleepElapsed")
-                Text(GameStrings.text("sleep.offline"))
-                    .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                Button { store.wakeUp() } label: {
-                    Label(GameStrings.text("sleep.wake"), systemImage: "sun.max.fill")
-                        .font(.headline).frame(maxWidth: .infinity)
-                }
-                .buttonStyle(MintButtonStyle())
-                .disabled(store.isBusy)
-                .accessibilityIdentifier("sleepWakeButton")
-            } else {
-                if working {
-                    Text(GameStrings.text("sleep.workActive"))
-                        .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                }
-                Button { store.startSleep() } label: {
-                    Label(GameStrings.text("sleep.start"), systemImage: "moon.fill")
-                        .font(.headline).frame(maxWidth: .infinity)
-                }
-                .buttonStyle(SoftButtonStyle())
-                .disabled(store.isBusy || working)
-                .accessibilityIdentifier("sleepStartButton")
-            }
-            Text(GameStrings.text("sleep.rate"))
-                .font(.footnote).foregroundStyle(RoomTheme.secondary)
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
-    }
-
-    private func sleepDuration(since startedAt: Date) -> String {
-        let reference = max(store.now, store.snapshot?.meta.lastSyncAt ?? store.now)
-        let interval = max(0, reference.timeIntervalSince(startedAt))
-        let seconds = Int(min(interval, 315_360_000))
-        return String(format: "%d:%02d:%02d", seconds / 3600, (seconds / 60) % 60, seconds % 60)
-    }
-
-    private func stat(_ title: String, value: Int) -> some View {
-        HStack(spacing: 16) {
-            Text(GameStrings.text(title)).font(.system(size: 15, weight: .semibold))
-                .frame(width: 76, alignment: .leading)
-                .lineLimit(1).minimumScaleFactor(0.8)
-            ProgressView(value: Double(value), total: 100).tint(RoomTheme.mint)
-            Text("\(value)").font(.system(size: 15, weight: .semibold)).monospacedDigit().frame(width: 30, alignment: .trailing)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(GameStrings.text(title))
-        .accessibilityValue("\(value)")
     }
 
     private func duration(until deadline: Date) -> String {

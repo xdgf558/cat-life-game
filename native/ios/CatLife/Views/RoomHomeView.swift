@@ -92,6 +92,8 @@ struct RoomHomeView: View {
             .overlay(alignment: .bottom) {
                 if let toast = store.toast, !toast.isEmpty {
                     Text(toast)
+                        .lineLimit(6)
+                        .accessibilityLabel(toast)
                         .font(.system(size: 14, weight: .medium, design: .rounded))
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16).padding(.vertical, 10)

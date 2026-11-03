@@ -15,8 +15,14 @@ final class GameNoticeCenter {
         let previous = ready ? toast : startupNotice
         let combined = ((previous.map { [$0] } ?? []) + [message])
             .flatMap { $0.components(separatedBy: "\n") }
-            .reduce(into: [String]()) { if !$0.contains($1) { $0.append($1) } }
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .reduce(into: [String]()) { lines, message in
+                lines.removeAll { $0 == message }
+                lines.append(message)
+            }
+            .suffix(3)
             .joined(separator: "\n")
+        guard !combined.isEmpty else { return }
         guard ready else { startupNotice = combined; return }
         task?.cancel()
         toast = combined
@@ -37,16 +43,17 @@ final class GameNoticeCenter {
 enum GameActionNotice {
     static func message(for outcome: ActionOutcome, snapshot: GameSnapshot?) -> String {
         if outcome.succeeded {
-            switch outcome.kind {
-            case .feed: return GameStrings.text("action.feed")
-            case .clean: return GameStrings.text("action.clean")
-            case .play: return GameStrings.text("action.play")
-            case .purchase:
-                switch outcome.messageKey {
-                case "shop.equipmentPurchased", "shop.furniturePurchased", "home.upgraded", "cat.adopted":
-                    return GameStrings.text(outcome.messageKey)
-                default: return GameStrings.text("action.purchase")
-                }
+            guard let success = outcome.success else { return "" }
+            switch success {
+            case .fed: return GameStrings.text("action.feed")
+            case .cleaned: return GameStrings.text("action.clean")
+            case .played: return GameStrings.text("action.play")
+            case .foodPurchased, .litterPurchased, .toyPurchased:
+                return GameStrings.text("action.purchase")
+            case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
+                 .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
+                 .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded:
+                return GameStrings.text(success.rawValue)
             case .workStarted:
                 if let active = snapshot?.player.activeWork, let job = WorkCatalog.job(id: active.jobID) {
                     if let quote = active.quote, quote.durationSeconds != quote.baseDurationSeconds {
@@ -57,10 +64,7 @@ enum GameActionNotice {
                 }
                 return GameStrings.text("action.workStarted")
             case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
-            case .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded:
-                return GameStrings.text(outcome.messageKey)
-            case .layout: return GameStrings.text("layout.saved")
-            case .none: return GameStrings.text(outcome.messageKey)
+            case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
         switch outcome.failure {

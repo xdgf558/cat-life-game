@@ -1,0 +1,321 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "result": "passed",
+  "executed": 62,
+  "passed": 62,
+  "failed": 0,
+  "newTests": 15,
+  "cases": [
+    {
+      "name": "CareerDirectoryTests/testEmptyShrinkingAndOutOfRangePagesRemainSafe",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "name": "CareerDirectoryTests/testLocalizedNameSearchAndUnlockFilterComposeWithoutReorderingJobs",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "CareerDirectoryTests/testOneHundredAndOneJobsStayInFourRowPagesWithNoGapsOrDuplicates",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "name": "CatCompanionSceneTests/testColdCowCompanionKeepsInitialLayoutAndRejectsPreviousCatsFeedback",
+      "result": "passed",
+      "seconds": 1.086
+    },
+    {
+      "name": "CatSpriteLibraryTests/testConcurrentWelcomePreparationRegistersEachAtlasOnlyOnce",
+      "result": "passed",
+      "seconds": 2.95
+    },
+    {
+      "name": "CatSpriteLibraryTests/testWarmRegistrationIsSharedAcrossCompanionSwitchesAndActors",
+      "result": "passed",
+      "seconds": 1.494
+    },
+    {
+      "name": "GameNoticeCenterTests/testEmptySynchronizationAndWorkNoticesKeepTheirDistinctSemantics",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameNoticeCenterTests/testEveryPurchaseCategoryUsesItsIntendedNoticeInAllLanguages",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameNoticeCenterTests/testReadyAndStartupQueuesKeepOnlyThreeMostRecentDistinctMessages",
+      "result": "passed",
+      "seconds": 0.007
+    },
+    {
+      "name": "GameNoticeCenterTests/testStartupPreservesWorkRecoveryAndRestTogetherWhenEnteringHome",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testAudioIntentWaitsForBusySaveAndPreservesItsPlayerChange",
+      "result": "passed",
+      "seconds": 0.032
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testFailedAudioIntentsRemainRetryableAndRetrySavesLatestSettings",
+      "result": "passed",
+      "seconds": 0.012
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testNewestAudioFailureStillAlertsAfterSupersededFailure",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testOlderAudioSuccessCannotDiscardNewerIntentReturningToSavedValues",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testSupersededAudioFailureDoesNotAlertWhileNewestIntentStillSaves",
+      "result": "passed",
+      "seconds": 0.033
+    },
+    {
+      "name": "GameStoreCatAdoptionTests/testCareAndInspectionFollowSavedCompanionWhileOtherCatRemainsIndependent",
+      "result": "passed",
+      "seconds": 0.044
+    },
+    {
+      "name": "GameStoreCatAdoptionTests/testFailedAdoptionKeepsWalletAndCatsUntilExplicitRetryChargesOnce",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStoreCatAdoptionTests/testFailedSwitchKeepsOriginalCompanionAndSuccessfulRetrySurvivesReload",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStoreCatAdoptionTests/testInFlightAdoptionBlocksSecondAdoptionSelectionAndCare",
+      "result": "passed",
+      "seconds": 0.012
+    },
+    {
+      "name": "GameStoreCatAdoptionTests/testSlowCompanionSaveRejectsOldRestArrivalAndExitWithoutLateRecovery",
+      "result": "passed",
+      "seconds": 1.154
+    },
+    {
+      "name": "GameStoreCatAdoptionTests/testSwitchAfterFailedSaveReplaysCapturedOldRestExitWithoutGivingNewCatRecovery",
+      "result": "passed",
+      "seconds": 0.022
+    },
+    {
+      "name": "GameStoreCatNameTests/testCustomDefaultSpellingStaysLiteralAcrossLanguagesAndInspectionIsTransient",
+      "result": "passed",
+      "seconds": 0.026
+    },
+    {
+      "name": "GameStoreCatNameTests/testFailedCatRenameKeepsBothCatsWorkAndRestUntilExplicitRetry",
+      "result": "passed",
+      "seconds": 0.016
+    },
+    {
+      "name": "GameStoreCatNameTests/testInFlightRenameOwnsSaveLockAndCannotPublishAnotherCatsDraft",
+      "result": "passed",
+      "seconds": 0.012
+    },
+    {
+      "name": "GameStoreCatNameTests/testInvalidMissingAndUnchangedNamesNeverWriteAndResetIsPerCat",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStoreCatNameTests/testRenameCommitsPendingRestExitAtItsCapturedTimeWithoutLosingTheOtherCat",
+      "result": "passed",
+      "seconds": 0.023
+    },
+    {
+      "name": "GameStorePersistenceTests/testBackupRestAndWorkNoticesSurviveStartupAndEntry",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testDueWorkSettlementPersistsOnceAfterTimestampOnlyRequests",
+      "result": "passed",
+      "seconds": 2.057
+    },
+    {
+      "name": "GameStorePersistenceTests/testEveryManualFailureReportsAndPersistentRecoveryDoesNotReplayActions",
+      "result": "passed",
+      "seconds": 0.087
+    },
+    {
+      "name": "GameStorePersistenceTests/testExplicitRenameRecoversPendingRestExitAfterWriteFailure",
+      "result": "passed",
+      "seconds": 0.042
+    },
+    {
+      "name": "GameStorePersistenceTests/testFailedRenameDoesNotPublishDraftOrRaiseGlobalAlert",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testFullStaminaClockDoesNotCausePassiveWritesOrBankExtraRecovery",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testLoadKeepsExclusiveSaveOwnershipAcrossSuspensionPoints",
+      "result": "passed",
+      "seconds": 0.252
+    },
+    {
+      "name": "GameStorePersistenceTests/testNewerSchemaHasAnUpdatePromptInsteadOfCorruptionOrReset",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "name": "GameStorePersistenceTests/testRestExitFailuresUnlockUIKeepCapturedTimeAndSlowAfterThreeAttempts",
+      "result": "passed",
+      "seconds": 7.072
+    },
+    {
+      "name": "GameStorePersistenceTests/testSaveRetryPolicySlowsToOneMinuteAndResetsAfterSuccess",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testShopAndUpgradePublishOnlyAfterDurableWrite",
+      "result": "passed",
+      "seconds": 0.126
+    },
+    {
+      "name": "GameStorePersistenceTests/testSuccessfulLoadRemainsUsableWhenReconciliationCannotSave",
+      "result": "passed",
+      "seconds": 0.042
+    },
+    {
+      "name": "GameStorePersistenceTests/testTimestampOnlyForegroundSynchronizationDoesNotWrite",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testUpgradeKeepsDecoratingDraftAndCapacityPreventsNewPlacement",
+      "result": "passed",
+      "seconds": 0.045
+    },
+    {
+      "name": "GameStorePersistenceTests/testWorkNoticeSurvivesConcurrentPurchaseNotice",
+      "result": "passed",
+      "seconds": 2.087
+    },
+    {
+      "name": "RoomBowlPlannerTests/testCancelledWorkerCannotPublishAReplacementLayout",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "RoomBowlPlannerTests/testCompletelyBlockedLegacyLayoutDoesNotInventAWalkableRoute",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "name": "RoomBowlPlannerTests/testInterruptedClimbRetainsItsFirstPoseThenReturnsAllSupportToFloor",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "RoomBowlPlannerTests/testLegacyWallPositionRestoresToReachableFloorWithoutChangingRequest",
+      "result": "passed",
+      "seconds": 3.385
+    },
+    {
+      "name": "RoomBowlPlannerTests/testValidRestoredPositionAndNavigationAreStableAcrossReload",
+      "result": "passed",
+      "seconds": 0.091
+    },
+    {
+      "name": "RoomCameraZoomTests/testPanAndEdgeScrollingFollowScreenDistanceAtZoomedScale",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "name": "RoomCameraZoomTests/testPinchDoesNotRestartCareOrEmitGameCallbacksAndStopsWhenInactive",
+      "result": "passed",
+      "seconds": 0.152
+    },
+    {
+      "name": "RoomCameraZoomTests/testPinchKeepsWorldAnchorUnderMovingMidpointAndRejectsInvalidInput",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "name": "RoomCameraZoomTests/testZoomLimitsAndGeometryChangesKeepCameraValidAndLevelOneLocked",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "name": "RoomCameraZoomTests/testZoomProjectionRoundTripsAndKeepsVisibleWorldInsideBounds",
+      "result": "passed",
+      "seconds": 0.0
+    },
+    {
+      "name": "RoomExpansionGeometryTests/testCameraClampsAndProjectsWithoutChangingWorldPositions",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "RoomExpansionGeometryTests/testEveryLevelRestoresReachableBowlAndAddsUsablePlacementBeyondOldViewport",
+      "result": "passed",
+      "seconds": 1.324
+    },
+    {
+      "name": "RoomExpansionGeometryTests/testPurchasedCushionKeepsStepHeightAndSafeEntryExitAtEveryLevel",
+      "result": "passed",
+      "seconds": 0.198
+    },
+    {
+      "name": "RoomExpansionGeometryTests/testStoredFurniturePurchasePreservesPendingAndActiveFeeding",
+      "result": "passed",
+      "seconds": 0.056
+    },
+    {
+      "name": "RoomExpansionGeometryTests/testWorldExpansionPreservesLevelOneMappingAndPhysicalFootprints",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "RoomLayoutPublicationTests/testBackgroundedUpgradeRetainsOldWorldAndResumesOnlyLatestRequest",
+      "result": "passed",
+      "seconds": 0.1
+    },
+    {
+      "name": "RoomLayoutPublicationTests/testCompanionSwitchDuringUpgradeDropsOldQueuedCareAndKeepsNewOwnerVisible",
+      "result": "passed",
+      "seconds": 0.105
+    },
+    {
+      "name": "RoomLayoutPublicationTests/testConsecutiveResizesMapFromLastVisibleWorldRatherThanUnpublishedSize",
+      "result": "passed",
+      "seconds": 0.101
+    },
+    {
+      "name": "RoomLayoutPublicationTests/testFurnitureRebuildKeepsOldObstaclePositionUntilCatHasSafeReplacement",
+      "result": "passed",
+      "seconds": 0.081
+    },
+    {
+      "name": "RoomLayoutPublicationTests/testUpgradesKeepCompleteSafeWorldVisibleUntilLatestLayoutCommits",
+      "result": "passed",
+      "seconds": 0.506
+    },
+    {
+      "name": "RoomLayoutPublicationTests/testUpgradeWaitsForAnAlreadyCommittedMealInsteadOfCancellingIt",
+      "result": "passed",
+      "seconds": 0.056
+    }
+  ]
+}

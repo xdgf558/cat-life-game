@@ -16,6 +16,7 @@ struct CatAdoptionTests {
         _ = GameEngine.startCatRest(&original, catID: CatCatalog.initialCatID,
             furnitureID: "catBed", sessionID: "legacy-rest", now: now)
         var object = try json(original)
+        object["schemaVersion"] = 1
         object.removeValue(forKey: "activeCatID")
         var cats = try #require(object["cats"] as? [[String: Any]])
         for index in cats.indices { cats[index].removeValue(forKey: "appearance") }
@@ -24,7 +25,7 @@ struct CatAdoptionTests {
         #expect(decoded == original)
         #expect(decoded.activeCatID == CatCatalog.initialCatID)
         #expect(decoded.activeCat?.appearance == .orange)
-        #expect(decoded.schemaVersion == 1)
+        #expect(decoded.schemaVersion == GameSnapshot.currentSchemaVersion)
     }
 
     @Test func malformedSelectionRepairsOnlySelectionWithoutRecoveringOlderSave() async throws {

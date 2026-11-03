@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 1
+    public static let currentSchemaVersion = 2
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -32,7 +32,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
-        schemaVersion = try values.decode(Int.self, forKey: .schemaVersion)
+        let version = try values.decode(Int.self, forKey: .schemaVersion)
+        guard (1...Self.currentSchemaVersion).contains(version) else {
+            throw SaveRepositoryError.unsupportedSchemaVersion(version)
+        }
+        // Older fields keep their defaults; the next durable save upgrades the header.
+        schemaVersion = Self.currentSchemaVersion
         player = try values.decode(PlayerState.self, forKey: .player)
         let decodedCats = try values.decode([CatState].self, forKey: .cats)
         cats = decodedCats

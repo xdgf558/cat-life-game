@@ -218,6 +218,8 @@ private actor CatNameSaveRepository: GameSaveRepository {
     func releaseSave() { heldSave?.resume(); heldSave = nil }
     func loadOrCreate(now: Date) async throws -> GameSnapshot { savedSnapshot }
 
+    func checkWritable() throws { if writesFailing { throw CatNameTestFailure.unavailable } }
+
     func save(_ snapshot: GameSnapshot) async throws {
         let fails = writesFailing
         attempts.append(snapshot)

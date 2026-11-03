@@ -1,0 +1,13 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 4241,
+  "saveSHA256": "ff83fddd96767d8fd51fb49939128637f3b485a868d6a701f3c6fafb12a472e4",
+  "launch": "passed after user unlock",
+  "runningProcessVerified": true,
+  "schemaAfterStartup": 2,
+  "identityOwnershipAndLayoutPreserved": true,
+  "userAcceptance": "pending"
+}

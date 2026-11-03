@@ -27,6 +27,7 @@ final class GameStore {
     private(set) var startupPhase = "welcome.loadingSave"
     private(set) var isBusy = false
     private(set) var loadFailed = false
+    private(set) var needsNewerVersion = false
     // Welcome presentation belongs to this process, not the durable game save.
     private(set) var hasEnteredHome = false
     var startupNotice: String? { notices.startupNotice }
@@ -194,7 +195,10 @@ final class GameStore {
                     audioSaveRequest?.completion = nil
                     audioSettingsSaveFailed = true
                 }
-                recordSaveFailure(userInitiated: explicitAttempt)
+                // A superseded request still records storage health, but only
+                // the latest intent may interrupt the player with an alert.
+                recordSaveFailure(showAlert: audioSaveRequest?.id == request.id,
+                                  userInitiated: explicitAttempt)
             }
             isBusy = false
             drainPendingSynchronization()
@@ -329,16 +333,20 @@ final class GameStore {
         }
         snapshot = context.candidate
         acknowledgeTransitions(context.transitions)
-        saveRetry.succeeded()
-        showSaveError = false
-        restRetryTask?.cancel()
-        restRetryTask = nil
+        clearSaveFailure()
         if let receipt = context.candidate.player.lastWorkResult,
            receipt.id != context.original.player.lastWorkResult?.id {
             pendingWorkResultID = receipt.id
             audio.play(.workComplete)
             showNotice(GameStrings.format("action.workFinished", receipt.goldReward))
         }
+    }
+
+    private func clearSaveFailure() {
+        saveRetry.succeeded()
+        showSaveError = false
+        restRetryTask?.cancel()
+        restRetryTask = nil
     }
 
     private func recordSaveFailure(showAlert: Bool = true, userInitiated: Bool = false) {
@@ -376,6 +384,7 @@ final class GameStore {
         isBusy = true
         isLoading = true
         loadFailed = false
+        needsNewerVersion = false
         startupProgress = 0
         startupPhase = "welcome.loadingSave"
         defer {
@@ -398,6 +407,9 @@ final class GameStore {
             loadDisposition = await repository.lastLoadDisposition
         } catch {
             loadFailed = true
+            if case SaveRepositoryError.unsupportedSchemaVersion(let version) = error {
+                needsNewerVersion = version > GameSnapshot.currentSchemaVersion
+            }
             snapshot = nil
             return
         }
@@ -843,15 +855,26 @@ final class GameStore {
         guard var context = saveContext() else { return }
         lastSyncCheck = Date()
         _ = GameEngine.synchronize(&context.candidate, now: lastSyncCheck)
-        // A retry probes storage even if the failed user action was rolled back.
-        guard hasSaveFailure || requiresDurableSave(context.candidate, comparedTo: context.original) else {
+        let needsSave = requiresDurableSave(context.candidate, comparedTo: context.original)
+        guard hasSaveFailure || needsSave else {
             acknowledgeTransitions(context.transitions)
             return
         }
         isBusy = true
         Task {
-            do { try await commit(context) }
-            catch { recordSaveFailure(userInitiated: userInitiated) }
+            do {
+                if needsSave { try await commit(context) }
+                else {
+                    // Probe the directory without rewriting the unchanged save
+                    // or rotating its checkpoint after a rolled-back action.
+                    #if DEBUG
+                    try fixtures.checkStorageProbe()
+                    #endif
+                    try await repository.checkWritable()
+                    acknowledgeTransitions(context.transitions)
+                    clearSaveFailure()
+                }
+            } catch { recordSaveFailure(userInitiated: userInitiated) }
             isBusy = false
             drainPendingSynchronization()
         }

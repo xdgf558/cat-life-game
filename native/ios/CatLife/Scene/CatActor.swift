@@ -223,17 +223,14 @@ final class CatActor: SKNode {
         pose.addChild(sprite)
         addChild(pose)
         setVisualWidth(visualWidth)
-        // Decode/register before the first interaction, never halfway through
-        // a gait when loading the next clip would create a visible hitch.
-        for clip in CatClip.allCases { _ = art.sequence(clip) }
     }
 
     required init?(coder aDecoder: NSCoder) { fatalError("CatActor is created in code") }
 
     func setAppearance(_ appearance: CatAppearance) {
+        guard self.appearance != appearance else { return }
         self.appearance = appearance
         art.setAppearance(appearance)
-        for clip in CatClip.allCases { _ = art.sequence(clip) }
         lastFrameKey = ""
         show(.expressions, frame: 0)
     }

@@ -42,6 +42,9 @@ enum GameStrings {
 
     private static let chinese: [String: String] = [
         "common.cancel": "取消",
+        "releases.32.title": "陪伴更流畅，存档更稳妥",
+        "releases.32.body": "优化切换猫咪时的动画加载，房间扩建期间保留猫咪与食盆的画面。加强旧存档兼容和版本保护，改善保存重试、声音偏好与消息提示。",
+        "save.newerVersionTitle": "请更新游戏版本", "save.newerVersionBody": "这份存档来自较新的游戏版本，请更新后再打开。原存档已保留。",
         "releases.31.title": "小家迎来新伙伴",
         "releases.31.body": "猫町新增奶牛猫领养，打工和房间都达到 2 级后可花费 300 金币领养。可在猫咪档案中选择陪伴猫，每只猫分别保留名字与属性；首页照料、房间动作和重新进入游戏都会跟随当前选择。",
         "cat.cowName": "牛奶",
@@ -443,6 +446,9 @@ enum GameStrings {
 
     private static let traditionalChinese: [String: String] = [
         "common.cancel": "取消",
+        "releases.32.title": "陪伴更流暢，存檔更穩妥",
+        "releases.32.body": "最佳化切換貓咪時的動畫載入，房間擴建期間保留貓咪與食盆的畫面。加強舊存檔相容及版本保護，改善儲存重試、聲音偏好與訊息提示。",
+        "save.newerVersionTitle": "請更新遊戲版本", "save.newerVersionBody": "這份存檔來自較新的遊戲版本，請更新後再開啟。原存檔已保留。",
         "releases.31.title": "小家迎來新夥伴",
         "releases.31.body": "貓町新增奶牛貓領養，打工和房間都達到 2 級後可花費 300 金幣領養。可在貓咪檔案中選擇陪伴貓，每隻貓分別保留名字與屬性；首頁照料、房間動作和重新進入遊戲都會跟隨目前選擇。",
         "cat.cowName": "牛奶",
@@ -844,6 +850,9 @@ enum GameStrings {
 
     private static let english: [String: String] = [
         "common.cancel": "Cancel",
+        "releases.32.title": "Smoother companions, safer saves",
+        "releases.32.body": "Cat switching now reuses prepared animations. Room expansions keep your cat and bowl visible while preparing the new space. Improved save compatibility, version protection, retries, sound preferences and notices.",
+        "save.newerVersionTitle": "Please update the game", "save.newerVersionBody": "This save was created by a newer game version. Update the game to open it. Your original save has been kept.",
         "releases.31.title": "A new friend at home",
         "releases.31.body": "Adopt MooMoo in Cat Town for 300 coins once both your work level and room level reach 2. Choose a companion in their profile. Each cat keeps their own name and attributes, and your choice carries through care, room activities and reopening the game.",
         "cat.cowName": "MooMoo",

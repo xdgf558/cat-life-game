@@ -58,7 +58,7 @@ struct PlayerNameTests {
         let reopened = FileSaveRepository(directory: folder)
         let loaded = try await reopened.loadOrCreate(now: now.addingTimeInterval(600))
         #expect(loaded == expected)
-        #expect(loaded.player.profile.name == nil && loaded.schemaVersion == 1)
+        #expect(loaded.player.profile.name == nil && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         #expect(await reopened.lastLoadDisposition == .loaded)
         #expect(try Data(contentsOf: repository.saveURL) == legacy)
         #expect(try Data(contentsOf: repository.backupURL) == backup)
@@ -130,7 +130,7 @@ struct PlayerNameTests {
             expected.player.profile.name = name
             #expect(loaded == expected)
             #expect(loaded.player.activeWork == original.player.activeWork)
-            #expect(loaded.schemaVersion == 1)
+            #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
             let object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: folder.appendingPathComponent("cat-life-native-v1.json"))) as? [String: Any])
             let player = try #require(object["player"] as? [String: Any])
             let profile = try #require(player["profile"] as? [String: Any])

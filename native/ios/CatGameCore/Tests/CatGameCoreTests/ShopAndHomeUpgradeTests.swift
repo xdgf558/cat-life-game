@@ -283,7 +283,7 @@ struct ShopAndHomeUpgradeTests {
         let legacy = try roomLevelData(Data(contentsOf: repository.saveURL), value: nil)
         try legacy.write(to: repository.saveURL)
         var migrated = try await repository.loadOrCreate(now: now)
-        #expect(migrated == original && migrated.home.roomLevel == 1 && migrated.schemaVersion == 1)
+        #expect(migrated == original && migrated.home.roomLevel == 1 && migrated.schemaVersion == GameSnapshot.currentSchemaVersion)
         #expect(try Data(contentsOf: repository.saveURL) == legacy)
         #expect(GameEngine.purchaseEquipment(&migrated, itemID: "advanced_cap", now: now).succeeded)
         #expect(GameEngine.equipItem(&migrated, itemID: "advanced_cap", now: now).succeeded)

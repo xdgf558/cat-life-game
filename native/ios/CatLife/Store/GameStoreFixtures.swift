@@ -87,6 +87,10 @@ struct GameStoreFixtures {
         }
     }
 
+    func checkStorageProbe() throws {
+        if failUserSaves && outageStarted { throw CocoaError(.fileWriteUnknown) }
+    }
+
     mutating func checkSave(_ candidate: GameSnapshot, original: GameSnapshot,
                             exitsRest: Bool) throws {
         if failCatAdoptionOnce && candidate.cats.count > original.cats.count {

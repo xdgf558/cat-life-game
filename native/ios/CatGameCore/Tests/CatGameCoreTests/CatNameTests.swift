@@ -100,7 +100,7 @@ struct CatNameTests {
             #expect(loaded.player == original.player && loaded.inventory == original.inventory)
             #expect(loaded.cats[0].activeRest == original.cats[0].activeRest)
             #expect(loaded.cats.map(\.name) == original.cats.map(\.name))
-            #expect(loaded.schemaVersion == 1)
+            #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         }
         #expect(expected == original)
     }

@@ -1,0 +1,8 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "selfTestsPassed": 19,
+  "hydratedRuntimeFiles": 68,
+  "missingOrInvalidMedia": 0,
+  "scriptSandboxBuild": "passed"
+}

@@ -109,7 +109,7 @@ struct FurnitureTests {
         let reopened = FileSaveRepository(directory: folder)
         let loaded = try await reopened.loadOrCreate(now: now.addingTimeInterval(60))
         #expect(loaded == expected)
-        #expect(loaded.schemaVersion == 1)
+        #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         #expect(await reopened.lastLoadDisposition == .loaded)
         #expect(try Data(contentsOf: repository.saveURL) == legacy)
         try await reopened.save(loaded)

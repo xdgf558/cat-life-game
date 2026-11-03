@@ -1,0 +1,95 @@
+{
+  "version": "0.7.1",
+  "build": 32,
+  "distinctMethods": 11,
+  "executions": 12,
+  "passedExecutions": 11,
+  "failedExecutions": 1,
+  "latestMethodResults": "all passed",
+  "runs": [
+    {
+      "run": "se-review",
+      "deviceClass": "small iPhone simulator",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+          "result": "passed",
+          "seconds": 107.17
+        },
+        {
+          "name": "RoomHomeUITests/testBowlPlanningCancelsAcrossBackgroundAndLayoutExitThenFeedsOnce",
+          "result": "failed",
+          "seconds": 38.778
+        },
+        {
+          "name": "RoomHomeUITests/testCompactWorkDirectoryPagesFiltersSearchAndLockedPreviewPreserveState",
+          "result": "passed",
+          "seconds": 197.875
+        },
+        {
+          "name": "RoomHomeUITests/testPersistentSaveFailureRemainsRetryableWithoutChargingFailedActions",
+          "result": "passed",
+          "seconds": 69.057
+        },
+        {
+          "name": "RoomHomeUITests/testRoomExpansionPreservesScaleSupportsPanPlacementAndFeedingAfterRelaunch",
+          "result": "passed",
+          "seconds": 112.58
+        },
+        {
+          "name": "RoomHomeUITests/testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+          "result": "passed",
+          "seconds": 49.038
+        }
+      ]
+    },
+    {
+      "run": "pro-review",
+      "deviceClass": "large iPhone simulator",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats",
+          "result": "passed",
+          "seconds": 157.039
+        },
+        {
+          "name": "RoomHomeUITests/testCareerSelectionAndSavedResultTranslateInAllThreeLanguages",
+          "result": "passed",
+          "seconds": 402.455
+        },
+        {
+          "name": "RoomHomeUITests/testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests",
+          "result": "passed",
+          "seconds": 136.959
+        },
+        {
+          "name": "RoomHomeUITests/testPinchZoomPreservesLayoutAndSupportsPlacementFeedingAndRelaunch",
+          "result": "passed",
+          "seconds": 88.441
+        },
+        {
+          "name": "RoomHomeUITests/testSwitchingCompanionCancelsOldCareAndRestWithoutReplayingCallbacks",
+          "result": "passed",
+          "seconds": 93.418
+        }
+      ]
+    },
+    {
+      "run": "se-bowl-isolated",
+      "deviceClass": "small iPhone simulator",
+      "tests": [
+        {
+          "name": "RoomHomeUITests/testBowlPlanningCancelsAcrossBackgroundAndLayoutExitThenFeedsOnce",
+          "result": "passed",
+          "seconds": 61.71
+        }
+      ]
+    }
+  ],
+  "historicalFailure": {
+    "method": "RoomHomeUITests/testBowlPlanningCancelsAcrossBackgroundAndLayoutExitThenFeedsOnce",
+    "symptom": "First suite run: enabled, hittable feed button tapped at center after editing/background restoration; food remained 3. Scene already idle, no overlapping room hit area or error alert.",
+    "resolution": "Same compiled app and unchanged test passed in an isolated full rerun, including one food debit, actual mouth contact and no stale layout replay. No product change, retry-tap workaround or weakened assertion was introduced.",
+    "cause": "Not established; retained as a transient interaction failure, not claimed fixed."
+  }
+}
