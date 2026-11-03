@@ -10,11 +10,10 @@
     "focused App and UI regression",
     "in-place device installation with byte-identical save",
     "installed app version and running process verified",
-    "identity ownership and layout preserved after startup"
+    "identity ownership and layout preserved after startup",
+    "physical iPhone acceptance confirmed by user on 2026-11-04"
   ],
-  "partiallyFinished": [
-    "physical iPhone acceptance by user"
-  ],
+  "partiallyFinished": [],
   "broken": [],
   "app": {
     "passed": 72,
@@ -134,7 +133,11 @@
     "identityOwnershipAndLayoutPreserved": true,
     "installationStarted": true,
     "deliveredOn": "2026-11-04",
-    "userAcceptance": "pending"
+    "userAcceptance": {
+      "status": "passed",
+      "source": "user confirmation in chat",
+      "date": "2026-11-04"
+    }
   },
   "notChecked": [
     "Core suite not rerun: no Core change; the 189-test result belongs to build 33",
@@ -143,8 +146,5 @@
     "live VoiceOver navigation",
     "long-term performance"
   ],
-  "nextWork": [
-    "PR #5 review",
-    "user physical iPhone acceptance"
-  ]
+  "nextWork": []
 }

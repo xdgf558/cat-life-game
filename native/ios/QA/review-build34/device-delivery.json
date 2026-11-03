@@ -10,5 +10,9 @@
   "identityOwnershipAndLayoutPreserved": true,
   "installationStarted": true,
   "deliveredOn": "2026-11-04",
-  "userAcceptance": "pending"
+  "userAcceptance": {
+    "status": "passed",
+    "source": "user confirmation in chat",
+    "date": "2026-11-04"
+  }
 }
