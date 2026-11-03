@@ -28,9 +28,10 @@ struct CatCollectionView: View {
     private var currentPage: Int { min(page, pageCount - 1) }
     private var visibleEntries: [Entry] { Array(entries.dropFirst(currentPage * pageSize).prefix(pageSize)) }
 
-    init(store: GameStore, initialCatID: String? = nil) {
+    init(store: GameStore, initialCatID: String? = nil, initialAdoptionID: String? = nil) {
         self.store = store
-        _path = State(initialValue: initialCatID.map { [.profile($0)] } ?? [])
+        _path = State(initialValue: initialCatID.map { [.profile($0)] }
+            ?? initialAdoptionID.map { [.adoption($0)] } ?? [])
     }
 
     var body: some View {
@@ -104,7 +105,7 @@ struct CatCollectionView: View {
                     Text(GameStrings.text("catDirectory.empty"))
                         .font(.body).foregroundStyle(RoomTheme.secondary)
                         .padding(24).frame(maxWidth: .infinity)
-                        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+                        .gameCard(cornerRadius: 24)
                         .accessibilityIdentifier("catCollectionEmpty")
                 } else {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12),
@@ -139,7 +140,7 @@ struct CatCollectionView: View {
                     .lineLimit(2).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity).padding(14)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+            .gameCard(cornerRadius: 24)
             .contentShape(RoundedRectangle(cornerRadius: 24))
         }
         .buttonStyle(.plain)
@@ -160,7 +161,7 @@ struct CatCollectionView: View {
                     .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
             }
             .frame(maxWidth: .infinity).padding(14)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+            .gameCard(cornerRadius: 24)
             .contentShape(RoundedRectangle(cornerRadius: 24))
         }
         .buttonStyle(.plain).accessibilityElement(children: .combine)

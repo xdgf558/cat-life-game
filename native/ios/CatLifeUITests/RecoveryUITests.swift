@@ -40,7 +40,7 @@ extension RoomHomeUITests {
         waitForObservedValue("playerMood", "80", in: app)
         XCTAssertFalse(element("sleepWakeButton", in: app).exists,
                        "The completed sleep must not expose another Wake action that could pay twice.")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         openPlayerSleepCard(in: app)
         waitForObservedValue("sleepStatus", "awake", in: app)
         waitForObservedValue("playerStamina", "80", in: app)
@@ -61,7 +61,7 @@ extension RoomHomeUITests {
         waitForObservedValue("playerStamina", "70", in: app)
         waitForObservedValue("playerMood", "75", in: app)
         attachScreenshot(app, named: "Recovery — active work prevents a second simultaneous activity")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
     }
@@ -97,7 +97,7 @@ extension RoomHomeUITests {
         assertPlayerSleepRecovery(stamina: 50, mood: 60, status: "awake", in: app)
         XCTAssertFalse(element("sleepWakeButton", in: app).exists)
         attachScreenshot(app, named: "Recovery — waking and another cold launch do not pay or seed the old sleep again")
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "4", in: app)
         waitForObservedValue("goldCount", "180", in: app)
     }

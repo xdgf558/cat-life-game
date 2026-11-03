@@ -23,11 +23,11 @@ extension RoomHomeUITests {
         // A new explicit purchase must report its own failure even after the
         // first alert was dismissed. Neither intent can publish or charge early.
         tapAnimationControl("tabShop", in: app)
-        waitForElement("buyFoodButton", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         tapAnimationControl("buyFoodButton", in: app)
         dismissExpectedSaveFailure(in: app)
         waitForObservedValue("shopGoldCount", "200", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         assertPersistentSaveRetryVisible(in: app)

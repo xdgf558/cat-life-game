@@ -147,7 +147,7 @@ final class GameStoreCatNameTests: XCTestCase {
         store.inspectedCatID = "generated-cat"
         store.inspectCat()
         XCTAssertEqual(store.inspectedCatID, "cat_001")
-        XCTAssertEqual(store.activeSheet, .town)
+        XCTAssertNil(store.activeSheet)
         XCTAssertEqual(store.snapshot, original)
         let afterInspection = await repository.attempts.count
         XCTAssertEqual(afterInspection, baseline)

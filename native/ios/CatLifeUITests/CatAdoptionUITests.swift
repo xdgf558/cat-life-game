@@ -8,7 +8,7 @@ extension RoomHomeUITests {
         for (code, title, name) in [("zh-Hans", "领养伙伴", "牛奶"),
                                     ("zh-Hant", "領養夥伴", "牛奶"), ("en", "Adopt a friend", "MooMoo")] {
             if code != "zh-Hans" { selectCatTestLanguage(code, in: app) }
-            tapAnimationControl("tabTown", in: app)
+            openTownCollection(in: app)
             waitForObservedValue("catCount", "1", in: app)
             tapAnimationControl("catAdoption_cat_002", in: app)
             XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 8))
@@ -21,6 +21,7 @@ extension RoomHomeUITests {
             XCTAssertFalse(element("catAdoptionButton", in: app).isEnabled)
             attachScreenshot(app, named: "Adoption — locked requirements in \(code)")
             tapAnimationControl("closeSheetButton", in: app)
+            tapAnimationControl("tabHome", in: app)
             waitForObservedValue("goldCount", "200", in: app)
             waitForObservedValue("foodCount", "3", in: app)
         }
@@ -30,7 +31,7 @@ extension RoomHomeUITests {
     func testAdoptionConfirmationSelectionRenameAndRelaunchPreserveBothCats() throws {
         continueAfterFailure = false
         let app = launchCatAdoptionFixture("--uitesting-adoption-ready")
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         waitForObservedValue("catCount", "1", in: app)
         tapAnimationControl("catAdoption_cat_002", in: app)
         scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
@@ -45,9 +46,10 @@ extension RoomHomeUITests {
         waitForObservedValue("catCompanionButton", "available", in: app)
         attachScreenshot(app, named: "Adoption — new cow cat profile after successful purchase")
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "700", in: app)
         waitForObservedValue("homeCatName", "小橘", in: app)
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         waitForObservedValue("catCount", "2", in: app)
         XCTAssertFalse(element("catAdoption_cat_002", in: app).exists)
         attachScreenshot(app, named: "Cats — orange and cow cards remain compact")
@@ -61,12 +63,13 @@ extension RoomHomeUITests {
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "奶糖🐾", in: app)
         attachScreenshot(app, named: "Companion — cow cat selected in the room")
         relaunchPreservingSave(app)
         waitForObservedValue("homeCatName", "奶糖🐾", in: app)
         waitForObservedValue("goldCount", "700", in: app)
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         waitForObservedValue("catCount", "2", in: app)
         tapAnimationControl("catProfile_cat_001", in: app)
         waitForObservedValue("catProfileName", "小橘", in: app)
@@ -74,6 +77,7 @@ extension RoomHomeUITests {
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "小橘", in: app)
         waitForObservedValue("goldCount", "700", in: app)
     }
@@ -82,18 +86,19 @@ extension RoomHomeUITests {
     func testCompanionCareChangesOnlySelectedCatAndSurvivesRelaunch() throws {
         continueAfterFailure = false
         let app = launchCatAdoptionFixture("--uitesting-adoption-owned")
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         tapAnimationControl("catProfile_cat_002", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "牛奶", in: app)
         waitForObservedValue("catSatiety", "55", in: app)
         tapAnimationControl("feedButton", in: app)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("catSatiety", "80", in: app)
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         tapAnimationControl("catProfile_cat_001", in: app)
         scrollCareerPage("catProfileScroll", to: "catProfileSatiety", in: app)
         waitForObservedValue("catProfileSatiety", "35", in: app)
@@ -101,11 +106,12 @@ extension RoomHomeUITests {
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "小橘", in: app)
         waitForObservedValue("catSatiety", "35", in: app)
         relaunchPreservingSave(app)
         waitForObservedValue("homeCatName", "小橘", in: app)
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         tapAnimationControl("catProfile_cat_002", in: app)
         scrollCareerPage("catProfileScroll", to: "catProfileSatiety", in: app)
         waitForObservedValue("catProfileSatiety", "80", in: app)
@@ -118,7 +124,7 @@ extension RoomHomeUITests {
         let app = launchCatAdoptionFixture("--uitesting-adoption-ready", extra: [
             "--cat-adoption-save-failure-once", "--cat-companion-save-failure-once"
         ])
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         tapAnimationControl("catAdoption_cat_002", in: app)
         confirmCatAdoption(in: app)
         waitForCatSaveProbeRecovery(in: app)
@@ -136,15 +142,17 @@ extension RoomHomeUITests {
         waitForObservedValue("catCompanionButton", "available", in: app)
         XCTAssertTrue(element("catCompanionButton", in: app).isEnabled)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "小橘", in: app)
         waitForObservedValue("goldCount", "700", in: app)
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         waitForObservedValue("catCount", "2", in: app)
         tapAnimationControl("catProfile_cat_002", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         relaunchPreservingSave(app)
         waitForObservedValue("homeCatName", "牛奶", in: app)
         waitForObservedValue("goldCount", "700", in: app)
@@ -205,8 +213,8 @@ extension RoomHomeUITests {
         waitForObservedValue("inventoryFoodCount", "2", in: app)
         waitForObservedValue("inventoryLitterCount", "2", in: app)
         waitForObservedValue("inventoryToyUses", "5", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
-        tapAnimationControl("tabTown", in: app)
+        tapAnimationControl("tabHome", in: app)
+        openTownCollection(in: app)
         tapAnimationControl("catProfile_cat_001", in: app)
         scrollCareerPage("catProfileScroll", to: "catProfileSatiety", in: app)
         waitForObservedValue("catProfileSatiety", "35", in: app)
@@ -228,11 +236,14 @@ extension RoomHomeUITests {
             $0.phase == "feeding" && $0.carePlanning == true && $0.completedMeals == before.completedMeals
         }
         townTouch.tap()
+        scrollCareerPage("townMapScroll", to: "townCollectionButton", in: app)
+        tapAnimationControl("townCollectionButton", in: app)
         tapAnimationControl("catProfile_cat_001", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         let switched = waitForFurniture(in: app, description: "orange companion has no pending cow care") {
             $0.activeCatID == "cat_001" && $0.catAppearance == "orange" && $0.phase == "idle"
                 && $0.carePlanning == false && $0.restFurniture == nil
@@ -272,11 +283,14 @@ extension RoomHomeUITests {
         XCTAssertEqual(resting.activeCatID, "cat_002")
         let oldRestID = try XCTUnwrap(resting.savedRestSession)
         restTownTouch.tap()
+        scrollCareerPage("townMapScroll", to: "townCollectionButton", in: app)
+        tapAnimationControl("townCollectionButton", in: app)
         tapAnimationControl("catProfile_cat_001", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         let awake = waitForFurniture(in: app, timeout: 15, description: "switch clears the cow furniture session and old callbacks") {
             $0.activeCatID == "cat_001" && $0.phase == "idle" && $0.restFurniture == nil
                 && $0.restPhase == "none" && $0.restSession == nil && $0.savedRestSession == nil
@@ -299,12 +313,13 @@ extension RoomHomeUITests {
 
     @MainActor
     private func selectRoomCompanion(_ id: String, appearance: String, in app: XCUIApplication) -> FurnitureState {
-        tapAnimationControl("tabTown", in: app)
+        openTownCollection(in: app)
         tapAnimationControl("catProfile_\(id)", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         return waitForFurniture(in: app, description: "selected \(appearance) companion appears idle") {
             $0.activeCatID == id && $0.catAppearance == appearance && $0.phase == "idle" && !$0.pending
         }

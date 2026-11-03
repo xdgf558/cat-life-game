@@ -81,7 +81,8 @@ extension RoomHomeUITests {
     func closePlayerProfile(in app: XCUIApplication,
                              file: StaticString = #filePath, line: UInt = #line) {
         returnToProfileRoot(in: app, file: file, line: line)
-        tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
+        waitForElement("feedButton", in: app, file: file, line: line)
     }
 
     private enum ProfilePage {

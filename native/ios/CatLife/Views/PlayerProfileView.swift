@@ -6,8 +6,8 @@ import CatGameCore
 @MainActor
 struct PlayerProfileView: View {
     @Bindable var store: GameStore
+    var embedded = false
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [Route] = []
     @State private var isShowingAttributes = false
     @State private var avatarGender: AvatarGender?
@@ -27,18 +27,11 @@ struct PlayerProfileView: View {
     var body: some View {
         NavigationStack(path: $path) {
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: 16) {
+                    identityDetails
                     portrait
-                    sectionEntry(title: "player.wardrobe", symbol: "tshirt.fill", route: .wardrobe,
-                                 identifier: "profileWardrobeButton") {
-                        Text(GameStrings.format("player.equippedCount", profile.equipped.count, slots.count))
-                            .accessibilityIdentifier("profileWardrobeSummary")
-                            .accessibilityValue("\(profile.equipped.count)")
-                    }
-                    sectionEntry(title: "player.bonuses", symbol: "sparkles", route: .bonuses,
-                                 identifier: "profileBonusesButton") {
-                        Text(GameStrings.text("player.bonuses.summary"))
-                    }
+                    bonusSummary
+                    overviewStats
                 }
                 .padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
             }
@@ -47,16 +40,19 @@ struct PlayerProfileView: View {
             .navigationTitle(GameStrings.text("player.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(GameStrings.text("common.done")) {
-                        guard !isSavingPlayerName else { return }
-                        dismiss()
-                    }
+                if !embedded {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(GameStrings.text("common.done")) {
+                            guard !isSavingPlayerName else { return }
+                            dismiss()
+                        }
                         .foregroundStyle(RoomTheme.darkMint)
                         .disabled(isSavingPlayerName)
                         .accessibilityIdentifier("closeSheetButton")
+                    }
                 }
             }
+            .toolbar(embedded && path.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .name: playerNamePage
@@ -67,14 +63,16 @@ struct PlayerProfileView: View {
                 }
             }
             .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 0) {
-                    SaveStatusBanner(store: store)
-                if let toast = store.toast, !toast.isEmpty {
-                    Text(toast).font(.footnote).multilineTextAlignment(.center)
-                        .padding(12).frame(maxWidth: .infinity)
-                        .background(RoomTheme.paper)
-                        .accessibilityIdentifier("profileToast")
-                }
+                if !embedded {
+                    VStack(spacing: 0) {
+                        SaveStatusBanner(store: store)
+                        if let toast = store.toast, !toast.isEmpty {
+                            Text(toast).font(.footnote).multilineTextAlignment(.center)
+                                .padding(12).frame(maxWidth: .infinity)
+                                .background(RoomTheme.paper)
+                                .accessibilityIdentifier("profileToast")
+                        }
+                    }
                 }
             }
         }
@@ -89,114 +87,136 @@ struct PlayerProfileView: View {
 
     private var portrait: some View {
         VStack(spacing: 12) {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(spacing: 12) {
-                    attributesButton
-                    identityDetails
+            ProfileDressingStage(avatar: avatar, profile: profile,
+                                 showAttributes: { isShowingAttributes = true },
+                                 chooseSlot: { slot in
+                if PlayerCatalog.equipment.contains(where: {
+                    $0.slot == slot && profile.ownedEquipmentIDs.contains($0.id)
+                }) {
+                    path.append(.equipment(slot))
+                } else {
+                    store.activeSheet = .shop
                 }
-            } else {
-                HStack(alignment: .center, spacing: 14) {
-                    attributesButton
-                    identityDetails
+            })
+            HStack(spacing: 10) {
+                Button { path.append(.avatars) } label: {
+                    Label(GameStrings.text(avatar == nil ? "player.avatar.choose" : "player.appearance"),
+                          systemImage: "person.crop.rectangle")
+                        .font(.system(size: 13, weight: .bold)).lineLimit(1).minimumScaleFactor(0.75)
                 }
+                .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("profileChooseAvatar")
+                Button { path.append(.wardrobe) } label: {
+                    Label(GameStrings.text("player.wardrobe"), systemImage: "tshirt.fill")
+                        .font(.system(size: 13, weight: .bold)).lineLimit(1).minimumScaleFactor(0.75)
+                }
+                .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("profileWardrobeButton")
+                .accessibilityValue(GameStrings.format("player.equippedCount", profile.equipped.count, slots.count))
             }
-            Button { path.append(.avatars) } label: {
-                Label(GameStrings.text(avatar == nil ? "player.avatar.choose" : "player.appearance"), systemImage: "person.crop.rectangle")
-                    .font(.subheadline.weight(.semibold)).frame(maxWidth: .infinity)
-            }
-            .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("profileChooseAvatar")
         }
-        .padding(16).frame(maxWidth: .infinity)
-        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 26))
-    }
-
-    private var attributesButton: some View {
-        Button { isShowingAttributes = true } label: {
-            VStack(spacing: 5) {
-                ZStack {
-                    Circle().fill(RoomTheme.paleMint.opacity(0.65)).frame(width: 94, height: 94)
-                    Circle().stroke(RoomTheme.cream, lineWidth: 5).frame(width: 108, height: 108)
-                    if let avatar {
-                        Image(avatar.assetName).resizable().scaledToFit()
-                            .frame(width: 108, height: 148)
-                    } else {
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .font(.system(size: 54, weight: .light))
-                            .foregroundStyle(RoomTheme.darkMint.opacity(0.7))
-                    }
-                }
-                .frame(width: 112, height: 148)
-                Label(GameStrings.text("player.attributes.open"), systemImage: "info.circle")
-                    .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .multilineTextAlignment(.center)
-            }
-            .frame(width: 112).contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(GameStrings.text("player.attributes.open"))
-        .accessibilityIdentifier("profileAttributesButton")
     }
 
     private var identityDetails: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .center, spacing: 4) {
-                Text(verbatim: store.playerDisplayName)
-                    .font(.title3.weight(.bold))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityIdentifier("profilePlayerName")
-                    .accessibilityValue(Text(verbatim: store.playerDisplayName))
-                Button { path.append(.name) } label: {
-                    Image(systemName: "pencil")
-                        .font(.body.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
-                        .frame(width: 44, height: 44)
-                        .background(RoomTheme.paleMint.opacity(0.65), in: Circle())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(GameStrings.text("playerName.edit"))
-                .accessibilityIdentifier("profileRenameButton")
-            }
-            Text(avatar.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("player.avatar.unselected"))
-                .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("profileAvatarName").accessibilityValue(profile.avatarID ?? "none")
-            Label(GameStrings.text(statusKey), systemImage: statusSymbol)
-                .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("profileStatus").accessibilityValue(statusValue)
-            Text(GameStrings.format("career.level", player?.level ?? 1))
-                .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
-                .padding(.horizontal, 10).padding(.vertical, 5)
-                .background(RoomTheme.paleMint.opacity(0.65), in: Capsule())
-                .accessibilityIdentifier("profileLevelSummary")
-                .accessibilityValue("\(player?.level ?? 1)")
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-    private func sectionEntry<Summary: View>(title: String, symbol: String, route: Route,
-                                              identifier: String, @ViewBuilder summary: () -> Summary) -> some View {
-        Button { path.append(route) } label: {
-            HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.title3.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
-                    .frame(width: 44, height: 44)
-                    .background(RoomTheme.paleMint.opacity(0.65), in: RoundedRectangle(cornerRadius: 15))
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(GameStrings.text(title)).font(.headline)
-                    summary().font(.footnote).foregroundStyle(RoomTheme.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .top, spacing: 8) {
+                HStack(spacing: 2) {
+                    Text(verbatim: store.playerDisplayName)
+                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                        .lineLimit(2).minimumScaleFactor(0.75)
+                        .accessibilityIdentifier("profilePlayerName")
+                        .accessibilityValue(Text(verbatim: store.playerDisplayName))
+                    Button { path.append(.name) } label: {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 16, weight: .bold)).foregroundStyle(RoomTheme.darkMint)
+                            .frame(width: 44, height: 44)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(GameStrings.text("playerName.edit"))
+                    .accessibilityIdentifier("profileRenameButton")
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: "chevron.right")
-                    .font(.footnote.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                HStack(spacing: 10) {
+                    summaryResource(symbol: "bolt.fill", value: player?.stamina ?? 0,
+                                    tint: RoomTheme.mint, label: "player.stamina")
+                    summaryResource(symbol: "face.smiling.fill", value: player?.mood ?? 0,
+                                    tint: RoomTheme.gold, label: "player.mood")
+                }
+                .padding(.horizontal, 10).frame(minHeight: 38)
+                .background(RoomTheme.paper, in: Capsule())
+                .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
             }
-            .padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 22))
+            HStack(spacing: 6) {
+                Text(GameStrings.format("career.level", player?.level ?? 1))
+                    .accessibilityIdentifier("profileLevelSummary")
+                    .accessibilityValue("\(player?.level ?? 1)")
+                Text("·").accessibilityHidden(true)
+                Text(GameStrings.text("redesign.profile.dressUp"))
+            }
+            .font(.system(size: 13, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            HStack(spacing: 6) {
+                Text(avatar.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("player.avatar.unselected"))
+                    .accessibilityIdentifier("profileAvatarName").accessibilityValue(profile.avatarID ?? "none")
+                Spacer(minLength: 0)
+                Label(GameStrings.text(statusKey), systemImage: statusSymbol)
+                    .accessibilityIdentifier("profileStatus").accessibilityValue(statusValue)
+            }
+            .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
         }
-        .buttonStyle(.plain).accessibilityIdentifier(identifier)
+    }
+
+    private func summaryResource(symbol: String, value: Int, tint: Color, label: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol).foregroundStyle(tint)
+            Text("\(value)").monospacedDigit()
+        }
+        .font(.system(size: 15, weight: .heavy))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(GameStrings.text(label)).accessibilityValue("\(value)")
+    }
+
+    private var bonusSummary: some View {
+        Button { path.append(.bonuses) } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles").font(.system(size: 17, weight: .bold))
+                Text(profile.equipped.isEmpty ? GameStrings.text("player.noBonuses")
+                     : GameStrings.format("redesign.profile.activeBonuses", bonuses.durationReductionPercent,
+                                          bonuses.staminaReductionPercent, bonuses.moodReductionPercent))
+                    .font(.system(size: 12, weight: .bold)).multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.caption.weight(.bold))
+            }
+            .foregroundStyle(RoomTheme.darkMint).padding(14).frame(maxWidth: .infinity, minHeight: 44)
+            .background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 22))
+        }
+        .buttonStyle(.plain).accessibilityIdentifier("profileBonusesButton")
+        .accessibilityLabel(GameStrings.text("player.bonuses"))
+        .accessibilityValue(profile.equipped.isEmpty ? GameStrings.text("player.noBonuses")
+            : GameStrings.format("redesign.profile.activeBonuses", bonuses.durationReductionPercent,
+                                 bonuses.staminaReductionPercent, bonuses.moodReductionPercent))
+    }
+
+    private var overviewStats: some View {
+        HStack(spacing: 10) {
+            overviewStat("player.gold", value: player?.gold ?? 0, identifier: "profileOverviewGold")
+            overviewStat("player.completedWorkTitle", value: player?.completedWorkCount ?? 0,
+                         identifier: "profileOverviewWork")
+            overviewStat("redesign.profile.catCount", value: store.snapshot?.cats.count ?? 0,
+                         identifier: "profileOverviewCats")
+        }
+    }
+
+    private func overviewStat(_ key: String, value: Int, identifier: String) -> some View {
+        VStack(spacing: 6) {
+            Text("\(value)").font(.system(size: 25, weight: .heavy)).monospacedDigit()
+                .lineLimit(1).minimumScaleFactor(0.6)
+            Text(GameStrings.text(key)).font(.system(size: 11, weight: .bold))
+                .foregroundStyle(RoomTheme.secondary).lineLimit(2).multilineTextAlignment(.center)
+        }
+        .padding(.vertical, 14).frame(maxWidth: .infinity, minHeight: 80)
+        .gameCard()
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(GameStrings.text(key)).accessibilityValue("\(value)")
+        .accessibilityIdentifier(identifier)
     }
 
     private var attributesSheet: some View {

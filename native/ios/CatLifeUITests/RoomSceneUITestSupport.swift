@@ -175,7 +175,14 @@ extension RoomHomeUITests {
         waitForObservedValue("inventoryFoodCount", "3", in: app, file: file, line: line)
         waitForObservedValue("inventoryLitterCount", "2", in: app, file: file, line: line)
         waitForObservedValue("inventoryToyUses", "0", in: app, file: file, line: line)
-        tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
+    }
+
+    @MainActor
+    func selectBagFurniture(_ id: String, in app: XCUIApplication,
+                            file: StaticString = #filePath, line: UInt = #line) {
+        scrollCareerPage("destinationScroll", to: "inventoryFurniture_\(id)", in: app, file: file, line: line)
+        tapAnimationControl("inventoryFurniture_\(id)", in: app, file: file, line: line)
     }
 
     @MainActor
@@ -271,7 +278,7 @@ extension RoomHomeUITests {
         init?(value: Any?) {
             guard let value = value as? String else { return nil }
             let fields = value.split(separator: "|", omittingEmptySubsequences: false)
-            guard fields.count == 9, let violations = Int(fields[1]),
+            guard fields.count >= 9, let violations = Int(fields[1]),
                   let maxRoutePoints = Int(fields[4]), let completedMeals = Int(fields[5]),
                   let completedPounces = Int(fields[6]), let foodContactSamples = Int(fields[7]),
                   let foodContactViolations = Int(fields[8]) else { return nil }

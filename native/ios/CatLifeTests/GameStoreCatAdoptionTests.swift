@@ -167,7 +167,7 @@ final class GameStoreCatAdoptionTests: XCTestCase {
         let original = try XCTUnwrap(store.snapshot)
         store.inspectCat()
         XCTAssertEqual(store.inspectedCatID, CatCatalog.cowCatID)
-        XCTAssertEqual(store.activeSheet, .town)
+        XCTAssertNil(store.activeSheet)
 
         store.feed()
         try await eventually { !store.isBusy && store.feedback?.kind == .feed }

@@ -17,6 +17,12 @@ final class RoomSceneDiagnostics {
     private(set) var navigationDescription = ""
     private(set) var dragDescription = "0|0|0|0,0"
     private(set) var furnitureDescription = "{}"
+    private var presentationEvents: [String] = []
+    func recordPresentationEvent(_ event: String) {
+        guard enabled else { return }
+        presentationEvents.append(event)
+        if presentationEvents.count > 10 { presentationEvents.removeFirst() }
+    }
     var lastRestEndReason = "none"
     var lastRestInput = "none"
     var restExits = 0
@@ -170,6 +176,7 @@ final class RoomSceneDiagnostics {
                                        collisionViolations, catPoint.x / size.width, catPoint.y / size.height,
                                        bowlPoint.x / size.width, bowlPoint.y / size.height, longestRoute,
                                        cat.completedMeals, cat.completedPounces, foodContactSamples, foodContactViolations)
+        navigationDescription += "|" + presentationEvents.joined(separator: "; ")
         onNavigationChanged?(navigationDescription)
     }
     func publishDragMetrics(pending isPlacementPending: Bool, bowl: CGPoint,

@@ -10,7 +10,7 @@ extension RoomHomeUITests {
         let name = "橘子的午后与星光小屋🐾🏡"
         XCTAssertEqual(name.count, 12)
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsHomeNameRow", in: app)
+        tapSettingsRootControl("settingsHomeNameRow", in: app)
         replaceHomeNameText(with: name, replacing: "", in: app)
         waitForLabel("homeNamePreview", name, in: app)
         attachScreenshot(app, named: "Home name — Chinese and emoji entered through the keyboard")
@@ -20,7 +20,7 @@ extension RoomHomeUITests {
         waitForLabel("homeNamePreview", name, in: app)
         attachScreenshot(app, named: "Home name — saved name and sign preview")
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("homeNamePlaque", name, in: app)
         assertHomeNamePreservedProgress(bowl: originalBowl, in: app)
         attachScreenshot(app, named: "Home name — custom Chinese and emoji on the room sign")
@@ -29,15 +29,14 @@ extension RoomHomeUITests {
         waitForLabel("homeNamePlaque", name, in: app)
         assertHomeNamePreservedProgress(bowl: originalBowl, in: app)
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsLanguageRow", in: app)
-        tapAnimationControl("languageOption_en", in: app)
+
+        tapSettingsRootControl("languageOption_en", in: app)
         assertSettingsLanguageSelection("en", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsHomeNameRow", in: app)
+        tapSettingsRootControl("settingsHomeNameRow", in: app)
         waitForObservedValue("homeNameField", name, in: app)
         waitForLabel("homeNamePreview", name, in: app)
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("tabHome", "Home", in: app)
         waitForLabel("homeNamePlaque", name, in: app)
         attachScreenshot(app, named: "Home name — English interface preserves the user-written name")
@@ -56,7 +55,7 @@ extension RoomHomeUITests {
         let name = "SunnyCorner!"
         XCTAssertEqual(name.count, 12)
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsHomeNameRow", in: app)
+        tapSettingsRootControl("settingsHomeNameRow", in: app)
         replaceHomeNameText(with: name, replacing: "", in: app)
         bringIntoView("homeNameSaveButton", in: app)
         tapAnimationControl("homeNameSaveButton", in: app)
@@ -68,28 +67,27 @@ extension RoomHomeUITests {
         assertHomeNameSaveDisabled(in: app)
         attachScreenshot(app, named: "Home name — thirteen characters cannot be saved")
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("homeNamePlaque", name, in: app)
         assertHomeNamePreservedProgress(bowl: originalBowl, in: app)
 
         // Returning also discards an otherwise valid edit; it is not an
         // implicit Save action just because the draft passes validation.
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsHomeNameRow", in: app)
+        tapSettingsRootControl("settingsHomeNameRow", in: app)
         waitForObservedValue("homeNameField", name, in: app)
         replaceHomeNameText(with: "Draft Nook", replacing: name, in: app)
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("homeNamePlaque", name, in: app)
         relaunchPreservingSave(app)
         waitForLabel("homeNamePlaque", name, in: app)
 
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsLanguageRow", in: app)
-        tapAnimationControl("languageOption_en", in: app)
+
+        tapSettingsRootControl("languageOption_en", in: app)
         assertSettingsLanguageSelection("en", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsHomeNameRow", in: app)
+        tapSettingsRootControl("settingsHomeNameRow", in: app)
         waitForObservedValue("homeNameField", name, in: app)
         bringIntoView("homeNameResetButton", in: app)
         tapAnimationControl("homeNameResetButton", in: app)
@@ -97,18 +95,17 @@ extension RoomHomeUITests {
         waitForLabel("homeNamePreview", "My home", in: app)
         attachScreenshot(app, named: "Home name — restored English default in the sign preview")
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("homeNamePlaque", "My home", in: app)
         assertHomeNamePreservedProgress(bowl: originalBowl, in: app)
         relaunchPreservingSave(app)
         waitForLabel("homeNamePlaque", "My home", in: app)
 
         tapAnimationControl("settingsButton", in: app)
-        tapAnimationControl("settingsLanguageRow", in: app)
-        tapAnimationControl("languageOption_zh-Hans", in: app)
+
+        tapSettingsRootControl("languageOption_zh-Hans", in: app)
         assertSettingsLanguageSelection("zh-Hans", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("homeNamePlaque", "我的小家", in: app)
         assertHomeNamePreservedProgress(bowl: originalBowl, in: app)
         attachScreenshot(app, named: "Home name — default name follows the language without resetting the save")
@@ -123,9 +120,10 @@ extension RoomHomeUITests {
         // Give the save non-default supplies and a real saved layout so a
         // language change that resets progress cannot pass on initial values.
         tapAnimationControl("tabShop", in: app)
+        scrollCareerPage("destinationScroll", to: "buyFoodButton", in: app)
         tapAnimationControl("buyFoodButton", in: app)
         waitForObservedValue("shopGoldCount", "180", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "4", in: app)
         let original = furnitureState(in: app)
         tapAnimationControl("decorateButton", in: app)
@@ -141,35 +139,33 @@ extension RoomHomeUITests {
         let languages: [SettingsLanguageText] = [
             .init(code: "en", title: "Settings", language: "Game language", updates: "Version updates", back: "Back",
                   home: "Home", shop: "Shop", bag: "Bag", shopTitle: "Little cat shop", food: "Cat food",
-                  bagTitle: "My bag", bagFoodLabel: "Cat food in your bag",
+                  bagTitle: "Bag", bagFoodLabel: "Cat food in your bag",
                   welcomeTitle: "Cat Life Diary", welcomeEnter: "Enter home"),
             .init(code: "zh-Hant", title: "設定", language: "遊戲語言", updates: "版本更新", back: "返回",
                   home: "家", shop: "商店", bag: "背包", shopTitle: "貓咪小商店", food: "一般貓糧",
-                  bagTitle: "我的背包", bagFoodLabel: "背包中的貓糧",
+                  bagTitle: "背包", bagFoodLabel: "背包中的貓糧",
                   welcomeTitle: "打工養貓日記", welcomeEnter: "進入小家"),
             .init(code: "zh-Hans", title: "设置", language: "游戏语言", updates: "版本更新", back: "返回",
                   home: "家", shop: "商店", bag: "背包", shopTitle: "猫咪小商店", food: "普通猫粮",
-                  bagTitle: "我的背包", bagFoodLabel: "背包中的猫粮",
+                  bagTitle: "背包", bagFoodLabel: "背包中的猫粮",
                   welcomeTitle: "打工养猫日记", welcomeEnter: "进入小家")
         ]
         for language in languages {
             tapAnimationControl("settingsButton", in: app)
             if language.code == "en" {
-                waitForElement("settingsLanguageRow", in: app)
+                waitForElement("settingsLanguageSegments", in: app)
                 attachScreenshot(app, named: "Settings — root with language and version destinations")
             }
-            tapAnimationControl("settingsLanguageRow", in: app)
-            tapAnimationControl("languageOption_\(language.code)", in: app)
+
+            tapSettingsRootControl("languageOption_\(language.code)", in: app)
             assertSettingsLanguageSelection(language.code, in: app)
-            waitForLabel("settingsBackButton", language.back, in: app)
-            XCTAssertTrue(app.navigationBars[language.language].waitForExistence(timeout: 8),
-                          "The open language page must translate without reopening settings.")
-            attachScreenshot(app, named: "Settings — language page immediately translated to \(language.code)")
-            tapAnimationControl("settingsBackButton", in: app)
-            waitForLabel("settingsLanguageRow", language.language, in: app, contains: true)
+            waitForLabel("settingsLanguageTitle", language.language, in: app)
+            assertFixedNavigationAvailable(in: app)
+            attachScreenshot(app, named: "Settings — inline language immediately translated to \(language.code)")
+            waitForLabel("settingsLanguageTitle", language.language, in: app, contains: true)
             waitForLabel("settingsUpdatesRow", language.updates, in: app, contains: true)
-            XCTAssertTrue(app.navigationBars[language.title].waitForExistence(timeout: 8))
-            tapAnimationControl("settingsCloseButton", in: app)
+            XCTAssertTrue(app.staticTexts[language.title].firstMatch.exists)
+            tapAnimationControl("tabHome", in: app)
             assertHomeControlRows(in: app, stage: "home in \(language.code)")
             assertLocalizedHomeAndDestinations(language, in: app)
             assertSettingsPreservedRoom(savedRoom, in: app)
@@ -192,15 +188,16 @@ extension RoomHomeUITests {
             waitForElement("feedButton", in: app)
             waitForLabel("tabHome", language.home, in: app)
             waitForLabel("tabShop", language.shop, in: app)
+            ensureHomeNavigationItemVisible("tabInventory", in: app)
             waitForLabel("tabInventory", language.bag, in: app)
+            tapAnimationControl("tabHome", in: app)
             assertSettingsPreservedRoom(savedRoom, in: app)
             tapAnimationControl("settingsButton", in: app)
-            waitForLabel("settingsLanguageRow", language.language, in: app, contains: true)
-            tapAnimationControl("settingsLanguageRow", in: app)
+            waitForLabel("settingsLanguageTitle", language.language, in: app, contains: true)
+
             assertSettingsLanguageSelection(language.code, in: app)
-            waitForLabel("settingsBackButton", language.back, in: app)
-            tapAnimationControl("settingsBackButton", in: app)
-            tapAnimationControl("settingsCloseButton", in: app)
+            assertFixedNavigationAvailable(in: app)
+            tapAnimationControl("tabHome", in: app)
         }
     }
 
@@ -210,17 +207,17 @@ extension RoomHomeUITests {
         let app = launchFreshHome()
         let originalBowl = bowlPosition(in: app)
         tapAnimationControl("settingsButton", in: app)
-        waitForLabel("settingsLanguageRow", "游戏语言", in: app, contains: true)
+        waitForLabel("settingsLanguageTitle", "游戏语言", in: app, contains: true)
         waitForLabel("settingsUpdatesRow", "版本更新", in: app, contains: true)
         XCTAssertFalse(element("settingsBackButton", in: app).exists,
-                       "The settings root must offer Close rather than another Back level.")
-        tapAnimationControl("settingsUpdatesRow", in: app)
-        waitForObservedValue("currentAppVersion", "0.7.1 (32)", in: app)
+                       "The settings root stays within the fixed bottom navigation.")
+        tapSettingsRootControl("settingsUpdatesRow", in: app)
+        waitForObservedValue("currentAppVersion", "0.8.0 (33)", in: app)
         waitForLabel("currentAppVersion", "当前版本", in: app)
         waitForLabel("settingsBackButton", "返回", in: app)
         XCTAssertTrue(app.navigationBars["版本更新"].waitForExistence(timeout: 8))
         attachScreenshot(app, named: "Settings — version page at the top before scrolling")
-        for (release, version) in [(32, "0.7.1"), (31, "0.7.0"), (30, "0.6.2")] {
+        for (release, version) in [(33, "0.8.0"), (32, "0.7.1"), (31, "0.7.0")] {
             let identifier = "releaseNote_\(release)"
             bringIntoView(identifier, in: app)
             waitForElement(identifier, in: app)
@@ -228,18 +225,17 @@ extension RoomHomeUITests {
             XCTAssertTrue(element(identifier, in: app).isHittable,
                           "Release \(release) must be readable by scrolling on a small screen.")
         }
-        XCTAssertFalse(element("releaseNote_29", in: app).exists,
+        XCTAssertFalse(element("releaseNote_30", in: app).exists,
                        "Older history may remain in data, but only the latest three entries belong on this page.")
         attachScreenshot(app, named: "Settings — the third recent release is reachable; older history is hidden")
 
         tapAnimationControl("settingsBackButton", in: app)
         waitForElement("settingsUpdatesRow", in: app)
         XCTAssertFalse(element("currentAppVersion", in: app).exists)
-        tapAnimationControl("settingsLanguageRow", in: app)
+
         assertSettingsLanguageSelection("zh-Hans", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        waitForElement("settingsLanguageRow", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        waitForElement("settingsLanguageSegments", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForLabel("tabHome", "家", in: app)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
@@ -259,47 +255,49 @@ extension RoomHomeUITests {
         let before = navigationState(in: app)
         ensureHomeNavigationItemVisible("settingsButton", in: app)
         let settingsTouch = element("settingsButton", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let moreTouch = element("tabMore", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        tapAnimationControl("tabHome", in: app)
         tapAnimationControl("feedButton", in: app)
         let eating = waitForNavigation(in: app, timeout: 25, description: "an unfinished meal with real mouth contact",
                                        matching: { $0.phase == "feeding" && $0.foodContactSamples > before.foodContactSamples
                                            && $0.completedMeals == before.completedMeals })
         // Use the already known button coordinate immediately after observing
         // contact; extra existence/label queries could let the meal finish.
+        moreTouch.tap()
         settingsTouch.tap()
-        waitForElement("settingsLanguageRow", in: app)
+        waitForElement("settingsLanguageSegments", in: app)
         let interruption = XCTAttachment(string: "phaseBeforeSettings=\(eating.phase)\ncompletedMealsBeforeSettings=\(eating.completedMeals)\nfoodContactSamplesBeforeSettings=\(eating.foodContactSamples)")
         interruption.name = "Settings — opened during a real unfinished meal"
         interruption.lifetime = .keepAlways
         add(interruption)
 
-        // Real navigation and a saved language change keep the full-screen
+        // Real navigation and a saved language change keep the embedded
         // settings open while the room is inactive, without a timed sleep.
-        tapAnimationControl("settingsLanguageRow", in: app)
-        tapAnimationControl("languageOption_en", in: app)
+
+        tapSettingsRootControl("languageOption_en", in: app)
         assertSettingsLanguageSelection("en", in: app)
-        waitForLabel("settingsBackButton", "Back", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        waitForLabel("settingsLanguageRow", "Game language", in: app, contains: true)
+        waitForLabel("settingsLanguageTitle", "Game language", in: app, contains: true)
+        assertFixedNavigationAvailable(in: app)
         waitForLabel("settingsUpdatesRow", "Version updates", in: app, contains: true)
-        tapAnimationControl("settingsHomeNameRow", in: app)
+        tapSettingsRootControl("settingsHomeNameRow", in: app)
         replaceHomeNameText(with: "Sunny Home", replacing: "", in: app)
         bringIntoView("homeNameSaveButton", in: app)
         tapAnimationControl("homeNameSaveButton", in: app)
         waitForLabel("homeNameStatus", "Home name saved", in: app)
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsUpdatesRow", in: app)
-        waitForObservedValue("currentAppVersion", "0.7.1 (32)", in: app)
+        tapSettingsRootControl("settingsUpdatesRow", in: app)
+        waitForObservedValue("currentAppVersion", "0.8.0 (33)", in: app)
         attachScreenshot(app, named: "Settings — English updates before scrolling")
-        bringIntoView("releaseNote_29", in: app)
-        XCTAssertTrue(element("releaseNote_29", in: app).isHittable)
-        XCTAssertFalse(element("releaseNote_29", in: app).exists)
+        bringIntoView("releaseNote_31", in: app)
+        XCTAssertTrue(element("releaseNote_31", in: app).isHittable)
+        XCTAssertFalse(element("releaseNote_30", in: app).exists)
         attachScreenshot(app, named: "Settings — English third update is readable")
         tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("settingsCloseButton", in: app)
+        tapAnimationControl("tabHome", in: app)
 
         let finished = waitForNavigationPhase("idle", in: app, timeout: 35)
         XCTAssertEqual(finished.completedMeals, before.completedMeals + 1,
-                       "Closing settings must resume and finish the same meal, not cancel it or start another one.")
+                       "Closing settings must resume the same meal. Diagnostics: \(element("roomScene", in: app).value ?? "missing")")
         XCTAssertGreaterThanOrEqual(finished.foodContactSamples, eating.foodContactSamples,
                                     "Opening settings must preserve the active meal and its contact diagnostics.")
         XCTAssertGreaterThan(finished.foodContactSamples, before.foodContactSamples)
@@ -387,25 +385,29 @@ extension RoomHomeUITests {
                                                     file: StaticString = #filePath, line: UInt = #line) {
         waitForLabel("tabHome", language.home, in: app, file: file, line: line)
         waitForLabel("tabShop", language.shop, in: app, file: file, line: line)
+        ensureHomeNavigationItemVisible("tabInventory", in: app, file: file, line: line)
         waitForLabel("tabInventory", language.bag, in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
         waitForObservedValue("foodCount", "4", in: app, file: file, line: line)
         waitForObservedValue("goldCount", "180", in: app, file: file, line: line)
 
         tapAnimationControl("tabShop", in: app, file: file, line: line)
-        XCTAssertTrue(app.navigationBars[language.shopTitle].waitForExistence(timeout: 8), file: file, line: line)
+        XCTAssertTrue(app.staticTexts[language.shopTitle].firstMatch.waitForExistence(timeout: 8), file: file, line: line)
+        assertFixedNavigationAvailable(in: app, file: file, line: line)
         XCTAssertTrue(app.staticTexts[language.food].firstMatch.waitForExistence(timeout: 8),
                       "Shop product names must use the newly selected language.", file: file, line: line)
         waitForObservedValue("shopGoldCount", "180", in: app, file: file, line: line)
-        tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
 
         tapAnimationControl("tabInventory", in: app, file: file, line: line)
-        XCTAssertTrue(app.navigationBars[language.bagTitle].waitForExistence(timeout: 8), file: file, line: line)
+        XCTAssertTrue(app.staticTexts[language.bagTitle].firstMatch.waitForExistence(timeout: 8), file: file, line: line)
+        assertFixedNavigationAvailable(in: app, file: file, line: line)
         waitForLabel("inventoryFoodCount", language.bagFoodLabel, in: app, file: file, line: line)
         waitForObservedValue("inventoryFoodCount", "4", in: app, file: file, line: line)
         waitForObservedValue("inventoryLitterCount", "2", in: app, file: file, line: line)
         bringIntoView("inventoryToyUses", in: app)
         waitForObservedValue("inventoryToyUses", "0", in: app, file: file, line: line)
-        tapAnimationControl("closeSheetButton", in: app, file: file, line: line)
+        tapAnimationControl("tabHome", in: app, file: file, line: line)
     }
 
     @MainActor

@@ -1,3 +1,5 @@
+0.8.0（33）的十页原生 UI/UX 改版记录见 [Build 33 Design QA](QA/redesign-build33/design-qa.md)。交互与真机交付状态以该目录的 verification.json 为准。
+
 最新欢迎页与进度条更新 0.4.3（22）的独立验收见 [欢迎页 Build 22 Design QA](QA/welcome-build22/design-qa.md)。以下保留原第14版及后续索引记录。
 
 # 原生 iOS 首页功能布局 · Build 14 Design QA
