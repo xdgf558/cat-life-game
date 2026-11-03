@@ -20,7 +20,20 @@ public struct GameTaskDefinition: Identifiable, Sendable {
     public let goldReward: Int
     public let expReward: Int
     public let destination: GameTaskDestination
+    public let requiredLevel: Int
     let metric: GameTaskMetric
+
+    init(id: String, category: GameTaskCategory, target: Int, goldReward: Int, expReward: Int,
+         destination: GameTaskDestination, metric: GameTaskMetric, requiredLevel: Int = 1) {
+        self.id = id
+        self.category = category
+        self.target = target
+        self.goldReward = goldReward
+        self.expReward = expReward
+        self.destination = destination
+        self.metric = metric
+        self.requiredLevel = requiredLevel
+    }
 }
 
 /// Stable IDs are saved as receipts; rewards and conditions always come from this catalog.
@@ -43,7 +56,31 @@ public enum GameTaskCatalog {
         .init(id: "achievement_intimacy50", category: .achievement, target: 50, goldReward: 80, expReward: 20,
               destination: .care, metric: .intimacy),
         .init(id: "achievement_room2", category: .achievement, target: 2, goldReward: 100, expReward: 25,
-              destination: .upgrade, metric: .roomLevel)
+              destination: .upgrade, metric: .roomLevel),
+        .init(id: "daily_work2", category: .daily, target: 2, goldReward: 35, expReward: 8,
+              destination: .work, metric: .dailyWork, requiredLevel: 2),
+        .init(id: "daily_feed2", category: .daily, target: 2, goldReward: 20, expReward: 5,
+              destination: .care, metric: .dailyFeed, requiredLevel: 4),
+        .init(id: "daily_play2", category: .daily, target: 2, goldReward: 20, expReward: 5,
+              destination: .care, metric: .dailyPlay, requiredLevel: 6),
+        .init(id: "daily_work3", category: .daily, target: 3, goldReward: 45, expReward: 10,
+              destination: .work, metric: .dailyWork, requiredLevel: 10),
+        .init(id: "achievement_work25", category: .achievement, target: 25, goldReward: 180, expReward: 35,
+              destination: .work, metric: .totalWork, requiredLevel: 2),
+        .init(id: "achievement_intimacy75", category: .achievement, target: 75, goldReward: 120, expReward: 25,
+              destination: .care, metric: .intimacy, requiredLevel: 2),
+        .init(id: "achievement_room3", category: .achievement, target: 3, goldReward: 180, expReward: 35,
+              destination: .upgrade, metric: .roomLevel, requiredLevel: 4),
+        .init(id: "achievement_furniture3", category: .achievement, target: 3, goldReward: 100, expReward: 20,
+              destination: .furnitureShop, metric: .furniturePurchases, requiredLevel: 4),
+        .init(id: "achievement_work50", category: .achievement, target: 50, goldReward: 280, expReward: 50,
+              destination: .work, metric: .totalWork, requiredLevel: 6),
+        .init(id: "achievement_intimacy100", category: .achievement, target: 100, goldReward: 180, expReward: 35,
+              destination: .care, metric: .intimacy, requiredLevel: 6),
+        .init(id: "achievement_work100", category: .achievement, target: 100, goldReward: 500, expReward: 80,
+              destination: .work, metric: .totalWork, requiredLevel: 10),
+        .init(id: "achievement_furniture5", category: .achievement, target: 5, goldReward: 180, expReward: 35,
+              destination: .furnitureShop, metric: .furniturePurchases, requiredLevel: 10)
     ]
 
     public static func task(id: String) -> GameTaskDefinition? { all.first { $0.id == id } }
@@ -66,7 +103,20 @@ public enum GameTaskCatalog {
     }
 
     public static func isClaimable(_ task: GameTaskDefinition, in state: GameSnapshot) -> Bool {
-        !isClaimed(task, in: state) && progress(for: task, in: state) >= task.target
+        isUnlocked(task, in: state) && !isClaimed(task, in: state) && progress(for: task, in: state) >= task.target
+    }
+
+    public static func isUnlocked(_ task: GameTaskDefinition, in state: GameSnapshot) -> Bool {
+        state.player.level >= task.requiredLevel
+    }
+
+    public static func remainingTasks(in state: GameSnapshot, category: GameTaskCategory) -> [GameTaskDefinition] {
+        all.filter { $0.category == category && isUnlocked($0, in: state) && !isClaimed($0, in: state) }
+    }
+
+    public static func nextUnlockLevel(in state: GameSnapshot, category: GameTaskCategory) -> Int? {
+        all.filter { $0.category == category && !isUnlocked($0, in: state) && !isClaimed($0, in: state) }
+            .map(\.requiredLevel).min()
     }
 }
 

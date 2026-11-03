@@ -16,6 +16,7 @@ final class GameStoreTaskTests: XCTestCase {
         let original = try XCTUnwrap(store.snapshot)
         let task = try XCTUnwrap(GameTaskCatalog.task(id: "tutorial_feed"))
         XCTAssertTrue(GameTaskCatalog.isClaimable(task, in: original))
+        XCTAssertTrue(GameTaskCatalog.remainingTasks(in: original, category: .tutorial).contains { $0.id == task.id })
         let baseline = await repository.attempts.count
         await repository.setWritesFailing(true)
 
@@ -28,6 +29,8 @@ final class GameStoreTaskTests: XCTestCase {
         XCTAssertTrue(store.showSaveError)
         let stillDurable = await repository.savedSnapshot
         XCTAssertEqual(stillDurable, original)
+        XCTAssertTrue(GameTaskCatalog.remainingTasks(in: stillDurable, category: .tutorial).contains { $0.id == task.id },
+                      "A failed reward must remain visible and claimable.")
         let failedAttempts = await repository.attempts
         XCTAssertEqual(failedAttempts.count, baseline + 1)
         let rejected = try XCTUnwrap(failedAttempts.last)
@@ -50,6 +53,7 @@ final class GameStoreTaskTests: XCTestCase {
         XCTAssertFalse(store.showSaveError)
         let durableReward = await repository.savedSnapshot
         XCTAssertEqual(durableReward, rewarded)
+        XCTAssertFalse(GameTaskCatalog.remainingTasks(in: rewarded, category: .tutorial).contains { $0.id == task.id })
 
         let duplicate = await store.claimTask(id: task.id)
         XCTAssertFalse(duplicate)
@@ -69,6 +73,41 @@ final class GameStoreTaskTests: XCTestCase {
         XCTAssertEqual(afterReload.player.gold, rewarded.player.gold)
         XCTAssertEqual(afterReload.player.exp, rewarded.player.exp)
         XCTAssertEqual(afterReload.tasks.claimedTaskIDs, [task.id])
+        XCTAssertFalse(GameTaskCatalog.remainingTasks(in: afterReload, category: .tutorial).contains { $0.id == task.id })
+    }
+
+    @MainActor
+    func testFailedRewardDoesNotPublishLevelUnlocksUntilSuccessfulRetry() async throws {
+        var seed = try fedSnapshot()
+        seed.player.exp = 99
+        seed.player.completedWorkCount = 2
+        seed.tasks.dailyWorkCount = 2
+        let repository = TaskSaveRepository(seed)
+        let store = GameStore(repository: repository)
+        await store.load()
+        let before = try XCTUnwrap(store.snapshot)
+        let day = try XCTUnwrap(before.tasks.dailyDayKey)
+        let advanced = try XCTUnwrap(GameTaskCatalog.task(id: "daily_work2"))
+        XCTAssertFalse(GameTaskCatalog.isUnlocked(advanced, in: before))
+        await repository.setWritesFailing(true)
+        let failed = await store.claimTask(id: "daily_feed", expectedDayKey: day)
+        XCTAssertFalse(failed)
+        XCTAssertEqual(store.snapshot, before)
+        XCTAssertFalse(GameTaskCatalog.isUnlocked(advanced, in: try XCTUnwrap(store.snapshot)))
+
+        await repository.setWritesFailing(false)
+        let recovered = await store.claimTask(id: "daily_feed", expectedDayKey: day)
+        XCTAssertTrue(recovered)
+        let saved = await repository.savedSnapshot
+        XCTAssertEqual(saved.player.level, 2)
+        XCTAssertEqual(saved.player.exp, 3)
+        XCTAssertEqual(saved.player.gold, before.player.gold + 15)
+        XCTAssertTrue(GameTaskCatalog.isClaimable(advanced, in: saved),
+                      "Earlier activity today counts toward goals unlocked by the committed level gain.")
+        let visible = GameTaskCatalog.remainingTasks(in: saved, category: .daily).map(\.id)
+        XCTAssertTrue(visible.contains("daily_work2"))
+        XCTAssertFalse(visible.contains("daily_feed"))
+        XCTAssertEqual(saved.tasks.dailyClaimedTaskIDs, ["daily_feed"])
     }
 
     @MainActor

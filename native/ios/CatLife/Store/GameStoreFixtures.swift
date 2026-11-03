@@ -25,7 +25,24 @@ struct GameStoreFixtures {
         failCatAdoptionOnce = reset && arguments.contains("--cat-adoption-save-failure-once")
         failCatSelectionOnce = reset && arguments.contains("--cat-companion-save-failure-once")
         guard reset else { return }
-        if arguments.contains("--uitesting-adoption-ready") || arguments.contains("--uitesting-adoption-owned") {
+        if arguments.contains("--tasks-level10-fixture") || arguments.contains("--tasks-level-up-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            if arguments.contains("--tasks-level10-fixture") {
+                value.player.level = 10
+                value.player.completedWorkCount = 10
+                value.tasks.dailyWorkCount = 3
+                value.tasks.totalFeedCount = 2
+                value.tasks.dailyFeedCount = 2
+                value.tasks.dailyPlayCount = 2
+            } else {
+                value.player.exp = 99
+                _ = GameEngine.feed(&value, catID: value.activeCatID, now: now)
+                value.player.completedWorkCount = 2
+                value.tasks.dailyWorkCount = 2
+            }
+            initialSnapshot = value
+        } else if arguments.contains("--uitesting-adoption-ready") || arguments.contains("--uitesting-adoption-owned") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 2
             value.player.gold = 1000

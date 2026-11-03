@@ -6,6 +6,9 @@ extension GameEngine {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard let task = GameTaskCatalog.task(id: id) else { return ActionOutcome(failure: .taskMissing) }
+        guard GameTaskCatalog.isUnlocked(task, in: state) else {
+            return ActionOutcome(failure: .taskLevelRequired, amount: task.requiredLevel)
+        }
         if task.category == .daily,
            expectedDayKey == nil || expectedDayKey != state.tasks.dailyDayKey {
             return ActionOutcome(failure: .taskDayChanged)

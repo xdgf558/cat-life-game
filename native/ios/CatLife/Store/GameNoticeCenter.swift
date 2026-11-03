@@ -76,7 +76,7 @@ enum GameActionNotice {
              .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,
              .catAdoptionMissing, .catAlreadyOwned:
             return GameStrings.text(outcome.messageKey)
-        case .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
+        case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired:
             return GameStrings.format(outcome.messageKey, outcome.amount)
         case .roomCapacityReached:

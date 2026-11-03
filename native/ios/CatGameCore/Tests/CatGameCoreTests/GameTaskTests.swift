@@ -22,13 +22,14 @@ struct GameTaskTests {
         try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
-    @Test func catalogHasNineStableTasksAndExpectedRewards() {
-        #expect(GameTaskCatalog.all.map(\.id) == ["tutorial_work", "tutorial_feed", "tutorial_furniture",
+    @Test func originalNineTasksKeepTheirIDsRewardsAndLevelOneAvailability() {
+        let original = Array(GameTaskCatalog.all.prefix(9))
+        #expect(original.map(\.id) == ["tutorial_work", "tutorial_feed", "tutorial_furniture",
             "daily_work", "daily_feed", "daily_play", "achievement_work10", "achievement_intimacy50", "achievement_room2"])
-        #expect(GameTaskCatalog.all.map(\.goldReward) == [30, 20, 40, 30, 15, 15, 120, 80, 100])
-        #expect(GameTaskCatalog.all.map(\.expReward) == [10, 5, 10, 8, 4, 4, 25, 20, 25])
-        #expect(GameTaskCatalog.all.map(\.target) == [1, 1, 1, 1, 1, 1, 10, 50, 2])
-        #expect(GameTaskCategory.allCases.allSatisfy { category in GameTaskCatalog.all.filter { $0.category == category }.count == 3 })
+        #expect(original.map(\.goldReward) == [30, 20, 40, 30, 15, 15, 120, 80, 100])
+        #expect(original.map(\.expReward) == [10, 5, 10, 8, 4, 4, 25, 20, 25])
+        #expect(original.map(\.target) == [1, 1, 1, 1, 1, 1, 10, 50, 2])
+        #expect(original.allSatisfy { $0.requiredLevel == 1 })
         #expect(GameTaskCatalog.task(id: "missing") == nil)
     }
 
@@ -43,7 +44,7 @@ struct GameTaskTests {
             object["schemaVersion"] = version
             object.removeValue(forKey: "tasks")
             let migrated = try decode(object)
-            #expect(migrated == original && migrated.schemaVersion == 3)
+            #expect(migrated == original && migrated.schemaVersion == GameSnapshot.currentSchemaVersion)
             for id in ["tutorial_work", "achievement_work10", "achievement_intimacy50", "achievement_room2"] {
                 #expect(GameTaskCatalog.isClaimable(try task(id), in: migrated))
             }
@@ -164,14 +165,15 @@ struct GameTaskTests {
     @Test func eachTaskPaysCatalogRewardOnceAndRetainsReceipt() throws {
         for definition in GameTaskCatalog.all {
             var state = GameSnapshot.fresh(now: now)
-            state.player.completedWorkCount = 10
-            state.cats[0].intimacy = 50
-            state.home.roomLevel = 2
-            state.tasks.totalFeedCount = 1
-            state.tasks.furniturePurchaseCount = 1
-            state.tasks.dailyFeedCount = 1
-            state.tasks.dailyWorkCount = 1
-            state.tasks.dailyPlayCount = 1
+            state.player.level = 10
+            state.player.completedWorkCount = 100
+            state.cats[0].intimacy = 100
+            state.home.roomLevel = 3
+            state.tasks.totalFeedCount = 2
+            state.tasks.furniturePurchaseCount = 5
+            state.tasks.dailyFeedCount = 2
+            state.tasks.dailyWorkCount = 3
+            state.tasks.dailyPlayCount = 2
             let before = state.player
             let outcome = GameEngine.claimTask(&state, id: definition.id, expectedDayKey: state.tasks.dailyDayKey, now: now)
             #expect(outcome.success == .taskClaimed && outcome.amount == definition.goldReward)

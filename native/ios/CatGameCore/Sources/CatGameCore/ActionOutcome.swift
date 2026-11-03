@@ -7,6 +7,7 @@ public enum ActionKind: String, Codable, Sendable {
 
 public enum ActionFailure: String, Equatable, Sendable {
     case taskMissing = "tasks.error.unknown"
+    case taskLevelRequired = "tasks.error.levelRequired"
     case taskAlreadyClaimed = "tasks.error.alreadyClaimed"
     case taskIncomplete = "tasks.error.incomplete"
     case taskDayChanged = "tasks.error.dayChanged"

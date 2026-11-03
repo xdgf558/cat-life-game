@@ -5,6 +5,7 @@ import CatGameCore
 struct TaskDestinationView: View {
     @Bindable var store: GameStore
     @State private var category: GameTaskCategory = .daily
+    @State private var page = 0
     @State private var path: [TaskRoute] = []
     @State private var claimingTaskID: String?
 
@@ -27,11 +28,7 @@ struct TaskDestinationView: View {
                         Text(GameStrings.text(categoryHintKey))
                             .font(.system(size: 12, weight: .medium)).foregroundStyle(RoomTheme.secondary)
                             .fixedSize(horizontal: false, vertical: true)
-                        VStack(spacing: 12) {
-                            ForEach(GameTaskCatalog.all.filter { $0.category == category }, id: \.id) { task in
-                                taskCard(task, snapshot: snapshot)
-                            }
-                        }
+                        taskList(snapshot)
                         if category == .tutorial {
                             Text(GameStrings.text("tasks.legacyNotice"))
                                 .font(.footnote).foregroundStyle(RoomTheme.secondary)
@@ -66,7 +63,7 @@ struct TaskDestinationView: View {
     }
 
     private func summary(_ snapshot: GameSnapshot) -> some View {
-        let daily = GameTaskCatalog.all.filter { $0.category == .daily }
+        let daily = GameTaskCatalog.all.filter { $0.category == .daily && GameTaskCatalog.isUnlocked($0, in: snapshot) }
         let completed = daily.filter { progress($0, in: snapshot) >= $0.target }.count
         let claimable = GameTaskCatalog.all.filter { GameTaskCatalog.isClaimable($0, in: snapshot) }.count
         return VStack(alignment: .leading, spacing: 8) {
@@ -89,7 +86,10 @@ struct TaskDestinationView: View {
         HStack(spacing: 4) {
             ForEach(GameTaskCategory.allCases, id: \.rawValue) { item in
                 let available = GameTaskCatalog.all.filter { $0.category == item && GameTaskCatalog.isClaimable($0, in: snapshot) }.count
-                Button { category = item } label: {
+                Button {
+                    category = item
+                    page = 0
+                } label: {
                     HStack(spacing: 4) {
                         Text(GameStrings.text("tasks.category.\(item.rawValue)"))
                             .font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
@@ -110,6 +110,56 @@ struct TaskDestinationView: View {
             }
         }
         .padding(4).background(RoomTheme.chipBg, in: Capsule())
+    }
+
+    private func taskList(_ snapshot: GameSnapshot) -> some View {
+        let remaining = GameTaskCatalog.remainingTasks(in: snapshot, category: category)
+        let pageCount = max(1, (remaining.count + 2) / 3)
+        let currentPage = min(page, pageCount - 1)
+        return VStack(spacing: 12) {
+            if remaining.isEmpty {
+                Label(GameStrings.text(category == .daily ? "tasks.empty.daily" : "tasks.empty.permanent"),
+                      systemImage: "checkmark.seal.fill")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading).padding(20).gameCard()
+                    .accessibilityIdentifier("tasksEmptyState")
+            } else {
+                ForEach(Array(remaining.dropFirst(currentPage * 3).prefix(3)), id: \.id) { task in
+                    taskCard(task, snapshot: snapshot)
+                }
+                if pageCount > 1 {
+                    HStack(spacing: 12) {
+                        Button { page = currentPage - 1 } label: {
+                            Image(systemName: "chevron.left").frame(width: 44, height: 44)
+                        }
+                        .disabled(currentPage == 0)
+                        .accessibilityLabel(GameStrings.text("tasks.previousPage"))
+                        .accessibilityIdentifier("tasksPreviousPage")
+                        Text(GameStrings.format("tasks.page", currentPage + 1, pageCount))
+                            .font(.subheadline.weight(.semibold)).monospacedDigit()
+                            .frame(maxWidth: .infinity).multilineTextAlignment(.center)
+                            .accessibilityIdentifier("tasksPageIndicator")
+                            .accessibilityValue("\(currentPage + 1)/\(pageCount)")
+                        Button { page = currentPage + 1 } label: {
+                            Image(systemName: "chevron.right").frame(width: 44, height: 44)
+                        }
+                        .disabled(currentPage == pageCount - 1)
+                        .accessibilityLabel(GameStrings.text("tasks.nextPage"))
+                        .accessibilityIdentifier("tasksNextPage")
+                    }
+                    .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint)
+                }
+            }
+            if let nextLevel = GameTaskCatalog.nextUnlockLevel(in: snapshot, category: category) {
+                Label(GameStrings.format("tasks.nextUnlock", nextLevel), systemImage: "lock.fill")
+                    .font(.footnote).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityIdentifier("tasksNextUnlock").accessibilityValue("\(nextLevel)")
+            }
+        }
+        .onChange(of: remaining.count) { _, _ in page = min(page, pageCount - 1) }
     }
 
     private func taskCard(_ task: GameTaskDefinition, snapshot: GameSnapshot) -> some View {
@@ -210,7 +260,9 @@ struct TaskDestinationView: View {
                 claimingTaskID = task.id
                 Task {
                     defer { claimingTaskID = nil }
-                    _ = await store.claimTask(id: task.id, expectedDayKey: route.dayKey)
+                    if await store.claimTask(id: task.id, expectedDayKey: route.dayKey) {
+                        path.removeAll()
+                    }
                 }
             } label: {
                 Label(GameStrings.text(claimingTaskID == task.id ? "common.saving" : "tasks.claim"), systemImage: "gift.fill")
@@ -277,7 +329,7 @@ struct HomeTaskEntry: View {
 
     var body: some View {
         if let snapshot = store.snapshot {
-            let daily = GameTaskCatalog.all.filter { $0.category == .daily }
+            let daily = GameTaskCatalog.all.filter { $0.category == .daily && GameTaskCatalog.isUnlocked($0, in: snapshot) }
             let completed = daily.filter {
                 GameTaskCatalog.isClaimed($0, in: snapshot) || GameTaskCatalog.progress(for: $0, in: snapshot) >= $0.target
             }.count
