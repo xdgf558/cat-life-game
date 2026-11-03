@@ -151,6 +151,7 @@ public struct ActiveWork: Codable, Equatable, Sendable, Identifiable {
 public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public var id: String
     public var name: String
+    public var customName: String?
     public var satiety: Int
     public var cleanliness: Int
     public var mood: Int
@@ -166,9 +167,11 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public init(id: String, name: String, satiety: Int = 35, cleanliness: Int = 75,
                 mood: Int = 85, intimacy: Int = 12, energy: Int = 80,
                 health: Int = 90, isPregnant: Bool = false, now: Date,
-                activeRest: CatRest? = nil, lastRestSessionID: String? = nil) {
+                activeRest: CatRest? = nil, lastRestSessionID: String? = nil,
+                customName: String? = nil) {
         self.id = id
         self.name = name
+        self.customName = customName
         self.satiety = satiety
         self.cleanliness = cleanliness
         self.mood = mood
@@ -179,6 +182,29 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         self.decayTracker = CatDecayTracker(now: now)
         self.activeRest = activeRest
         self.lastRestSessionID = lastRestSessionID ?? activeRest?.id
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, customName, satiety, cleanliness, mood, intimacy, energy, health
+        case isPregnant, decayTracker, activeRest, lastRestSessionID
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        name = try values.decode(String.self, forKey: .name)
+        // A malformed cosmetic override cannot roll back the cat's progress.
+        customName = (try? values.decode(String.self, forKey: .customName)).flatMap(CatNameRules.normalized)
+        satiety = try values.decode(Int.self, forKey: .satiety)
+        cleanliness = try values.decode(Int.self, forKey: .cleanliness)
+        mood = try values.decode(Int.self, forKey: .mood)
+        intimacy = try values.decode(Int.self, forKey: .intimacy)
+        energy = try values.decode(Int.self, forKey: .energy)
+        health = try values.decode(Int.self, forKey: .health)
+        isPregnant = try values.decode(Bool.self, forKey: .isPregnant)
+        decayTracker = try values.decode(CatDecayTracker.self, forKey: .decayTracker)
+        activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)
+        lastRestSessionID = try values.decodeIfPresent(String.self, forKey: .lastRestSessionID)
     }
 }
 

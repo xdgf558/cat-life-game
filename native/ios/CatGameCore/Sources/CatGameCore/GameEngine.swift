@@ -515,6 +515,7 @@ extension GameSnapshot {
         for cat in cats {
             guard !cat.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   !cat.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                  cat.customName.map({ CatNameRules.normalized($0) == $0 }) ?? true,
                   [cat.satiety, cat.cleanliness, cat.mood, cat.intimacy, cat.energy, cat.health].allSatisfy({ (0...100).contains($0) }),
                   [cat.decayTracker.satiety, cat.decayTracker.cleanliness, cat.decayTracker.mood,
                    cat.decayTracker.energy].allSatisfy({ $0.timeIntervalSince1970.isFinite })

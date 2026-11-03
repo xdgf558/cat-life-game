@@ -66,6 +66,8 @@ struct RoomHomeView: View {
                 PlayerProfileView(store: store)
             } else if destination == .work {
                 WorkDestinationView(store: store)
+            } else if destination == .town {
+                CatCollectionView(store: store, initialCatID: store.inspectedCatID)
             } else {
                 HomeDestinationSheet(destination: destination, store: store)
             }
@@ -172,12 +174,18 @@ struct RoomHomeView: View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
                 HStack(spacing: 10) {
-                    GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
-                        .background(RoomTheme.wood.opacity(0.18), in: Circle())
+                    Button { store.inspectCat() } label: {
+                        GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
+                            .background(RoomTheme.wood.opacity(0.18), in: Circle())
+                    }
+                    .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catProfile.title"))
+                    .accessibilityIdentifier("homeCatProfileButton")
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(store.cat.map(GameStrings.catName) ?? "")
+                        Text(verbatim: store.cat.map(GameStrings.catName) ?? "")
                             .font(.system(size: 23, weight: .heavy, design: .rounded))
                             .lineLimit(1).minimumScaleFactor(0.8)
+                            .accessibilityIdentifier("homeCatName")
+                            .accessibilityValue(Text(verbatim: store.cat.map(GameStrings.catName) ?? ""))
                         Text(store.catStatus)
                             .font(.system(size: 13, weight: .medium))
                             .foregroundStyle(RoomTheme.secondary)
@@ -332,7 +340,10 @@ struct RoomHomeView: View {
                     tab("tab.work", asset: "icon-work", symbol: "briefcase.fill", identifier: "tabWork", width: itemWidth, selected: store.activeSheet == .work) { store.activeSheet = .work }
                     tab("tab.shop", asset: "icon-shop", symbol: "storefront.fill", identifier: "tabShop", width: itemWidth, selected: store.activeSheet == .shop) { store.activeSheet = .shop }
                     tab("tab.inventory", asset: "icon-inventory", symbol: "backpack.fill", identifier: "tabInventory", width: itemWidth, selected: store.activeSheet == .inventory) { store.openInventory() }
-                    tab("tab.town", asset: "icon-town", symbol: "pawprint.fill", identifier: "tabTown", width: itemWidth, selected: store.activeSheet == .town) { store.activeSheet = .town }
+                    tab("tab.town", asset: "icon-town", symbol: "pawprint.fill", identifier: "tabTown", width: itemWidth, selected: store.activeSheet == .town) {
+                        store.inspectedCatID = nil
+                        store.activeSheet = .town
+                    }
                     tab("tab.player", asset: "", symbol: "person.crop.circle.fill", identifier: "tabPlayer", width: itemWidth, selected: store.activeSheet == .player, avatar: avatar) { store.activeSheet = .player }
                         .accessibilityValue(GameStrings.text(avatar?.nameKey ?? "player.avatar.unselected"))
                     tab("layout.edit", asset: "", symbol: "sofa.fill", identifier: "decorateButton", width: itemWidth, selected: false) { store.beginDecorating() }

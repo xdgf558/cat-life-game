@@ -40,6 +40,7 @@ final class GameStore {
         didSet { if oldValue != isShowingSettings { playNavigationSound() } }
     }
     var inventoryCategory: InventoryCategory = .supplies
+    var inspectedCatID: String?
     private(set) var now = Date()
     var toast: String? { notices.toast }
     private(set) var feedback: RoomFeedback?
@@ -555,6 +556,32 @@ final class GameStore {
         }
     }
 
+    @discardableResult
+    func renameCat(id: String, to rawName: String?) async -> Bool {
+        guard !isBusy, !isDecorating, var context = saveContext(),
+              let index = context.candidate.cats.firstIndex(where: { $0.id == id }) else { return false }
+        let name: String?
+        if let rawName {
+            guard let normalized = CatNameRules.normalized(rawName) else { return false }
+            name = normalized
+        } else {
+            name = nil
+        }
+        guard context.candidate.cats[index].customName != name else { return true }
+        context.candidate.cats[index].customName = name
+        isBusy = true
+        defer { isBusy = false; drainPendingSynchronization() }
+        do {
+            try await commit(context)
+            audio.play(.tap, userInitiated: true)
+            return true
+        } catch {
+            // Keep the durable name; the editor owns its draft for a retry.
+            recordSaveFailure(showAlert: false, userInitiated: true)
+            return false
+        }
+    }
+
     func selectAvatar(_ id: String) {
         perform { GameEngine.selectAvatar(&$0, avatarID: id, now: $1) }
     }
@@ -730,6 +757,7 @@ final class GameStore {
     func inspectCat() {
         guard !isDecorating else { return }
         audio.play(.catMeow, userInitiated: true)
+        inspectedCatID = cat?.id
         activeSheet = .town
     }
 

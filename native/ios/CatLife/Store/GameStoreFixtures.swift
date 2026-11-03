@@ -7,6 +7,7 @@ struct GameStoreFixtures {
     var initialSnapshot: GameSnapshot?
     var failRestExitOnce = false
     var failWorkCompletionOnce = false
+    private var failCatRenameOnce = false
     private var failUserSaves = false
     private var outageStarted = false
 
@@ -16,8 +17,18 @@ struct GameStoreFixtures {
         failRestExitOnce = arguments.contains("--recovery-end-failure-once")
         let reset = allowsSeeding && arguments.contains("--reset-ui-test-save")
         failWorkCompletionOnce = reset && arguments.contains("--career-save-failure-once")
+        failCatRenameOnce = reset && arguments.contains("--cat-name-save-failure-once")
         guard reset else { return }
-        if arguments.contains("--shop-upgrade-fixture") || arguments.contains("--room-zoom-fixture") {
+        if arguments.contains("--cat-collection-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.cats += (2...9).map { index in
+                CatState(id: String(format: "cat_%03d", index), name: "猫咪\(index)",
+                         satiety: 60 + index, cleanliness: 70 + index, mood: 80 + index,
+                         intimacy: 10 + index, energy: 50 + index, health: 90 + index, now: now)
+            }
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
+        } else if arguments.contains("--shop-upgrade-fixture") || arguments.contains("--room-zoom-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 4
             value.player.gold = 5000
@@ -61,6 +72,10 @@ struct GameStoreFixtures {
 
     mutating func checkSave(_ candidate: GameSnapshot, original: GameSnapshot,
                             exitsRest: Bool) throws {
+        if failCatRenameOnce && candidate.cats.map(\.customName) != original.cats.map(\.customName) {
+            failCatRenameOnce = false
+            throw CocoaError(.fileWriteUnknown)
+        }
         if failUserSaves && (outageStarted || candidate.inventory != original.inventory) {
             outageStarted = true
             throw CocoaError(.fileWriteUnknown)

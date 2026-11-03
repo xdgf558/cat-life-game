@@ -163,8 +163,9 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", "200", in: app)
         attachRecoveryDiagnostics(completed, in: app, named: "Recovery — one background rest reaches its cap and ends")
         tapAnimationControl("tabTown", in: app)
-        scrollRecoveryCard(to: "catEnergy", in: app)
-        waitForObservedValue("catEnergy", "100", in: app)
+        tapAnimationControl("catProfile_cat_001", in: app)
+        scrollCareerPage("catProfileScroll", to: "catProfileEnergy", in: app)
+        waitForObservedValue("catProfileEnergy", "100", in: app)
         attachScreenshot(app, named: "Recovery — the real cat profile shows the recovered energy")
     }
 

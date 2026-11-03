@@ -1,0 +1,84 @@
+{
+  "date": "2026-11-03",
+  "version": "0.6.2",
+  "build": 30,
+  "status": {
+    "finished": "Compact paged cat directory, independent six-attribute detail, per-ID custom names, explicit save/cancel/reset, durable-write failure retry, multilingual names and legacy saves; signed builds and simulator validation passed. In-place installation, byte-identical pre-launch save and normal installed-version process confirmed.",
+    "partiallyFinished": "Player acceptance of the new profile/name flow is pending.",
+    "broken": [],
+    "nextWork": "Player checks profile navigation and renaming on the installed version."
+  },
+  "coreTests": {
+    "passed": 174,
+    "suites": 16,
+    "newTests": 6,
+    "report": "core-tests.json"
+  },
+  "appTests": {
+    "passed": 40,
+    "failed": 0,
+    "newTests": 5,
+    "report": "app-tests.json"
+  },
+  "uiTests": {
+    "executions": 8,
+    "passed": 8,
+    "failed": 0,
+    "distinctMethods": 6
+  },
+  "builds": {
+    "debugSimulator": "passed",
+    "signedReleaseDevice": "passed",
+    "signature": "passed",
+    "report": "release-build.json"
+  },
+  "localization": {
+    "keysPerLanguage": 492,
+    "languages": [
+      "zh-Hans",
+      "zh-Hant",
+      "en"
+    ],
+    "report": "localization.json"
+  },
+  "visualInspection": {
+    "screenshots": [
+      "attributes-pro.png",
+      "attributes-se.png",
+      "collection-pro.png",
+      "collection-se.png",
+      "name-boundary-se.png",
+      "name-english-pro.png",
+      "name-failure-se.png",
+      "name-traditional-se.png"
+    ],
+    "result": "Small and large compact four-card pages and six-stat profiles inspected; long Unicode name, English and Traditional Chinese editors and failed-save draft checked."
+  },
+  "sourceManifest": {
+    "path": "source-manifest.json",
+    "inputs": 211,
+    "sha256": "9fdb11c7d38f612204982bb2e6a97a5c5b4a20ae6903f8105efbb83f8aaba62b",
+    "allInputsMatch": true
+  },
+  "repository": {
+    "webSourcesChanged": false,
+    "rawLogsCommitted": false,
+    "screenshots": "Git LFS"
+  },
+  "limitations": [
+    "Six targeted UI methods, not the complete historical suite; no iPad, accessibility text sizes or live VoiceOver session.",
+    "The nine-cat dataset is a DEBUG-only fixture; this release does not add new cats, acquisition or switching the room cat.",
+    "Long-session use and physical player acceptance are pending."
+  ],
+  "device": {
+    "version": "0.6.2",
+    "build": 30,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 3961,
+    "saveSHA256": "fd83f39e13dc30fac6792cfcccda303631fa9757d84297062d9067bc9eabbe04",
+    "launch": "passed",
+    "runningProcessVerified": true,
+    "userAcceptance": "pending"
+  }
+}
