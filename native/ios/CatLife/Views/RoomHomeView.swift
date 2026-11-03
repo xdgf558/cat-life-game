@@ -150,6 +150,7 @@ struct RoomHomeView: View {
                     .accessibilityValue("\(snapshot.player.stamina)")
                     .accessibilityIdentifier("staminaCount")
             }
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.horizontal, 10).padding(.vertical, 9)
             .background(RoomTheme.paper.opacity(0.98), in: Capsule())
             .accessibilityElement(children: .contain)
@@ -285,16 +286,26 @@ struct RoomHomeView: View {
             }
             .frame(height: 48)
 
-            Button { store.openFurnitureInventory() } label: {
-                Label(GameStrings.text("layout.furnitureBag"), systemImage: "sofa.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .frame(maxWidth: .infinity, minHeight: 36)
-                    .background(RoomTheme.paleMint, in: Capsule())
+            HStack(spacing: 8) {
+                Button { store.openFurnitureInventory() } label: {
+                    Label(GameStrings.text("layout.furnitureBag"), systemImage: "sofa.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoomTheme.paleMint, in: Capsule())
+                }
+                .accessibilityIdentifier("furnitureInventoryButton")
+                Button { store.openHomeUpgrade() } label: {
+                    Label(GameStrings.text("homeUpgrade.entry"), systemImage: "house.and.flag.fill")
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(RoomTheme.paper, in: Capsule())
+                }
+                .disabled(store.isBusy || store.placingFurnitureID != nil)
+                .accessibilityIdentifier("homeUpgradeButton")
             }
+            .font(.system(size: 13, weight: .semibold))
+            .lineLimit(1).minimumScaleFactor(0.75)
             .buttonStyle(.plain)
             .foregroundStyle(RoomTheme.darkMint)
             .disabled(store.isSavingLayout || store.isResolvingLayout)
-            .accessibilityIdentifier("furnitureInventoryButton")
 
             HStack(spacing: 14) {
                 Button(GameStrings.text("layout.cancel")) { store.cancelDecorating() }

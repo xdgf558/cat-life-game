@@ -177,7 +177,11 @@ public enum PlayerCatalog {
         .init(id: "starter_cap", slot: .head, bonuses: .init(moodReductionPercent: 20)),
         .init(id: "starter_jacket", slot: .body, bonuses: .init(staminaReductionPercent: 15)),
         .init(id: "starter_sneakers", slot: .feet, bonuses: .init(durationReductionPercent: 10)),
-        .init(id: "starter_charm", slot: .accessory, bonuses: .init(durationReductionPercent: 5))
+        .init(id: "starter_charm", slot: .accessory, bonuses: .init(durationReductionPercent: 5)),
+        .init(id: "advanced_cap", slot: .head, bonuses: .init(moodReductionPercent: 30)),
+        .init(id: "advanced_jacket", slot: .body, bonuses: .init(staminaReductionPercent: 25)),
+        .init(id: "advanced_sneakers", slot: .feet, bonuses: .init(durationReductionPercent: 20)),
+        .init(id: "advanced_charm", slot: .accessory, bonuses: .init(durationReductionPercent: 10))
     ]
 
     /// Keep this explicit when new purchasable items are added to the catalog.

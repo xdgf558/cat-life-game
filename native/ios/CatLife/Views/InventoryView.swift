@@ -108,6 +108,18 @@ struct InventoryView: View {
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("inventoryLayoutDraft")
             }
+            if !store.canPlaceMoreFurniture && !store.storedFurniture.isEmpty {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text(store.furnitureCapacityNotice)
+                        .font(.footnote).foregroundStyle(RoomTheme.secondary)
+                    if store.canUpgradeHome {
+                        Button(GameStrings.text("homeUpgrade.entry")) { store.openHomeUpgrade() }
+                            .buttonStyle(SoftButtonStyle())
+                            .disabled(store.isBusy || store.isResolvingLayout)
+                            .accessibilityIdentifier("inventoryUpgradeButton")
+                    }
+                }
+            }
 
             if store.storedFurniture.isEmpty {
                 VStack(spacing: 12) {
@@ -161,7 +173,7 @@ struct InventoryView: View {
             Button(GameStrings.text("inventory.placeFurniture")) { store.placeFurniture(id: item.id) }
                 .font(.system(size: 15, weight: .semibold))
                 .buttonStyle(MintButtonStyle())
-                .disabled(store.isBusy || store.isResolvingLayout)
+                .disabled(store.isBusy || store.isResolvingLayout || !store.canPlaceMoreFurniture)
                 .accessibilityIdentifier("placeFurniture_\(item.id)")
         }
         .padding(16)

@@ -416,6 +416,100 @@ final class GameStorePersistenceTests: XCTestCase {
     }
 
     @MainActor
+    func testShopAndUpgradePublishOnlyAfterDurableWrite() async throws {
+        var seed = mutedSnapshot()
+        seed.player.level = 4
+        seed.player.gold = 5000
+        let repository = MemorySaveRepository(seed)
+        let store = GameStore(repository: repository)
+        await store.load()
+        let original = try XCTUnwrap(store.snapshot)
+        await repository.setWritesFailing(true)
+        let actions: [() -> Void] = [
+            { store.buyEquipment(itemID: "advanced_cap") },
+            { store.buyFurniture(offerID: "potted_plant") },
+            { store.upgradeHome(toLevel: 2) }
+        ]
+        for action in actions {
+            store.showSaveError = false
+            let baseline = await repository.attempts.count
+            action()
+            try await eventually("A rejected write must release the UI and report the failure") {
+                let count = await repository.attempts.count
+                return count > baseline && !store.isBusy
+            }
+            XCTAssertEqual(store.snapshot, original)
+            XCTAssertTrue(store.showSaveError)
+            let durable = await repository.savedSnapshot
+            XCTAssertEqual(durable, original)
+        }
+        await repository.setWritesFailing(false)
+        store.buyEquipment(itemID: "advanced_cap")
+        store.buyEquipment(itemID: "advanced_cap") // A rapid second tap cannot spend twice.
+        try await eventually("The equipment purchase should commit") {
+            !store.isBusy && store.snapshot?.player.profile.ownedEquipmentIDs.contains("advanced_cap") == true
+        }
+        store.buyFurniture(offerID: "potted_plant")
+        try await eventually("Purchased furniture should be stored rather than placed") {
+            !store.isBusy && store.snapshot?.inventory.furniture.count == seed.inventory.furniture.count + 1
+        }
+        store.upgradeHome(toLevel: 2)
+        try await eventually("Room level and its cost should commit together") {
+            !store.isBusy && store.snapshot?.home.roomLevel == 2
+        }
+        XCTAssertEqual(store.snapshot?.player.gold, 5000 - 360 - 120 - 450)
+        XCTAssertEqual(store.snapshot?.home.furniture, original.home.furniture)
+        XCTAssertEqual(store.snapshot?.home.bowlPosition, original.home.bowlPosition)
+        XCTAssertNil(store.snapshot?.player.profile.equipped[.head], "Buying does not silently equip.")
+        let durable = await repository.savedSnapshot
+        XCTAssertEqual(durable, store.snapshot)
+        let reopened = GameStore(repository: repository)
+        await reopened.load()
+        XCTAssertEqual(reopened.snapshot?.home, store.snapshot?.home)
+        XCTAssertEqual(reopened.snapshot?.inventory, store.snapshot?.inventory)
+        XCTAssertEqual(reopened.snapshot?.player.profile, store.snapshot?.player.profile)
+    }
+
+    @MainActor
+    func testUpgradeKeepsDecoratingDraftAndCapacityPreventsNewPlacement() async throws {
+        var seed = mutedSnapshot()
+        seed.player.level = 4
+        seed.player.gold = 5000
+        XCTAssertTrue(GameEngine.purchaseFurniture(&seed, offerID: "potted_plant", now: Date()).succeeded)
+        let repository = MemorySaveRepository(seed)
+        let store = GameStore(repository: repository)
+        await store.load()
+        let extra = try XCTUnwrap(store.storedFurniture.first)
+        XCTAssertFalse(store.canPlaceMoreFurniture)
+        store.placeFurniture(id: extra.id)
+        XCTAssertFalse(store.isDecorating, "A full room must not enter a dead-end placement flow.")
+        store.beginDecorating()
+        let draftPoint = NormalizedPoint(x: 0.65, y: 0.74)
+        store.moveFurniture(id: "floorCushion", to: draftPoint)
+        let draft = store.draftFurniture
+        store.openHomeUpgrade()
+        store.upgradeHome(toLevel: 2)
+        try await eventually("The room upgrade should retain the layout session") {
+            !store.isBusy && store.snapshot?.home.roomLevel == 2
+        }
+        XCTAssertTrue(store.isDecorating)
+        XCTAssertEqual(store.draftFurniture, draft)
+        XCTAssertEqual(store.snapshot?.home.furniture, seed.home.furniture)
+        XCTAssertTrue(store.canPlaceMoreFurniture)
+        store.placeFurniture(id: extra.id)
+        XCTAssertEqual(store.placingFurnitureID, extra.id)
+        store.cancelDecorating()
+        XCTAssertEqual(store.snapshot?.home.roomLevel, 2, "Cancelling a layout must not undo a paid upgrade.")
+        XCTAssertEqual(store.snapshot?.home.furniture, seed.home.furniture)
+        store.upgradeHome(toLevel: 3)
+        try await eventually("The final room level should replace upgrade guidance with storage guidance") {
+            !store.isBusy && store.snapshot?.home.roomLevel == 3
+        }
+        XCTAssertFalse(store.canUpgradeHome)
+        XCTAssertEqual(store.furnitureCapacityNotice, GameStrings.format("room.capacityReachedMax", 16))
+    }
+
+    @MainActor
     private func startRest(_ store: GameStore, sessionID: String) async throws {
         store.setRestingFurniture(id: "catBed", sessionID: sessionID)
         try await eventually("Rest entry should commit before testing its exit") {

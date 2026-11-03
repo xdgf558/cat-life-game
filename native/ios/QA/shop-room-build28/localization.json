@@ -1,0 +1,12 @@
+{
+  "languages": [
+    "zh-Hans",
+    "zh-Hant",
+    "en"
+  ],
+  "keysPerLanguage": 462,
+  "newKeysPerLanguage": 55,
+  "missingKeys": [],
+  "duplicateKeys": [],
+  "formatMismatches": []
+}

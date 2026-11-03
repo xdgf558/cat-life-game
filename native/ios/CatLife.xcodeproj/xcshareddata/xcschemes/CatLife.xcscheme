@@ -14,7 +14,7 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "99EBDCE5F10B5282572C6580"
+               BlueprintIdentifier = "BA64DD09DF70F6A771F94FA3"
                BuildableName = "CatLife.app"
                BlueprintName = "CatLife"
                ReferencedContainer = "container:CatLife.xcodeproj">
@@ -28,7 +28,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "32D3BDCF4D6242BBB798D5C2"
+               BlueprintIdentifier = "5D757DF7C86F4B08747ADC15"
                BuildableName = "CatLifeUITests.xctest"
                BlueprintName = "CatLifeUITests"
                ReferencedContainer = "container:CatLife.xcodeproj">
@@ -42,7 +42,7 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "02EBB6043D8394A31CE9446B"
+               BlueprintIdentifier = "22815A972B022EF0EE2593EC"
                BuildableName = "CatLifeTests.xctest"
                BlueprintName = "CatLifeTests"
                ReferencedContainer = "container:CatLife.xcodeproj">
@@ -58,7 +58,7 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "99EBDCE5F10B5282572C6580"
+            BlueprintIdentifier = "BA64DD09DF70F6A771F94FA3"
             BuildableName = "CatLife.app"
             BlueprintName = "CatLife"
             ReferencedContainer = "container:CatLife.xcodeproj">
@@ -69,7 +69,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "32D3BDCF4D6242BBB798D5C2"
+               BlueprintIdentifier = "5D757DF7C86F4B08747ADC15"
                BuildableName = "CatLifeUITests.xctest"
                BlueprintName = "CatLifeUITests"
                ReferencedContainer = "container:CatLife.xcodeproj">
@@ -79,7 +79,7 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "02EBB6043D8394A31CE9446B"
+               BlueprintIdentifier = "22815A972B022EF0EE2593EC"
                BuildableName = "CatLifeTests.xctest"
                BlueprintName = "CatLifeTests"
                ReferencedContainer = "container:CatLife.xcodeproj">
@@ -101,7 +101,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "99EBDCE5F10B5282572C6580"
+            BlueprintIdentifier = "BA64DD09DF70F6A771F94FA3"
             BuildableName = "CatLife.app"
             BlueprintName = "CatLife"
             ReferencedContainer = "container:CatLife.xcodeproj">
@@ -118,7 +118,7 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "99EBDCE5F10B5282572C6580"
+            BlueprintIdentifier = "BA64DD09DF70F6A771F94FA3"
             BuildableName = "CatLife.app"
             BlueprintName = "CatLife"
             ReferencedContainer = "container:CatLife.xcodeproj">

@@ -457,7 +457,7 @@ struct PlayerProfileView: View {
         let item = profile.equipped[slot].flatMap(PlayerCatalog.item(id:))
         return VStack(spacing: 8) {
             Text(GameStrings.text("gear.slot.\(slot.rawValue)")).font(.caption.weight(.semibold))
-            GameIcon(asset: item?.assetName ?? "", symbol: slotSymbol(slot), size: 66, tint: RoomTheme.secondary.opacity(0.45))
+            GameIcon(asset: item?.displayAssetName ?? "", symbol: slotSymbol(slot), size: 66, tint: RoomTheme.secondary.opacity(0.45))
             Text(item.map { GameStrings.text($0.nameKey) } ?? GameStrings.text("gear.empty"))
                 .font(.subheadline.weight(.semibold)).multilineTextAlignment(.center)
                 .frame(minHeight: 36)
@@ -536,7 +536,7 @@ struct PlayerProfileView: View {
                 if items.isEmpty { Text(GameStrings.text("gear.noItems")).foregroundStyle(RoomTheme.secondary) }
                 ForEach(items) { item in
                     VStack(alignment: .leading, spacing: 16) {
-                        GameIcon(asset: item.assetName, symbol: slotSymbol(slot), size: 140, tint: RoomTheme.darkMint)
+                        GameIcon(asset: item.displayAssetName, symbol: slotSymbol(slot), size: 140, tint: RoomTheme.darkMint)
                             .frame(maxWidth: .infinity)
                         Text(GameStrings.text(item.nameKey)).font(.title2.weight(.bold))
                         Text(GameStrings.text(item.detailKey)).font(.subheadline).foregroundStyle(RoomTheme.secondary)

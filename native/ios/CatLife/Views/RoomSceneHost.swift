@@ -102,6 +102,21 @@ struct RoomSceneHost: View {
                 .accessibilityAction(named: Text(GameStrings.text("care.feed"))) { store.feed() }
                 .accessibilityAction(named: Text(GameStrings.text("rest.bedAction"))) { scene.restInFurniture(kind: .catBed) }
                 .accessibilityAction(named: Text(GameStrings.text("rest.cushionAction"))) { scene.restInFurniture(kind: .floorCushion) }
+                .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.focusCat"))) { scene.resetCamera() }
+                .overlay(alignment: .bottomLeading) {
+                    if (store.snapshot?.home.roomLevel ?? 1) > 1 {
+                        Button { scene.resetCamera() } label: {
+                            Label(GameStrings.text("homeUpgrade.focusCat"), systemImage: "scope")
+                                .font(.caption.weight(.semibold))
+                                .padding(.horizontal, 12).frame(minHeight: 44)
+                                .background(RoomTheme.paper.opacity(0.95), in: Capsule())
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("focusCatButton")
+                        .accessibilityHint(GameStrings.text("homeUpgrade.panHint"))
+                        .padding(.leading, 12).padding(.bottom, 28)
+                    }
+                }
         }
     }
 

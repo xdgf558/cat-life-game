@@ -1,5 +1,18 @@
 import SwiftUI
 import UIKit
+import CatGameCore
+
+extension EquipmentItem {
+    /// The first upgrade tier shares the existing slot artwork.
+    var displayAssetName: String {
+        switch slot {
+        case .head: "gear-starter-cap"
+        case .body: "gear-starter-jacket"
+        case .feet: "gear-starter-sneakers"
+        case .accessory: "gear-starter-charm"
+        }
+    }
+}
 
 enum RoomTheme {
     static let cream = Color(red: 0.98, green: 0.95, blue: 0.89)

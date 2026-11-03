@@ -3,7 +3,8 @@
 采用 SwiftUI + SpriteKit + Foundation，最低 iOS 17。独立于仓库根目录的网页版。
 
 版本发布规则
-当前已交付并覆盖安装到开发用 iPhone 的版本为 0.5.4（构建号 27），打工首页改为紧凑摘要，职业目录每页最多 4 项并支持搜索、解锁筛选，详情与休息进入独立页面。安装前后原存档 3,940 字节逐字节一致。正常启动及新版进程已确认，玩家体验验收待反馈。
+当前已交付并覆盖安装到开发用 iPhone 的版本为 0.6.0（构建号 28），新增分类商店、四件进阶装备、两款可购家具与三级房间改造。安装前后原存档 4,734 字节逐字节一致；解锁后已正常启动，并核对新版对应进程。玩家玩法验收待反馈。
+上一版已交付并覆盖安装到开发用 iPhone 的版本为 0.5.4（构建号 27），打工首页改为紧凑摘要，职业目录每页最多 4 项并支持搜索、解锁筛选，详情与休息进入独立页面。安装前后原存档 3,940 字节逐字节一致。正常启动及新版进程已确认，玩家于 2026-11-03 确认真机验收通过。
 上一版已交付并覆盖安装到开发用 iPhone 的版本为 0.5.3（构建号 26），修复二轮审查发现的保存恢复、音频偏好和后台规划问题；首启前原存档 5,065 字节逐字节一致。安装当天的首次启动被 iOS 锁屏拦住；2026-11-03 已正常启动并核对新版进程，未重新安装。玩家体验验收待反馈。已发布的第13版及更早版本仍保留实际的 0.1.0 和各自构建号，不回写历史记录。
 历史版本 0.2.0（构建号 17）已于 2026-11-02 覆盖安装到 iPhone Air，存档保留及新版进程运行已确认，用户已反馈验收通过。
 历史版本 0.3.0（构建号 18）已完成下文所列核心及模拟器验证，并覆盖安装到 iPhone Air；首次启动前存档逐字节一致。此前 CLI 启动被 iOS Security／开发者信任检查拒绝；用户随后手动打开并保持前台，只读查询已确认新版安装目录下的游戏进程运行。本版用户玩法验收仍待反馈，安装成功、启动确认和用户验收分开记录。
@@ -13,6 +14,8 @@
 每次向玩家交付新的更新，都要同时提升 Info.plist 的 CFBundleShortVersionString（对外版本号）并递增 CFBundleVersion（构建号）。修复或界面微调递增 patch，例如 0.1.0 → 0.1.1；明显功能迭代递增 minor，例如 0.1.x → 0.2.0；主版本按发布规划调整。同一次尚未发布更新的调试可以保留对外版本号，新安装包的构建号按需要递增。
 版本变更要同步 SettingsView.swift 中 AppRelease.history 的当前记录、GameStrings.swift 中对应的三语更新文案和版本相关测试期望；历史已发布记录的 version、构建号和日期保留。此规则同时记录于本目录 AGENTS.md，后续原生更新均遵循。
 
+0.6.0（构建号 28）已完成开发、自动化验证和安装：商店扩展为用品、家具、装备三个分类，新增四件进阶装备、两款可重复购买的家具，以及三级房间改造。交付与验证记录见 QA/shop-room-build28/verification.json。布置面板或家具背包可进入升级小家：升二级需玩家等级 2 与 450 金币，可摆 12 件；升三级需等级 4 与 900 金币，可摆 16 件。扩建后拖动空地浏览，拖家具至边缘可移动视角，找到猫咪按钮返回猫咪附近。
+
 当前构建与运行（唯一现行入口）
 原生运行图片和音频已经迁入 Git LFS。只取得源码或 LFS 指针文件不能构建可运行的 App；下文历史章节描述的是各版本当时的分发方式，不替代此处的现行步骤。
 在安装 Git LFS 后，从仓库根目录执行：
@@ -21,7 +24,9 @@ git lfs pull --include="native/ios/CatLife/**"
 python3 -B native/ios/scripts/check_runtime_assets.py
 
 检查通过后，用 Xcode 打开 native/ios/CatLife.xcodeproj，选择 CatLife scheme 和 iPhone 模拟器，点击 Run；也可以继续执行：
-xcodebuild -project native/ios/CatLife.xcodeproj -scheme CatLife -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
+先确认外置硬盘已挂载；编译缓存统一使用 AGENTS.md 指定的外盘目录，不回退到本机。
+CATLIFE_CACHE='/Volumes/AI作品素材/开发缓存/本机编译缓存/cat-life/manual-simulator'
+xcodebuild -project native/ios/CatLife.xcodeproj -scheme CatLife -derivedDataPath "$CATLIFE_CACHE" CLANG_MODULE_CACHE_PATH="$CATLIFE_CACHE/ModuleCache.noindex" SWIFT_MODULE_CACHE_PATH="$CATLIFE_CACHE/ModuleCache.noindex" -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' CODE_SIGNING_ALLOWED=NO build
 
 已生成工程的第一个构建阶段也会检查运行素材。发现 LFS 指针、缺失文件、空文件或错误的 PNG/JPEG/CAF 文件头时，会报出具体路径和下载命令并停止；构建过程不自动联网或修改素材。scripts/runtime_assets.json 是必须随资源变更更新的运行文件清单，可检测整套 imageset 被删除的情况；该检查不替代图片解码和实际音频验收。
 工程已包含本地 CatGameCore Swift 包，无需第三方运行代码依赖；运行素材仍需按上述步骤下载。模拟器构建不需要 Apple 开发者账号；安装到自己的 iPhone 时，需要在 Signing & Capabilities 选择自己的 Team。网页版仍直接打开根目录 index.html，不依赖原生资源。

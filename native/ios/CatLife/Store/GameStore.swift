@@ -3,7 +3,7 @@ import Observation
 import CatGameCore
 
 enum HomeSheet: String, Identifiable {
-    case work, shop, inventory, town, player
+    case work, shop, inventory, town, player, upgrade
     var id: String { rawValue }
 }
 
@@ -216,6 +216,14 @@ final class GameStore {
     }
 
     var placedFurnitureCount: Int { sceneSnapshot?.home.furniture.count ?? 0 }
+
+    var furnitureCapacity: Int { HomeCatalog.level(snapshot?.home.roomLevel ?? 1)?.capacity ?? 9 }
+    var canPlaceMoreFurniture: Bool { placedFurnitureCount < furnitureCapacity }
+    var canUpgradeHome: Bool { HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil }
+    var furnitureCapacityNotice: String {
+        canUpgradeHome ? GameStrings.text("homeUpgrade.capacityReached")
+            : GameStrings.format("room.capacityReachedMax", furnitureCapacity)
+    }
 
     var selectedFurniture: FurnitureItem? {
         guard let id = selectedFurnitureID,
@@ -472,6 +480,20 @@ final class GameStore {
     func buyFood() { perform { GameEngine.buyFood(&$0, quantity: 1, now: $1) } }
     func buyLitter() { perform { GameEngine.buyLitter(&$0, quantity: 1, now: $1) } }
     func buyToy() { perform { GameEngine.buyToy(&$0, quantity: 1, now: $1) } }
+    func buyEquipment(itemID: String) {
+        perform { GameEngine.purchaseEquipment(&$0, itemID: itemID, now: $1) }
+    }
+    func buyFurniture(offerID: String) {
+        perform { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
+    }
+    func upgradeHome(toLevel: Int) {
+        guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+        perform { GameEngine.upgradeHome(&$0, toLevel: toLevel, now: $1) }
+    }
+    func openHomeUpgrade() {
+        guard !isBusy, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
+        activeSheet = .upgrade
+    }
     func startWork(jobID: String = "job_flyer") {
         perform { GameEngine.startWork(&$0, jobID: jobID, now: $1) }
     }
@@ -640,7 +662,7 @@ final class GameStore {
         if let index = furniture.firstIndex(where: { $0.itemID == id }) {
             furniture[index].position = point
         } else {
-            guard placingFurnitureID == id else { return }
+            guard placingFurnitureID == id, canPlaceMoreFurniture else { return }
             furniture.append(FurniturePlacement(itemID: id, position: point))
         }
         draftFurniture = furniture
@@ -657,6 +679,10 @@ final class GameStore {
     func placeFurniture(id: String) {
         guard !isBusy, !isSavingLayout, !isResolvingLayout,
               storedFurniture.contains(where: { $0.id == id }) else { return }
+        guard canPlaceMoreFurniture else {
+            showNotice(furnitureCapacityNotice)
+            return
+        }
         if !isDecorating { beginDecorating() }
         guard isDecorating else { return }
         activeSheet = nil

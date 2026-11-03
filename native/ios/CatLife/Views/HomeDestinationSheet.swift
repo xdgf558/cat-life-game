@@ -9,43 +9,29 @@ struct HomeDestinationSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 22) {
-                    switch destination {
-                    case .shop: shop
-                    case .inventory: InventoryView(store: store)
-                    case .work: EmptyView()
-                    case .town: cats
-                    case .player: EmptyView()
+            destinationContent
+                .background(RoomTheme.cream)
+                .navigationTitle(title)
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(GameStrings.text("common.done")) { dismiss() }
+                            .foregroundStyle(RoomTheme.darkMint)
+                            .accessibilityIdentifier("closeSheetButton")
                     }
                 }
-                .padding(20)
-                .frame(maxWidth: 520)
-                .frame(maxWidth: .infinity)
-            }
-            .accessibilityIdentifier("destinationScroll")
-            .background(RoomTheme.cream)
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(GameStrings.text("common.done")) { dismiss() }
-                        .foregroundStyle(RoomTheme.darkMint)
-                        .accessibilityIdentifier("closeSheetButton")
-                }
-            }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 0) {
-                    SaveStatusBanner(store: store)
-                    if let toast = store.toast, !toast.isEmpty {
-                        Text(toast)
-                            .font(.system(size: 14, weight: .medium))
-                            .multilineTextAlignment(.center)
-                            .padding(12)
-                            .frame(maxWidth: .infinity)
-                            .background(RoomTheme.paper)
-                            .accessibilityIdentifier("sheetToast")
-                    }
+        }
+        .safeAreaInset(edge: .bottom) {
+            VStack(spacing: 0) {
+                SaveStatusBanner(store: store)
+                if let toast = store.toast, !toast.isEmpty {
+                    Text(toast)
+                        .font(.system(size: 14, weight: .medium))
+                        .multilineTextAlignment(.center)
+                        .padding(12)
+                        .frame(maxWidth: .infinity)
+                        .background(RoomTheme.paper)
+                        .accessibilityIdentifier("sheetToast")
                 }
             }
         }
@@ -60,6 +46,25 @@ struct HomeDestinationSheet: View {
         #endif
     }
 
+    @ViewBuilder private var destinationContent: some View {
+        switch destination {
+        case .shop: ShopView(store: store)
+        case .upgrade: HomeUpgradeView(store: store)
+        default:
+            ScrollView {
+                VStack(spacing: 22) {
+                    switch destination {
+                    case .inventory: InventoryView(store: store)
+                    case .town: cats
+                    case .work, .player, .shop, .upgrade: EmptyView()
+                    }
+                }
+                .padding(20).frame(maxWidth: 520).frame(maxWidth: .infinity)
+            }
+            .accessibilityIdentifier("destinationScroll")
+        }
+    }
+
     private var title: String {
         switch destination {
         case .work: return GameStrings.text("work.title")
@@ -67,59 +72,8 @@ struct HomeDestinationSheet: View {
         case .inventory: return GameStrings.text("inventory.title")
         case .town: return GameStrings.text("town.title")
         case .player: return GameStrings.text("player.title")
+        case .upgrade: return GameStrings.text("homeUpgrade.title")
         }
-    }
-
-    private var shop: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            Text(GameStrings.text("shop.subtitle"))
-                .font(.system(size: 25, weight: .bold, design: .rounded))
-            Label(GameStrings.format("shop.balance", store.snapshot?.player.gold ?? 0), systemImage: "circle.fill")
-                .foregroundStyle(RoomTheme.secondary)
-                .font(.system(size: 16, weight: .semibold))
-                .accessibilityIdentifier("shopGoldCount")
-                .accessibilityValue("\(store.snapshot?.player.gold ?? 0)")
-
-            VStack(spacing: 0) {
-                shopRow(name: "shop.food", detail: "shop.foodDetail", symbol: "takeoutbag.and.cup.and.straw.fill",
-                        asset: "bowl-full", count: store.snapshot?.inventory.food ?? 0, price: 20,
-                        identifier: "buyFoodButton", action: store.buyFood)
-                Divider().overlay(RoomTheme.wood.opacity(0.4)).padding(.horizontal, 16)
-                shopRow(name: "shop.litter", detail: "shop.litterDetail", symbol: "sparkles",
-                        asset: "icon-clean", count: store.snapshot?.inventory.litter ?? 0, price: 18,
-                        identifier: "buyLitterButton", action: store.buyLitter)
-                Divider().overlay(RoomTheme.wood.opacity(0.4)).padding(.horizontal, 16)
-                shopRow(name: "shop.toy", detail: "shop.toyDetail", symbol: "party.popper.fill",
-                        asset: "icon-play", count: store.snapshot?.inventory.toys ?? 0, price: 35,
-                        identifier: "buyToyButton", action: store.buyToy)
-            }
-            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
-        }
-    }
-
-    private func shopRow(name: String, detail: String, symbol: String, asset: String, count: Int, price: Int,
-                         identifier: String, action: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 14) {
-                GameIcon(asset: asset, symbol: symbol, size: 50, tint: RoomTheme.gold)
-                VStack(alignment: .leading, spacing: 5) {
-                    Text(GameStrings.text(name)).font(.system(size: 20, weight: .bold))
-                    Text(GameStrings.text(detail)).font(.system(size: 14)).foregroundStyle(RoomTheme.secondary)
-                }
-                Spacer(minLength: 0)
-            }
-            HStack {
-                Text(GameStrings.format("shop.owned", count)).font(.system(size: 14)).foregroundStyle(RoomTheme.secondary)
-                Spacer()
-                Button(action: action) {
-                    Text(GameStrings.format("shop.buy", price)).font(.system(size: 16, weight: .bold))
-                }
-                .buttonStyle(MintButtonStyle())
-                .disabled(store.isBusy)
-                .accessibilityIdentifier(identifier)
-            }
-        }
-        .padding(16)
     }
 
     private var cats: some View {

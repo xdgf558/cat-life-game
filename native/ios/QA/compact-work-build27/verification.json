@@ -4,9 +4,9 @@
   "build": 27,
   "status": {
     "finished": "Compact work home, four-row paginated/searchable/filterable career directory, separate details/rest/results, shared recovery and Done navigation; in-place device installation with unchanged pre-launch save.",
-    "partiallyFinished": "Physical gameplay acceptance pending.",
+    "partiallyFinished": "None",
     "broken": [],
-    "nextWork": "Player acceptance before the planned 0.6 feature work."
+    "nextWork": "0.6.0 shop, equipment and room expansion."
   },
   "appTests": {
     "passed": 23,
@@ -63,7 +63,7 @@
     "runningProcessVerified": true,
     "initialLaunchFailure": "iOS device locked",
     "launchConfirmedDate": "2026-11-03",
-    "userAcceptance": "pending"
+    "userAcceptance": "passed; user confirmed on 2026-11-03"
   },
   "repository": {
     "webSourcesChanged": false,
@@ -75,6 +75,6 @@
     "101-entry pagination is a unit-test input; the shipped catalog still has five careers.",
     "The legacy unknown-job detail fallback was statically reviewed and built; its Core captured-reward compatibility has historical coverage, without a dedicated new UI fixture.",
     "An initial care-audio run recorded a feed tap that did not commit (food unchanged); the transient cause remains unknown. The unmodified complete care/audio test passed on the final revision.",
-    "Physical listening, prolonged play and user acceptance remain separate from automated state checks."
+    "Automated checks do not measure prolonged play or physical listening; user confirmed device acceptance on 2026-11-03."
   ]
 }

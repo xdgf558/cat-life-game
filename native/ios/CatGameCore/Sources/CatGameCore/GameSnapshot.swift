@@ -245,18 +245,20 @@ public struct HomeState: Codable, Equatable, Sendable {
     public var bowlPosition: NormalizedPoint
     public var comfortScore: Int
     public var furniture: [FurniturePlacement]
+    public var roomLevel: Int
 
     public init(bowlPosition: NormalizedPoint = .init(x: 0.76, y: 0.79),
                 comfortScore: Int = 30,
                 furniture: [FurniturePlacement] = FurnitureCatalog.defaultPlacements,
-                name: String? = nil) {
+                name: String? = nil, roomLevel: Int = 1) {
         self.name = name
         self.bowlPosition = bowlPosition
         self.comfortScore = comfortScore
         self.furniture = furniture
+        self.roomLevel = roomLevel
     }
 
-    private enum CodingKeys: String, CodingKey { case name, bowlPosition, comfortScore, furniture }
+    private enum CodingKeys: String, CodingKey { case name, bowlPosition, comfortScore, furniture, roomLevel }
 
     public init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
@@ -268,6 +270,9 @@ public struct HomeState: Codable, Equatable, Sendable {
         furniture = values.contains(.furniture)
             ? try values.decode([FurniturePlacement].self, forKey: .furniture)
             : FurnitureCatalog.defaultPlacements
+        // Unlike cosmetic names, purchased room progress must not be silently
+        // reset. Only an absent field belongs to the schema-1 migration.
+        roomLevel = values.contains(.roomLevel) ? try values.decode(Int.self, forKey: .roomLevel) : 1
     }
 }
 

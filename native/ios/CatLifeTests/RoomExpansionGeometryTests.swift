@@ -1,0 +1,204 @@
+import Foundation
+import XCTest
+import CatGameCore
+@testable import CatLife
+
+final class RoomExpansionGeometryTests: XCTestCase {
+    private let viewports = [CGSize(width: 375, height: 436), CGSize(width: 402, height: 567)]
+    private let artworkSize = CGSize(width: 1024, height: 1536)
+
+    func testWorldExpansionPreservesLevelOneMappingAndPhysicalFootprints() throws {
+        for viewport in viewports {
+            let original = RoomArtworkTransform(sceneSize: viewport, artworkSize: artworkSize)
+            let base = makeWorld(viewport: viewport, scale: 1)
+            let baseArea = area(base.roomFloor.polygon)
+            for level in 1...3 {
+                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
+                let world = makeWorld(viewport: viewport, scale: scale)
+                XCTAssertEqual(world.roomFloor.catFootprint, base.roomFloor.catFootprint)
+                XCTAssertEqual(world.roomFloor.bowlFootprint, base.roomFloor.bowlFootprint)
+                XCTAssertEqual(world.transform.visualScale, original.scale)
+                XCTAssertEqual(world.placements, base.placements, "An upgrade must not rewrite saved normalized layout.")
+                for item in world.items {
+                    XCTAssertEqual(world.footprint(item), base.footprint(item))
+                    let position = try XCTUnwrap(world.center(item.id))
+                    let oldPosition = try XCTUnwrap(base.center(item.id))
+                    XCTAssertEqual(position.x, oldPosition.x * scale, accuracy: 0.0001)
+                    XCTAssertEqual(position.y, oldPosition.y * scale, accuracy: 0.0001)
+                }
+                if level == 1 {
+                    XCTAssertEqual(world.transform.point(.init(x: 0.31, y: 0.68)), original.point(.init(x: 0.31, y: 0.68)))
+                    XCTAssertEqual(world.roomFloor.polygon, base.roomFloor.polygon)
+                } else {
+                    XCTAssertGreaterThan(area(world.roomFloor.polygon), baseArea * scale)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    func testEveryLevelRestoresReachableBowlAndAddsUsablePlacementBeyondOldViewport() async throws {
+        for viewport in viewports {
+            for level in 1...3 {
+                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
+                let initial = makeWorld(viewport: viewport, scale: scale)
+                let start = CGPoint(x: initial.transform.sceneSize.width * 0.43, y: initial.transform.sceneSize.height * 0.18)
+                let value = await Task.detached {
+                    RoomBowlPlanner(floor: initial.roomFloor, requested: initial.bowlPosition, catPosition: start).resolve()
+                }.value
+                let bowl = try XCTUnwrap(value, "\(viewport), level \(level)")
+                let cat = try XCTUnwrap(bowl.catPosition)
+                let meal = try XCTUnwrap(initial.roomFloor.feedingPlan(from: cat, bowlAt: bowl.center, navigator: bowl.navigation))
+                XCTAssertTrue(zip(meal.path, meal.path.dropFirst()).allSatisfy {
+                    bowl.navigation.segmentIsWalkable(from: $0.0, to: $0.1)
+                })
+                XCTAssertEqual(initial.bowlPosition, CGPoint(x: viewport.width * scale * 0.76, y: viewport.height * scale * 0.21))
+#if DEBUG
+                XCTAssertFalse(bowl.ranOnMainThread)
+#endif
+                guard level > 1 else { continue }
+                let plant = FurnitureItem(id: "shop-plant-instance", kind: .plant)
+                let world = RoomFurnitureWorld(transform: initial.transform, catWidth: initial.catWidth,
+                    bowlSize: initial.bowlSize, bowlPosition: bowl.center,
+                    items: initial.items + [plant], placements: initial.placements)
+                let result = await Task.detached {
+                    let navigation = world.placementNavigator(for: plant.id, catAt: cat)
+                    guard let point = navigation.walkablePoints.first(where: {
+                        $0.x - world.footprint(plant).width / 2 > viewport.width
+                    }) else { return Optional<RoomFurnitureResolution>.none }
+                    return world.resolve(id: plant.id, near: point, catAt: cat, placement: navigation)
+                }.value
+                let placement = try XCTUnwrap(result, "Expansion must add usable space outside the old viewport.")
+                XCTAssertGreaterThan(placement.center.x - world.footprint(plant).width / 2, viewport.width)
+                XCTAssertTrue(placement.navigation.isWalkable(cat))
+                XCTAssertNotNil(placement.floor.feedingPlan(from: cat, bowlAt: bowl.center, navigator: placement.navigation))
+            }
+        }
+    }
+
+    func testPurchasedCushionKeepsStepHeightAndSafeEntryExitAtEveryLevel() throws {
+        let cushion = FurnitureItem(id: "shop-cushion-instance", kind: .floorCushion)
+        let placement = FurniturePlacement(itemID: cushion.id, position: .init(x: 0.30, y: 0.65))
+        for viewport in viewports {
+            let base = makeWorld(viewport: viewport, scale: 1, items: [cushion], placements: [placement])
+            for level in 1...3 {
+                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
+                let world = makeWorld(viewport: viewport, scale: scale, items: [cushion], placements: [placement])
+                let start = CGPoint(x: viewport.width * scale * 0.43, y: viewport.height * scale * 0.18)
+                let visit = try XCTUnwrap(world.restVisit(to: cushion.id, from: start), "\(viewport), level \(level)")
+                XCTAssertEqual(world.footprint(cushion), base.footprint(cushion))
+                XCTAssertEqual(visit.elevation, base.catWidth * 0.14)
+                XCTAssertTrue(visit.target.contains(visit.plan.restPoint))
+                XCTAssertEqual(visit.plan.exit, Array(visit.plan.entry.reversed()))
+                for route in [visit.plan.entry, visit.plan.exit] {
+                    XCTAssertTrue(zip(route, route.dropFirst()).allSatisfy {
+                        visit.navigation.segmentIsWalkable(from: $0.0, to: $0.1)
+                    })
+                }
+                let approach = world.roomFloor.navigator(bowlAt: world.bowlPosition)
+                XCTAssertTrue(zip(visit.plan.approach, visit.plan.approach.dropFirst()).allSatisfy {
+                    approach.segmentIsWalkable(from: $0.0, to: $0.1)
+                })
+            }
+        }
+    }
+
+    func testCameraClampsAndProjectsWithoutChangingWorldPositions() throws {
+        for viewport in viewports {
+            for level in 1...3 {
+                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
+                let geometry = RoomWorldGeometry(viewportSize: viewport, worldScale: scale)
+                let near = geometry.clampedCameraPosition(CGPoint(x: -1_000, y: -1_000))
+                let far = geometry.clampedCameraPosition(CGPoint(x: 10_000, y: 10_000))
+                XCTAssertEqual(near, CGPoint(x: viewport.width / 2, y: viewport.height / 2))
+                XCTAssertEqual(far, CGPoint(x: geometry.worldSize.width - viewport.width / 2,
+                                           y: geometry.worldSize.height - viewport.height / 2))
+                let point = CGPoint(x: geometry.worldSize.width * 0.76, y: geometry.worldSize.height * 0.21)
+                for camera in [near, far] {
+                    let screen = geometry.screenPoint(point, camera: camera)
+                    let restored = geometry.worldPoint(screen, camera: camera)
+                    XCTAssertEqual(restored.x, point.x, accuracy: 0.0001)
+                    XCTAssertEqual(restored.y, point.y, accuracy: 0.0001)
+                }
+                if level == 1 { XCTAssertEqual(near, far) }
+                else { XCTAssertNotEqual(geometry.screenPoint(point, camera: near), geometry.screenPoint(point, camera: far)) }
+            }
+        }
+    }
+
+#if DEBUG
+    @MainActor
+    func testStoredFurniturePurchasePreservesPendingAndActiveFeeding() async throws {
+        let scene = RoomScene(size: CGSize(width: 375, height: 436))
+        defer { scene.setPresentationActive(false) }
+        var snapshot = GameSnapshot.fresh()
+        scene.apply(snapshot: snapshot, editing: false)
+        let readyDeadline = Date().addingTimeInterval(10)
+        while scene.presentationPhase != "idle", Date() < readyDeadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertEqual(scene.presentationPhase, "idle")
+        let cat = try XCTUnwrap(scene.childNode(withName: "cat") as? CatActor)
+        let bowlCompletions = scene.diagnostics.bowlPlanCompletions
+        let bowlCancellations = scene.diagnostics.bowlPlanCancelled
+        XCTAssertGreaterThan(bowlCompletions, 0)
+
+        scene.playFeedback(kind: .feed)
+        XCTAssertTrue(scene.diagnostics.carePlanning)
+        let careCancellations = scene.diagnostics.carePlanCancelled
+        snapshot.inventory.furniture.append(.init(id: "purchased-plant", kind: .plant))
+        // The worker cannot publish until this MainActor call yields. A bag
+        // purchase here must retain that exact in-flight care request.
+        scene.apply(snapshot: snapshot, editing: false)
+        XCTAssertEqual(scene.presentationPhase, "feeding")
+        XCTAssertTrue(scene.diagnostics.carePlanning)
+        XCTAssertEqual(scene.diagnostics.carePlanCancelled, careCancellations)
+        XCTAssertEqual(scene.diagnostics.bowlPlanCompletions, bowlCompletions)
+        XCTAssertEqual(scene.diagnostics.bowlPlanCancelled, bowlCancellations)
+
+        let plannedDeadline = Date().addingTimeInterval(10)
+        while scene.diagnostics.carePlanCompletions == 0, Date() < plannedDeadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
+        XCTAssertEqual(scene.diagnostics.carePlanCompletions, 1)
+        XCTAssertTrue(cat.isPerforming)
+        // The actor owns its feeding action now. Without attaching an SKView,
+        // rendering cannot advance it and make this interruption check race.
+        snapshot.inventory.furniture.append(.init(id: "purchased-cushion", kind: .floorCushion))
+        scene.apply(snapshot: snapshot, editing: false)
+        snapshot.inventory.furniture.removeAll { $0.id == "purchased-plant" }
+        scene.apply(snapshot: snapshot, editing: false)
+        XCTAssertTrue(cat.isPerforming)
+        XCTAssertEqual(scene.presentationPhase, "feeding")
+        XCTAssertEqual(scene.diagnostics.carePlanCompletions, 1)
+        XCTAssertEqual(scene.diagnostics.carePlanCancelled, careCancellations)
+        XCTAssertEqual(scene.diagnostics.bowlPlanCompletions, bowlCompletions)
+        XCTAssertEqual(scene.diagnostics.bowlPlanCancelled, bowlCancellations)
+
+        // A real change to a placed item's geometry must still rebuild it.
+        let bed = try XCTUnwrap(snapshot.inventory.furniture.firstIndex { $0.id == "catBed" })
+        snapshot.inventory.furniture[bed].kind = .floorCushion
+        scene.apply(snapshot: snapshot, editing: false)
+        XCTAssertEqual(scene.presentationPhase, "layout-planning")
+        XCTAssertFalse(cat.isPerforming)
+    }
+#endif
+
+    private func makeWorld(viewport: CGSize, scale: CGFloat,
+                           items: [FurnitureItem] = FurnitureCatalog.defaultItems,
+                           placements: [FurniturePlacement] = FurnitureCatalog.defaultPlacements) -> RoomFurnitureWorld {
+        let worldSize = CGSize(width: viewport.width * scale, height: viewport.height * scale)
+        let bowlWidth = min(viewport.width * 0.156, viewport.height * 0.185)
+        return RoomFurnitureWorld(transform: .init(sceneSize: worldSize, artworkSize: artworkSize, viewportSize: viewport),
+            catWidth: min(viewport.width * 0.14, viewport.height * 0.172),
+            bowlSize: CGSize(width: bowlWidth, height: bowlWidth * 0.83),
+            bowlPosition: CGPoint(x: worldSize.width * 0.76, y: worldSize.height * 0.21),
+            items: items, placements: placements)
+    }
+
+    private func area(_ polygon: [CGPoint]) -> CGFloat {
+        abs(zip(polygon, polygon.dropFirst() + polygon.prefix(1)).reduce(0) {
+            $0 + $1.0.x * $1.1.y - $1.1.x * $1.0.y
+        }) / 2
+    }
+}

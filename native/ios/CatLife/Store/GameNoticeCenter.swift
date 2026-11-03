@@ -41,7 +41,12 @@ enum GameActionNotice {
             case .feed: return GameStrings.text("action.feed")
             case .clean: return GameStrings.text("action.clean")
             case .play: return GameStrings.text("action.play")
-            case .purchase: return GameStrings.text("action.purchase")
+            case .purchase:
+                switch outcome.messageKey {
+                case "shop.equipmentPurchased", "shop.furniturePurchased", "home.upgraded":
+                    return GameStrings.text(outcome.messageKey)
+                default: return GameStrings.text("action.purchase")
+                }
             case .workStarted:
                 if let active = snapshot?.player.activeWork, let job = WorkCatalog.job(id: active.jobID) {
                     if let quote = active.quote, quote.durationSeconds != quote.baseDurationSeconds {
@@ -61,8 +66,14 @@ enum GameActionNotice {
         switch outcome.failure {
         case .playerAvatarMissing, .equipmentItemMissing, .equipmentNotOwned,
              .sleepWorkActive, .workSleeping, .restInvalidFurniture,
-             .workJobMissing, .workLevelRequired, .workProgressLimit:
+             .workJobMissing, .workLevelRequired, .workProgressLimit,
+             .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable:
             return GameStrings.text(outcome.messageKey)
+        case .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired:
+            return GameStrings.format(outcome.messageKey, outcome.amount)
+        case .roomCapacityReached:
+            let canUpgrade = HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil
+            return GameStrings.format(canUpgrade ? outcome.messageKey : "room.capacityReachedMax", outcome.amount)
         case .roomInvalidPosition, .roomInvalidFurnitureLayout: return GameStrings.text("layout.invalid")
         case .shopGoldRequired: return GameStrings.text("action.insufficientGold")
         case .workStaminaRequired: return GameStrings.text("action.insufficientStamina")

@@ -212,6 +212,53 @@ public enum GameEngine {
             stock: \.toys, key: "shop.toyPurchased", now: now)
     }
 
+    public static func purchaseEquipment(_ state: inout GameSnapshot, itemID: String,
+                                         now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard let offer = ShopCatalog.equipmentOffer(itemID: itemID), PlayerCatalog.item(id: itemID) != nil
+        else { return failure(.shopItemMissing) }
+        guard !state.player.profile.ownedEquipmentIDs.contains(itemID) else { return failure(.shopAlreadyOwned) }
+        guard state.player.level >= offer.unlockLevel else { return failure(.shopLevelRequired, amount: offer.unlockLevel) }
+        guard state.player.gold >= offer.price else { return failure(.shopGoldRequired, amount: offer.price) }
+        state.player.gold -= offer.price
+        state.player.profile.ownedEquipmentIDs.append(itemID)
+        return ActionOutcome(kind: .purchase, messageKey: "shop.equipmentPurchased", amount: offer.price)
+    }
+
+    public static func purchaseFurniture(_ state: inout GameSnapshot, offerID: String,
+                                         now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard let offer = ShopCatalog.furnitureOffer(id: offerID) else { return failure(.shopItemMissing) }
+        guard state.player.level >= offer.unlockLevel else { return failure(.shopLevelRequired, amount: offer.unlockLevel) }
+        let ownedIDs = Set(state.inventory.furniture.map(\.id))
+        guard ShopCatalog.ownedFurnitureCount(offerID: offerID, in: state.inventory.furniture) < offer.maxOwned,
+              let instanceID = (1...offer.maxOwned).map(offer.instanceID).first(where: { !ownedIDs.contains($0) })
+        else { return failure(.shopFurnitureLimit, amount: offer.maxOwned) }
+        guard state.player.gold >= offer.price else { return failure(.shopGoldRequired, amount: offer.price) }
+        state.player.gold -= offer.price
+        state.inventory.furniture.append(FurnitureItem(id: instanceID, kind: offer.kind))
+        return ActionOutcome(kind: .purchase, messageKey: "shop.furniturePurchased", amount: offer.price)
+    }
+
+    public static func upgradeHome(_ state: inout GameSnapshot, toLevel: Int,
+                                   now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard let next = HomeCatalog.nextLevel(after: state.home.roomLevel), next.level == toLevel
+        else { return failure(.homeUpgradeUnavailable) }
+        guard state.player.level >= next.requiredPlayerLevel
+        else { return failure(.homeLevelRequired, amount: next.requiredPlayerLevel) }
+        guard state.player.gold >= next.upgradeCost else { return failure(.shopGoldRequired, amount: next.upgradeCost) }
+        // Geometry changes settle cat recovery while preserving the furniture
+        // layout and any captured player work contract.
+        finishAllCatRests(&state, now: effectiveTime(state, now: now))
+        state.player.gold -= next.upgradeCost
+        state.home.roomLevel = next.level
+        return ActionOutcome(kind: .purchase, messageKey: "home.upgraded", amount: next.upgradeCost)
+    }
+
     /// Base career values mirror the web catalog. Rewards are captured at
     /// start so a later catalog update cannot rewrite an in-progress shift.
     public static func startWork(_ state: inout GameSnapshot,
@@ -326,6 +373,8 @@ public enum GameEngine {
         guard GameSnapshot.validFurniture(owned: state.inventory.furniture, placements: furniture) else {
             return failure(.roomInvalidFurnitureLayout)
         }
+        guard HomeCatalog.allowsLayout(furniture, replacing: state.home.furniture, roomLevel: state.home.roomLevel)
+        else { return failure(.roomCapacityReached, amount: HomeCatalog.level(state.home.roomLevel)?.capacity ?? 0) }
         if bowlPosition != state.home.bowlPosition || furniture != state.home.furniture {
             // Geometry changes can affect an exit route as well as the occupied item.
             finishAllCatRests(&state, now: effectiveTime(state, now: now))
@@ -449,6 +498,7 @@ extension GameSnapshot {
               player.profile.isValid,
               [inventory.food, inventory.litter, inventory.toys].allSatisfy({ (0...Self.maximumStock).contains($0) }),
               (0...100).contains(home.comfortScore),
+              HomeCatalog.level(home.roomLevel) != nil,
               home.name.map({ HomeNameRules.normalized($0) == $0 }) ?? true,
               Self.isUnitPosition(home.bowlPosition),
               Self.validFurniture(owned: inventory.furniture, placements: home.furniture),

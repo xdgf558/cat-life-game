@@ -55,7 +55,12 @@ final class RoomSceneDiagnostics {
     }
 
     struct FurnitureState {
-        let size: CGSize
+        let geometry: RoomWorldGeometry
+        let cameraPosition: CGPoint
+        let roomLevel: Int
+        let catWidth: CGFloat
+        let bowlWidth: CGFloat
+        let furnitureWorld: RoomFurnitureWorld
         let renderedFurniture: [FurniturePlacement]
         let ownedFurniture: [FurnitureItem]
         let furnitureNodes: [String: SKSpriteNode]
@@ -154,23 +159,38 @@ final class RoomSceneDiagnostics {
         }
     }
 
-    func publishNavigationStatus(phase presentationPhase: String, cat: CatActor, bowl: CGPoint, size: CGSize) {
+    func publishNavigationStatus(phase presentationPhase: String, cat: CatActor, bowl: CGPoint,
+                                 geometry: RoomWorldGeometry, camera: CGPoint) {
+        let size = geometry.viewportSize
         guard navigationTesting, size.width > 0, size.height > 0 else { return }
+        let catPoint = geometry.screenPoint(cat.position, camera: camera)
+        let bowlPoint = geometry.screenPoint(bowl, camera: camera)
         navigationDescription = String(format: "%@|%d|%.3f,%.3f|%.3f,%.3f|%d|%d|%d|%d|%d", presentationPhase,
-                                       collisionViolations, cat.position.x / size.width, 1 - cat.position.y / size.height,
-                                       bowl.x / size.width, 1 - bowl.y / size.height, longestRoute,
+                                       collisionViolations, catPoint.x / size.width, catPoint.y / size.height,
+                                       bowlPoint.x / size.width, bowlPoint.y / size.height, longestRoute,
                                        cat.completedMeals, cat.completedPounces, foodContactSamples, foodContactViolations)
         onNavigationChanged?(navigationDescription)
     }
-    func publishDragMetrics(pending isPlacementPending: Bool, bowl: CGPoint, size: CGSize) {
+    func publishDragMetrics(pending isPlacementPending: Bool, bowl: CGPoint,
+                            geometry: RoomWorldGeometry, camera: CGPoint) {
+        let size = geometry.viewportSize
         guard dragTesting, size.width > 0, size.height > 0 else { return }
+        let point = geometry.screenPoint(bowl, camera: camera)
         dragDescription = String(format: "%d|%.3f|%d|%.3f,%.3f", dragMoveSamples, maximumDragMoveMs,
-                                 isPlacementPending ? 1 : 0, bowl.x / size.width, 1 - bowl.y / size.height)
+                                 isPlacementPending ? 1 : 0, point.x / size.width, point.y / size.height)
         onDragMetricsChanged?(dragDescription)
     }
 
     func publishFurnitureStatus(_ state: FurnitureState, cat: CatActor, bowl: CGPoint) {
-        let size = state.size
+        let size = state.geometry.viewportSize
+        let worldSize = state.geometry.worldSize
+        func screenPoint(_ point: CGPoint) -> [String: CGFloat] {
+            let projected = state.geometry.screenPoint(point, camera: state.cameraPosition)
+            return ["x": projected.x / size.width, "y": projected.y / size.height]
+        }
+        func worldPoint(_ point: CGPoint) -> [String: CGFloat] {
+            ["x": point.x / worldSize.width, "y": 1 - point.y / worldSize.height]
+        }
         let renderedFurniture = state.renderedFurniture
         let ownedFurniture = state.ownedFurniture
         let furnitureNodes = state.furnitureNodes
@@ -187,17 +207,31 @@ final class RoomSceneDiagnostics {
         let objects: [[String: Any]] = renderedFurniture.compactMap { placement in
             guard let item = ownedFurniture.first(where: { $0.id == placement.itemID }),
                   let node = furnitureNodes[item.id] else { return nil }
+            let screen = screenPoint(node.position)
+            let world = worldPoint(node.position)
+            let footprint = state.furnitureWorld.footprint(item)
             return ["id": item.id, "kind": item.kind.rawValue,
-                    "x": node.position.x / size.width, "y": 1 - node.position.y / size.height]
+                    "x": screen["x"]!, "y": screen["y"]!,
+                    "worldX": world["x"]!, "worldY": world["y"]!,
+                    "width": node.size.width, "height": node.size.height,
+                    "footprintWidth": footprint.width, "footprintHeight": footprint.height]
         }
         let payload: [String: Any] = [
+            "roomLevel": state.roomLevel,
+            "worldWidth": worldSize.width, "worldHeight": worldSize.height,
+            "viewportWidth": size.width, "viewportHeight": size.height,
+            "cameraX": state.cameraPosition.x, "cameraY": state.cameraPosition.y,
+            "catVisualWidth": state.catWidth, "bowlVisualWidth": state.bowlWidth,
+            "savedBowl": latest.map { ["x": $0.home.bowlPosition.x, "y": $0.home.bowlPosition.y] } as Any? ?? NSNull(),
+            "savedFurniture": latest?.home.furniture.map {
+                ["itemID": $0.itemID, "x": $0.position.x, "y": $0.position.y] as [String: Any]
+            } as Any? ?? NSNull(),
             "items": objects, "selected": selectedFurnitureID ?? "bowl", "pending": isPlacementPending,
             "phase": presentationPhase, "violations": collisionViolations,
             "completedMeals": cat.completedMeals, "foodContactSamples": foodContactSamples,
             "foodContactViolations": foodContactViolations,
             "restFurniture": activeRest?.item.id as Any? ?? NSNull(),
-            "restPoint": activeRest.map { ["x": $0.plan.restPoint.x / size.width,
-                                           "y": 1 - $0.plan.restPoint.y / size.height] } as Any? ?? NSNull(),
+            "restPoint": activeRest.map { screenPoint($0.plan.restPoint) } as Any? ?? NSNull(),
             "restPhase": cat.restPhase.rawValue, "restContactSamples": restContactSamples,
             "restSession": restSessionID as Any? ?? NSNull(),
             "restSessionCommitted": restSessionWasCommitted,
@@ -209,12 +243,12 @@ final class RoomSceneDiagnostics {
             "lastRestInput": lastRestInput,
             "stepPhase": cat.stepPhase.rawValue, "stepProgress": cat.stepProgress,
             "supportElevation": cat.supportElevation,
-            "restVisualPoint": cat.restVisualContactPoint.map { ["x": $0.x / size.width, "y": 1 - $0.y / size.height] } as Any? ?? NSNull(),
+            "restVisualPoint": cat.restVisualContactPoint.map(screenPoint) as Any? ?? NSNull(),
             "bedEdgeContactSamples": bedEdgeContactSamples,
             "bedEdgeContactViolations": bedEdgeContactViolations,
             "bedEdgeMaxError": bedEdgeMaxError,
-            "frontPaw": cat.frontPawContact.map { ["x": $0.x / size.width, "y": 1 - $0.y / size.height] } as Any? ?? NSNull(),
-            "rearPaw": cat.rearPawContact.map { ["x": $0.x / size.width, "y": 1 - $0.y / size.height] } as Any? ?? NSNull(),
+            "frontPaw": cat.frontPawContact.map(screenPoint) as Any? ?? NSNull(),
+            "rearPaw": cat.rearPawContact.map(screenPoint) as Any? ?? NSNull(),
             "stepForeSupportSamples": stepForeSupportSamples, "stepLiftSamples": stepLiftSamples,
             "stepDownSamples": stepDownSamples, "stepClearanceViolations": stepClearanceViolations,
             "lastRestInterrupt": lastRestInterrupt as Any? ?? NSNull(),
@@ -224,8 +258,8 @@ final class RoomSceneDiagnostics {
             "lastCarePlanOnMainThread": lastCarePlanOnMainThread,
             "bowlPlanning": bowlPlanning, "bowlPlanCompletions": bowlPlanCompletions,
             "bowlPlanCancelled": bowlPlanCancelled, "lastBowlPlanOnMainThread": lastBowlPlanOnMainThread,
-            "bowl": ["x": bowl.x / size.width, "y": 1 - bowl.y / size.height],
-            "cat": ["x": cat.position.x / size.width, "y": 1 - cat.position.y / size.height]
+            "bowl": screenPoint(bowl), "cat": screenPoint(cat.position),
+            "bowlWorld": worldPoint(bowl), "catWorld": worldPoint(cat.position)
         ]
         if let data = try? JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys]),
            let text = String(data: data, encoding: .utf8) {

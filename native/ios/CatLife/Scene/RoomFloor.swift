@@ -32,8 +32,8 @@ struct RoomFloor: Sendable {
             CGPoint(x: sceneSize.width / 2 + ($0.x - 0.5) * rendered.width,
                     y: sceneSize.height / 2 + (0.5 - $0.y) * rendered.height)
         }
-        // Clip the artwork's floor to the visible canvas, including the small
-        // overlap beneath the native care panel. No invisible offscreen routes.
+        // Clip to the complete room world. A 1× camera may show only part of
+        // an expanded floor; its edges still keep paws inside the room.
         polygon = Self.clip(mapped, to: CGRect(x: 6, y: 24,
                                                width: max(1, sceneSize.width - 12),
                                                height: max(1, sceneSize.height - 30)))

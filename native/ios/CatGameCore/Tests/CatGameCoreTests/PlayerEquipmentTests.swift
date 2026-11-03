@@ -28,7 +28,8 @@ struct PlayerEquipmentTests {
         #expect(PlayerCatalog.avatars.filter { $0.gender == .male }.count == 3)
         #expect(PlayerCatalog.avatars.filter { $0.gender == .female }.count == 3)
         #expect(Set(PlayerCatalog.equipment.map(\.slot)) == Set(EquipmentSlot.allCases))
-        #expect(PlayerCatalog.equipment.map(\.id) == PlayerCatalog.starterEquipmentIDs)
+        let starters = PlayerCatalog.starterEquipmentIDs.compactMap { PlayerCatalog.item(id: $0) }
+        #expect(starters.count == 4 && Set(starters.map(\.slot)) == Set(EquipmentSlot.allCases))
         var state = GameSnapshot.fresh(now: now)
         #expect(state.player.profile.avatarID == nil && state.player.profile.equipped.isEmpty)
         _ = GameEngine.equipStarterSet(&state, now: now)
@@ -96,7 +97,7 @@ struct PlayerEquipmentTests {
         var state = try await repository.loadOrCreate(now: now)
         let resources = state
         #expect(GameEngine.selectAvatar(&state, avatarID: "female_forest", now: now).succeeded)
-        for item in PlayerCatalog.equipment {
+        for item in PlayerCatalog.starterEquipmentIDs.compactMap({ PlayerCatalog.item(id: $0) }) {
             #expect(GameEngine.equipItem(&state, itemID: item.id, now: now).succeeded)
             #expect(state.player.profile.equipped[item.slot] == item.id)
         }
@@ -116,7 +117,7 @@ struct PlayerEquipmentTests {
     }
 
     @Test func eachItemAffectsOnlyItsOwnDeclaredWorkCategory() throws {
-        for item in PlayerCatalog.equipment {
+        for item in PlayerCatalog.starterEquipmentIDs.compactMap({ PlayerCatalog.item(id: $0) }) {
             var state = GameSnapshot.fresh(now: now)
             #expect(GameEngine.equipItem(&state, itemID: item.id, now: now).succeeded)
             let quote = try #require(GameEngine.workQuote(for: state.player))
