@@ -3,10 +3,10 @@
   "version": "0.6.2",
   "build": 30,
   "status": {
-    "finished": "Compact paged cat directory, independent six-attribute detail, per-ID custom names, explicit save/cancel/reset, durable-write failure retry, multilingual names and legacy saves; signed builds and simulator validation passed. In-place installation, byte-identical pre-launch save and normal installed-version process confirmed.",
-    "partiallyFinished": "Player acceptance of the new profile/name flow is pending.",
+    "finished": "Compact paged cat directory, independent six-attribute detail, per-ID custom names, explicit save/cancel/reset, durable-write failure retry, multilingual names and legacy saves; signed builds and simulator validation passed. In-place installation, byte-identical pre-launch save and normal installed-version process confirmed. User reported physical-device acceptance passed on 2026-11-03.",
+    "partiallyFinished": "None within the delivered scope.",
     "broken": [],
-    "nextWork": "Player checks profile navigation and renaming on the installed version."
+    "nextWork": "Agree on the next feature release scope."
   },
   "coreTests": {
     "passed": 174,
@@ -68,7 +68,7 @@
   "limitations": [
     "Six targeted UI methods, not the complete historical suite; no iPad, accessibility text sizes or live VoiceOver session.",
     "The nine-cat dataset is a DEBUG-only fixture; this release does not add new cats, acquisition or switching the room cat.",
-    "Long-session use and physical player acceptance are pending."
+    "Long-session testing was not separately measured; the user confirmed physical-device acceptance."
   ],
   "device": {
     "version": "0.6.2",
@@ -79,6 +79,6 @@
     "saveSHA256": "fd83f39e13dc30fac6792cfcccda303631fa9757d84297062d9067bc9eabbe04",
     "launch": "passed",
     "runningProcessVerified": true,
-    "userAcceptance": "pending"
+    "userAcceptance": "passed; confirmed by user on 2026-11-03"
   }
 }
