@@ -36,6 +36,7 @@ struct TownView: View {
             .background(RoomTheme.paleMint)
             .accessibilityIdentifier("townMapScroll")
         }
+        .saveRecoveryAlert(store: store, isActive: presentedCollection == nil)
         .sheet(item: $presentedCollection) { request in
             CatCollectionView(store: store, initialCatID: request.catID, initialAdoptionID: request.adoptionID)
         }

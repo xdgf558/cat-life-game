@@ -5,8 +5,6 @@ import CatGameCore
 @MainActor
 struct WorkDestinationView: View {
     @Bindable var store: GameStore
-    var embedded = false
-    @Environment(\.dismiss) private var dismiss
     @State private var careerPath: [CareerRoute] = []
     @State private var selectedJobID = "job_flyer"
     @State private var careerSearch = ""
@@ -33,30 +31,10 @@ struct WorkDestinationView: View {
                 case .result: workResult
                 }
             }
-            .toolbar { careerDoneButton }
-            .toolbar(embedded ? .hidden : .visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .safeAreaInset(edge: .bottom, spacing: 0) { startShiftBar }
         }
-        .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 0) {
-                if !embedded {
-                SaveStatusBanner(store: store)
-                if let toast = store.toast, !toast.isEmpty {
-                    Text(toast)
-                        .font(.system(size: 14, weight: .medium))
-                        .multilineTextAlignment(.center)
-                        .padding(12).frame(maxWidth: .infinity)
-                        .background(RoomTheme.paper)
-                        .accessibilityIdentifier("sheetToast")
-                }
-                }
-            }
-        }
-        .saveRecoveryAlert(store: store, isActive: !embedded)
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink)
-        .presentationDetents([.large])
-        .presentationDragIndicator(.visible)
-        .presentationBackground(RoomTheme.cream)
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif
@@ -316,7 +294,6 @@ struct WorkDestinationView: View {
             .toolbar(.visible, for: .navigationBar)
             .toolbar {
                 careerBackButton("careerJobsBackButton")
-                careerDoneButton
             }
     }
 
@@ -432,7 +409,6 @@ struct WorkDestinationView: View {
         .toolbar(.visible, for: .navigationBar)
         .toolbar {
             careerBackButton("careerDetailBackButton")
-            careerDoneButton
         }
     }
 
@@ -465,21 +441,11 @@ struct WorkDestinationView: View {
         }
     }
 
-    @ToolbarContentBuilder private var careerDoneButton: some ToolbarContent {
-        if !embedded {
-            ToolbarItem(placement: .confirmationAction) {
-                Button(GameStrings.text("common.done")) { dismiss() }
-                    .foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("closeSheetButton")
-            }
-        }
-    }
-
     private var restPage: some View {
         WorkRestView(store: store)
             .toolbar(.visible, for: .navigationBar)
             .toolbar {
                 careerBackButton("workRestBackButton")
-                careerDoneButton
             }
     }
 
@@ -491,7 +457,6 @@ struct WorkDestinationView: View {
                         Label(GameStrings.text("common.back"), systemImage: "chevron.left")
                     }.foregroundStyle(RoomTheme.darkMint)
                 }
-                careerDoneButton
             }
     }
 

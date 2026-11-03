@@ -1,0 +1,9 @@
+{
+  "version": "0.8.1",
+  "build": 34,
+  "installedInPlace": false,
+  "status": "Device communication unavailable before save backup or installation; awaiting connection and unlock.",
+  "runningProcessVerified": false,
+  "installationStarted": false,
+  "userAcceptance": "pending"
+}

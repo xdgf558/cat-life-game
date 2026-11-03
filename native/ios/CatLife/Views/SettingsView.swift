@@ -6,7 +6,6 @@ import CatGameCore
 @MainActor
 struct SettingsView: View {
     @Bindable var store: GameStore
-    var embedded = false
     @State private var path: [Destination] = []
     @State private var homeNameDraft = ""
     @State private var savedNameDraft: String?
@@ -18,7 +17,6 @@ struct SettingsView: View {
     @State private var hasUnsubmittedAudioChanges = false
     @State private var audioSaveGeneration = 0
     @FocusState private var nameFieldFocused: Bool
-    @Environment(\.dismiss) private var dismiss
 
     private enum Destination: Hashable { case homeName, updates, audio }
 
@@ -32,12 +30,8 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     sectionTitle("settings.audio")
                     VStack(spacing: 18) {
-                        compactAudioRow(title: "audio.music", symbol: "music.note", tint: RoomTheme.lilac,
-                                        enabled: \.musicEnabled, volume: \.musicVolume,
-                                        toggleID: "audioMusicToggle", sliderID: "audioMusicVolume")
-                        compactAudioRow(title: "audio.effects", symbol: "bell.fill", tint: RoomTheme.gold,
-                                        enabled: \.effectsEnabled, volume: \.effectsVolume,
-                                        toggleID: "audioEffectsToggle", sliderID: "audioEffectsVolume")
+                        audioControl(.music, compact: true)
+                        audioControl(.effects, compact: true)
                         NavigationLink(value: Destination.audio) {
                             HStack {
                                 Text(GameStrings.text("redesign.settings.audioDetails"))
@@ -97,19 +91,7 @@ struct SettingsView: View {
             .onDisappear { saveAudioDraft() }
             .navigationTitle(GameStrings.text("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if path.isEmpty && !embedded {
-                    ToolbarItem(placement: .topBarTrailing) {
-                        Button { dismiss() } label: {
-                            Image(systemName: "xmark").font(.body.weight(.semibold))
-                                .frame(minWidth: 44, minHeight: 44)
-                        }
-                        .accessibilityLabel(GameStrings.text("common.close"))
-                        .accessibilityIdentifier("settingsCloseButton")
-                    }
-                }
-            }
-            .toolbar(embedded && path.isEmpty ? .hidden : .visible, for: .navigationBar)
+            .toolbar(path.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: Destination.self) { destination in
                 Group {
                     switch destination {
@@ -132,9 +114,6 @@ struct SettingsView: View {
                 }
             }
         }
-        .safeAreaInset(edge: .bottom) {
-            if !embedded { SaveStatusBanner(store: store) }
-        }
         .fontDesign(.rounded)
         .foregroundStyle(RoomTheme.ink)
         .tint(RoomTheme.darkMint)
@@ -143,7 +122,6 @@ struct SettingsView: View {
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif
-        .saveRecoveryAlert(store: store, isActive: !embedded)
     }
 
     private func page<Content: View>(@ViewBuilder content: () -> Content) -> some View {
@@ -203,41 +181,10 @@ struct SettingsView: View {
         .accessibilityIdentifier("settingsLanguageSegments")
     }
 
-    private func compactAudioRow(title: String, symbol: String, tint: Color,
-                                 enabled: WritableKeyPath<AudioSettings, Bool>,
-                                 volume: WritableKeyPath<AudioSettings, Double>,
-                                 toggleID: String, sliderID: String) -> some View {
-        VStack(spacing: 4) {
-            Toggle(isOn: Binding(get: { audioDraft[keyPath: enabled] }, set: { value in
-                guard audioDraft[keyPath: enabled] != value else { return }
-                audioDraft[keyPath: enabled] = value
-                hasUnsubmittedAudioChanges = true
-                saveAudioDraft()
-            })) {
-                HStack(spacing: 10) {
-                    GameIconTile(symbol: symbol, tint: tint, background: tint.opacity(0.15), size: 36)
-                    Text(GameStrings.text(title)).font(.system(size: 15, weight: .heavy))
-                }
-            }
-            .tint(RoomTheme.mint).accessibilityIdentifier(toggleID)
-            HStack(spacing: 10) {
-                Image(systemName: "speaker.wave.2.fill").foregroundStyle(RoomTheme.sky)
-                    .frame(width: 36).accessibilityHidden(true)
-                Slider(value: Binding(get: { audioDraft[keyPath: volume] }, set: { value in
-                    guard audioDraft[keyPath: volume] != value else { return }
-                    audioDraft[keyPath: volume] = value
-                    hasUnsubmittedAudioChanges = true
-                }), in: 0...1, step: 0.05,
-                       onEditingChanged: { editing in if !editing { saveAudioDraft() } })
-                    .tint(RoomTheme.mint).disabled(!audioDraft[keyPath: enabled])
-                    .accessibilityLabel(GameStrings.text(title))
-                    .accessibilityValue(audioPercent(audioDraft[keyPath: volume]))
-                    .accessibilityIdentifier(sliderID)
-                Text(audioPercent(audioDraft[keyPath: volume]))
-                    .font(.system(size: 12, weight: .heavy)).monospacedDigit()
-                    .frame(width: 38, alignment: .trailing)
-            }
-        }
+    private func audioControl(_ channel: SettingsAudioControl.Channel, compact: Bool = false) -> some View {
+        SettingsAudioControl(channel: channel, compact: compact, settings: $audioDraft,
+                             onChange: { hasUnsubmittedAudioChanges = true },
+                             onCommit: saveAudioDraft)
     }
 
     private func loadAudioDraft() {
@@ -252,12 +199,8 @@ struct SettingsView: View {
                 .font(.subheadline).foregroundStyle(RoomTheme.secondary)
 
             VStack(spacing: 18) {
-                audioCard(title: "audio.music", detail: "audio.musicDetail", volumeTitle: "audio.musicVolume",
-                          enabled: \.musicEnabled, volume: \.musicVolume,
-                          toggleID: "audioMusicToggle", sliderID: "audioMusicVolume")
-                audioCard(title: "audio.effects", detail: "audio.effectsDetail", volumeTitle: "audio.effectsVolume",
-                          enabled: \.effectsEnabled, volume: \.effectsVolume,
-                          toggleID: "audioEffectsToggle", sliderID: "audioEffectsVolume")
+                audioControl(.music)
+                audioControl(.effects)
                 Button { store.previewSoundEffect() } label: {
                     Label(GameStrings.text("audio.preview"), systemImage: "play.fill")
                         .font(.headline).frame(maxWidth: .infinity, minHeight: 26)
@@ -288,53 +231,6 @@ struct SettingsView: View {
             loadAudioDraft()
         }
         .onDisappear { saveAudioDraft() }
-    }
-
-    private func audioCard(title: String, detail: String, volumeTitle: String,
-                           enabled: WritableKeyPath<AudioSettings, Bool>,
-                           volume: WritableKeyPath<AudioSettings, Double>,
-                           toggleID: String, sliderID: String) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Toggle(GameStrings.text(title), isOn: Binding(
-                get: { audioDraft[keyPath: enabled] },
-                set: { value in
-                    guard audioDraft[keyPath: enabled] != value else { return }
-                    audioDraft[keyPath: enabled] = value
-                    hasUnsubmittedAudioChanges = true
-                    saveAudioDraft()
-                }))
-                .font(.headline).tint(RoomTheme.mint)
-                .accessibilityIdentifier(toggleID)
-            Text(GameStrings.text(detail))
-                .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            HStack {
-                Text(GameStrings.text(volumeTitle)).font(.subheadline)
-                Spacer(minLength: 8)
-                Text(audioPercent(audioDraft[keyPath: volume]))
-                    .font(.subheadline.monospacedDigit().weight(.semibold))
-                    .foregroundStyle(RoomTheme.darkMint)
-            }
-            Slider(value: Binding(get: { audioDraft[keyPath: volume] },
-                                  set: { value in
-                                      guard audioDraft[keyPath: volume] != value else { return }
-                                      audioDraft[keyPath: volume] = value
-                                      hasUnsubmittedAudioChanges = true
-                                  }),
-                   in: 0...1, step: 0.05,
-                   onEditingChanged: { editing in if !editing { saveAudioDraft() } })
-                .tint(RoomTheme.mint)
-                .disabled(!audioDraft[keyPath: enabled])
-                .accessibilityLabel(GameStrings.text(volumeTitle))
-                .accessibilityValue(audioPercent(audioDraft[keyPath: volume]))
-                .accessibilityIdentifier(sliderID)
-        }
-        .padding(18)
-        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
-    }
-
-    private func audioPercent(_ value: Double) -> String {
-        "\(Int((value * 100).rounded()))%"
     }
 
     private func saveAudioDraft() {
@@ -526,69 +422,5 @@ struct SettingsView: View {
         case .traditionalChinese: "繁體中文"
         case .english: "English"
         }
-    }
-}
-
-private struct AppVersion: Sendable {
-    let version: String
-    let build: String
-    static let current = AppVersion(
-        version: Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—",
-        build: Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "—")
-    var display: String { "\(version) (\(build))" }
-    var buildNumber: Int { Int(build) ?? 0 }
-    @MainActor var localizedDisplay: String { GameStrings.format("settings.versionFormat", version, build) }
-}
-
-private struct AppRelease: Identifiable, Sendable {
-    let build: Int
-    let version: String
-    let date: String
-    var id: Int { build }
-
-    // Keep release history as data. Only the latest three entries for this
-    // installed binary are rendered; older entries have no hidden UI elements.
-    private static let history: [AppRelease] = [
-        .init(build: 33, version: "0.8.0", date: "2026-11-03"),
-        .init(build: 32, version: "0.7.1", date: "2026-11-03"),
-        .init(build: 31, version: "0.7.0", date: "2026-11-03"),
-        .init(build: 30, version: "0.6.2", date: "2026-11-03"),
-        .init(build: 29, version: "0.6.1", date: "2026-11-03"),
-        .init(build: 28, version: "0.6.0", date: "2026-11-03"),
-        .init(build: 27, version: "0.5.4", date: "2026-11-03"),
-        .init(build: 26, version: "0.5.3", date: "2026-11-02"),
-        .init(build: 25, version: "0.5.2", date: "2026-11-02"),
-        .init(build: 24, version: "0.5.1", date: "2026-11-02"),
-        .init(build: 23, version: "0.5.0", date: "2026-11-02"),
-        .init(build: 22, version: "0.4.3", date: "2026-11-02"),
-        .init(build: 21, version: "0.4.2", date: "2026-11-02"),
-        .init(build: 20, version: "0.4.1", date: "2026-11-02"),
-        .init(build: 19, version: "0.4.0", date: "2026-11-02"),
-        .init(build: 18, version: "0.3.0", date: "2026-11-02"),
-        .init(build: 17, version: "0.2.0", date: "2026-11-01"),
-        .init(build: 16, version: "0.1.3", date: "2026-11-01"),
-        .init(build: 15, version: "0.1.2", date: "2026-11-01"),
-        .init(build: 14, version: "0.1.1", date: "2026-11-01"),
-        .init(build: 13, version: "0.1.0", date: "2026-11-01"),
-        .init(build: 12, version: "0.1.0", date: "2026-11-01"),
-        .init(build: 11, version: "0.1.0", date: "2026-11-01"),
-        .init(build: 10, version: "0.1.0", date: "2026-10-31")
-    ]
-    static var recent: [AppRelease] {
-        Array(history.filter { $0.build <= AppVersion.current.buildNumber }
-            .sorted { $0.build > $1.build }.prefix(3))
-    }
-
-    @MainActor var localizedDate: String {
-        let parser = DateFormatter()
-        parser.locale = Locale(identifier: "en_US_POSIX")
-        parser.timeZone = TimeZone(secondsFromGMT: 0)
-        parser.dateFormat = "yyyy-MM-dd"
-        guard let value = parser.date(from: date) else { return date }
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: GameLocalization.shared.language.rawValue)
-        formatter.timeZone = TimeZone(secondsFromGMT: 0)
-        formatter.dateStyle = .medium
-        return formatter.string(from: value)
     }
 }

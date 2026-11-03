@@ -6,8 +6,6 @@ import CatGameCore
 @MainActor
 struct PlayerProfileView: View {
     @Bindable var store: GameStore
-    var embedded = false
-    @Environment(\.dismiss) private var dismiss
     @State private var path: [Route] = []
     @State private var isShowingAttributes = false
     @State private var avatarGender: AvatarGender?
@@ -39,20 +37,7 @@ struct PlayerProfileView: View {
             .background(RoomTheme.cream)
             .navigationTitle(GameStrings.text("player.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if !embedded {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button(GameStrings.text("common.done")) {
-                            guard !isSavingPlayerName else { return }
-                            dismiss()
-                        }
-                        .foregroundStyle(RoomTheme.darkMint)
-                        .disabled(isSavingPlayerName)
-                        .accessibilityIdentifier("closeSheetButton")
-                    }
-                }
-            }
-            .toolbar(embedded && path.isEmpty ? .hidden : .visible, for: .navigationBar)
+            .toolbar(path.isEmpty ? .hidden : .visible, for: .navigationBar)
             .navigationDestination(for: Route.self) { route in
                 switch route {
                 case .name: playerNamePage
@@ -62,26 +47,11 @@ struct PlayerProfileView: View {
                 case .equipment(let slot): equipmentPicker(slot)
                 }
             }
-            .safeAreaInset(edge: .bottom) {
-                if !embedded {
-                    VStack(spacing: 0) {
-                        SaveStatusBanner(store: store)
-                        if let toast = store.toast, !toast.isEmpty {
-                            Text(toast).font(.footnote).multilineTextAlignment(.center)
-                                .padding(12).frame(maxWidth: .infinity)
-                                .background(RoomTheme.paper)
-                                .accessibilityIdentifier("profileToast")
-                        }
-                    }
-                }
-            }
+
         }
         .saveRecoveryAlert(store: store, isActive: !isShowingAttributes)
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink)
         .environment(\.locale, Locale(identifier: store.language.rawValue))
-        .presentationDetents([.large]).presentationDragIndicator(.visible)
-        .presentationBackground(RoomTheme.cream)
-        .interactiveDismissDisabled(isSavingPlayerName)
         .sheet(isPresented: $isShowingAttributes) { attributesSheet }
     }
 

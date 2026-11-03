@@ -124,11 +124,11 @@ struct RoomHomeView: View {
     }
 
     @ViewBuilder private var destination: some View {
-        if store.isShowingSettings { SettingsView(store: store, embedded: true) }
+        if store.isShowingSettings { SettingsView(store: store) }
         else {
             switch store.activeSheet {
-            case .work: WorkDestinationView(store: store, embedded: true)
-            case .player: PlayerProfileView(store: store, embedded: true)
+            case .work: WorkDestinationView(store: store)
+            case .player: PlayerProfileView(store: store)
             case .town: TownView(store: store)
             case .shop, .inventory, .upgrade:
                 NavigationStack {

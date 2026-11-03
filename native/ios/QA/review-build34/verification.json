@@ -1,0 +1,144 @@
+{
+  "schema": 1,
+  "version": "0.8.1",
+  "build": 34,
+  "finished": [
+    "four PR #5 P3 fixes",
+    "stable project generation",
+    "three-language dictionaries and shared audio controls",
+    "Debug simulator and signed Release builds",
+    "focused App and UI regression"
+  ],
+  "partiallyFinished": [
+    "physical iPhone acceptance by user",
+    "device installation after reconnection"
+  ],
+  "broken": [],
+  "app": {
+    "passed": 72,
+    "note": "Executed before the final release-note wording edit; no runtime behavior changed after this run."
+  },
+  "scriptTests": {
+    "passed": 20,
+    "covers": [
+      "runtime asset preflight",
+      "repeat generation byte identity",
+      "source add/remove across three targets without renumbering existing objects",
+      "same file names in separate directories",
+      "scheme and target proxy references"
+    ]
+  },
+  "runtimeAssets": 70,
+  "localization": {
+    "keysPerLanguage": 579,
+    "previousKeysPerLanguage": 577,
+    "previousValuesUnchanged": true
+  },
+  "project": {
+    "formalRepeatByteIdentical": true,
+    "crossCheckoutFixtureByteIdentical": true,
+    "firstRandomToStableIDMigration": true
+  },
+  "ui": {
+    "uniqueScenarios": 8,
+    "latestAllPassed": true,
+    "latest": [
+      {
+        "run": "se-inline-recheck",
+        "method": "testEmbeddedSettingsInlineAudioAndLanguageKeepNavigationAndPersist",
+        "status": "passed",
+        "seconds": 136.691
+      },
+      {
+        "run": "se-final",
+        "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+        "status": "passed",
+        "seconds": 58.938
+      },
+      {
+        "run": "se-final",
+        "method": "testTownMapAndCatProfileKeepOneSaveAlertOwnerAndPersistentRetry",
+        "status": "passed",
+        "seconds": 74.654
+      },
+      {
+        "run": "se-review",
+        "method": "testTownMapPresentsBackgroundSaveFailureBeforeAutomaticRecovery",
+        "status": "passed",
+        "seconds": 58.086
+      },
+      {
+        "run": "pro-review",
+        "method": "testAudioSettingsPersistAcrossRelaunchAndControlPlayback",
+        "status": "passed",
+        "seconds": 186.521
+      },
+      {
+        "run": "pro-review",
+        "method": "testCompactWorkDirectoryPagesFiltersSearchAndLockedPreviewPreserveState",
+        "status": "passed",
+        "seconds": 254.584
+      },
+      {
+        "run": "pro-review",
+        "method": "testRedesignProfilePortraitAndAllFourStageSlotsRemainTappable",
+        "status": "passed",
+        "seconds": 157.769
+      },
+      {
+        "run": "pro-review",
+        "method": "testSettingsDismissalResumesAnInProgressMeal",
+        "status": "passed",
+        "seconds": 127.451
+      }
+    ],
+    "earlierFailures": [
+      {
+        "run": "se-review",
+        "method": "testEmbeddedSettingsInlineAudioAndLanguageKeepNavigationAndPersist",
+        "status": "failed",
+        "seconds": 79.042
+      },
+      {
+        "run": "se-review",
+        "method": "testTownMapAndCatProfileKeepOneSaveAlertOwnerAndPersistentRetry",
+        "status": "failed",
+        "seconds": 76.046
+      }
+    ],
+    "triage": [
+      "Initial inline-audio SE run stayed on Settings after the automated Home tap. The identical app and test passed on rerun, including room-frame and cold-launch persistence assertions. No product root cause is claimed.",
+      "The initial cat-profile retry test selected the covered parent banner by firstMatch. Scoped the test to an enabled, hittable retry button; the actual modal control was present in the recording. Final retry regression passed."
+    ],
+    "scope": "Affected flows on SE and Pro, not the whole historical UI suite. The final SE run rechecks release-note layout after the copy-only wording edit."
+  },
+  "release": {
+    "version": "0.8.1",
+    "build": 34,
+    "inputCount": 213,
+    "inputSHA256": "f25e62a224ac4458cfea80492205799998a0ad2a122172171b385aeb645793ac",
+    "binarySHA256": "f55316c0bb2730e30524972afafa11cd3c157c477b6d6a8b824e8ebf40bc1776",
+    "signatureVerified": true
+  },
+  "deviceDelivery": {
+    "version": "0.8.1",
+    "build": 34,
+    "installedInPlace": false,
+    "status": "Device communication unavailable before save backup or installation; awaiting connection and unlock.",
+    "runningProcessVerified": false,
+    "installationStarted": false,
+    "userAcceptance": "pending"
+  },
+  "notChecked": [
+    "Core suite not rerun: no Core change; the 189-test result belongs to build 33",
+    "iPad and landscape",
+    "largest Dynamic Type sizes",
+    "live VoiceOver navigation",
+    "long-term performance"
+  ],
+  "nextWork": [
+    "connect and unlock iPhone for in-place installation",
+    "PR #5 review",
+    "user physical iPhone acceptance"
+  ]
+}
