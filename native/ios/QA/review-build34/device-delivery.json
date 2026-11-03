@@ -1,9 +1,14 @@
 {
   "version": "0.8.1",
   "build": 34,
-  "installedInPlace": false,
-  "status": "Device communication unavailable before save backup or installation; awaiting connection and unlock.",
-  "runningProcessVerified": false,
-  "installationStarted": false,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 4041,
+  "launch": "passed",
+  "runningProcessVerified": true,
+  "schemaAfterStartup": 2,
+  "identityOwnershipAndLayoutPreserved": true,
+  "installationStarted": true,
+  "deliveredOn": "2026-11-04",
   "userAcceptance": "pending"
 }

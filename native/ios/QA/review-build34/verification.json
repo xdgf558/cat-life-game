@@ -7,11 +7,13 @@
     "stable project generation",
     "three-language dictionaries and shared audio controls",
     "Debug simulator and signed Release builds",
-    "focused App and UI regression"
+    "focused App and UI regression",
+    "in-place device installation with byte-identical save",
+    "installed app version and running process verified",
+    "identity ownership and layout preserved after startup"
   ],
   "partiallyFinished": [
-    "physical iPhone acceptance by user",
-    "device installation after reconnection"
+    "physical iPhone acceptance by user"
   ],
   "broken": [],
   "app": {
@@ -123,10 +125,15 @@
   "deviceDelivery": {
     "version": "0.8.1",
     "build": 34,
-    "installedInPlace": false,
-    "status": "Device communication unavailable before save backup or installation; awaiting connection and unlock.",
-    "runningProcessVerified": false,
-    "installationStarted": false,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4041,
+    "launch": "passed",
+    "runningProcessVerified": true,
+    "schemaAfterStartup": 2,
+    "identityOwnershipAndLayoutPreserved": true,
+    "installationStarted": true,
+    "deliveredOn": "2026-11-04",
     "userAcceptance": "pending"
   },
   "notChecked": [
@@ -137,7 +144,6 @@
     "long-term performance"
   ],
   "nextWork": [
-    "connect and unlock iPhone for in-place installation",
     "PR #5 review",
     "user physical iPhone acceptance"
   ]
