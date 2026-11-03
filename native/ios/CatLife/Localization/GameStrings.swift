@@ -39,6 +39,8 @@ enum GameStrings {
     }
 
     private static let chinese: [String: String] = [
+        "releases.27.title": "打工页面更清爽",
+        "releases.27.body": "打工首页改为紧凑概览，职业目录每页显示 4 项，支持搜索及全部、已解锁、未解锁筛选。职业完整详情和休息恢复移至独立页面，报酬与计时规则保持不变。",
         "releases.26.title": "保存状态更清楚",
         "releases.26.body": "保存遇到问题时持续显示状态并提供重试入口；声音设置会等待保存完成，保留未成功写入的选择。优化满体力时的自动存档，并改善房间加载与提示显示。",
         "save.recoveryPending": "保存暂不可用，未保存的操作尚未生效。正在自动重试，时间结算会在恢复后补上。",
@@ -274,6 +276,12 @@ enum GameStrings {
         "shop.buy": "%d 金币", "shop.owned": "现有 %d", "shop.balance": "钱包里有 %d 金币",
         "career.title": "职业与成长", "career.level": "等级 %d", "career.exp": "经验 %d / %d",
         "career.choose": "选择职业", "career.jobs": "职业选择", "career.selected": "当前选择",
+        "career.search.placeholder": "搜索职业", "career.search.clear": "清除搜索",
+        "career.filter.all": "全部", "career.filter.available": "已解锁", "career.filter.locked": "未解锁",
+        "career.page.previous": "上一页", "career.page.next": "下一页", "career.page.indicator": "%d / %d",
+        "career.empty": "没有符合条件的职业", "career.details": "职业详情", "career.select": "选择此职业",
+        "career.duration": "工作时长", "career.reward": "金币报酬", "career.experience": "经验奖励", "career.costs": "工作消耗",
+        "career.nextJob": "下次选择：%@", "work.rest.open": "休息恢复",
         "career.unlock": "等级 %d 解锁", "career.available": "已解锁",
         "career.minutes": "%d 分钟", "career.gold": "+%d 金币", "career.expReward": "+%d 经验",
         "career.cost": "消耗 %d 体力 · %d 心情", "career.working": "工作中 · %@",
@@ -316,6 +324,8 @@ enum GameStrings {
     ]
 
     private static let traditionalChinese: [String: String] = [
+        "releases.27.title": "打工頁面更清爽",
+        "releases.27.body": "打工首頁改為精簡概覽，職業目錄每頁顯示 4 項，支援搜尋及全部、已解鎖、未解鎖篩選。職業完整詳情與休息恢復移至獨立頁面，報酬與計時規則維持不變。",
         "releases.26.title": "儲存狀態更清楚",
         "releases.26.body": "儲存遇到問題時持續顯示狀態並提供重試入口；聲音設定會等待儲存完成，保留未成功寫入的選擇。改善體力全滿時的自動存檔，並優化房間載入與提示顯示。",
         "save.recoveryPending": "暫時無法儲存，尚未儲存的操作還未生效。正在自動重試，恢復後會補上時間結算。",
@@ -551,6 +561,12 @@ enum GameStrings {
         "shop.buy": "%d 金幣", "shop.owned": "現有 %d", "shop.balance": "錢包裡有 %d 金幣",
         "career.title": "職業與成長", "career.level": "等級 %d", "career.exp": "經驗 %d / %d",
         "career.choose": "選擇職業", "career.jobs": "職業選擇", "career.selected": "目前選擇",
+        "career.search.placeholder": "搜尋職業", "career.search.clear": "清除搜尋",
+        "career.filter.all": "全部", "career.filter.available": "已解鎖", "career.filter.locked": "未解鎖",
+        "career.page.previous": "上一頁", "career.page.next": "下一頁", "career.page.indicator": "%d / %d",
+        "career.empty": "沒有符合條件的職業", "career.details": "職業詳情", "career.select": "選擇此職業",
+        "career.duration": "工作時間", "career.reward": "金幣報酬", "career.experience": "經驗獎勵", "career.costs": "工作消耗",
+        "career.nextJob": "下次選擇：%@", "work.rest.open": "休息恢復",
         "career.unlock": "等級 %d 解鎖", "career.available": "已解鎖",
         "career.minutes": "%d 分鐘", "career.gold": "+%d 金幣", "career.expReward": "+%d 經驗",
         "career.cost": "消耗 %d 體力 · %d 心情", "career.working": "工作中 · %@",
@@ -593,6 +609,8 @@ enum GameStrings {
     ]
 
     private static let english: [String: String] = [
+        "releases.27.title": "A tidier work page",
+        "releases.27.body": "A compact work overview links to a job directory with 4 jobs per page, search, and All, Unlocked, and Locked filters. Full job details and rest recovery have their own pages. Pay and timing rules are unchanged.",
         "releases.26.title": "Clearer save recovery",
         "releases.26.body": "A persistent save status keeps retries available. Sound changes wait for saving and retain choices that could not be written. Reduces autosaves at full stamina and improves room loading and notices.",
         "save.recoveryPending": "Saving is unavailable. Unsaved actions have not taken effect. Retrying automatically; elapsed progress will catch up when saving recovers.",
@@ -828,6 +846,12 @@ enum GameStrings {
         "shop.buy": "%d gold", "shop.owned": "%d available", "shop.balance": "%d gold in your wallet",
         "career.title": "Work and growth", "career.level": "Level %d", "career.exp": "EXP %d / %d",
         "career.choose": "Choose a job", "career.jobs": "Choose a job", "career.selected": "Selected",
+        "career.search.placeholder": "Search jobs", "career.search.clear": "Clear search",
+        "career.filter.all": "All", "career.filter.available": "Unlocked", "career.filter.locked": "Locked",
+        "career.page.previous": "Previous", "career.page.next": "Next", "career.page.indicator": "%d / %d",
+        "career.empty": "No matching jobs", "career.details": "Job details", "career.select": "Choose this job",
+        "career.duration": "Duration", "career.reward": "Gold reward", "career.experience": "Experience", "career.costs": "Costs",
+        "career.nextJob": "Next job: %@", "work.rest.open": "Rest and recover",
         "career.unlock": "Unlocks at level %d", "career.available": "Unlocked",
         "career.minutes": "%d min", "career.gold": "+%d gold", "career.expReward": "+%d EXP",
         "career.cost": "Uses %d stamina · %d mood", "career.working": "Working · %@",

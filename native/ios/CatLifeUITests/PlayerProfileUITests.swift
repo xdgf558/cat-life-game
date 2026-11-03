@@ -144,7 +144,7 @@ extension RoomHomeUITests {
         closePlayerProfile(in: app)
         openCareerHome(in: app)
         tapCareerControl("careerChooseJobButton", in: app)
-        scrollCareerPage("careerJobsScroll", to: "careerSelect_job_cat_cafe_manager", in: app)
+        openCareerDetailsFromDirectory("job_cat_cafe_manager", in: app)
         tapAnimationControl("careerSelect_job_cat_cafe_manager", in: app)
         assertWorkQuote(duration: 1530, stamina: 43, mood: 16, in: app)
         attachScreenshot(app, named: "Equipment — actual cafe preview includes duration and cost reductions")

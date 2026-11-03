@@ -64,6 +64,8 @@ struct RoomHomeView: View {
         .sheet(item: $store.activeSheet) { destination in
             if destination == .player {
                 PlayerProfileView(store: store)
+            } else if destination == .work {
+                WorkDestinationView(store: store)
             } else {
                 HomeDestinationSheet(destination: destination, store: store)
             }

@@ -1,0 +1,124 @@
+{
+  "version": "0.5.4",
+  "build": 27,
+  "passed": 23,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "CareerDirectoryTests/testEmptyShrinkingAndOutOfRangePagesRemainSafe",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "name": "CareerDirectoryTests/testLocalizedNameSearchAndUnlockFilterComposeWithoutReorderingJobs",
+      "result": "passed",
+      "seconds": 0.003
+    },
+    {
+      "name": "CareerDirectoryTests/testOneHundredAndOneJobsStayInFourRowPagesWithNoGapsOrDuplicates",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testAudioIntentWaitsForBusySaveAndPreservesItsPlayerChange",
+      "result": "passed",
+      "seconds": 0.028
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testFailedAudioIntentsRemainRetryableAndRetrySavesLatestSettings",
+      "result": "passed",
+      "seconds": 0.014
+    },
+    {
+      "name": "GameStoreAudioSettingsTests/testOlderAudioSuccessCannotDiscardNewerIntentReturningToSavedValues",
+      "result": "passed",
+      "seconds": 0.034
+    },
+    {
+      "name": "GameStorePersistenceTests/testBackupRestAndWorkNoticesSurviveStartupAndEntry",
+      "result": "passed",
+      "seconds": 0.004
+    },
+    {
+      "name": "GameStorePersistenceTests/testDueWorkSettlementPersistsOnceAfterTimestampOnlyRequests",
+      "result": "passed",
+      "seconds": 2.059
+    },
+    {
+      "name": "GameStorePersistenceTests/testEveryManualFailureReportsAndPersistentRecoveryDoesNotReplayActions",
+      "result": "passed",
+      "seconds": 0.107
+    },
+    {
+      "name": "GameStorePersistenceTests/testExplicitRenameRecoversPendingRestExitAfterWriteFailure",
+      "result": "passed",
+      "seconds": 0.044
+    },
+    {
+      "name": "GameStorePersistenceTests/testFailedRenameDoesNotPublishDraftOrRaiseGlobalAlert",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testFullStaminaClockDoesNotCausePassiveWritesOrBankExtraRecovery",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "GameStorePersistenceTests/testLoadKeepsExclusiveSaveOwnershipAcrossSuspensionPoints",
+      "result": "passed",
+      "seconds": 0.255
+    },
+    {
+      "name": "GameStorePersistenceTests/testRestExitFailuresUnlockUIKeepCapturedTimeAndSlowAfterThreeAttempts",
+      "result": "passed",
+      "seconds": 7.065
+    },
+    {
+      "name": "GameStorePersistenceTests/testSaveRetryPolicySlowsToOneMinuteAndResetsAfterSuccess",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "name": "GameStorePersistenceTests/testSuccessfulLoadRemainsUsableWhenReconciliationCannotSave",
+      "result": "passed",
+      "seconds": 0.043
+    },
+    {
+      "name": "GameStorePersistenceTests/testTimestampOnlyForegroundSynchronizationDoesNotWrite",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "name": "GameStorePersistenceTests/testWorkNoticeSurvivesConcurrentPurchaseNotice",
+      "result": "passed",
+      "seconds": 2.055
+    },
+    {
+      "name": "RoomBowlPlannerTests/testCancelledWorkerCannotPublishAReplacementLayout",
+      "result": "passed",
+      "seconds": 0.001
+    },
+    {
+      "name": "RoomBowlPlannerTests/testCompletelyBlockedLegacyLayoutDoesNotInventAWalkableRoute",
+      "result": "passed",
+      "seconds": 0.005
+    },
+    {
+      "name": "RoomBowlPlannerTests/testInterruptedClimbRetainsItsFirstPoseThenReturnsAllSupportToFloor",
+      "result": "passed",
+      "seconds": 0.002
+    },
+    {
+      "name": "RoomBowlPlannerTests/testLegacyWallPositionRestoresToReachableFloorWithoutChangingRequest",
+      "result": "passed",
+      "seconds": 3.825
+    },
+    {
+      "name": "RoomBowlPlannerTests/testValidRestoredPositionAndNavigationAreStableAcrossReload",
+      "result": "passed",
+      "seconds": 0.096
+    }
+  ],
+  "note": "Executed against the first build27 candidate. Subsequent source edits were confined to WorkDestinationView navigation, accessibility and legacy-job presentation, plus screenshot attachments; tested directory/store/planner code is unchanged."
+}

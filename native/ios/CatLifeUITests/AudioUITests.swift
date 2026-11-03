@@ -166,7 +166,8 @@ extension RoomHomeUITests {
         _ = try waitForAudio(in: app, description: "opening Work selects its background music") {
             $0.currentTrack == "work" && $0.musicPlaying
         }
-        tapCareerControl("sleepStartButton", in: app)
+        openCareerRest(in: app)
+        tapCareerRestControl("sleepStartButton", in: app)
         waitForObservedValue("sleepStatus", "asleep", in: app)
         _ = try waitForAudio(in: app, description: "sleep overrides the open Work page's music") {
             $0.currentTrack == "sleep" && $0.musicPlaying && $0.lastEffect == "sleep"
@@ -177,11 +178,13 @@ extension RoomHomeUITests {
         }
 
         openCareerHome(in: app)
-        tapCareerControl("sleepWakeButton", in: app)
+        openCareerRest(in: app)
+        tapCareerRestControl("sleepWakeButton", in: app)
         waitForObservedValue("sleepStatus", "awake", in: app)
         _ = try waitForAudio(in: app, description: "waking restores the open Work page's music") {
             $0.currentTrack == "work" && $0.musicPlaying && $0.lastEffect == "wake"
         }
+        closeCareerRest(in: app)
         bringWorkStartIntoView(in: app)
         tapAnimationControl("startWorkButton", in: app)
         waitForElement("workCountdown", in: app)
