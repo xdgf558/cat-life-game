@@ -21,7 +21,9 @@ struct CatVisualFrameSampler {
 enum RoomCatStatusLayout {
     static func frame(in size: CGSize, compact: Bool) -> CGRect {
         if compact {
-            return CGRect(x: 14, y: 100, width: min(260, max(160, size.width - 130)), height: 64)
+            // The home plaque and 44-point daily-goal entry occupy the first
+            // 122 points. Keep the compact cat card below both touch targets.
+            return CGRect(x: 14, y: 134, width: min(260, max(160, size.width - 130)), height: 64)
         }
         return CGRect(x: 14, y: max(0, size.height - 172), width: max(180, size.width - 116), height: 154)
     }

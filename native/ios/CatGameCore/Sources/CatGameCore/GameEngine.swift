@@ -187,6 +187,7 @@ public enum GameEngine {
         state.cats[index].mood = cap(state.cats[index].mood + 4)
         state.cats[index].decayTracker.satiety = max(state.cats[index].decayTracker.satiety, timestamp)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
+        state.tasks.recordFeed(at: timestamp)
         return ActionOutcome(success: .fed, amount: units)
     }
 
@@ -227,6 +228,7 @@ public enum GameEngine {
         state.player.mood = cap(state.player.mood + 4)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.cats[index].decayTracker.energy = max(state.cats[index].decayTracker.energy, timestamp)
+        state.tasks.recordPlay(at: timestamp)
         return ActionOutcome(success: .played, amount: 1)
     }
 
@@ -275,6 +277,7 @@ public enum GameEngine {
         guard state.player.gold >= offer.price else { return failure(.shopGoldRequired, amount: offer.price) }
         state.player.gold -= offer.price
         state.inventory.furniture.append(FurnitureItem(id: instanceID, kind: offer.kind))
+        state.tasks.recordFurniturePurchase()
         return ActionOutcome(success: .furniturePurchased, amount: offer.price)
     }
 
@@ -365,6 +368,7 @@ public enum GameEngine {
         }
 
         state.meta.lastSyncAt = timestamp
+        state.tasks.advanceDay(to: timestamp)
         if let work = state.player.activeWork, let progress = workProgress {
             let levelBefore = state.player.level
             // The wallet has a storage cap; a completed shift still advances time,
@@ -374,6 +378,7 @@ public enum GameEngine {
             state.player.level = progress.level
             state.player.exp = progress.exp
             state.player.completedWorkCount = min(GameSnapshot.maximumGold, state.player.completedWorkCount + 1)
+            state.tasks.recordWork(completedAt: work.endsAt)
             state.player.lastWorkResult = WorkResult(
                 id: work.id, jobID: work.jobID, completedAt: work.endsAt,
                 goldReward: goldAwarded, expReward: work.expReward,
@@ -532,6 +537,7 @@ extension GameSnapshot {
               (0...Self.maximumGold).contains(player.completedWorkCount),
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid,
+              tasks.isValid,
               [inventory.food, inventory.litter, inventory.toys].allSatisfy({ (0...Self.maximumStock).contains($0) }),
               (0...100).contains(home.comfortScore),
               HomeCatalog.level(home.roomLevel) != nil,

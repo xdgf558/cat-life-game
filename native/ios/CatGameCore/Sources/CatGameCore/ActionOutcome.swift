@@ -6,6 +6,11 @@ public enum ActionKind: String, Codable, Sendable {
 }
 
 public enum ActionFailure: String, Equatable, Sendable {
+    case taskMissing = "tasks.error.unknown"
+    case taskAlreadyClaimed = "tasks.error.alreadyClaimed"
+    case taskIncomplete = "tasks.error.incomplete"
+    case taskDayChanged = "tasks.error.dayChanged"
+    case taskProgressLimit = "tasks.error.progressLimit"
     case catAdoptionMissing = "cat.adoptionMissing"
     case catAlreadyOwned = "cat.alreadyOwned"
     case catPlayerLevelRequired = "cat.playerLevelRequired"
@@ -42,6 +47,7 @@ public enum ActionFailure: String, Equatable, Sendable {
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
+    case taskClaimed = "tasks.claimedNotice"
     case catAdopted = "cat.adopted"
     case companionSelected = "cat.companionSelected"
     case avatarSaved = "player.avatarSaved"
@@ -69,7 +75,7 @@ public enum ActionSuccess: String, Equatable, Sendable {
         switch self {
         case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
              .foodPurchased, .litterPurchased, .toyPurchased: return .purchase
-        case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped: return .none
+        case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped, .taskClaimed: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

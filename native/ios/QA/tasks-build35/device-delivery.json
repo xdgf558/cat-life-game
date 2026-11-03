@@ -1,0 +1,20 @@
+{
+  "version": "0.9.0",
+  "build": 35,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 4837,
+  "launch": "passed",
+  "runningProcessVerified": true,
+  "schemaAfterStartup": 3,
+  "identityOwnershipAndLayoutPreserved": true,
+  "deliveredOn": "2026-11-04",
+  "userAcceptance": "pending gameplay confirmation",
+  "tasksMigration": {
+    "fromSchema": 2,
+    "toSchema": 3,
+    "taskStatePresent": true,
+    "noRewardsAutomaticallyClaimed": true,
+    "historicalWorkCountPreserved": true
+  }
+}

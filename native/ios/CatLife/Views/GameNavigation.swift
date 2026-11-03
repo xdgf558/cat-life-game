@@ -18,7 +18,7 @@ struct GameBottomBar: View {
             tab("tab.town", english: "Cats", symbol: "pawprint.fill", id: "tabTown",
                 selected: store.activeSheet == .town && !store.isShowingSettings && !moreVisible) { select(.town) }
             tab("tab.more", english: "More", symbol: "ellipsis.circle.fill", id: "tabMore",
-                selected: moreVisible || store.isShowingSettings || [.inventory, .player, .upgrade].contains(store.activeSheet)) {
+                selected: moreVisible || store.isShowingSettings || [.inventory, .player, .upgrade, .tasks].contains(store.activeSheet)) {
                 store.playNavigationSound()
                 withAnimation(.easeOut(duration: 0.18)) { moreVisible.toggle() }
             }
@@ -70,6 +70,7 @@ struct GameMoreMenu: View {
                         .accessibilityLabel(GameStrings.text("common.close")).accessibilityIdentifier("moreCloseButton")
                 }
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                    tile("tasks.title", asset: "", symbol: "checklist", id: "tabTasks") { select(.tasks) }
                     tile("tab.inventory", asset: "icon-inventory", symbol: "backpack.fill", id: "tabInventory") {
                         store.inventoryCategory = .supplies; select(.inventory)
                     }

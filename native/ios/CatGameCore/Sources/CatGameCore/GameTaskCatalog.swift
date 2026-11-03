@@ -1,0 +1,129 @@
+import Foundation
+
+public enum GameTaskCategory: String, Codable, CaseIterable, Identifiable, Sendable {
+    case tutorial, daily, achievement
+    public var id: String { rawValue }
+}
+
+public enum GameTaskDestination: String, Sendable {
+    case work, care, furnitureShop, upgrade
+}
+
+enum GameTaskMetric: Sendable {
+    case totalWork, totalFeed, furniturePurchases, dailyWork, dailyFeed, dailyPlay, intimacy, roomLevel
+}
+
+public struct GameTaskDefinition: Identifiable, Sendable {
+    public let id: String
+    public let category: GameTaskCategory
+    public let target: Int
+    public let goldReward: Int
+    public let expReward: Int
+    public let destination: GameTaskDestination
+    let metric: GameTaskMetric
+}
+
+/// Stable IDs are saved as receipts; rewards and conditions always come from this catalog.
+public enum GameTaskCatalog {
+    public static let all: [GameTaskDefinition] = [
+        .init(id: "tutorial_work", category: .tutorial, target: 1, goldReward: 30, expReward: 10,
+              destination: .work, metric: .totalWork),
+        .init(id: "tutorial_feed", category: .tutorial, target: 1, goldReward: 20, expReward: 5,
+              destination: .care, metric: .totalFeed),
+        .init(id: "tutorial_furniture", category: .tutorial, target: 1, goldReward: 40, expReward: 10,
+              destination: .furnitureShop, metric: .furniturePurchases),
+        .init(id: "daily_work", category: .daily, target: 1, goldReward: 30, expReward: 8,
+              destination: .work, metric: .dailyWork),
+        .init(id: "daily_feed", category: .daily, target: 1, goldReward: 15, expReward: 4,
+              destination: .care, metric: .dailyFeed),
+        .init(id: "daily_play", category: .daily, target: 1, goldReward: 15, expReward: 4,
+              destination: .care, metric: .dailyPlay),
+        .init(id: "achievement_work10", category: .achievement, target: 10, goldReward: 120, expReward: 25,
+              destination: .work, metric: .totalWork),
+        .init(id: "achievement_intimacy50", category: .achievement, target: 50, goldReward: 80, expReward: 20,
+              destination: .care, metric: .intimacy),
+        .init(id: "achievement_room2", category: .achievement, target: 2, goldReward: 100, expReward: 25,
+              destination: .upgrade, metric: .roomLevel)
+    ]
+
+    public static func task(id: String) -> GameTaskDefinition? { all.first { $0.id == id } }
+
+    public static func progress(for task: GameTaskDefinition, in state: GameSnapshot) -> Int {
+        switch task.metric {
+        case .totalWork: state.player.completedWorkCount
+        case .totalFeed: state.tasks.totalFeedCount
+        case .furniturePurchases: state.tasks.furniturePurchaseCount
+        case .dailyWork: state.tasks.dailyWorkCount
+        case .dailyFeed: state.tasks.dailyFeedCount
+        case .dailyPlay: state.tasks.dailyPlayCount
+        case .intimacy: state.cats.map(\.intimacy).max() ?? 0
+        case .roomLevel: state.home.roomLevel
+        }
+    }
+
+    public static func isClaimed(_ task: GameTaskDefinition, in state: GameSnapshot) -> Bool {
+        (task.category == .daily ? state.tasks.dailyClaimedTaskIDs : state.tasks.claimedTaskIDs).contains(task.id)
+    }
+
+    public static func isClaimable(_ task: GameTaskDefinition, in state: GameSnapshot) -> Bool {
+        !isClaimed(task, in: state) && progress(for: task, in: state) >= task.target
+    }
+}
+
+public struct GameTaskState: Codable, Equatable, Sendable {
+    public var dailyDayKey: String?
+    public var dailyWorkCount: Int
+    public var dailyFeedCount: Int
+    public var dailyPlayCount: Int
+    public var totalFeedCount: Int
+    public var furniturePurchaseCount: Int
+    public var claimedTaskIDs: [String]
+    public var dailyClaimedTaskIDs: [String]
+
+    public init(dailyDayKey: String? = nil, dailyWorkCount: Int = 0, dailyFeedCount: Int = 0,
+                dailyPlayCount: Int = 0, totalFeedCount: Int = 0, furniturePurchaseCount: Int = 0,
+                claimedTaskIDs: [String] = [], dailyClaimedTaskIDs: [String] = []) {
+        self.dailyDayKey = dailyDayKey
+        self.dailyWorkCount = dailyWorkCount
+        self.dailyFeedCount = dailyFeedCount
+        self.dailyPlayCount = dailyPlayCount
+        self.totalFeedCount = totalFeedCount
+        self.furniturePurchaseCount = furniturePurchaseCount
+        self.claimedTaskIDs = claimedTaskIDs
+        self.dailyClaimedTaskIDs = dailyClaimedTaskIDs
+    }
+
+    private enum CodingKeys: String, CodingKey, CaseIterable {
+        case dailyDayKey, dailyWorkCount, dailyFeedCount, dailyPlayCount
+        case totalFeedCount, furniturePurchaseCount, claimedTaskIDs, dailyClaimedTaskIDs
+    }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        for key in CodingKeys.allCases where !values.contains(key) {
+            throw DecodingError.keyNotFound(key, .init(codingPath: values.codingPath,
+                                                       debugDescription: "Incomplete task state"))
+        }
+        dailyDayKey = try values.decodeIfPresent(String.self, forKey: .dailyDayKey)
+        dailyWorkCount = try values.decode(Int.self, forKey: .dailyWorkCount)
+        dailyFeedCount = try values.decode(Int.self, forKey: .dailyFeedCount)
+        dailyPlayCount = try values.decode(Int.self, forKey: .dailyPlayCount)
+        totalFeedCount = try values.decode(Int.self, forKey: .totalFeedCount)
+        furniturePurchaseCount = try values.decode(Int.self, forKey: .furniturePurchaseCount)
+        claimedTaskIDs = try values.decode([String].self, forKey: .claimedTaskIDs)
+        dailyClaimedTaskIDs = try values.decode([String].self, forKey: .dailyClaimedTaskIDs)
+        guard isValid else { throw SaveRepositoryError.invalidSnapshot }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var values = encoder.container(keyedBy: CodingKeys.self)
+        try values.encode(dailyDayKey, forKey: .dailyDayKey)
+        try values.encode(dailyWorkCount, forKey: .dailyWorkCount)
+        try values.encode(dailyFeedCount, forKey: .dailyFeedCount)
+        try values.encode(dailyPlayCount, forKey: .dailyPlayCount)
+        try values.encode(totalFeedCount, forKey: .totalFeedCount)
+        try values.encode(furniturePurchaseCount, forKey: .furniturePurchaseCount)
+        try values.encode(claimedTaskIDs, forKey: .claimedTaskIDs)
+        try values.encode(dailyClaimedTaskIDs, forKey: .dailyClaimedTaskIDs)
+    }
+}

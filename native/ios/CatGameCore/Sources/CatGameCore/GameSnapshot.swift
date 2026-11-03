@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 2
+    public static let currentSchemaVersion = 3
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -12,10 +12,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var home: HomeState
     public var meta: SaveMetadata
     public var settings: GameSettings
+    public var tasks: GameTaskState
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
-                meta: SaveMetadata, settings: GameSettings = GameSettings(), activeCatID: String? = nil) {
+                meta: SaveMetadata, settings: GameSettings = GameSettings(), activeCatID: String? = nil,
+                tasks: GameTaskState? = nil) {
         self.schemaVersion = schemaVersion
         self.player = player
         self.cats = cats
@@ -24,10 +26,11 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.home = home
         self.meta = meta
         self.settings = settings
+        self.tasks = tasks ?? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks
     }
 
     public init(from decoder: Decoder) throws {
@@ -48,6 +51,10 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         home = try values.decode(HomeState.self, forKey: .home)
         meta = try values.decode(SaveMetadata.self, forKey: .meta)
         settings = try values.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
+        // Only pre-task saves receive empty receipts; damaged new receipts must never grant rewards again.
+        tasks = version < 3 && !values.contains(.tasks)
+            ? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
+            : try values.decode(GameTaskState.self, forKey: .tasks)
     }
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {

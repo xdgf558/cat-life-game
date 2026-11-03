@@ -7,6 +7,7 @@ struct GameStoreFixtures {
     var initialSnapshot: GameSnapshot?
     var failRestExitOnce = false
     var failWorkCompletionOnce = false
+    private var failTaskClaimOnce = false
     private var failCatRenameOnce = false
     private var failCatAdoptionOnce = false
     private var failCatSelectionOnce = false
@@ -19,6 +20,7 @@ struct GameStoreFixtures {
         failRestExitOnce = arguments.contains("--recovery-end-failure-once")
         let reset = allowsSeeding && arguments.contains("--reset-ui-test-save")
         failWorkCompletionOnce = reset && arguments.contains("--career-save-failure-once")
+        failTaskClaimOnce = reset && arguments.contains("--task-claim-save-failure-once")
         failCatRenameOnce = reset && arguments.contains("--cat-name-save-failure-once")
         failCatAdoptionOnce = reset && arguments.contains("--cat-adoption-save-failure-once")
         failCatSelectionOnce = reset && arguments.contains("--cat-companion-save-failure-once")
@@ -93,6 +95,11 @@ struct GameStoreFixtures {
 
     mutating func checkSave(_ candidate: GameSnapshot, original: GameSnapshot,
                             exitsRest: Bool) throws {
+        if failTaskClaimOnce && (candidate.tasks.claimedTaskIDs != original.tasks.claimedTaskIDs
+            || candidate.tasks.dailyClaimedTaskIDs != original.tasks.dailyClaimedTaskIDs) {
+            failTaskClaimOnce = false
+            throw CocoaError(.fileWriteUnknown)
+        }
         if failCatAdoptionOnce && candidate.cats.count > original.cats.count {
             failCatAdoptionOnce = false
             throw CocoaError(.fileWriteUnknown)

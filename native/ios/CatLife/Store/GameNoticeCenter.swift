@@ -64,11 +64,13 @@ enum GameActionNotice {
                 }
                 return GameStrings.text("action.workStarted")
             case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
+            case .taskClaimed: return GameStrings.format("tasks.claimedNotice", outcome.amount)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
         switch outcome.failure {
-        case .playerAvatarMissing, .equipmentItemMissing, .equipmentNotOwned,
+        case .taskMissing, .taskAlreadyClaimed, .taskIncomplete, .taskDayChanged, .taskProgressLimit,
+             .playerAvatarMissing, .equipmentItemMissing, .equipmentNotOwned,
              .sleepWorkActive, .workSleeping, .restInvalidFurniture,
              .workJobMissing, .workLevelRequired, .workProgressLimit,
              .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,

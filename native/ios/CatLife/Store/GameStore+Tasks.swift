@@ -1,0 +1,16 @@
+import CatGameCore
+
+extension GameStore {
+    func goToTaskDestination(_ destination: GameTaskDestination) {
+        guard !isBusy, !isDecorating else { return }
+        isShowingSettings = false
+        switch destination {
+        case .work: activeSheet = .work
+        case .care: activeSheet = nil
+        case .furnitureShop:
+            shopCategory = .furniture
+            activeSheet = .shop
+        case .upgrade: openHomeUpgrade()
+        }
+    }
+}

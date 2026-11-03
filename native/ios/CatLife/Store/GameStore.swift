@@ -3,7 +3,7 @@ import Observation
 import CatGameCore
 
 enum HomeSheet: String, Identifiable {
-    case work, shop, inventory, town, player, upgrade
+    case work, shop, inventory, town, player, upgrade, tasks
     var id: String { rawValue }
 }
 
@@ -42,6 +42,7 @@ final class GameStore {
         didSet { if oldValue != isShowingSettings { playNavigationSound() } }
     }
     var inventoryCategory: InventoryCategory = .supplies
+    var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
     private(set) var now = Date()
     var toast: String? { notices.toast }
@@ -474,7 +475,7 @@ final class GameStore {
     func feed() {
         guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
-        guard hasFood else { showNotice(GameStrings.text("care.needFood")); activeSheet = .shop; return }
+        guard hasFood else { showNotice(GameStrings.text("care.needFood")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
             GameEngine.feed(&state, catID: cat.id, now: now)
         }
@@ -483,7 +484,7 @@ final class GameStore {
     func clean() {
         guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
-        guard (snapshot?.inventory.litter ?? 0) > 0 else { showNotice(GameStrings.text("care.needLitter")); activeSheet = .shop; return }
+        guard (snapshot?.inventory.litter ?? 0) > 0 else { showNotice(GameStrings.text("care.needLitter")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
             GameEngine.clean(&state, catID: cat.id, now: now)
         }
@@ -492,7 +493,7 @@ final class GameStore {
     func play() {
         guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
-        guard (snapshot?.inventory.toys ?? 0) > 0 else { showNotice(GameStrings.text("care.needToy")); activeSheet = .shop; return }
+        guard (snapshot?.inventory.toys ?? 0) > 0 else { showNotice(GameStrings.text("care.needToy")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
             GameEngine.play(&state, catID: cat.id, now: now)
         }
@@ -782,21 +783,28 @@ final class GameStore {
 
     @discardableResult
     func adoptCat(catID: String) async -> Bool {
-        await changeCat { GameEngine.adoptCat(&$0, catID: catID, now: $1) }
+        await performPersistedAction { GameEngine.adoptCat(&$0, catID: catID, now: $1) }
     }
 
     @discardableResult
     func selectCompanion(catID: String) async -> Bool {
-        await changeCat { GameEngine.selectCompanion(&$0, catID: catID, now: $1) }
+        await performPersistedAction { GameEngine.selectCompanion(&$0, catID: catID, now: $1) }
     }
 
-    private func changeCat(_ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
+    @discardableResult
+    func claimTask(id: String, expectedDayKey: String? = nil) async -> Bool {
+        await performPersistedAction {
+            GameEngine.claimTask(&$0, id: id, expectedDayKey: expectedDayKey, now: $1)
+        }
+    }
+
+    private func performPersistedAction(_ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
         guard !isBusy, !isDecorating, var context = saveContext() else { return false }
         isBusy = true
         defer { isBusy = false; drainPendingSynchronization() }
         let outcome = action(&context.candidate, Date())
         do {
-            // Publish the new companion only after the entire transaction is durable.
+            // Publish actions and their rewards only after the entire transaction is durable.
             if context.candidate != context.original { try await commit(context) }
             if outcome.succeeded { playCommittedSound(outcome.kind) }
             showNotice(message(for: outcome))

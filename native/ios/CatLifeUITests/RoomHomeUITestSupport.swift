@@ -442,7 +442,7 @@ extension RoomHomeUITests {
     @MainActor
     func ensureHomeNavigationItemVisible(_ identifier: String, in app: XCUIApplication,
                                                   file: StaticString = #filePath, line: UInt = #line) {
-        let moreItems = ["tabInventory", "tabPlayer", "decorateButton", "settingsButton"]
+        let moreItems = ["tabInventory", "tabPlayer", "tabTasks", "decorateButton", "settingsButton"]
         if moreItems.contains(identifier) {
             let target = element(identifier, in: app)
             if target.exists && target.isHittable { return }
