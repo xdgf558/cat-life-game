@@ -3,10 +3,10 @@
   "version": "0.7.0",
   "build": 31,
   "status": {
-    "finished": "Cow-cat adoption with explicit confirmation, player/room/coin requirements, independent care and names, durable companion selection, per-cat callbacks, ten image assets, three languages, signed builds and simulator validation.",
-    "partiallyFinished": "Physical-device installation and startup await reconnection; the pre-install communication check failed before any device mutation.",
+    "finished": "Cow-cat adoption with explicit confirmation, player/room/coin requirements, independent care and names, durable companion selection, per-cat callbacks, ten image assets, three languages, signed builds and simulator validation. In-place physical installation, byte-identical pre-launch save and normal installed-version process confirmed.",
+    "partiallyFinished": "Physical player acceptance remains pending.",
     "broken": [],
-    "nextWork": "Reconnect and unlock iPhone, then install in place with a byte-identical pre-launch save check; user acceptance follows."
+    "nextWork": "User checks adoption, companion switching, care and relaunch on iPhone."
   },
   "coreTests": {
     "passed": 183,
@@ -78,9 +78,12 @@
   "device": {
     "version": "0.7.0",
     "build": 31,
-    "installedInPlace": false,
-    "communication": "unavailable at pre-install check",
-    "saveModified": false,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4196,
+    "saveSHA256": "86033c8c358b6cf9dbe0351939ef1d616fd8418ae502e756c9bf12f7894f0c3e",
+    "launch": "passed",
+    "runningProcessVerified": true,
     "userAcceptance": "pending"
   },
   "limitations": [
