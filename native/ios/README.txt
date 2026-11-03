@@ -40,8 +40,9 @@ cd native/ios/CatGameCore && swift test
 
 工程和资源维护（以下命令同样从仓库根目录执行）
 通常直接使用已提交工程，不需要重新生成。新增 Swift 源文件后，可用 ruby native/ios/scripts/generate_project.rb 生成工程（需要 xcodeproj gem）；生成器在创建或替换工程前先执行同一素材检查，失败不覆盖原工程。
+工程对象 ID 按目标、构建阶段与文件相对路径固定；重复生成不产生差异，增删源文件不会重编号无关对象。首次从旧随机 ID 迁移会产生一次工程与 scheme 的 ID 更新，构建设置不变。
 新增美术资源前先按文末说明下载 ArtSource，再用 python3 native/ios/scripts/import_assets.py 更新资产目录；场景原图直接复制，AppIcon 由 macOS sips 导出为 1024×1024，原始设计图保留。确定添加或移除运行素材后，执行 python3 -B native/ios/scripts/check_runtime_assets.py --update-manifest，这会同时更新 runtime_assets.json 与 runtime_assets.xcfilelist，把两个清单与素材一起提交；普通构建和生成工程不会自动重写清单。
-前置检查的临时夹具自测：python3 -B -m unittest discover -s native/ios/scripts -p test_check_runtime_assets.py。自测不改真实素材，不运行 Xcode 或模拟器。
+前置检查与工程生成的临时夹具自测：python3 -B -m unittest discover -s native/ios/scripts -p test_check_runtime_assets.py。自测需要 xcodeproj gem，覆盖重复生成与各 target 增删源文件的 ID 稳定性，不改真实素材，不运行 Xcode 或模拟器。
 
 当前范围
 - 奶油玩具屋房间首页，真实金币/体力/猫粮状态。
