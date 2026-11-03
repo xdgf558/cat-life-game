@@ -103,6 +103,8 @@ struct RoomSceneHost: View {
                 .accessibilityAction(named: Text(GameStrings.text("rest.bedAction"))) { scene.restInFurniture(kind: .catBed) }
                 .accessibilityAction(named: Text(GameStrings.text("rest.cushionAction"))) { scene.restInFurniture(kind: .floorCushion) }
                 .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.focusCat"))) { scene.resetCamera() }
+                .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomIn"))) { scene.zoomIn() }
+                .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomOut"))) { scene.zoomOut() }
                 .overlay(alignment: .bottomLeading) {
                     if (store.snapshot?.home.roomLevel ?? 1) > 1 {
                         Button { scene.resetCamera() } label: {
@@ -113,10 +115,23 @@ struct RoomSceneHost: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("focusCatButton")
-                        .accessibilityHint(GameStrings.text("homeUpgrade.panHint"))
+                        .accessibilityHint(GameStrings.text("homeUpgrade.zoomHint"))
                         .padding(.leading, 12).padding(.bottom, 28)
                     }
                 }
+                #if DEBUG
+                .overlay {
+                    if furnitureTesting {
+                        // XCTest pinches start at element corners; keep both fingers clear of the overlaid HUD.
+                        Color.clear
+                            .frame(width: geometry.size.width * 0.7, height: geometry.size.height * 0.5)
+                            .accessibilityElement()
+                            .accessibilityLabel("Room pinch surface")
+                            .accessibilityIdentifier("roomPinchSurface")
+                            .allowsHitTesting(false)
+                    }
+                }
+                #endif
         }
     }
 
@@ -156,17 +171,62 @@ private struct NativeRoomCanvas: UIViewRepresentable {
     let isActive: Bool
     let canvasSize: CGSize
 
+    func makeCoordinator() -> Coordinator { Coordinator(scene: scene) }
+
     func makeUIView(context: Context) -> SKView {
         let view = SKView()
         view.preferredFramesPerSecond = 30
         view.ignoresSiblingOrder = true
         view.backgroundColor = .clear
+        view.isMultipleTouchEnabled = true
+        view.addGestureRecognizer(context.coordinator.pinch)
+        context.coordinator.setActive(isActive)
         configure(view)
         return view
     }
 
     func updateUIView(_ view: SKView, context: Context) {
+        context.coordinator.setActive(isActive)
         configure(view)
+    }
+
+    static func dismantleUIView(_ view: SKView, coordinator: Coordinator) {
+        coordinator.setActive(false)
+        view.removeGestureRecognizer(coordinator.pinch)
+    }
+
+    final class Coordinator: NSObject, UIGestureRecognizerDelegate {
+        let pinch = UIPinchGestureRecognizer()
+        private weak var scene: RoomScene?
+
+        init(scene: RoomScene) {
+            self.scene = scene
+            super.init()
+            pinch.addTarget(self, action: #selector(pinched(_:)))
+            pinch.delegate = self
+            pinch.cancelsTouchesInView = true
+            pinch.delaysTouchesBegan = false
+        }
+
+        func setActive(_ active: Bool) {
+            if pinch.isEnabled != active { pinch.isEnabled = active }
+            if !active { scene?.handlePinch(state: .cancelled, scale: 1, location: .zero) }
+        }
+
+        func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+            scene?.canZoomCamera == true
+        }
+
+        @objc private func pinched(_ recognizer: UIPinchGestureRecognizer) {
+            guard let view = recognizer.view else { return }
+            switch recognizer.state {
+            case .began, .changed:
+                guard recognizer.numberOfTouches >= 2 else { return }
+            default: break
+            }
+            scene?.handlePinch(state: recognizer.state, scale: recognizer.scale,
+                               location: recognizer.location(in: view))
+        }
     }
 
     private func configure(_ view: SKView) {

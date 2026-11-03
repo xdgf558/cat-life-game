@@ -55,6 +55,8 @@ final class RoomScene: SKScene {
     private var renderedRoomLevel = 1
     private let roomCamera = RoomCameraController()
     private var dragScreenPoint: CGPoint?
+    private weak var sceneTouch: UITouch?
+    private var blockedTouchSequence = false
     private var restFront: SKSpriteNode { artwork.restFront }
     var onBowlTapped: (() -> Void)?
     var onPlacementPendingChanged: ((Bool) -> Void)?
@@ -64,6 +66,7 @@ final class RoomScene: SKScene {
     var reducedMotion = false {
         didSet {
             guard reducedMotion != oldValue else { return }
+            cancelCameraInteraction()
             if activeRest != nil { leaveFurnitureRest(); return }
             cancelPresentation(at: cat.position)
             cat.reducedMotion = reducedMotion
@@ -146,6 +149,7 @@ final class RoomScene: SKScene {
         // SpriteKit calls this even when size is assigned the same value.
         // Reappearing over a sheet must not cancel an active meal or its queue.
         guard oldSize != size else { return }
+        cancelCameraInteraction()
         if activeRest != nil, deferredRoomLayoutFromSize == nil,
            oldSize.width > 0, oldSize.height > 0 {
             deferredRoomLayoutFromSize = oldSize
@@ -177,7 +181,8 @@ final class RoomScene: SKScene {
     override func update(_ currentTime: TimeInterval) {
         if roomCamera.update(at: currentTime, target: presentationBusy && !editing ? cat.position : nil,
                              draggingAt: dragging ? dragScreenPoint : nil), dragging, let point = dragScreenPoint {
-            let worldPoint = worldGeometry.worldPoint(point, camera: roomCamera.node.position)
+            let worldPoint = worldGeometry.worldPoint(point, camera: roomCamera.node.position,
+                                                     cameraScale: roomCamera.scale)
             selectedNode.position = previewFloorPoint(CGPoint(x: worldPoint.x + dragOffset.x, y: worldPoint.y + dragOffset.y))
             updateSelection()
         }
@@ -414,7 +419,10 @@ final class RoomScene: SKScene {
     /// Called before unpausing SKView and from onAppear for a retained scene.
     func setPresentationActive(_ active: Bool) {
         presentationActive = active
-        if !active { cancelBowlPlanning(keepingRequest: true) }
+        if !active {
+            cancelCameraInteraction()
+            cancelBowlPlanning(keepingRequest: true)
+        }
         if !active, let kind = planningCareKind {
             // A worker cannot start SpriteKit actions behind Settings or while
             // backgrounded. Retain this committed action and its pending follow-up.
@@ -887,7 +895,63 @@ final class RoomScene: SKScene {
     }
 
     func resetCamera() {
-        roomCamera.focus(on: cat.position, animated: !reducedMotion)
+        cancelSingleTouchSequence()
+        roomCamera.focus(on: cat.position, animated: !reducedMotion, resetScale: true)
+    }
+
+    var canZoomCamera: Bool {
+        renderedRoomLevel > 1 && presentationActive && deferredRoomLayoutFromSize == nil
+            && size.width > 0 && size.height > 0
+    }
+
+    /// UIKit supplies cumulative pinch scale and a location in SKView points.
+    func handlePinch(state: UIGestureRecognizer.State, scale: CGFloat, location: CGPoint) {
+        switch state {
+        case .began:
+            guard canZoomCamera else { return }
+            cancelSingleTouchSequence()
+            roomCamera.beginPinch(at: location)
+        case .changed:
+            guard canZoomCamera else { roomCamera.endPinch(); return }
+            roomCamera.changePinch(factor: scale, at: location)
+        case .ended, .cancelled, .failed:
+            // The last remaining finger must not replace the two-finger center.
+            roomCamera.endPinch()
+        default: break
+        }
+#if DEBUG
+        publishNavigationStatus()
+        publishDragMetrics()
+        publishFurnitureStatus()
+#endif
+    }
+
+    func zoomIn() { zoomCamera(by: 1.25) }
+    func zoomOut() { zoomCamera(by: 0.8) }
+
+    private func zoomCamera(by factor: CGFloat) {
+        guard canZoomCamera else { return }
+        cancelSingleTouchSequence()
+        roomCamera.zoom(by: factor)
+#if DEBUG
+        publishNavigationStatus()
+        publishDragMetrics()
+        publishFurnitureStatus()
+#endif
+    }
+
+    private func cancelSingleTouchSequence() {
+        blockedTouchSequence = true
+        sceneTouch = nil
+        if dragging { cancelPlacementPreview() }
+        _ = roomCamera.endTouch()
+        touchOrigin = nil
+        dragScreenPoint = nil
+    }
+
+    private func cancelCameraInteraction() {
+        cancelSingleTouchSequence()
+        roomCamera.cancelGestures()
     }
     private func previewFloorPoint(_ point: CGPoint) -> CGPoint {
         guard let floor, let placementNavigation else { return selectedNode.position }
@@ -1098,14 +1162,14 @@ final class RoomScene: SKScene {
     private func noteRoute(_ path: [CGPoint]) { diagnostics.noteRoute(path, navigation: navigation) }
     private func publishNavigationStatus() {
         diagnostics.publishNavigationStatus(phase: presentationPhase, cat: cat, bowl: bowl.position,
-                                            geometry: worldGeometry, camera: roomCamera.node.position)
+                                            geometry: worldGeometry, camera: roomCamera.node.position, cameraScale: roomCamera.scale)
     }
     private func publishDragMetrics() {
         diagnostics.publishDragMetrics(pending: isPlacementPending, bowl: bowl.position,
-                                       geometry: worldGeometry, camera: roomCamera.node.position)
+                                       geometry: worldGeometry, camera: roomCamera.node.position, cameraScale: roomCamera.scale)
     }
     private func publishFurnitureStatus() {
-        diagnostics.publishFurnitureStatus(.init(geometry: worldGeometry, cameraPosition: roomCamera.node.position,
+        diagnostics.publishFurnitureStatus(.init(geometry: worldGeometry, cameraPosition: roomCamera.node.position, cameraScale: roomCamera.scale,
             roomLevel: renderedRoomLevel, catWidth: catWidth, bowlWidth: bowl.size.width,
             furnitureWorld: furnitureWorld, renderedFurniture: renderedFurniture,
             ownedFurniture: ownedFurniture, furnitureNodes: furnitureNodes, selectedFurnitureID: selectedFurnitureID,
@@ -1116,8 +1180,15 @@ final class RoomScene: SKScene {
 #endif
 
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if hasMultipleActiveTouches(touches, event: event) {
+            cancelSingleTouchSequence()
+            return
+        }
+        guard !roomCamera.isPinching else { return }
         guard bowlPlanningRequest == nil else { return }
         guard let touch = touches.first else { return }
+        blockedTouchSequence = false
+        sceneTouch = touch
         let point = touch.location(in: self)
         touchOrigin = point
         if let view { roomCamera.beginTouch(at: touch.location(in: view), canPan: true) }
@@ -1156,7 +1227,12 @@ final class RoomScene: SKScene {
     }
 
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
+        if hasMultipleActiveTouches(touches, event: event) {
+            cancelSingleTouchSequence()
+            return
+        }
+        guard !blockedTouchSequence, !roomCamera.isPinching,
+              let touch = sceneTouch, touches.contains(touch) else { return }
         if !dragging {
             if let view { roomCamera.moveTouch(to: touch.location(in: view)) }
             return
@@ -1179,20 +1255,20 @@ final class RoomScene: SKScene {
     }
 
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard !blockedTouchSequence, !roomCamera.isPinching,
+              let touch = sceneTouch, touches.contains(touch) else { return }
 #if DEBUG
         if diagnostics.furnitureTesting { diagnostics.lastRestInput += ";ended" }
 #endif
         let wasPanning = roomCamera.endTouch()
-        defer { dragging = false; touchOrigin = nil; dragScreenPoint = nil }
+        defer { dragging = false; touchOrigin = nil; dragScreenPoint = nil; sceneTouch = nil }
         if wasPanning { return }
         if dragging {
-            if let touch = touches.first {
-                let point = touch.location(in: self)
-                selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
-            }
+            let point = touch.location(in: self)
+            selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
             // A tap selects without doing an expensive route search.
-            if let origin = touchOrigin, let touch = touches.first,
-               hypot(touch.location(in: self).x - origin.x, touch.location(in: self).y - origin.y) < 3,
+            if let origin = touchOrigin,
+               hypot(touch.location(in: self).x - origin.x, touch.location(in: self).y - origin.y) < 3 * roomCamera.scale,
                newPlacementID == nil {
                 selectedNode.position = selectedFurnitureID.flatMap { furnitureWorld.center($0) } ?? committedBowlPosition
                 setPlacementPending(false)
@@ -1209,9 +1285,9 @@ final class RoomScene: SKScene {
 #endif
             return
         }
-        guard !editing, let touch = touches.first, let origin = touchOrigin else { return }
+        guard !editing, let origin = touchOrigin else { return }
         let point = touch.location(in: self)
-        guard hypot(point.x - origin.x, point.y - origin.y) < 12 else { return }
+        guard hypot(point.x - origin.x, point.y - origin.y) < 12 * roomCamera.scale else { return }
         if bowl.frame.contains(point) { onBowlTapped?() }
         else if cat.visualFrame.insetBy(dx: -8, dy: -8).contains(point) {
             if activeRest != nil { pendingRestID = nil; leaveFurnitureRest() }
@@ -1226,9 +1302,11 @@ final class RoomScene: SKScene {
 #if DEBUG
         if diagnostics.furnitureTesting { diagnostics.lastRestInput += ";cancelled" }
 #endif
-        if dragging { cancelPlacementPreview() }
-        _ = roomCamera.endTouch()
-        dragScreenPoint = nil
-        touchOrigin = nil
+        cancelSingleTouchSequence()
+    }
+
+    private func hasMultipleActiveTouches(_ touches: Set<UITouch>, event: UIEvent?) -> Bool {
+        let active = event?.allTouches?.filter { $0.phase != .ended && $0.phase != .cancelled }
+        return (active?.count ?? touches.count) > 1
     }
 }

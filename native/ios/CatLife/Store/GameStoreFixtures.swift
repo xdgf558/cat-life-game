@@ -17,10 +17,11 @@ struct GameStoreFixtures {
         let reset = allowsSeeding && arguments.contains("--reset-ui-test-save")
         failWorkCompletionOnce = reset && arguments.contains("--career-save-failure-once")
         guard reset else { return }
-        if arguments.contains("--shop-upgrade-fixture") {
+        if arguments.contains("--shop-upgrade-fixture") || arguments.contains("--room-zoom-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 4
             value.player.gold = 5000
+            if arguments.contains("--room-zoom-fixture") { value.home.roomLevel = 3 }
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
             initialSnapshot = value
         } else if let fixture = arguments.first(where: {

@@ -57,6 +57,7 @@ final class RoomSceneDiagnostics {
     struct FurnitureState {
         let geometry: RoomWorldGeometry
         let cameraPosition: CGPoint
+        let cameraScale: CGFloat
         let roomLevel: Int
         let catWidth: CGFloat
         let bowlWidth: CGFloat
@@ -160,11 +161,11 @@ final class RoomSceneDiagnostics {
     }
 
     func publishNavigationStatus(phase presentationPhase: String, cat: CatActor, bowl: CGPoint,
-                                 geometry: RoomWorldGeometry, camera: CGPoint) {
+                                 geometry: RoomWorldGeometry, camera: CGPoint, cameraScale: CGFloat) {
         let size = geometry.viewportSize
         guard navigationTesting, size.width > 0, size.height > 0 else { return }
-        let catPoint = geometry.screenPoint(cat.position, camera: camera)
-        let bowlPoint = geometry.screenPoint(bowl, camera: camera)
+        let catPoint = geometry.screenPoint(cat.position, camera: camera, cameraScale: cameraScale)
+        let bowlPoint = geometry.screenPoint(bowl, camera: camera, cameraScale: cameraScale)
         navigationDescription = String(format: "%@|%d|%.3f,%.3f|%.3f,%.3f|%d|%d|%d|%d|%d", presentationPhase,
                                        collisionViolations, catPoint.x / size.width, catPoint.y / size.height,
                                        bowlPoint.x / size.width, bowlPoint.y / size.height, longestRoute,
@@ -172,10 +173,10 @@ final class RoomSceneDiagnostics {
         onNavigationChanged?(navigationDescription)
     }
     func publishDragMetrics(pending isPlacementPending: Bool, bowl: CGPoint,
-                            geometry: RoomWorldGeometry, camera: CGPoint) {
+                            geometry: RoomWorldGeometry, camera: CGPoint, cameraScale: CGFloat) {
         let size = geometry.viewportSize
         guard dragTesting, size.width > 0, size.height > 0 else { return }
-        let point = geometry.screenPoint(bowl, camera: camera)
+        let point = geometry.screenPoint(bowl, camera: camera, cameraScale: cameraScale)
         dragDescription = String(format: "%d|%.3f|%d|%.3f,%.3f", dragMoveSamples, maximumDragMoveMs,
                                  isPlacementPending ? 1 : 0, point.x / size.width, point.y / size.height)
         onDragMetricsChanged?(dragDescription)
@@ -185,7 +186,7 @@ final class RoomSceneDiagnostics {
         let size = state.geometry.viewportSize
         let worldSize = state.geometry.worldSize
         func screenPoint(_ point: CGPoint) -> [String: CGFloat] {
-            let projected = state.geometry.screenPoint(point, camera: state.cameraPosition)
+            let projected = state.geometry.screenPoint(point, camera: state.cameraPosition, cameraScale: state.cameraScale)
             return ["x": projected.x / size.width, "y": projected.y / size.height]
         }
         func worldPoint(_ point: CGPoint) -> [String: CGFloat] {
@@ -214,6 +215,7 @@ final class RoomSceneDiagnostics {
                     "x": screen["x"]!, "y": screen["y"]!,
                     "worldX": world["x"]!, "worldY": world["y"]!,
                     "width": node.size.width, "height": node.size.height,
+                    "screenWidth": node.size.width / state.cameraScale, "screenHeight": node.size.height / state.cameraScale,
                     "footprintWidth": footprint.width, "footprintHeight": footprint.height]
         }
         let payload: [String: Any] = [
@@ -221,7 +223,9 @@ final class RoomSceneDiagnostics {
             "worldWidth": worldSize.width, "worldHeight": worldSize.height,
             "viewportWidth": size.width, "viewportHeight": size.height,
             "cameraX": state.cameraPosition.x, "cameraY": state.cameraPosition.y,
+            "cameraScale": state.cameraScale, "zoomFactor": 1 / state.cameraScale,
             "catVisualWidth": state.catWidth, "bowlVisualWidth": state.bowlWidth,
+            "catScreenWidth": state.catWidth / state.cameraScale, "bowlScreenWidth": state.bowlWidth / state.cameraScale,
             "savedBowl": latest.map { ["x": $0.home.bowlPosition.x, "y": $0.home.bowlPosition.y] } as Any? ?? NSNull(),
             "savedFurniture": latest?.home.furniture.map {
                 ["itemID": $0.itemID, "x": $0.position.x, "y": $0.position.y] as [String: Any]

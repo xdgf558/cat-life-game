@@ -39,8 +39,7 @@ struct ShopView: View {
                                 GameIcon(asset: product.asset, symbol: product.symbol, size: 52, tint: RoomTheme.darkMint)
                                 VStack(alignment: .leading, spacing: 5) {
                                     Text(GameStrings.text(product.nameKey)).font(.headline)
-                                    Text(GameStrings.format("shop.buy", product.price))
-                                        .font(.subheadline).foregroundStyle(RoomTheme.secondary)
+                                    priceText(product)
                                     if product.isOwned(in: store.snapshot) {
                                         Text(GameStrings.text("gear.owned")).font(.caption).foregroundStyle(RoomTheme.darkMint)
                                     } else if product.unlockLevel > (store.snapshot?.player.level ?? 1) {
@@ -69,9 +68,17 @@ struct ShopView: View {
     }
 
     private func supplyRow(_ product: ShopListing) -> some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 12) { supplyLabel(product); Spacer(minLength: 4); supplyButton(product) }
-            VStack(alignment: .leading, spacing: 12) { supplyLabel(product); supplyButton(product) }
+        VStack(alignment: .leading, spacing: 12) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) { supplyLabel(product); Spacer(minLength: 4); supplyButton(product) }
+                VStack(alignment: .leading, spacing: 12) { supplyLabel(product); supplyButton(product) }
+            }
+            if (store.snapshot?.player.gold ?? 0) < product.price {
+                Text(GameStrings.text("shop.goldRequired"))
+                    .font(.footnote).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("shopInsufficientGold_\(product.id)")
+            }
         }
         .padding(16).frame(maxWidth: .infinity, alignment: .leading)
         .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 22))
@@ -82,6 +89,7 @@ struct ShopView: View {
             GameIcon(asset: product.asset, symbol: product.symbol, size: 48, tint: RoomTheme.gold)
             VStack(alignment: .leading, spacing: 5) {
                 Text(GameStrings.text(product.nameKey)).font(.headline)
+                priceText(product)
                 Text(GameStrings.text(product.detailKey)).font(.caption).foregroundStyle(RoomTheme.secondary)
                 Text(GameStrings.format("shop.owned", product.count(in: store.snapshot)))
                     .font(.caption).foregroundStyle(RoomTheme.secondary)
@@ -89,8 +97,15 @@ struct ShopView: View {
         }
     }
 
+    private func priceText(_ product: ShopListing) -> some View {
+        Text(GameStrings.format("shop.buy", product.price))
+            .font(.subheadline).foregroundStyle(RoomTheme.secondary)
+            .accessibilityIdentifier("shopPrice_\(product.id)")
+    }
+
     private func supplyButton(_ product: ShopListing) -> some View {
-        Button {
+        let canBuy = store.snapshot != nil && !store.isBusy && (store.snapshot?.player.gold ?? 0) >= product.price
+        return Button {
             switch product.kind {
             case .food: store.buyFood()
             case .litter: store.buyLitter()
@@ -98,9 +113,9 @@ struct ShopView: View {
             case .equipment, .furniture: break
             }
         } label: {
-            Text(GameStrings.format("shop.buy", product.price)).font(.subheadline.bold())
+            Text(GameStrings.text("shop.purchase")).font(.headline)
         }
-        .buttonStyle(MintButtonStyle()).disabled(store.isBusy)
+        .buttonStyle(MintButtonStyle()).disabled(!canBuy).opacity(canBuy ? 1 : 0.45)
         .accessibilityIdentifier(product.kind == .food ? "buyFoodButton" :
                                     (product.kind == .litter ? "buyLitterButton" : "buyToyButton"))
     }

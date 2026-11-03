@@ -39,6 +39,11 @@ enum GameStrings {
     }
 
     private static let chinese: [String: String] = [
+        "releases.29.title": "价格更清楚，房间可缩放",
+        "releases.29.body": "用品价格统一显示在名称下方，购买按钮与家具、装备保持一致，仍可直接购买。金币不足时显示提示。升级后的房间支持双指缩放，查看布置更方便。",
+        "homeUpgrade.zoomHint": "双指捏合缩放，拖动空地移动视角",
+        "homeUpgrade.zoomIn": "放大房间",
+        "homeUpgrade.zoomOut": "缩小房间",
         "releases.28.title": "商店上新，小家变大",
         "releases.28.body": "商店新增家具与装备分类，四件进阶装备可提升工作效率，两款家具可购买、摆放和回收。小家可升级至三级，扩大可探索与摆放区域，并提高家具容量；原有家具和存档保留。",
         "shop.category.supplies": "用品",
@@ -379,6 +384,11 @@ enum GameStrings {
     ]
 
     private static let traditionalChinese: [String: String] = [
+        "releases.29.title": "價格更清楚，房間可縮放",
+        "releases.29.body": "用品價格統一顯示在名稱下方，購買按鈕與家具、裝備保持一致，仍可直接購買。金幣不足時顯示提示。升級後的房間支援雙指縮放，查看布置更方便。",
+        "homeUpgrade.zoomHint": "雙指捏合縮放，拖動空地移動視角",
+        "homeUpgrade.zoomIn": "放大房間",
+        "homeUpgrade.zoomOut": "縮小房間",
         "releases.28.title": "商店上新，小家變大",
         "releases.28.body": "商店新增家具與裝備分類，四件進階裝備可提升工作效率，兩款家具可購買、擺放和收回。小家可升級至三級，擴大可探索與擺放區域，並提高家具容量；原有家具與存檔保留。",
         "shop.category.supplies": "用品",
@@ -719,6 +729,11 @@ enum GameStrings {
     ]
 
     private static let english: [String: String] = [
+        "releases.29.title": "Clearer prices and room zoom",
+        "releases.29.body": "Supply prices now appear below their names, with Buy buttons matching furniture and equipment. Supplies still use direct purchase, with a clear message when gold is low. Pinch to zoom in upgraded rooms for a better view of your layout.",
+        "homeUpgrade.zoomHint": "Pinch to zoom; drag an empty area to move the view",
+        "homeUpgrade.zoomIn": "Zoom in",
+        "homeUpgrade.zoomOut": "Zoom out",
         "releases.28.title": "New finds and a bigger home",
         "releases.28.body": "Browse new furniture and equipment, with four upgraded items and two furniture choices to buy, place, and put away. Upgrade your home through three levels for more room to explore and furnish, while keeping your furniture and save.",
         "shop.category.supplies": "Supplies",

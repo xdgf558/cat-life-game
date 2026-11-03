@@ -1,0 +1,13 @@
+{
+  "version": "0.6.1",
+  "build": "29",
+  "debugSimulator": "passed",
+  "releaseDevice": "passed",
+  "signatureVerified": true,
+  "debugFixturesAndPinchTargetAbsent": true,
+  "assetPreflight": {
+    "hydratedFiles": 58,
+    "result": "passed"
+  },
+  "thirdPartyRuntimeDependencies": []
+}
