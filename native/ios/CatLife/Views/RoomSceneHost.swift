@@ -71,7 +71,7 @@ struct RoomSceneHost: View {
                     scene.onFurnitureSelected = { store.selectFurniture(id: $0) }
                     scene.onFurnitureMoved = { store.moveFurniture(id: $0, to: $1) }
                     scene.onFurniturePlacementFinished = { store.finishFurniturePlacement(id: $0, succeeded: $1) }
-                    scene.onRestingFurnitureChanged = { store.setRestingFurniture(id: $0, sessionID: $1) }
+                    scene.onRestingFurnitureChanged = { store.setRestingFurniture(id: $0, sessionID: $1, catID: $2) }
                     scene.onFurnitureNotice = { store.showFurnitureNotice($0) }
                     refreshScene()
                     scene.setPresentationActive(isActive)
@@ -91,7 +91,8 @@ struct RoomSceneHost: View {
                 .onChange(of: store.selectedFurnitureID) { _, _ in refreshScene() }
                 .onChange(of: store.placingFurnitureID) { _, _ in refreshScene() }
                 .onChange(of: store.feedback?.id) { _, _ in
-                    if let feedback = store.feedback { scene.playFeedback(kind: feedback.kind) }
+                    refreshScene()
+                    if let feedback = store.feedback { scene.playFeedback(kind: feedback.kind, catID: feedback.catID) }
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(GameStrings.text("accessibility.cat"))

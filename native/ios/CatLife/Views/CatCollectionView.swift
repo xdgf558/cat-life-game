@@ -8,14 +8,25 @@ struct CatCollectionView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [Route]
     @State private var page = 0
-    @State private var isSavingName = false
+    @State private var isSaving = false
 
-    private enum Route: Hashable { case profile(String), name(String) }
+    private enum Route: Hashable { case profile(String), name(String), adoption(String) }
+    private enum Entry: Identifiable {
+        case owned(CatState), adoption(CatAdoptionOffer)
+        var id: String {
+            switch self { case .owned(let cat): cat.id; case .adoption(let offer): offer.id }
+        }
+    }
     private let pageSize = 4
     private var cats: [CatState] { store.snapshot?.cats ?? [] }
-    private var pageCount: Int { max(1, (cats.count + pageSize - 1) / pageSize) }
+    private var entries: [Entry] {
+        guard store.snapshot != nil else { return [] }
+        return cats.map(Entry.owned) + CatCatalog.adoptionOffers
+            .filter { offer in !cats.contains { $0.id == offer.id } }.map(Entry.adoption)
+    }
+    private var pageCount: Int { max(1, (entries.count + pageSize - 1) / pageSize) }
     private var currentPage: Int { min(page, pageCount - 1) }
-    private var visibleCats: [CatState] { Array(cats.dropFirst(currentPage * pageSize).prefix(pageSize)) }
+    private var visibleEntries: [Entry] { Array(entries.dropFirst(currentPage * pageSize).prefix(pageSize)) }
 
     init(store: GameStore, initialCatID: String? = nil) {
         self.store = store
@@ -31,19 +42,28 @@ struct CatCollectionView: View {
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .profile(let id):
-                        CatProfileView(store: store, catID: id) { path.append(.name(id)) }
+                        CatProfileView(store: store, catID: id, isSaving: $isSaving) { path.append(.name(id)) }
                             .navigationBarBackButtonHidden()
                             .toolbar {
                                 backButton("catProfileBackButton")
                                 doneButton
                             }
                     case .name(let id):
-                        CatNameEditorView(store: store, catID: id, isSaving: $isSavingName)
+                        CatNameEditorView(store: store, catID: id, isSaving: $isSaving)
                             .navigationBarBackButtonHidden()
                             .toolbar {
                                 backButton("catNameBackButton")
                                 doneButton
                             }
+                    case .adoption(let id):
+                        CatAdoptionView(store: store, catID: id, isSaving: $isSaving) {
+                            if !path.isEmpty { path[path.count - 1] = .profile(id) }
+                        }
+                        .navigationBarBackButtonHidden()
+                        .toolbar {
+                            backButton("catAdoptionBackButton")
+                            doneButton
+                        }
                     }
                 }
         }
@@ -62,7 +82,7 @@ struct CatCollectionView: View {
         .environment(\.locale, Locale(identifier: store.language.rawValue))
         .presentationDetents([.large]).presentationDragIndicator(.visible)
         .presentationBackground(RoomTheme.cream)
-        .interactiveDismissDisabled(isSavingName)
+        .interactiveDismissDisabled(isSaving)
         .onChange(of: cats.count) { _, _ in page = currentPage }
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
@@ -80,7 +100,7 @@ struct CatCollectionView: View {
                         .font(.footnote.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
                         .accessibilityIdentifier("catCount").accessibilityValue("\(cats.count)")
                 }
-                if cats.isEmpty {
+                if entries.isEmpty {
                     Text(GameStrings.text("catDirectory.empty"))
                         .font(.body).foregroundStyle(RoomTheme.secondary)
                         .padding(24).frame(maxWidth: .infinity)
@@ -89,7 +109,12 @@ struct CatCollectionView: View {
                 } else {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12),
                                              count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
-                        ForEach(visibleCats) { cat in catCard(cat) }
+                        ForEach(visibleEntries) { entry in
+                            switch entry {
+                            case .owned(let cat): catCard(cat)
+                            case .adoption(let offer): adoptionCard(offer)
+                            }
+                        }
                     }
                     pagination
                 }
@@ -103,13 +128,14 @@ struct CatCollectionView: View {
     private func catCard(_ cat: CatState) -> some View {
         Button { path.append(.profile(cat.id)) } label: {
             VStack(spacing: 7) {
-                GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 64, tint: RoomTheme.gold)
+                GameIcon(asset: cat.appearance == .cow ? "cat-cow-idle" : "cat-idle",
+                         symbol: "cat.fill", size: 64, tint: RoomTheme.gold)
                     .background(RoomTheme.wood.opacity(0.12), in: Circle())
                 Text(verbatim: GameStrings.catName(cat))
                     .font(.headline).lineLimit(2).minimumScaleFactor(0.85)
                     .multilineTextAlignment(.center)
-                Text(CatProfileView.status(for: cat))
-                    .font(.caption).foregroundStyle(RoomTheme.secondary)
+                Text(GameStrings.text(cat.id == store.cat?.id ? "cat.companionActive" : "cat.adoptionOwned"))
+                    .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
                     .lineLimit(2).multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity).padding(14)
@@ -119,8 +145,26 @@ struct CatCollectionView: View {
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: GameStrings.catName(cat)))
-        .accessibilityValue(CatProfileView.status(for: cat))
+        .accessibilityValue(GameStrings.text(cat.id == store.cat?.id ? "cat.companionActive" : "cat.adoptionOwned")
+                            + " · " + CatProfileView.status(for: cat))
         .accessibilityIdentifier("catProfile_\(cat.id)")
+    }
+
+    private func adoptionCard(_ offer: CatAdoptionOffer) -> some View {
+        Button { path.append(.adoption(offer.id)) } label: {
+            VStack(spacing: 7) {
+                GameIcon(asset: "cat-cow-idle", symbol: "cat.fill", size: 64, tint: RoomTheme.gold)
+                    .background(RoomTheme.paleMint.opacity(0.5), in: Circle())
+                Text(GameStrings.text("cat.cowName")).font(.headline)
+                Label(GameStrings.text("cat.adoptionView"), systemImage: "heart.fill")
+                    .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
+            }
+            .frame(maxWidth: .infinity).padding(14)
+            .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+            .contentShape(RoundedRectangle(cornerRadius: 24))
+        }
+        .buttonStyle(.plain).accessibilityElement(children: .combine)
+        .accessibilityIdentifier("catAdoption_\(offer.id)")
     }
 
     private var pagination: some View {
@@ -150,10 +194,10 @@ struct CatCollectionView: View {
     private var doneButton: some ToolbarContent {
         ToolbarItem(placement: .confirmationAction) {
             Button(GameStrings.text("common.done")) {
-                guard !isSavingName else { return }
+                guard !isSaving else { return }
                 dismiss()
             }
-            .foregroundStyle(RoomTheme.darkMint).disabled(isSavingName)
+            .foregroundStyle(RoomTheme.darkMint).disabled(isSaving)
             .accessibilityIdentifier("closeSheetButton")
         }
     }
@@ -161,12 +205,12 @@ struct CatCollectionView: View {
     private func backButton(_ identifier: String) -> some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             Button {
-                guard !isSavingName, !path.isEmpty else { return }
+                guard !isSaving, !path.isEmpty else { return }
                 path.removeLast()
             } label: {
                 Label(GameStrings.text("common.back"), systemImage: "chevron.left").frame(minHeight: 44)
             }
-            .foregroundStyle(RoomTheme.darkMint).disabled(isSavingName)
+            .foregroundStyle(RoomTheme.darkMint).disabled(isSaving)
             .accessibilityIdentifier(identifier)
         }
     }

@@ -30,6 +30,10 @@ extension RoomHomeUITests {
         let pending: Bool
         let violations: Int
         let completedMeals: Int
+        let completedPounces: Int?
+        let activeCatID: String?
+        let catAppearance: String?
+        let carePlanning: Bool?
         let foodContactSamples: Int
         let foodContactViolations: Int
         let bowl: FurniturePoint

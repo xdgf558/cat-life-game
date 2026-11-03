@@ -15,6 +15,8 @@ final class RoomScene: SKScene {
         let names = ["room-empty", "bowl-empty", "bowl-full", "icon-play",
                      "cat-idle", "cat-expressions", "cat-walk", "cat-rise",
                      "cat-meal", "cat-play", "cat-rest", "cat-step"]
+            + ["cat-cow-idle", "cat-cow-expressions", "cat-cow-walk", "cat-cow-rise",
+               "cat-cow-meal", "cat-cow-play", "cat-cow-rest", "cat-cow-step"]
             + FurnitureKind.allCases.map { FurnitureCatalog.metadata(for: $0).assetName }
         let textures = Set(names).sorted().map { SKTexture(imageNamed: $0) }
         await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
@@ -34,7 +36,7 @@ final class RoomScene: SKScene {
     private var newPlacementID: String?
     private var lastPlacingRequest: String?
     private var placementPrepared = false
-    var onRestingFurnitureChanged: ((String?, String) -> Void)?
+    var onRestingFurnitureChanged: ((String?, String, String) -> Void)?
     var onFurnitureNotice: ((String) -> Void)?
     private var activeRest: RoomFurnitureRest?
     // A visual visit starts on approach, but recovery starts only after all
@@ -81,6 +83,7 @@ final class RoomScene: SKScene {
     private var selection: SKShapeNode { artwork.selection }
     private var thought: SKNode { artwork.thought }
     private var latest: GameSnapshot?
+    private var renderedCatID: String? = CatCatalog.initialCatID
     private var editing = false
     private var dragging = false
     private var touchOrigin: CGPoint?
@@ -209,9 +212,24 @@ final class RoomScene: SKScene {
     }
     func apply(snapshot: GameSnapshot, editing: Bool, selectedFurnitureID selected: String? = nil,
                placingFurnitureID placing: String? = nil) {
+        let companionChanged = renderedCatID != snapshot.activeCatID
+        if companionChanged {
+            // Invalidate old paths, queued care and rest callbacks before changing identity.
+            // First load has no prior owner; keep its initial bowl planning intact.
+            if latest != nil { cancelPresentation(at: cat.position) }
+            renderedCatID = snapshot.activeCatID
+            cat.setAppearance(snapshot.activeCat?.appearance ?? .orange)
+        }
         latest = snapshot
         requestedSelectionID = selected
         requestedPlacementID = placing
+        if companionChanged, let previousSize = deferredRoomLayoutFromSize,
+           size.width > 0, size.height > 0 {
+            let oldWorld = CGSize(width: previousSize.width * worldGeometry.worldScale,
+                                  height: previousSize.height * worldGeometry.worldScale)
+            deferredRoomLayoutFromSize = nil
+            layoutRoom(preservingPositionFrom: oldWorld)
+        }
         // Keep the occupied world frozen until the cat has walked out. The
         // panel may open immediately, but no furniture can move or be stored.
         if activeRest != nil {
@@ -397,7 +415,9 @@ final class RoomScene: SKScene {
                 // fallback only ends a visual stay if its start cannot be saved.
                 self.restDeadline = Date().addingTimeInterval(item.kind == .catBed ? 12 : 9)
                 self.setPhase("resting")
-                self.onRestingFurnitureChanged?(id, sessionID)
+                if let catID = self.renderedCatID {
+                    self.onRestingFurnitureChanged?(id, sessionID, catID)
+                }
                 self.reconcileRestSession()
 #if DEBUG
                 self.publishFurnitureStatus()
@@ -447,7 +467,7 @@ final class RoomScene: SKScene {
 
     private func reconcileRestSession(now: Date = Date()) {
         guard let visit = activeRest, !restExiting, let sessionID = restSessionID else { return }
-        let committed = latest?.cats.first?.activeRest
+        let committed = latest?.activeCat?.activeRest
         if committed?.id == sessionID, committed?.furnitureID == visit.item.id {
             restSessionWasCommitted = true
             restDeadline = committed?.endsAt
@@ -484,7 +504,7 @@ final class RoomScene: SKScene {
         restDeadlineTask = nil
         guard let sessionID = restSessionID, !restEndReported else { return }
         restEndReported = true
-        onRestingFurnitureChanged?(nil, sessionID)
+        if let catID = renderedCatID { onRestingFurnitureChanged?(nil, sessionID, catID) }
     }
 
     private func resetRestSession() {
@@ -573,7 +593,8 @@ final class RoomScene: SKScene {
     }
 #endif
 
-    func playFeedback(kind: ActionKind) {
+    func playFeedback(kind: ActionKind, catID: String? = nil) {
+        guard catID == nil || catID == renderedCatID else { return }
         guard [.feed, .clean, .play].contains(kind), !editing else { return }
         if bowlPlanningRequest != nil {
             if suspendedCareKind == nil { suspendedCareKind = kind }
@@ -873,7 +894,7 @@ final class RoomScene: SKScene {
                                 ownedFurniture: ownedFurniture, furnitureWorld: furnitureWorld, floor: floor)
     }
     private func updateThought() {
-        thought.isHidden = editing || bowlPlanningRequest != nil || presentationBusy || (latest?.cats.first?.satiety ?? 100) >= 50
+        thought.isHidden = editing || bowlPlanningRequest != nil || presentationBusy || (latest?.activeCat?.satiety ?? 100) >= 50
     }
     private func showCareParticles() { artwork.showCareParticles(cat: cat, reducedMotion: reducedMotion) }
     private func scenePoint(_ point: NormalizedPoint) -> CGPoint {

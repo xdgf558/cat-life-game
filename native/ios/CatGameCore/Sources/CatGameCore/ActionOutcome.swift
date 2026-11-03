@@ -6,6 +6,10 @@ public enum ActionKind: String, Codable, Sendable {
 }
 
 public enum ActionFailure: String, Equatable, Sendable {
+    case catAdoptionMissing = "cat.adoptionMissing"
+    case catAlreadyOwned = "cat.alreadyOwned"
+    case catPlayerLevelRequired = "cat.playerLevelRequired"
+    case catRoomLevelRequired = "cat.roomLevelRequired"
     case careCatMissing = "care.catMissing"
     case careFoodRequired = "care.foodRequired"
     case careLitterRequired = "care.litterRequired"

@@ -5,7 +5,9 @@ import CatGameCore
 struct CatProfileView: View {
     @Bindable var store: GameStore
     let catID: String
+    @Binding var isSaving: Bool
     let rename: () -> Void
+    @State private var selectionFailed = false
     private var cat: CatState? { store.snapshot?.cats.first { $0.id == catID } }
 
     var body: some View {
@@ -13,7 +15,8 @@ struct CatProfileView: View {
             VStack(spacing: 16) {
                 if let cat {
                     HStack(spacing: 14) {
-                        GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 76, tint: RoomTheme.gold)
+                        GameIcon(asset: cat.appearance == .cow ? "cat-cow-idle" : "cat-idle",
+                                 symbol: "cat.fill", size: 76, tint: RoomTheme.gold)
                             .background(RoomTheme.wood.opacity(0.12), in: Circle())
                         VStack(alignment: .leading, spacing: 6) {
                             HStack(spacing: 6) {
@@ -27,7 +30,8 @@ struct CatProfileView: View {
                                         .foregroundStyle(RoomTheme.darkMint).frame(width: 44, height: 44)
                                         .background(RoomTheme.paleMint.opacity(0.65), in: Circle())
                                 }
-                                .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catName.edit"))
+                                .buttonStyle(.plain).disabled(isSaving)
+                                .accessibilityLabel(GameStrings.text("catName.edit"))
                                 .accessibilityIdentifier("catRenameButton")
                             }
                             Text(Self.status(for: cat)).font(.footnote).foregroundStyle(RoomTheme.secondary)
@@ -35,6 +39,28 @@ struct CatProfileView: View {
                         }
                     }
                     .padding(16).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 24))
+                    Button {
+                        guard !isSaving, !store.isBusy else { return }
+                        isSaving = true
+                        selectionFailed = false
+                        Task {
+                            selectionFailed = !(await store.selectCompanion(catID: catID))
+                            isSaving = false
+                        }
+                    } label: {
+                        Label(GameStrings.text(isSaving ? "common.saving" :
+                            (store.cat?.id == catID ? "cat.companionActive" : "cat.companionSelect")),
+                              systemImage: store.cat?.id == catID ? "checkmark.circle.fill" : "house.fill")
+                            .font(.headline).frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(MintButtonStyle())
+                    .disabled(isSaving || store.isBusy || store.cat?.id == catID)
+                    .accessibilityIdentifier("catCompanionButton")
+                    .accessibilityValue(store.cat?.id == catID ? "active" : "available")
+                    Text(GameStrings.text(selectionFailed ? "cat.companionFailed" : "cat.companionHint"))
+                        .font(.footnote).foregroundStyle(RoomTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier("catCompanionHint").accessibilityValue(selectionFailed ? "failed" : "ready")
                     attributeGroup("catProfile.daily") {
                         stat("stat.satiety", value: cat.satiety, identifier: "catProfileSatiety")
                         stat("stat.cleanliness", value: cat.cleanliness, identifier: "catProfileCleanliness")

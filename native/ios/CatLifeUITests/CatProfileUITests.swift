@@ -163,7 +163,7 @@ extension RoomHomeUITests {
     }
 
     @MainActor
-    private func replaceCatName(_ text: String, replacing previous: String, in app: XCUIApplication) {
+    func replaceCatName(_ text: String, replacing previous: String, in app: XCUIApplication) {
         scrollCareerPage("catNameScroll", to: "catNameField", in: app)
         let field = element("catNameField", in: app)
         tapAnimationControl("catNameField", in: app)
@@ -178,13 +178,13 @@ extension RoomHomeUITests {
     }
 
     @MainActor
-    private func saveCatName(in app: XCUIApplication) {
+    func saveCatName(in app: XCUIApplication) {
         scrollCareerPage("catNameScroll", to: "catNameSaveButton", in: app)
         tapAnimationControl("catNameSaveButton", in: app)
     }
 
     @MainActor
-    private func selectCatTestLanguage(_ code: String, in app: XCUIApplication) {
+    func selectCatTestLanguage(_ code: String, in app: XCUIApplication) {
         tapAnimationControl("settingsButton", in: app)
         tapAnimationControl("settingsLanguageRow", in: app)
         tapAnimationControl("languageOption_\(code)", in: app)

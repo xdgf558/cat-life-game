@@ -12,6 +12,40 @@ public enum GameEngine {
     public static let toyPrice = 35
     public static let toyUsesPerPurchase = 6
 
+    public static func adoptCat(_ state: inout GameSnapshot, catID: String,
+                                now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard let offer = CatCatalog.adoptionOffer(catID: catID) else { return failure(.catAdoptionMissing) }
+        guard !state.cats.contains(where: { $0.id == catID }) else { return failure(.catAlreadyOwned) }
+        guard state.player.level >= offer.requiredPlayerLevel
+        else { return failure(.catPlayerLevelRequired, amount: offer.requiredPlayerLevel) }
+        guard state.home.roomLevel >= offer.requiredRoomLevel
+        else { return failure(.catRoomLevelRequired, amount: offer.requiredRoomLevel) }
+        guard state.player.gold >= offer.price else { return failure(.shopGoldRequired, amount: offer.price) }
+        var candidate = state
+        candidate.player.gold -= offer.price
+        candidate.cats.append(CatState(id: offer.id, name: offer.name,
+            satiety: 70, cleanliness: 85, mood: 80, intimacy: 10, energy: 85, health: 100,
+            now: effectiveTime(state, now: now), appearance: offer.appearance))
+        guard candidate.isValid else { return failure(.gameInvalidState) }
+        state = candidate
+        return ActionOutcome(kind: .purchase, messageKey: "cat.adopted", amount: offer.price)
+    }
+
+    public static func selectCompanion(_ state: inout GameSnapshot, catID: String,
+                                       now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard state.cats.contains(where: { $0.id == catID }) else { return failure(.careCatMissing) }
+        guard state.activeCatID != catID else { return ActionOutcome() }
+        if let index = state.cats.firstIndex(where: { $0.id == state.activeCatID }) {
+            finishCatRest(&state, index: index, now: effectiveTime(state, now: now))
+        }
+        state.activeCatID = catID
+        return ActionOutcome(messageKey: "cat.companionSelected")
+    }
+
     public static func selectAvatar(_ state: inout GameSnapshot, avatarID: String,
                                     now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
@@ -101,6 +135,8 @@ public enum GameEngine {
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
             return failure(.careCatMissing)
         }
+        // A delayed arrival from the previous room companion cannot start a new rest.
+        guard state.activeCatID == catID else { return ActionOutcome() }
         guard state.cats[index].activeRest == nil,
               state.cats[index].lastRestSessionID != sessionID else { return ActionOutcome() }
         guard !sessionID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
@@ -503,6 +539,7 @@ extension GameSnapshot {
               Self.isUnitPosition(home.bowlPosition),
               Self.validFurniture(owned: inventory.furniture, placements: home.furniture),
               !cats.isEmpty, cats.count <= 1000,
+              cats.contains(where: { $0.id == activeCatID }),
               Set(cats.map(\.id)).count == cats.count,
               [meta.createdAt, meta.lastSyncAt, player.staminaUpdatedAt].allSatisfy({ $0.timeIntervalSince1970.isFinite })
         else { return false }

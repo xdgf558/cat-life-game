@@ -8,6 +8,8 @@ struct GameStoreFixtures {
     var failRestExitOnce = false
     var failWorkCompletionOnce = false
     private var failCatRenameOnce = false
+    private var failCatAdoptionOnce = false
+    private var failCatSelectionOnce = false
     private var failUserSaves = false
     private var outageStarted = false
 
@@ -18,8 +20,23 @@ struct GameStoreFixtures {
         let reset = allowsSeeding && arguments.contains("--reset-ui-test-save")
         failWorkCompletionOnce = reset && arguments.contains("--career-save-failure-once")
         failCatRenameOnce = reset && arguments.contains("--cat-name-save-failure-once")
+        failCatAdoptionOnce = reset && arguments.contains("--cat-adoption-save-failure-once")
+        failCatSelectionOnce = reset && arguments.contains("--cat-companion-save-failure-once")
         guard reset else { return }
-        if arguments.contains("--cat-collection-fixture") {
+        if arguments.contains("--uitesting-adoption-ready") || arguments.contains("--uitesting-adoption-owned") {
+            var value = GameSnapshot.fresh(now: now)
+            value.player.level = 2
+            value.player.gold = 1000
+            value.home.roomLevel = 2
+            value.inventory.toys = 6
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            if arguments.contains("--uitesting-adoption-owned") {
+                value.cats.append(CatState(id: CatCatalog.cowCatID, name: "牛奶", satiety: 55,
+                                          cleanliness: 65, mood: 70, intimacy: 20, energy: 60,
+                                          health: 95, now: now, appearance: .cow))
+            }
+            initialSnapshot = value
+        } else if arguments.contains("--cat-collection-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.cats += (2...9).map { index in
                 CatState(id: String(format: "cat_%03d", index), name: "猫咪\(index)",
@@ -72,6 +89,14 @@ struct GameStoreFixtures {
 
     mutating func checkSave(_ candidate: GameSnapshot, original: GameSnapshot,
                             exitsRest: Bool) throws {
+        if failCatAdoptionOnce && candidate.cats.count > original.cats.count {
+            failCatAdoptionOnce = false
+            throw CocoaError(.fileWriteUnknown)
+        }
+        if failCatSelectionOnce && candidate.activeCatID != original.activeCatID {
+            failCatSelectionOnce = false
+            throw CocoaError(.fileWriteUnknown)
+        }
         if failCatRenameOnce && candidate.cats.map(\.customName) != original.cats.map(\.customName) {
             failCatRenameOnce = false
             throw CocoaError(.fileWriteUnknown)

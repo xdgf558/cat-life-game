@@ -1,5 +1,6 @@
 import SpriteKit
 import UIKit
+import CatGameCore
 
 enum CatClip: String, CaseIterable {
     case expressions = "cat-expressions"
@@ -41,12 +42,24 @@ final class CatSpriteLibrary {
     }
 
     private var cache: [CatClip: Sequence] = [:]
+    private(set) var appearance: CatAppearance
+
+    init(appearance: CatAppearance = .orange) {
+        self.appearance = appearance
+    }
+
+    func setAppearance(_ appearance: CatAppearance) {
+        guard self.appearance != appearance else { return }
+        self.appearance = appearance
+        cache.removeAll()
+    }
 
     func sequence(_ clip: CatClip) -> Sequence {
         if let cached = cache[clip] { return cached }
         let result: Sequence
-        if let image = UIImage(named: clip.rawValue), let cgImage = image.cgImage,
-           let frames = extract(cgImage: cgImage, name: clip.rawValue,
+        let assetName = CatArtwork.asset(clip.rawValue, appearance: appearance)
+        if let image = UIImage(named: assetName), let cgImage = image.cgImage,
+           let frames = extract(cgImage: cgImage, name: assetName, clip: clip,
                                 columns: clip == .rest ? 2 : 4, rows: clip == .rest ? 4 : 2,
                                 rowCuts: clip == .rest ? [0, 0.285, 0.515, 0.725, 1] : nil) {
             let reference: CGFloat
@@ -61,12 +74,12 @@ final class CatSpriteLibrary {
         } else {
             // Existing art is a safe rendering fallback while atlases load into
             // the project. The old eating image is a satisfied seated pose.
-            let name = clip == .meal ? "cat-eating" : "cat-idle"
+            let name = CatArtwork.asset(clip == .meal ? "cat-eating" : "cat-idle", appearance: appearance)
             if let cgImage = UIImage(named: name)?.cgImage,
                let frames = extract(cgImage: cgImage, name: name, columns: 1, rows: 1) {
                 result = Sequence(frames: frames, referenceHeight: frames[0].bounds.height, heightRatio: 1)
             } else {
-                let texture = SKTexture(imageNamed: "cat-idle")
+                let texture = SKTexture(imageNamed: CatArtwork.asset("cat-idle", appearance: appearance))
                 let size = texture.size()
                 result = Sequence(frames: [Frame(texture: texture, bounds: CGRect(origin: .zero, size: size),
                                                  groundCenter: size.width / 2)], referenceHeight: max(1, size.height), heightRatio: 1)
@@ -76,7 +89,7 @@ final class CatSpriteLibrary {
         return result
     }
 
-    private func extract(cgImage: CGImage, name: String, columns: Int, rows: Int,
+    private func extract(cgImage: CGImage, name: String, clip: CatClip? = nil, columns: Int, rows: Int,
                          rowCuts: [CGFloat]? = nil) -> [Frame]? {
         let width = cgImage.width, height = cgImage.height
         let bytesPerRow = width * 4
@@ -99,7 +112,10 @@ final class CatSpriteLibrary {
                 let bottom = rowCuts.map { Int($0[row + 1] * CGFloat(height)) } ?? (row + 1) * height / rows
                 var minX = right, maxX = left, minY = bottom, maxY = top
                 for y in top..<bottom {
-                    for x in left..<right where bytes[y * bytesPerRow + x * 4 + 3] >= 128 {
+                    // The preceding cow meal frame's whiskers extend into this
+                    // cell; its own opaque silhouette starts at x >= 27.
+                    let scanLeft = left + (appearance == .cow && clip == .meal ? 25 : 0)
+                    for x in scanLeft..<right where bytes[y * bytesPerRow + x * 4 + 3] >= 128 {
                         minX = min(minX, x); maxX = max(maxX, x)
                         minY = min(minY, y); maxY = max(maxY, y)
                     }
@@ -137,7 +153,7 @@ final class CatSpriteLibrary {
                                     groundCenter: groundCenter))
             }
         }
-        if name == CatClip.walk.rawValue || name == CatClip.play.rawValue {
+        if clip == .walk || clip == .play {
             // Extended or airborne paws are not a stable horizontal landmark.
             // Keep the body centered around the clip's median registration;
             // otherwise the leading paw can pull a pounce backward mid-air.
@@ -148,7 +164,7 @@ final class CatSpriteLibrary {
                       groundCenter: $0.bounds.midX + bodyOffset)
             }
         }
-        if name == CatClip.rest.rawValue {
+        if clip == .rest {
             // A lying body's support is centered beneath the belly, not under
             // the bright front paws. Transition from standing registration;
             // frames 3...6 then share a stable body center while sleeping.
@@ -159,20 +175,32 @@ final class CatSpriteLibrary {
                       groundCenter: frame.bounds.midX + standingOffset * weights[index])
             }
         }
-        if name == CatClip.step.rawValue {
+        if clip == .step {
             // Measured in the 1774×887 source's 4×2 cells (top-left origin),
             // using alpha >= 180 across each visible paw's last three rows.
             // Frame 1 names the reaching paw; the other forepaw still supports
             // the body. Frames 2/3 keep the rear paw low; 5/6 keep it high.
-            let front: [CGPoint] = [CGPoint(x: 261.4, y: 426), CGPoint(x: 390.0, y: 366),
+            let front: [CGPoint] = appearance == .cow
+                ? [CGPoint(x: 262.4, y: 428), CGPoint(x: 388.0, y: 367),
+                   CGPoint(x: 317.7, y: 387), CGPoint(x: 318.4, y: 378),
+                   CGPoint(x: 273.4, y: 381), CGPoint(x: 320.8, y: 398),
+                   CGPoint(x: 284.6, y: 398), CGPoint(x: 279.5, y: 395)]
+                : [CGPoint(x: 261.4, y: 426), CGPoint(x: 390.0, y: 366),
                                     CGPoint(x: 318.3, y: 386), CGPoint(x: 321.0, y: 376),
                                     CGPoint(x: 272.1, y: 380), CGPoint(x: 323.1, y: 397),
                                     CGPoint(x: 289.0, y: 395), CGPoint(x: 275.7, y: 391)]
-            let rear: [CGPoint] = [CGPoint(x: 87.2, y: 417), CGPoint(x: 106.3, y: 419),
+            let rear: [CGPoint] = appearance == .cow
+                ? [CGPoint(x: 88.0, y: 418), CGPoint(x: 107.1, y: 421),
+                   CGPoint(x: 106.2, y: 420), CGPoint(x: 116.2, y: 419),
+                   CGPoint(x: 98.0, y: 374), CGPoint(x: 92.4, y: 337),
+                   CGPoint(x: 104.3, y: 341), CGPoint(x: 96.0, y: 379)]
+                : [CGPoint(x: 87.2, y: 417), CGPoint(x: 106.3, y: 419),
                                    CGPoint(x: 106.5, y: 419), CGPoint(x: 118.0, y: 417),
                                    CGPoint(x: 100.1, y: 374), CGPoint(x: 94.0, y: 334),
                                    CGPoint(x: 105.3, y: 337), CGPoint(x: 95.3, y: 377)]
-            let baselines: [CGFloat] = [426, 425, 419, 417, 380, 334, 337, 391]
+            let baselines: [CGFloat] = appearance == .cow
+                ? [428, 429, 420, 419, 381, 337, 341, 395]
+                : [426, 425, 419, 417, 380, 334, 337, 391]
             let bodyOffset = frames[0].groundCenter - frames[0].bounds.midX
             return frames.enumerated().map { index, frame in
                 Frame(texture: frame.texture, bounds: frame.bounds,

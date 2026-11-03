@@ -175,7 +175,8 @@ struct RoomHomeView: View {
             HStack(spacing: 12) {
                 HStack(spacing: 10) {
                     Button { store.inspectCat() } label: {
-                        GameIcon(asset: "cat-avatar", symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
+                        GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
+                                 symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
                             .background(RoomTheme.wood.opacity(0.18), in: Circle())
                     }
                     .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catProfile.title"))

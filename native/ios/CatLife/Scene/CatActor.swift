@@ -1,5 +1,6 @@
 import SpriteKit
 import UIKit
+import CatGameCore
 
 /// Presentation only. A single owner serializes movement, expressions and care
 /// feedback, so a second tap never resets a walking cat to the room's origin.
@@ -65,6 +66,7 @@ final class CatActor: SKNode {
     private let shadowOuter = SKShapeNode()
     private let shadowInner = SKShapeNode()
     private let art = CatSpriteLibrary()
+    private var appearance: CatAppearance = .orange
     private var visualWidth: CGFloat = 128
     private var idleEnabled = true
     private var facing: CGFloat = 1
@@ -173,9 +175,11 @@ final class CatActor: SKNode {
     var currentMealContact: CGPoint? {
         guard isDockingForMeal, currentClip == .meal, let parent else { return nil }
         let offset: CGPoint
-        switch currentFrameIndex {
-        case 2: offset = CGPoint(x: 0.3791 * visualWidth, y: 0.1472 * visualWidth)
-        case 3: offset = CGPoint(x: 0.3084 * visualWidth, y: 0.1472 * visualWidth)
+        switch (appearance, currentFrameIndex) {
+        case (.orange, 2): offset = CGPoint(x: 0.3791 * visualWidth, y: 0.1472 * visualWidth)
+        case (.orange, 3): offset = CGPoint(x: 0.3084 * visualWidth, y: 0.1472 * visualWidth)
+        case (.cow, 2): offset = CGPoint(x: 0.356148 * visualWidth, y: 0.140313 * visualWidth)
+        case (.cow, 3): offset = CGPoint(x: 0.322526 * visualWidth, y: 0.106760 * visualWidth)
         default: return nil
         }
         return pose.convert(offset, to: parent)
@@ -225,6 +229,14 @@ final class CatActor: SKNode {
     }
 
     required init?(coder aDecoder: NSCoder) { fatalError("CatActor is created in code") }
+
+    func setAppearance(_ appearance: CatAppearance) {
+        self.appearance = appearance
+        art.setAppearance(appearance)
+        for clip in CatClip.allCases { _ = art.sequence(clip) }
+        lastFrameKey = ""
+        show(.expressions, frame: 0)
+    }
 
     func setVisualWidth(_ width: CGFloat) {
         guard width.isFinite, width > 0 else { return }

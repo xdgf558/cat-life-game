@@ -14,6 +14,7 @@ enum InventoryCategory: String {
 struct RoomFeedback: Equatable {
     let id = UUID()
     let kind: ActionKind
+    let catID: String
 }
 
 @MainActor
@@ -119,7 +120,7 @@ final class GameStore {
         self.repository = repository
     }
 
-    var cat: CatState? { snapshot?.cats.first }
+    var cat: CatState? { snapshot?.activeCat }
     var audioSettings: AudioSettings { snapshot?.settings.audio ?? AudioSettings() }
 
     private func syncAudio() {
@@ -255,9 +256,11 @@ final class GameStore {
 
     // Capture the physical arrival/exit time immediately. Save operations are
     // serialized; waiting for an unrelated write must not extend a short rest.
-    func setRestingFurniture(id: String?, sessionID: String) {
-        guard let cat else { return }
+    func setRestingFurniture(id: String?, sessionID: String, catID: String? = nil) {
+        guard let catID = catID ?? cat?.id,
+              snapshot?.cats.contains(where: { $0.id == catID }) == true else { return }
         if let id {
+            guard catID == cat?.id else { return }
             guard presentedRestSessionID != sessionID else { return }
             restingFurnitureID = id
             presentedRestSessionID = sessionID
@@ -265,7 +268,7 @@ final class GameStore {
             restingFurnitureID = nil
             presentedRestSessionID = nil
         }
-        restTransitions.append(RestTransition(catID: cat.id, furnitureID: id,
+        restTransitions.append(RestTransition(catID: catID, furnitureID: id,
                                                sessionID: sessionID, occurredAt: Date()))
         processNextRestTransition()
     }
@@ -319,6 +322,11 @@ final class GameStore {
                                exitsRest: context.transitions.contains { $0.furnitureID == nil })
         #endif
         try await repository.save(context.candidate)
+        if context.candidate.activeCatID != context.original.activeCatID {
+            restingFurnitureID = nil
+            presentedRestSessionID = nil
+            feedback = nil
+        }
         snapshot = context.candidate
         acknowledgeTransitions(context.transitions)
         saveRetry.succeeded()
@@ -761,6 +769,33 @@ final class GameStore {
         activeSheet = .town
     }
 
+    @discardableResult
+    func adoptCat(catID: String) async -> Bool {
+        await changeCat { GameEngine.adoptCat(&$0, catID: catID, now: $1) }
+    }
+
+    @discardableResult
+    func selectCompanion(catID: String) async -> Bool {
+        await changeCat { GameEngine.selectCompanion(&$0, catID: catID, now: $1) }
+    }
+
+    private func changeCat(_ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
+        guard !isBusy, !isDecorating, var context = saveContext() else { return false }
+        isBusy = true
+        defer { isBusy = false; drainPendingSynchronization() }
+        let outcome = action(&context.candidate, Date())
+        do {
+            // Publish the new companion only after the entire transaction is durable.
+            if context.candidate != context.original { try await commit(context) }
+            if outcome.succeeded { playCommittedSound(outcome.kind) }
+            showNotice(message(for: outcome))
+            return outcome.succeeded
+        } catch {
+            recordSaveFailure(userInitiated: true)
+            return false
+        }
+    }
+
     private func perform(finishesLayout: Bool = false, returnsToRoom: Bool = false,
                          _ action: @escaping (inout GameSnapshot, Date) -> ActionOutcome) {
         guard !isBusy, var context = saveContext() else { return }
@@ -783,7 +818,7 @@ final class GameStore {
                 if finishesLayout && outcome.succeeded { clearLayoutDraft() }
                 if outcome.succeeded {
                     if returnsToRoom && activeSheet == .inventory { activeSheet = nil }
-                    feedback = RoomFeedback(kind: outcome.kind)
+                    feedback = RoomFeedback(kind: outcome.kind, catID: context.candidate.activeCatID)
                     playCommittedSound(outcome.kind)
                 }
                 showNotice(message(for: outcome))

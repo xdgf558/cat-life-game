@@ -43,7 +43,7 @@ enum GameActionNotice {
             case .play: return GameStrings.text("action.play")
             case .purchase:
                 switch outcome.messageKey {
-                case "shop.equipmentPurchased", "shop.furniturePurchased", "home.upgraded":
+                case "shop.equipmentPurchased", "shop.furniturePurchased", "home.upgraded", "cat.adopted":
                     return GameStrings.text(outcome.messageKey)
                 default: return GameStrings.text("action.purchase")
                 }
@@ -67,9 +67,11 @@ enum GameActionNotice {
         case .playerAvatarMissing, .equipmentItemMissing, .equipmentNotOwned,
              .sleepWorkActive, .workSleeping, .restInvalidFurniture,
              .workJobMissing, .workLevelRequired, .workProgressLimit,
-             .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable:
+             .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,
+             .catAdoptionMissing, .catAlreadyOwned:
             return GameStrings.text(outcome.messageKey)
-        case .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired:
+        case .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
+             .catPlayerLevelRequired, .catRoomLevelRequired:
             return GameStrings.format(outcome.messageKey, outcome.amount)
         case .roomCapacityReached:
             let canUpgrade = HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil

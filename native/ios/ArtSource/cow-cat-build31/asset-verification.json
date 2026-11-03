@@ -1,0 +1,207 @@
+{
+  "tool": "built-in image_gen",
+  "assets": [
+    {
+      "clip": "idle",
+      "path": "CatLife/Assets.xcassets/cat-cow-idle.imageset/cat-cow-idle.png",
+      "sizeBytes": 1517107,
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "mode": "RGBA",
+      "sha256": "24162d064b88671b62b5e81a29019649a60ce4b2e62382317d2f3d860f11a41b",
+      "fullyTransparentPixels": 779013,
+      "opaqueThresholdPixels": 760804
+    },
+    {
+      "clip": "eating",
+      "path": "CatLife/Assets.xcassets/cat-cow-eating.imageset/cat-cow-eating.png",
+      "sizeBytes": 1404491,
+      "dimensions": [
+        1086,
+        1448
+      ],
+      "mode": "RGBA",
+      "sha256": "ff4948765e9697dab06426ca72a118f9d07551cad1beb4e5eec59a1924f5d8c2",
+      "fullyTransparentPixels": 836681,
+      "opaqueThresholdPixels": 711606
+    },
+    {
+      "clip": "avatar",
+      "path": "CatLife/Assets.xcassets/cat-cow-avatar.imageset/cat-cow-avatar.png",
+      "sizeBytes": 1888363,
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "sha256": "91684003d9e8cd52460fc4ed3dca398fa36186b1932bfa546108fc80a67b2a6e",
+      "fullyTransparentPixels": 592455,
+      "opaqueThresholdPixels": 946270
+    },
+    {
+      "clip": "expressions",
+      "path": "CatLife/Assets.xcassets/cat-cow-expressions.imageset/cat-cow-expressions.png",
+      "sizeBytes": 1857985,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "sha256": "f3a2442af69d6f61e92f5de3e2f9209f6372633a3d4db3e6dfec836beb47c822",
+      "fullyTransparentPixels": 684555,
+      "opaqueThresholdPixels": 815173
+    },
+    {
+      "clip": "walk",
+      "path": "CatLife/Assets.xcassets/cat-cow-walk.imageset/cat-cow-walk.png",
+      "sizeBytes": 1968563,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "sha256": "7748a209a445032e11d05018ca4468e00a01efca63f01297d90621ac85332112",
+      "fullyTransparentPixels": 223132,
+      "opaqueThresholdPixels": 642573
+    },
+    {
+      "clip": "rise",
+      "path": "CatLife/Assets.xcassets/cat-cow-rise.imageset/cat-cow-rise.png",
+      "sizeBytes": 1638588,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "sha256": "1b2356acf1c8544777590637480138bc2c9d6a79eefe904c72549be240e650ee",
+      "fullyTransparentPixels": 769526,
+      "opaqueThresholdPixels": 709470
+    },
+    {
+      "clip": "meal",
+      "path": "CatLife/Assets.xcassets/cat-cow-meal.imageset/cat-cow-meal.png",
+      "sizeBytes": 1465036,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "sha256": "30f46e8772f06aff87a3f86b4b92b78f7ba305f48eaa161c6d00279ceaa5bc02",
+      "fullyTransparentPixels": 863922,
+      "opaqueThresholdPixels": 621584
+    },
+    {
+      "clip": "play",
+      "path": "CatLife/Assets.xcassets/cat-cow-play.imageset/cat-cow-play.png",
+      "sizeBytes": 1184838,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "sha256": "cf88af3ffc35f6082c82d385c186f3bf50fac59db7e0e25423d7c522ef1c2080",
+      "fullyTransparentPixels": 1029142,
+      "opaqueThresholdPixels": 443549
+    },
+    {
+      "clip": "rest",
+      "path": "CatLife/Assets.xcassets/cat-cow-rest.imageset/cat-cow-rest.png",
+      "sizeBytes": 1228670,
+      "dimensions": [
+        887,
+        1774
+      ],
+      "mode": "RGBA",
+      "sha256": "4f128de2d1cb8b98dbed014a271320bd4b6711068c6d4b0b4e7e75da79e64794",
+      "fullyTransparentPixels": 990676,
+      "opaqueThresholdPixels": 520495
+    },
+    {
+      "clip": "step",
+      "path": "CatLife/Assets.xcassets/cat-cow-step.imageset/cat-cow-step.png",
+      "sizeBytes": 1511624,
+      "dimensions": [
+        1774,
+        887
+      ],
+      "mode": "RGBA",
+      "sha256": "5a6976628c1b87844aad7d2decc3452b5d287e7c738dd0fb0a9497560786bbdd",
+      "fullyTransparentPixels": 828122,
+      "opaqueThresholdPixels": 634391
+    }
+  ],
+  "visualReview": "All 10 generated images inspected; white coat/black patches, gold eyes and orange bow retained. Seven atlases have eight ordered poses each.",
+  "alphaReview": {
+    "threshold": 128,
+    "eightConnectedCatBodies": [
+      "expressions",
+      "walk",
+      "rise",
+      "meal",
+      "play",
+      "rest",
+      "step"
+    ],
+    "isolatedOpaquePixels": {
+      "idle": 13,
+      "avatar": 16,
+      "eating": 7,
+      "walk": 3,
+      "expressions": 121,
+      "rise": 0,
+      "meal": 0,
+      "play": 0,
+      "step": 0,
+      "rest": 0
+    },
+    "isolatedPixelNotes": "Single-pixel fur/whisker antialias islands; largest expression island is 10 pixels. No additional object-sized component.",
+    "interRowGapMaximumAlpha": {
+      "step": 1,
+      "meal": 1,
+      "walk": 3,
+      "rest": 1
+    },
+    "interRowGapNote": "Raw transparent preview amplifies near-zero-alpha RGB colors. Actual gap alpha is at most 3/255."
+  },
+  "registration": {
+    "restRowCuts": [
+      0,
+      0.285,
+      0.515,
+      0.725,
+      1
+    ],
+    "cowMealLeftScanInsetPixels": 25,
+    "mealReferenceHeight": 358,
+    "mealContactPoints": {
+      "frame2": {
+        "sourceLip": [
+          365.765,
+          375
+        ],
+        "groundCenter": 249.005,
+        "groundY": 421,
+        "offsetPerCatWidth": [
+          0.356148,
+          0.140313
+        ]
+      },
+      "frame3": {
+        "sourceTongue": [
+          353.333,
+          387
+        ],
+        "groundCenter": 247.597,
+        "groundY": 422,
+        "offsetPerCatWidth": [
+          0.322526,
+          0.10676
+        ]
+      }
+    },
+    "stepLandmarks": "Measured from each white paw with alpha >=180 in last three paw rows; independently stored in CatSpriteLibrary, not inherited from orange."
+  },
+  "runtimeValidation": "Pending parent-agent simulator action replay; numerical asset checks do not replace rendered feeding/rest checks."
+}
