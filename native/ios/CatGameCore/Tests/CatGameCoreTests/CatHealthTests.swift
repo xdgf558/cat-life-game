@@ -224,7 +224,7 @@ struct CatHealthTests {
         cats[0].removeValue(forKey: "healthState")
         old["cats"] = cats
         var loaded = try decode(old)
-        #expect(loaded.schemaVersion == 5 && loaded.cats[0].healthState == nil)
+        #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion && loaded.cats[0].healthState == nil)
         #expect(loaded.player.gold == 563 && loaded.cats[0].customName == "旧朋友")
         let firstOpen = now.addingTimeInterval(20 * 86400)
         _ = GameEngine.synchronize(&loaded, now: firstOpen)
@@ -310,7 +310,7 @@ struct CatHealthTests {
 
         let firstOpen = now.addingTimeInterval(20 * 86400)
         var loaded = try await repository.loadOrCreate(now: firstOpen)
-        #expect(loaded.cats[0].healthState == nil && loaded.schemaVersion == 5)
+        #expect(loaded.cats[0].healthState == nil && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         await #expect(throws: SaveRepositoryError.invalidSnapshot) {
             try await repository.save(loaded, now: firstOpen)
         }

@@ -18,10 +18,11 @@ struct CatAdoptionView: View {
             VStack(spacing: 18) {
                 if let offer, let snapshot = store.snapshot {
                     VStack(spacing: 10) {
-                        GameIcon(asset: "cat-cow-idle", symbol: "cat.fill", size: 156, tint: RoomTheme.gold)
+                        GameIcon(asset: CatArtwork.asset("cat-idle", appearance: offer.appearance), symbol: "cat.fill", size: 132, tint: RoomTheme.gold)
                             .background(RoomTheme.paleMint.opacity(0.6), in: Circle())
-                        Text(GameStrings.text("cat.cowName")).font(.title2.weight(.bold))
-                        Text(GameStrings.text("cat.cowDescription"))
+                        Text(GameStrings.catAdoptionName(offer)).font(.title2.weight(.bold))
+                            .accessibilityIdentifier("catAdoptionName")
+                        Text(GameStrings.catDescription(offer.appearance))
                             .font(.subheadline).foregroundStyle(RoomTheme.secondary)
                             .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                     }

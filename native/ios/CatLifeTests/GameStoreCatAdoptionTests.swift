@@ -5,6 +5,113 @@ import CatGameCore
 
 final class GameStoreCatAdoptionTests: XCTestCase {
     @MainActor
+    func testThirdCatAdoptionFailurePreservesTwoCatsAndRetryChargesOnlyOnce() async throws {
+        let repository = CatAdoptionSaveRepository(blueAdoptionSeed())
+        let store = GameStore(repository: repository)
+        await store.load()
+        let original = try XCTUnwrap(store.snapshot)
+        let baseline = await repository.attempts.count
+        await repository.setWritesFailing(true)
+
+        let failed = await store.adoptCat(catID: CatCatalog.blueCatID)
+
+        XCTAssertFalse(failed)
+        XCTAssertEqual(store.snapshot, original)
+        XCTAssertEqual(store.cat?.id, CatCatalog.cowCatID)
+        XCTAssertTrue(store.showSaveError && store.hasSaveFailure)
+        XCTAssertFalse(store.isBusy)
+        let unchanged = await repository.savedSnapshot
+        XCTAssertEqual(unchanged, original)
+        let failedAttempts = await repository.attempts
+        XCTAssertEqual(failedAttempts.count, baseline + 1)
+        XCTAssertEqual(failedAttempts.last?.cats.count, 3)
+        XCTAssertEqual(failedAttempts.last?.player.gold, original.player.gold - 600)
+
+        await repository.setWritesFailing(false)
+        let retried = await store.adoptCat(catID: CatCatalog.blueCatID)
+        XCTAssertTrue(retried)
+        let adopted = try XCTUnwrap(store.snapshot)
+        XCTAssertEqual(adopted.player.gold, original.player.gold - 600)
+        XCTAssertEqual(adopted.cats.map(\.id), [CatCatalog.initialCatID, CatCatalog.cowCatID, CatCatalog.blueCatID])
+        XCTAssertEqual(Array(adopted.cats.prefix(2)), original.cats)
+        XCTAssertEqual(adopted.cats[2].appearance, .blue)
+        XCTAssertEqual(adopted.activeCatID, original.activeCatID)
+        XCTAssertFalse(store.hasSaveFailure)
+        let attempts = await repository.attempts
+        XCTAssertEqual(attempts.count, baseline + 2)
+        let durable = await repository.savedSnapshot
+        XCTAssertEqual(durable, adopted)
+
+        let duplicate = await store.adoptCat(catID: CatCatalog.blueCatID)
+        XCTAssertFalse(duplicate)
+        XCTAssertEqual(store.snapshot?.player.gold, adopted.player.gold)
+        XCTAssertEqual(store.snapshot?.cats, adopted.cats)
+        XCTAssertEqual(store.cat?.id, CatCatalog.cowCatID)
+        let reopened = GameStore(repository: repository)
+        await reopened.load()
+        XCTAssertEqual(reopened.snapshot?.cats, adopted.cats)
+        XCTAssertEqual(reopened.snapshot?.player.gold, adopted.player.gold)
+        XCTAssertEqual(reopened.cat?.id, CatCatalog.cowCatID)
+    }
+
+    @MainActor
+    func testBlueCompanionRenameCareAndTreatmentStayIndependentAfterReopening() async throws {
+        var initial = blueAdoptionSeed()
+        XCTAssertTrue(GameEngine.adoptCat(&initial, catID: CatCatalog.blueCatID).succeeded)
+        initial.cats[0].healthState?.illness = .cold
+        initial.cats[0].healthState?.riskPoints = 8
+        initial.cats[0].health = 50
+        initial.cats[2].healthState?.illness = .skinProblem
+        initial.cats[2].healthState?.riskPoints = 8
+        initial.cats[2].health = 35
+        let repository = CatAdoptionSaveRepository(initial)
+        let store = GameStore(repository: repository)
+        await store.load()
+        let original = try XCTUnwrap(store.snapshot)
+        let renamed = await store.renameCat(id: CatCatalog.blueCatID, to: "  蓝莓🐾  ")
+        XCTAssertTrue(renamed)
+        XCTAssertEqual(store.snapshot?.cats[2].customName, "蓝莓🐾")
+        XCTAssertEqual(store.cat?.id, CatCatalog.cowCatID)
+        let named = try XCTUnwrap(store.snapshot)
+
+        await repository.setWritesFailing(true)
+        let failedSwitch = await store.selectCompanion(catID: CatCatalog.blueCatID)
+        XCTAssertFalse(failedSwitch)
+        XCTAssertEqual(store.snapshot, named)
+        await repository.setWritesFailing(false)
+        let switched = await store.selectCompanion(catID: CatCatalog.blueCatID)
+        XCTAssertTrue(switched)
+        XCTAssertEqual(store.cat?.appearance, .blue)
+        store.inspectCat()
+        XCTAssertEqual(store.inspectedCatID, CatCatalog.blueCatID)
+        store.clean()
+        try await eventually { !store.isBusy && store.feedback?.kind == .clean }
+        XCTAssertEqual(store.feedback?.catID, CatCatalog.blueCatID)
+        XCTAssertEqual(store.cat?.healthState?.illness, .skinProblem)
+        XCTAssertEqual(store.cat?.health, 39)
+        XCTAssertEqual(Array(try XCTUnwrap(store.snapshot).cats.prefix(2)), Array(original.cats.prefix(2)))
+
+        let treated = await store.treatCat(catID: CatCatalog.blueCatID)
+        XCTAssertTrue(treated)
+        XCTAssertNil(store.cat?.healthState?.illness)
+        XCTAssertEqual(store.cat?.health, 80)
+        XCTAssertEqual(store.snapshot?.player.gold, original.player.gold - 260)
+        XCTAssertEqual(Array(try XCTUnwrap(store.snapshot).cats.prefix(2)), Array(original.cats.prefix(2)))
+        let durable = await repository.savedSnapshot
+        let roundTrip = try JSONDecoder().decode(GameSnapshot.self, from: JSONEncoder().encode(durable))
+        let reopened = GameStore(repository: CatAdoptionSaveRepository(roundTrip))
+        await reopened.load()
+        XCTAssertEqual(reopened.snapshot?.schemaVersion, 6)
+        XCTAssertEqual(reopened.snapshot?.cats, durable.cats)
+        XCTAssertEqual(reopened.cat?.id, CatCatalog.blueCatID)
+        XCTAssertEqual(reopened.cat?.customName, "蓝莓🐾")
+        XCTAssertEqual(reopened.cat?.appearance, .blue)
+        XCTAssertEqual(reopened.snapshot?.cats[0].healthState?.illness, .cold)
+        XCTAssertEqual(reopened.snapshot?.cats[1].customName, "Milk🐾")
+        XCTAssertNil(reopened.inspectedCatID)
+    }
+
+    @MainActor
     func testFailedAdoptionKeepsWalletAndCatsUntilExplicitRetryChargesOnce() async throws {
         let repository = CatAdoptionSaveRepository(seed())
         let store = GameStore(repository: repository)
@@ -257,6 +364,15 @@ final class GameStoreCatAdoptionTests: XCTestCase {
             value.cats[1].cleanliness = 40
             value.cats[1].energy = 40
         }
+        return value
+    }
+
+    private func blueAdoptionSeed() -> GameSnapshot {
+        var value = seed(adopted: true)
+        value.player.level = 4
+        value.player.gold = 1800
+        value.home.roomLevel = 3
+        value.activeCatID = CatCatalog.cowCatID
         return value
     }
 

@@ -58,8 +58,8 @@ final class CatSpriteLibrary {
         self.appearance = appearance
     }
 
-    /// The welcome progress awaits this work before creating the room. The two
-    /// current appearances reuse the already resident atlas textures afterwards.
+    /// The welcome progress awaits this work before creating the room. All
+    /// appearances reuse the already resident atlas textures afterwards.
     static func preload() async {
         if let preloadTask { await preloadTask.value; return }
         let task = Task {

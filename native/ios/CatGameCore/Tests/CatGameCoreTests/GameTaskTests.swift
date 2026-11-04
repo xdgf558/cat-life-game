@@ -109,7 +109,7 @@ struct GameTaskTests {
         #expect(GameEngine.feed(&expected, catID: expected.activeCatID, now: now).succeeded)
         #expect(GameEngine.claimTask(&expected, id: "tutorial_feed", now: now).succeeded)
         #expect(GameEngine.claimTask(&expected, id: "daily_feed", expectedDayKey: expected.tasks.dailyDayKey, now: now).succeeded)
-        for version in [3, 4, 5] {
+        for version in 3...GameSnapshot.currentSchemaVersion {
             var object = try json(expected)
             object["schemaVersion"] = version
             var tasks = try #require(object["tasks"] as? [String: Any])

@@ -10,7 +10,7 @@ struct TownView: View {
 
     private struct CollectionRequest: Identifiable {
         let id = UUID()
-        var adoptionID: String?
+        var filter: CatCollectionView.Filter
     }
     private var cats: [CatState] { store.snapshot?.cats ?? [] }
     private var sickCount: Int { cats.filter { $0.healthState?.illness != nil }.count }
@@ -37,7 +37,7 @@ struct TownView: View {
         }
         .saveRecoveryAlert(store: store, isActive: presentedCollection == nil)
         .sheet(item: $presentedCollection) { request in
-            CatCollectionView(store: store, initialAdoptionID: request.adoptionID)
+            CatCollectionView(store: store, initialFilter: request.filter)
         }
     }
 
@@ -217,15 +217,15 @@ struct TownView: View {
         selectedPlace = place
     }
 
-    private func openCollection(adoptionID: String? = nil) {
+    private func openCollection(filter: CatCollectionView.Filter = .all) {
         store.playNavigationSound()
-        presentedCollection = CollectionRequest(adoptionID: adoptionID)
+        presentedCollection = CollectionRequest(filter: filter)
     }
 
     private func enterPlace() {
         switch selectedPlace {
         case .hospital: store.openHospital()
-        case .adoption: openCollection(adoptionID: availableOffer?.id)
+        case .adoption: openCollection(filter: availableOffer == nil ? .owned : .unowned)
         case .home, .work, .shop:
             store.isShowingSettings = false
             store.inspectedCatID = nil

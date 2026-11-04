@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 5
+    public static let currentSchemaVersion = 6
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -52,6 +52,20 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         activeCatID = selected.flatMap { id in decodedCats.first { $0.id == id }?.id } ?? decodedCats.first?.id ?? ""
         inventory = try values.decode(InventoryState.self, forKey: .inventory)
         home = try values.decode(HomeState.self, forKey: .home)
+        // The original starter cushion is cropped off the full-height room.
+        // Only migrate the complete untouched starter layout; a moved, stored
+        // or newly placed item makes the player's arrangement authoritative.
+        if version < 6, home.bowlPosition == HomeState().bowlPosition {
+            var legacyPlacements = FurnitureCatalog.defaultPlacements
+            if let index = legacyPlacements.firstIndex(where: { $0.itemID == "floorCushion" }) {
+                legacyPlacements[index].position.x = 0.12
+                if home.furniture.sorted(by: { $0.itemID < $1.itemID })
+                    == legacyPlacements.sorted(by: { $0.itemID < $1.itemID }),
+                   let savedIndex = home.furniture.firstIndex(where: { $0.itemID == "floorCushion" }) {
+                    home.furniture[savedIndex].position = FurnitureCatalog.defaultPlacements[index].position
+                }
+            }
+        }
         meta = try values.decode(SaveMetadata.self, forKey: .meta)
         settings = try values.decodeIfPresent(GameSettings.self, forKey: .settings) ?? GameSettings()
         // Only pre-task saves receive empty receipts; damaged new receipts must never grant rewards again.

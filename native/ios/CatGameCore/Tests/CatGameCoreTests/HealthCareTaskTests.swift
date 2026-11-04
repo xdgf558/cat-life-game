@@ -69,7 +69,7 @@ struct HealthCareTaskTests {
     @Test func legacyCleaningFieldsIfPresentMustStillBeValid() throws {
         let state = GameSnapshot.fresh(now: now)
         let original = try #require(JSONSerialization.jsonObject(with: JSONEncoder().encode(state)) as? [String: Any])
-        for version in [3, 4, GameSnapshot.currentSchemaVersion] {
+        for version in 3...GameSnapshot.currentSchemaVersion {
             for (key, value) in [("dailyCleanCount", NSNull()), ("totalCleanCount", NSNull()),
                                  ("totalCleanCount", -1), ("dailyCleanCount", 1)] as [(String, Any)] {
                 var object = original

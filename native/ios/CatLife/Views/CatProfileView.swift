@@ -16,7 +16,7 @@ struct CatProfileView: View {
             VStack(spacing: 16) {
                 if let cat {
                     HStack(spacing: 14) {
-                        GameIcon(asset: cat.appearance == .cow ? "cat-cow-idle" : "cat-idle",
+                        GameIcon(asset: CatArtwork.asset("cat-idle", appearance: cat.appearance),
                                  symbol: "cat.fill", size: 76, tint: RoomTheme.gold)
                             .background(RoomTheme.wood.opacity(0.12), in: Circle())
                         VStack(alignment: .leading, spacing: 6) {
@@ -35,6 +35,8 @@ struct CatProfileView: View {
                                 .accessibilityLabel(GameStrings.text("catName.edit"))
                                 .accessibilityIdentifier("catRenameButton")
                             }
+                            Text(GameStrings.text("hospital.coat.\(cat.appearance.rawValue)"))
+                                .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
                             Text(Self.status(for: cat)).font(.footnote).foregroundStyle(RoomTheme.secondary)
                                 .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("catProfileStatus")
                         }

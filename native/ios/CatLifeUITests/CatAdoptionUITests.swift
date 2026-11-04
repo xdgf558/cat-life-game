@@ -2,6 +2,78 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testBlueCatCatalogAdoptionFiltersAndRelaunch() throws {
+        continueAfterFailure = false
+        let app = launchCatAdoptionFixture("--uitesting-blue-adoption-ready", extra: ["--cat-adoption-save-failure-once"])
+        tapAnimationControl("tabTown", in: app)
+        tapAnimationControl("townAdoptionMarker", in: app)
+        scrollCareerPage("townMapScroll", to: "townMeetCatButton", in: app)
+        tapAnimationControl("townMeetCatButton", in: app)
+        waitForElement("catFilter_unowned", in: app)
+        XCTAssertTrue(element("catFilter_unowned", in: app).isSelected)
+        waitForObservedValue("catCollectionProgress", "2/3", in: app)
+        XCTAssertFalse(element("catProfile_cat_001", in: app).exists)
+        XCTAssertFalse(element("catProfile_cat_002", in: app).exists)
+        waitForObservedValue("catAdoption_cat_003", "可以领养", in: app)
+        attachScreenshot(app, named: "Cat collection — adoption entry lists the remaining blue cat")
+        tapAnimationControl("catAdoption_cat_003", in: app)
+        waitForLabel("catAdoptionName", "蓝影", in: app)
+        for identifier in ["catAdoptionPlayerRequirement", "catAdoptionRoomRequirement", "catAdoptionGoldRequirement"] {
+            scrollCareerPage("catAdoptionScroll", to: identifier, in: app)
+            waitForObservedValue(identifier, "已满足", in: app)
+        }
+        confirmCatAdoption(in: app)
+        waitForCatSaveProbeRecovery(in: app)
+        waitForObservedValue("catAdoptionHint", "failed", in: app)
+        waitForObservedValue("catAdoptionGold", "1,000", in: app)
+        confirmCatAdoption(in: app)
+        waitForObservedValue("catProfileScroll", "cat_003", in: app)
+        waitForObservedValue("catProfileName", "蓝影", in: app)
+        waitForObservedValue("catCompanionButton", "available", in: app)
+        tapAnimationControl("catRenameButton", in: app)
+        replaceCatName("蓝莓", replacing: "", in: app)
+        saveCatName(in: app)
+        waitForObservedValue("catNameStatus", "catName.saved", in: app)
+        tapAnimationControl("catNameBackButton", in: app)
+        scrollCareerPage("catProfileScroll", to: "catHealthButton", in: app)
+        tapAnimationControl("catHealthButton", in: app)
+        waitForObservedValue("hospitalDetailScroll", "cat_003", in: app)
+        waitForLabel("hospitalCatName", "蓝莓", in: app)
+        tapAnimationControl("catHealthBackButton", in: app)
+        scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
+        tapAnimationControl("catCompanionButton", in: app)
+        waitForObservedValue("catCompanionButton", "active", in: app)
+        tapAnimationControl("catProfileBackButton", in: app)
+        waitForObservedValue("catCollectionProgress", "3/3", in: app)
+        waitForElement("catCollectionEmpty", in: app)
+        XCTAssertFalse(element("catPageSummary", in: app).exists)
+        XCTAssertFalse(element("catAdoption_cat_003", in: app).exists)
+        attachScreenshot(app, named: "Cat collection — fully adopted filter has a clear empty state")
+        tapAnimationControl("catFilter_owned", in: app)
+        waitForObservedValue("catCount", "3", in: app)
+        waitForObservedValue("catPageSummary", "1/1", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catProfile_cat_003", in: app)
+        waitForLabel("catProfile_cat_003", "蓝莓", in: app)
+        tapAnimationControl("closeSheetButton", in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "400", in: app)
+        waitForObservedValue("homeCatName", "蓝莓", in: app)
+        attachScreenshot(app, named: "Blue companion — adopted renamed and selected without changing the room")
+        relaunchPreservingSave(app)
+        waitForObservedValue("goldCount", "400", in: app)
+        waitForObservedValue("homeCatName", "蓝莓", in: app)
+        openTownCollection(in: app)
+        waitForObservedValue("catCollectionProgress", "3/3", in: app)
+        tapAnimationControl("catFilter_unowned", in: app)
+        waitForElement("catCollectionEmpty", in: app)
+        tapAnimationControl("catFilter_owned", in: app)
+        tapAnimationControl("catProfile_cat_001", in: app)
+        waitForObservedValue("catProfileName", "小橘", in: app)
+        scrollCareerPage("catProfileScroll", to: "catProfileSatiety", in: app)
+        waitForObservedValue("catProfileSatiety", "35", in: app)
+    }
+
+    @MainActor
     func testCatAdoptionShowsLockedRequirementsInAllLanguagesWithoutCharging() throws {
         continueAfterFailure = false
         let app = launchFreshHome()
@@ -20,6 +92,20 @@ extension RoomHomeUITests {
             scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
             XCTAssertFalse(element("catAdoptionButton", in: app).isEnabled)
             attachScreenshot(app, named: "Adoption — locked requirements in \(code)")
+            tapAnimationControl("catAdoptionBackButton", in: app)
+            scrollCareerPage("catCollectionScroll", to: "catFilter_unowned", in: app)
+            tapAnimationControl("catFilter_unowned", in: app)
+            waitForObservedValue("catCollectionProgress", "1/3", in: app)
+            XCTAssertFalse(element("catProfile_cat_001", in: app).exists)
+            tapAnimationControl("catAdoption_cat_003", in: app)
+            waitForLabel("catAdoptionName", code == "en" ? "Bluebell" : (code == "zh-Hant" ? "藍影" : "蓝影"), in: app)
+            for identifier in ["catAdoptionPlayerRequirement", "catAdoptionRoomRequirement", "catAdoptionGoldRequirement"] {
+                scrollCareerPage("catAdoptionScroll", to: identifier, in: app)
+                waitForObservedValue(identifier, code == "en" ? "Not met" : (code == "zh-Hant" ? "尚未符合" : "未满足"), in: app)
+            }
+            scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
+            XCTAssertFalse(element("catAdoptionButton", in: app).isEnabled)
+            attachScreenshot(app, named: "Blue adoption — independent requirements and localized identity in \(code)")
             tapAnimationControl("closeSheetButton", in: app)
             tapAnimationControl("tabHome", in: app)
             waitForObservedValue("goldCount", "200", in: app)
@@ -160,53 +246,95 @@ extension RoomHomeUITests {
 
     @MainActor
     func testCowCatCompletesBowlMealPounceAndSupportedFurnitureRests() throws {
+        try assertCompanionCompletesCareAndFurnitureRests(fixture: "--uitesting-adoption-owned", catID: "cat_002",
+                                                         appearance: "cow", fedSatiety: "80")
+    }
+
+    @MainActor
+    func testBlueCatCompletesBowlMealPounceAndSupportedFurnitureRests() throws {
+        try assertCompanionCompletesCareAndFurnitureRests(fixture: "--uitesting-blue-adoption-owned", catID: "cat_003",
+                                                         appearance: "blue", fedSatiety: "95")
+    }
+
+    @MainActor
+    private func assertCompanionCompletesCareAndFurnitureRests(fixture: String, catID: String, appearance: String,
+                                                              fedSatiety: String) throws {
         continueAfterFailure = false
-        let app = launchCatAdoptionFixture("--uitesting-adoption-owned", extra: ["--rest-test"])
-        let before = selectRoomCompanion("cat_002", appearance: "cow", in: app)
+        let app = launchCatAdoptionFixture(fixture, extra: ["--rest-test"])
+        let before = selectRoomCompanion(catID, appearance: appearance, in: app)
         tapAnimationControl("feedButton", in: app)
-        _ = waitForFurniture(in: app, timeout: 35, description: "cow cat reaches the actual food surface") {
-            $0.activeCatID == "cat_002" && $0.catAppearance == "cow" && $0.phase == "feeding"
+        _ = waitForFurniture(in: app, timeout: 35, description: "\(appearance) cat reaches the actual food surface") {
+            $0.activeCatID == catID && $0.catAppearance == appearance && $0.phase == "feeding"
                 && $0.foodContactSamples > before.foodContactSamples && $0.completedMeals == before.completedMeals
         }
-        attachScreenshot(app, named: "Cow cat — lowered mouth in contact with the bowl")
-        let fed = waitForFurniture(in: app, timeout: 45, description: "cow cat completes one full meal and return path") {
+        attachScreenshot(app, named: "\(appearance) cat — lowered mouth in contact with the bowl")
+        let fed = waitForFurniture(in: app, timeout: 45, description: "\(appearance) cat completes one full meal and return path") {
             $0.phase == "idle" && $0.completedMeals == before.completedMeals + 1
         }
-        XCTAssertEqual(fed.activeCatID, "cat_002")
-        XCTAssertEqual(fed.catAppearance, "cow")
+        XCTAssertEqual(fed.activeCatID, catID)
+        XCTAssertEqual(fed.catAppearance, appearance)
         XCTAssertGreaterThan(fed.foodContactSamples, before.foodContactSamples)
-        waitForObservedValue("catSatiety", "80", in: app)
+        waitForObservedValue("catSatiety", fedSatiety, in: app)
         waitForObservedValue("foodCount", "2", in: app)
 
         let pounces = try XCTUnwrap(fed.completedPounces)
         tapAnimationControl("playButton", in: app)
-        _ = waitForFurniture(in: app, timeout: 15, description: "cow cat begins the real play route") {
+        _ = waitForFurniture(in: app, timeout: 15, description: "\(appearance) cat begins the real play route") {
             $0.phase == "playing" && $0.carePlanning == false
         }
-        attachScreenshot(app, named: "Cow cat — approaching the toy for a pounce")
-        let played = waitForFurniture(in: app, timeout: 40, description: "cow cat lands its pounce and returns safely") {
+        attachScreenshot(app, named: "\(appearance) cat — approaching the toy for a pounce")
+        let played = waitForFurniture(in: app, timeout: 40, description: "\(appearance) cat lands its pounce and returns safely") {
             $0.phase == "idle" && $0.completedPounces == pounces + 1
         }
-        XCTAssertEqual(played.activeCatID, "cat_002")
+        XCTAssertEqual(played.activeCatID, catID)
         XCTAssertEqual(played.completedMeals, fed.completedMeals)
+
+        let worldWidth = try XCTUnwrap(played.worldWidth)
+        let worldHeight = try XCTUnwrap(played.worldHeight)
+        let viewportWidth = try XCTUnwrap(played.viewportWidth)
+        let viewportHeight = try XCTUnwrap(played.viewportHeight)
+        XCTAssertGreaterThan(viewportWidth, 0)
+        XCTAssertGreaterThan(viewportHeight, 0)
+        let fullRoomScale = max(worldWidth / viewportWidth, worldHeight / viewportHeight)
+        XCTAssertGreaterThan(fullRoomScale, 1, "Both adoption fixtures use an expanded room.")
+        tapAnimationControl("homeCareVisibilityButton", in: app)
+        waitForObservedValue("homeCareVisibilityButton", "hidden", in: app)
+        element("roomPinchSurface", in: app).pinch(withScale: 0.35, velocity: -1)
+        let overview = waitForFurniture(in: app, description: "\(appearance) cat's expanded room fits on screen") {
+            abs(($0.cameraScale ?? 1) - fullRoomScale) < 0.025 && $0.phase == "idle" && !$0.pending
+        }
+        XCTAssertEqual(try XCTUnwrap(overview.cameraX), worldWidth / 2, accuracy: 0.5)
+        XCTAssertEqual(try XCTUnwrap(overview.cameraY), worldHeight / 2, accuracy: 0.5)
+        for id in ["catBed", "floorCushion"] {
+            let item = try XCTUnwrap(overview.items.first { $0.id == id })
+            let touch = restFurnitureTouchPoint(item, cameraScale: overview.cameraScale ?? 1)
+            XCTAssertTrue([item.x, item.y, Double(touch.dx), Double(touch.dy)].allSatisfy { $0 > 0 && $0 < 1 },
+                          "\(id) and its actual touch point must be visible in the complete room.")
+        }
+        attachScreenshot(app, named: "\(appearance) cat — complete expanded room before furniture rests")
 
         for id in ["catBed", "floorCushion"] {
             let resting = try beginFurnitureRest(id, in: app)
-            XCTAssertEqual(resting.activeCatID, "cat_002")
-            XCTAssertEqual(resting.catAppearance, "cow")
-            attachScreenshot(app, named: "Cow cat — paws and body supported on \(id)")
+            XCTAssertEqual(resting.activeCatID, catID)
+            XCTAssertEqual(resting.catAppearance, appearance)
+            attachScreenshot(app, named: "\(appearance) cat — paws and body supported on \(id)")
             let visual = try XCTUnwrap(resting.restVisualPoint)
+            let wakeY = visual.y - 0.035 / (resting.cameraScale ?? 1)
+            XCTAssertTrue([visual.x, visual.y, wakeY].allSatisfy { $0 > 0 && $0 < 1 },
+                          "The resting cat and its wake-up touch point must remain visible.")
             element("roomScene", in: app)
-                .coordinate(withNormalizedOffset: CGVector(dx: visual.x, dy: visual.y - 0.035)).tap()
-            let awake = waitForFurniture(in: app, timeout: 30, description: "cow cat steps down safely from \(id)") {
+                .coordinate(withNormalizedOffset: CGVector(dx: visual.x, dy: wakeY)).tap()
+            let awake = waitForFurniture(in: app, timeout: 30, description: "\(appearance) cat steps down safely from \(id)") {
                 $0.phase == "idle" && $0.restFurniture == nil && $0.restPhase == "none"
                     && $0.restExits == (resting.restExits ?? -1) + 1 && $0.savedRestSession == nil
             }
             XCTAssertGreaterThan(awake.stepDownSamples ?? -1, resting.stepDownSamples ?? -1)
             XCTAssertNil(awake.savedRestSession)
             XCTAssertEqual(awake.completedMeals, fed.completedMeals)
-            attachScreenshot(app, named: "Cow cat — safely back on the floor after \(id)")
+            attachScreenshot(app, named: "\(appearance) cat — safely back on the floor after \(id)")
         }
+        tapAnimationControl("homeCareVisibilityButton", in: app)
+        waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("goldCount", "1,000", in: app)
         tapAnimationControl("tabInventory", in: app)
@@ -314,6 +442,7 @@ extension RoomHomeUITests {
     @MainActor
     private func selectRoomCompanion(_ id: String, appearance: String, in app: XCUIApplication) -> FurnitureState {
         openTownCollection(in: app)
+        scrollCareerPage("catCollectionScroll", to: "catProfile_\(id)", in: app)
         tapAnimationControl("catProfile_\(id)", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)

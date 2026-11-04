@@ -109,27 +109,39 @@ enum CatAtlasRegistration {
             // using alpha >= 180 across each visible paw's last three rows.
             // Frame 1 names the reaching paw; the other forepaw still supports
             // the body. Frames 2/3 keep the rear paw low; 5/6 keep it high.
-            let front: [CGPoint] = appearance == .cow
-                ? [CGPoint(x: 262.4, y: 428), CGPoint(x: 388.0, y: 367),
-                   CGPoint(x: 317.7, y: 387), CGPoint(x: 318.4, y: 378),
-                   CGPoint(x: 273.4, y: 381), CGPoint(x: 320.8, y: 398),
-                   CGPoint(x: 284.6, y: 398), CGPoint(x: 279.5, y: 395)]
-                : [CGPoint(x: 261.4, y: 426), CGPoint(x: 390.0, y: 366),
-                                    CGPoint(x: 318.3, y: 386), CGPoint(x: 321.0, y: 376),
-                                    CGPoint(x: 272.1, y: 380), CGPoint(x: 323.1, y: 397),
-                                    CGPoint(x: 289.0, y: 395), CGPoint(x: 275.7, y: 391)]
-            let rear: [CGPoint] = appearance == .cow
-                ? [CGPoint(x: 88.0, y: 418), CGPoint(x: 107.1, y: 421),
-                   CGPoint(x: 106.2, y: 420), CGPoint(x: 116.2, y: 419),
-                   CGPoint(x: 98.0, y: 374), CGPoint(x: 92.4, y: 337),
-                   CGPoint(x: 104.3, y: 341), CGPoint(x: 96.0, y: 379)]
-                : [CGPoint(x: 87.2, y: 417), CGPoint(x: 106.3, y: 419),
-                                   CGPoint(x: 106.5, y: 419), CGPoint(x: 118.0, y: 417),
-                                   CGPoint(x: 100.1, y: 374), CGPoint(x: 94.0, y: 334),
-                                   CGPoint(x: 105.3, y: 337), CGPoint(x: 95.3, y: 377)]
-            let baselines: [CGFloat] = appearance == .cow
-                ? [428, 429, 420, 419, 381, 337, 341, 395]
-                : [426, 425, 419, 417, 380, 334, 337, 391]
+            let front: [CGPoint], rear: [CGPoint], baselines: [CGFloat]
+            switch appearance {
+            case .orange:
+                front = [CGPoint(x: 261.4, y: 426), CGPoint(x: 390.0, y: 366),
+                         CGPoint(x: 318.3, y: 386), CGPoint(x: 321.0, y: 376),
+                         CGPoint(x: 272.1, y: 380), CGPoint(x: 323.1, y: 397),
+                         CGPoint(x: 289.0, y: 395), CGPoint(x: 275.7, y: 391)]
+                rear = [CGPoint(x: 87.2, y: 417), CGPoint(x: 106.3, y: 419),
+                         CGPoint(x: 106.5, y: 419), CGPoint(x: 118.0, y: 417),
+                         CGPoint(x: 100.1, y: 374), CGPoint(x: 94.0, y: 334),
+                         CGPoint(x: 105.3, y: 337), CGPoint(x: 95.3, y: 377)]
+                baselines = [426, 425, 419, 417, 380, 334, 337, 391]
+            case .cow:
+                front = [CGPoint(x: 262.4, y: 428), CGPoint(x: 388.0, y: 367),
+                         CGPoint(x: 317.7, y: 387), CGPoint(x: 318.4, y: 378),
+                         CGPoint(x: 273.4, y: 381), CGPoint(x: 320.8, y: 398),
+                         CGPoint(x: 284.6, y: 398), CGPoint(x: 279.5, y: 395)]
+                rear = [CGPoint(x: 88.0, y: 418), CGPoint(x: 107.1, y: 421),
+                         CGPoint(x: 106.2, y: 420), CGPoint(x: 116.2, y: 419),
+                         CGPoint(x: 98.0, y: 374), CGPoint(x: 92.4, y: 337),
+                         CGPoint(x: 104.3, y: 341), CGPoint(x: 96.0, y: 379)]
+                baselines = [428, 429, 420, 419, 381, 337, 341, 395]
+            case .blue:
+                front = [CGPoint(x: 262.462, y: 427), CGPoint(x: 390.5, y: 364),
+                         CGPoint(x: 316.673, y: 385), CGPoint(x: 319.234, y: 377),
+                         CGPoint(x: 273.362, y: 381), CGPoint(x: 322.602, y: 396),
+                         CGPoint(x: 284.104, y: 395), CGPoint(x: 275.966, y: 391)]
+                rear = [CGPoint(x: 88.275, y: 418), CGPoint(x: 109.103, y: 420),
+                         CGPoint(x: 107.455, y: 419), CGPoint(x: 120.5, y: 417),
+                         CGPoint(x: 100.689, y: 374), CGPoint(x: 95.085, y: 333),
+                         CGPoint(x: 106.048, y: 336), CGPoint(x: 97.75, y: 377)]
+                baselines = [427, 427, 419, 417, 381, 333, 336, 391]
+            }
             let bodyOffset = frames[0].groundCenter - frames[0].bounds.midX
             return frames.enumerated().map { index, frame in
                 Frame(rect: frame.rect, bounds: frame.bounds,

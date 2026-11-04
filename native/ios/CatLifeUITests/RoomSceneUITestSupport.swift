@@ -12,8 +12,19 @@ extension RoomHomeUITests {
         let kind: String
         let x: Double
         let y: Double
+        let orientation: String
         var position: CGVector { CGVector(dx: x, dy: y) }
         var isWall: Bool { kind == "wallFlower" || kind == "wallCat" }
+
+        private enum CodingKeys: String, CodingKey { case id, kind, x, y, orientation }
+        init(from decoder: Decoder) throws {
+            let values = try decoder.container(keyedBy: CodingKeys.self)
+            id = try values.decode(String.self, forKey: .id)
+            kind = try values.decode(String.self, forKey: .kind)
+            x = try values.decode(Double.self, forKey: .x)
+            y = try values.decode(Double.self, forKey: .y)
+            orientation = try values.decodeIfPresent(String.self, forKey: .orientation) ?? "normal"
+        }
     }
 
     struct RestInterruptState: Decodable {
@@ -33,6 +44,13 @@ extension RoomHomeUITests {
         let completedPounces: Int?
         let activeCatID: String?
         let catAppearance: String?
+        let cameraScale: Double?
+        let cameraX: Double?
+        let cameraY: Double?
+        let worldWidth: Double?
+        let worldHeight: Double?
+        let viewportWidth: Double?
+        let viewportHeight: Double?
         let carePlanning: Bool?
         let foodContactSamples: Int
         let foodContactViolations: Int
@@ -102,12 +120,12 @@ extension RoomHomeUITests {
                                 matching: { $0.phase == "idle" && !$0.pending && $0.restPhase == "none" })
     }
 
-    func restFurnitureTouchPoint(_ item: FurnitureItemState) -> CGVector {
+    func restFurnitureTouchPoint(_ item: FurnitureItemState, cameraScale: Double = 1) -> CGVector {
         // The cat can return in front of the bed after eating; its visible head
         // overlaps the center. The exposed left rear mattress remains tappable.
         let isBed = item.id == "catBed"
-        return CGVector(dx: item.x - (isBed ? 0.065 : 0),
-                        dy: item.y - (isBed ? 0.055 : 0.02))
+        return CGVector(dx: item.x - (isBed ? 0.065 : 0) / cameraScale,
+                        dy: item.y - (isBed ? 0.055 : 0.02) / cameraScale)
     }
 
     @MainActor
@@ -116,7 +134,7 @@ extension RoomHomeUITests {
         let before = furnitureState(in: app, file: file, line: line)
         let item = try XCTUnwrap(before.items.first { $0.id == id }, file: file, line: line)
         element("roomScene", in: app)
-            .coordinate(withNormalizedOffset: restFurnitureTouchPoint(item)).tap()
+            .coordinate(withNormalizedOffset: restFurnitureTouchPoint(item, cameraScale: before.cameraScale ?? 1)).tap()
         let resting = waitForFurniture(in: app, timeout: 60, description: "cat walks to and settles on \(id)",
                                        matching: { $0.phase == "resting" && $0.restFurniture == id && $0.restPhase == "resting"
                                            && ($0.restContactSamples ?? -1) > (before.restContactSamples ?? -1) },
@@ -140,10 +158,12 @@ extension RoomHomeUITests {
                              "The resting pose must remain supported at the real furniture surface height.", file: file, line: line)
         let visualPoint = try XCTUnwrap(resting.restVisualPoint, file: file, line: line)
         let roomHeight = Double(element("roomScene", in: app).frame.height)
-        XCTAssertTrue([visualPoint.x, visualPoint.y, elevation].allSatisfy(\.isFinite), file: file, line: line)
+        let cameraScale = resting.cameraScale ?? 1
+        XCTAssertTrue([visualPoint.x, visualPoint.y, elevation, cameraScale].allSatisfy(\.isFinite), file: file, line: line)
+        XCTAssertGreaterThan(cameraScale, 0, file: file, line: line)
         XCTAssertGreaterThan(roomHeight, 0, file: file, line: line)
         XCTAssertEqual(visualPoint.x, resting.cat.x, accuracy: 0.002, file: file, line: line)
-        XCTAssertEqual(visualPoint.y, resting.cat.y - elevation / roomHeight, accuracy: 0.002,
+        XCTAssertEqual(visualPoint.y, resting.cat.y - elevation / cameraScale / roomHeight, accuracy: 0.002,
                        "Rest diagnostics and taps must follow the visible supported body, not the lower navigation anchor.",
                        file: file, line: line)
         if id == "catBed" {

@@ -56,17 +56,27 @@ struct GameStoreFixtures {
                 value.tasks.dailyWorkCount = 2
             }
             initialSnapshot = value
-        } else if arguments.contains("--uitesting-adoption-ready") || arguments.contains("--uitesting-adoption-owned") {
+        } else if arguments.contains(where: {
+            ["--uitesting-adoption-ready", "--uitesting-adoption-owned",
+             "--uitesting-blue-adoption-ready", "--uitesting-blue-adoption-owned"].contains($0)
+        }) {
+            let blueReady = arguments.contains("--uitesting-blue-adoption-ready")
+            let blueOwned = arguments.contains("--uitesting-blue-adoption-owned")
             var value = GameSnapshot.fresh(now: now)
-            value.player.level = 2
+            value.player.level = blueReady || blueOwned ? 4 : 2
             value.player.gold = 1000
-            value.home.roomLevel = 2
+            value.home.roomLevel = blueReady || blueOwned ? 3 : 2
             value.inventory.toys = 6
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
-            if arguments.contains("--uitesting-adoption-owned") {
+            if arguments.contains("--uitesting-adoption-owned") || blueReady || blueOwned {
                 value.cats.append(CatState(id: CatCatalog.cowCatID, name: "牛奶", satiety: 55,
                                           cleanliness: 65, mood: 70, intimacy: 20, energy: 60,
                                           health: 95, now: now, appearance: .cow))
+            }
+            if blueOwned {
+                value.cats.append(CatState(id: CatCatalog.blueCatID, name: "蓝影", satiety: 70,
+                                          cleanliness: 85, mood: 80, intimacy: 10, energy: 85,
+                                          health: 100, now: now, appearance: .blue))
             }
             initialSnapshot = value
         } else if arguments.contains("--cat-collection-fixture") {

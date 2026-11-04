@@ -37,6 +37,8 @@ final class RoomSceneDiagnostics {
     var lastBowlPlanOnMainThread = false
     var lastRestInterrupt: [String: Any]?
     var dragMoveSamples = 0
+    var furnitureDragPreviewSamples = 0
+    var furnitureDragPreviewPoint: CGPoint?
     var maximumDragMoveMs: Double = 0
     private var restContactSamples = 0
     private var stepForeSupportSamples = 0
@@ -123,7 +125,8 @@ final class RoomSceneDiagnostics {
                         case .frontPaws:
                             stepForeSupportSamples += 1
                             if front.y <= rear.y { stepClearanceViolations += 1 }
-                            if cat.stepProgress >= 0.139, let band = occupied?.entrySupportBand {
+                            if let visit = occupied, let band = visit.entrySupportBand,
+                               cat.stepProgress >= visit.entryContactProgress - 0.001 {
                                 // Measure the held paw against the real yellow
                                 // mattress edge, not merely against its rear paw.
                                 let dx = max(band.minX - front.x, 0, front.x - band.maxX)
@@ -219,6 +222,7 @@ final class RoomSceneDiagnostics {
             let world = worldPoint(node.position)
             let footprint = state.furnitureWorld.footprint(item)
             return ["id": item.id, "kind": item.kind.rawValue,
+                    "orientation": item.orientation.rawValue,
                     "x": screen["x"]!, "y": screen["y"]!,
                     "worldX": world["x"]!, "worldY": world["y"]!,
                     "width": node.size.width, "height": node.size.height,
@@ -238,6 +242,8 @@ final class RoomSceneDiagnostics {
                 ["itemID": $0.itemID, "x": $0.position.x, "y": $0.position.y] as [String: Any]
             } as Any? ?? NSNull(),
             "items": objects, "selected": selectedFurnitureID ?? "bowl", "pending": isPlacementPending,
+            "dragPreviewSamples": furnitureDragPreviewSamples,
+            "dragPreviewWorld": furnitureDragPreviewPoint.map(worldPoint) as Any? ?? NSNull(),
             "phase": presentationPhase, "violations": collisionViolations,
             "completedMeals": cat.completedMeals, "completedPounces": cat.completedPounces,
             "foodContactSamples": foodContactSamples,

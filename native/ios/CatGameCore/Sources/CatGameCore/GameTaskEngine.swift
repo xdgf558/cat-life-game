@@ -88,6 +88,8 @@ extension GameTaskState {
         let purchasedInstances = Set(ShopCatalog.furnitureOffers.flatMap { offer in
             (1...offer.maxOwned).map { FurnitureItem(id: offer.instanceID($0), kind: offer.kind) }
         })
-        furniturePurchaseCount = max(furniturePurchaseCount, Set(furniture).intersection(purchasedInstances).count)
+        // Purchase evidence is the stable ID and kind, independent of the saved artwork direction.
+        let ownedInstances = Set(furniture.map { FurnitureItem(id: $0.id, kind: $0.kind) })
+        furniturePurchaseCount = max(furniturePurchaseCount, ownedInstances.intersection(purchasedInstances).count)
     }
 }

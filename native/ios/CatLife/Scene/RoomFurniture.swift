@@ -114,7 +114,8 @@ struct RoomFurnitureWorld: Sendable {
         return RoomNavigation(floor: floor.polygon,
                               obstacles: floorObstacles(excluding: id).map { $0.insetBy(dx: -2, dy: -2) }
                                 + [floor.bowlObstacle(at: bowlPosition).insetBy(dx: -2, dy: -2), catRect],
-                              footprint: footprint(item), cellSize: 7)
+                              footprint: footprint(item), cellSize: 7,
+                              floorFootprintShape: item.kind == .catBed ? .clippedCorners : .rectangle)
     }
 
     func replacing(_ id: String, with center: CGPoint) -> Self {
@@ -172,6 +173,7 @@ struct RoomFurnitureRest: Sendable {
     let navigation: RoomNavigation
     let target: CGRect
     let elevation: CGFloat
+    let entryContactProgress: CGFloat
     /// Measured visible front-mattress band, independent of the actor's pose.
     let entrySupportBand: CGRect?
 }
@@ -185,6 +187,7 @@ extension RoomFurnitureWorld {
         let otherObstacles = floorObstacles(excluding: id) + [floor.bowlObstacle(at: bowlPosition)]
         var point = center
         var elevation = catWidth * 0.14
+        var contactProgress = CatFurnitureStepTimeline.defaultContactProgress
         var supportBand: CGRect?
         if item.kind == .catBed {
             let spec = RoomFurnitureSpec.forItem(item)
@@ -200,25 +203,38 @@ extension RoomFurnitureWorld {
             let visualRestY = center.y + target.height * 0.16 + catWidth * 0.06
             let stageY = target.minY - floor.catFootprint.height / 2
                 - max(1, floor.catFootprint.height * 0.15)
-            // Front-paw support holds at .14 of the validated entry. Solve
+            // Front-paw support normally holds at .14 of the validated entry. Solve
             // ground projection + physical elevation against the visible rim;
             // using only the old .06C sleeping offset left both paws on floor.
-            let contactProgress: CGFloat = 0.14
             elevation = (edgeY - stageY - contactProgress * (visualRestY - stageY))
                 / (1 - contactProgress)
             // A narrow/tall crop can make the bed taller relative to the cat.
-            // This is a step-up, not a jump: reject an unreachable ledge rather
-            // than compressing the forelegs through themselves or faking contact.
+            // Approach its rim a little farther before reaching, instead of
+            // stretching the forelegs beyond their supported height. Preserve
+            // safe existing entries and the final visible sleeping position.
+            if elevation > catWidth * 0.55 {
+                let reachableElevation = catWidth * 0.54
+                let remainingRise = visualRestY - stageY - reachableElevation
+                guard remainingRise.isFinite, remainingRise > 0 else { return nil }
+                contactProgress = (edgeY - stageY - reachableElevation) / remainingRise
+                guard contactProgress.isFinite,
+                      contactProgress >= CatFurnitureStepTimeline.defaultContactProgress,
+                      contactProgress <= CatFurnitureStepTimeline.maximumContactProgress else { return nil }
+                elevation = reachableElevation
+            }
+            // This remains a step-up, not a jump or an unconstrained warp.
             guard elevation.isFinite, elevation > 0, elevation <= catWidth * 0.55 else { return nil }
             point.y = visualRestY - elevation
         }
         guard let plan = FurnitureRestPlanner.plan(floor: floor.polygon, obstacles: otherObstacles,
                                                   target: target, footprint: floor.catFootprint,
-                                                  start: start, restPoint: point) else { return nil }
+                                                  start: start, restPoint: point,
+                                                  preferredFacing: item.orientation == .mirrored ? -1 : 1) else { return nil }
         return .init(item: item, plan: plan,
                      navigation: RoomNavigation(floor: floor.polygon, obstacles: otherObstacles,
                                                 footprint: floor.catFootprint, cellSize: 7, precomputeGrid: false),
-                     target: target, elevation: elevation, entrySupportBand: supportBand)
+                     target: target, elevation: elevation, entryContactProgress: contactProgress,
+                     entrySupportBand: supportBand)
     }
 }
 

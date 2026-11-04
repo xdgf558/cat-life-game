@@ -147,6 +147,18 @@ struct RoomArrangementPanel: View {
                         .foregroundStyle(RoomTheme.secondary).lineLimit(2)
                 }
                 Spacer(minLength: 0)
+                Button { store.flipSelectedFurniture() } label: {
+                    Image(systemName: "arrow.left.arrow.right")
+                        .font(.system(size: 18, weight: .bold))
+                }
+                .buttonStyle(SoftButtonStyle()).frame(width: 44, height: 44)
+                .disabled(!store.canFlipSelectedFurniture)
+                .opacity(store.canFlipSelectedFurniture ? 1 : 0.45)
+                .accessibilityIdentifier("flipFurnitureButton")
+                .accessibilityLabel(GameStrings.text("layout.flipFurniture"))
+                .accessibilityValue(store.selectedFurniture.map {
+                    GameStrings.text("layout.orientation.\($0.orientation.rawValue)")
+                } ?? "")
                 Button { store.storeSelectedFurniture() } label: {
                     Label(GameStrings.text("layout.storeFurniture"), systemImage: "backpack.fill")
                         .font(.system(size: 12, weight: .heavy)).fixedSize()

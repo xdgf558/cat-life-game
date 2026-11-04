@@ -7,10 +7,12 @@ struct CatCollectionView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [Route]
+    @State private var filter: Filter
     @State private var page = 0
     @State private var isSaving = false
 
     private enum Route: Hashable { case profile(String), name(String), adoption(String), health(String) }
+    enum Filter: String, CaseIterable { case all, owned, unowned }
     private enum Entry: Identifiable {
         case owned(CatState), adoption(CatAdoptionOffer)
         var id: String {
@@ -19,19 +21,26 @@ struct CatCollectionView: View {
     }
     private let pageSize = 4
     private var cats: [CatState] { store.snapshot?.cats ?? [] }
+    private var collectedCount: Int { Set(cats.map(\.appearance)).count }
     private var entries: [Entry] {
         guard store.snapshot != nil else { return [] }
-        return cats.map(Entry.owned) + CatCatalog.adoptionOffers
+        let owned = cats.map(Entry.owned)
+        let unowned = CatCatalog.adoptionOffers
             .filter { offer in !cats.contains { $0.id == offer.id } }.map(Entry.adoption)
+        switch filter {
+        case .all: return owned + unowned
+        case .owned: return owned
+        case .unowned: return unowned
+        }
     }
     private var pageCount: Int { max(1, (entries.count + pageSize - 1) / pageSize) }
     private var currentPage: Int { min(page, pageCount - 1) }
     private var visibleEntries: [Entry] { Array(entries.dropFirst(currentPage * pageSize).prefix(pageSize)) }
 
-    init(store: GameStore, initialCatID: String? = nil, initialAdoptionID: String? = nil) {
+    init(store: GameStore, initialCatID: String? = nil, initialFilter: Filter = .all) {
         self.store = store
-        _path = State(initialValue: initialCatID.map { [.profile($0)] }
-            ?? initialAdoptionID.map { [.adoption($0)] } ?? [])
+        _path = State(initialValue: initialCatID.map { [.profile($0)] } ?? [])
+        _filter = State(initialValue: initialFilter)
     }
 
     var body: some View {
@@ -97,6 +106,7 @@ struct CatCollectionView: View {
         .presentationBackground(RoomTheme.cream)
         .interactiveDismissDisabled(isSaving)
         .onChange(of: cats.count) { _, _ in page = currentPage }
+        .onChange(of: filter) { _, _ in page = 0 }
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif
@@ -104,17 +114,26 @@ struct CatCollectionView: View {
 
     private var directory: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 12) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(GameStrings.text("town.subtitle"))
-                        .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                    Text(GameStrings.format("catDirectory.count", cats.count))
-                        .font(.footnote.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
-                        .accessibilityIdentifier("catCount").accessibilityValue("\(cats.count)")
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
+                        Text(GameStrings.format("catDirectory.count", cats.count))
+                            .foregroundStyle(RoomTheme.secondary)
+                            .accessibilityIdentifier("catCount").accessibilityValue("\(cats.count)")
+                        Spacer(minLength: 0)
+                        Text(GameStrings.format("catDirectory.collected", collectedCount, CatAppearance.allCases.count))
+                            .foregroundStyle(RoomTheme.darkMint).multilineTextAlignment(.trailing)
+                    }
+                    .font(.caption.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    ProgressView(value: Double(collectedCount), total: Double(CatAppearance.allCases.count))
+                        .tint(RoomTheme.mint)
+                        .accessibilityLabel(GameStrings.text("town.title"))
+                        .accessibilityIdentifier("catCollectionProgress")
+                        .accessibilityValue("\(collectedCount)/\(CatAppearance.allCases.count)")
                 }
+                filters
                 if entries.isEmpty {
-                    Text(GameStrings.text("catDirectory.empty"))
+                    Text(GameStrings.text(filter == .unowned ? "catDirectory.allAdopted" : "catDirectory.empty"))
                         .font(.body).foregroundStyle(RoomTheme.secondary)
                         .padding(24).frame(maxWidth: .infinity)
                         .gameCard(cornerRadius: 24)
@@ -138,11 +157,30 @@ struct CatCollectionView: View {
         .accessibilityIdentifier("catCollectionScroll")
     }
 
+    private var filters: some View {
+        HStack(spacing: 6) {
+            ForEach(Filter.allCases, id: \.self) { option in
+                Button { filter = option } label: {
+                    Text(GameStrings.text("catDirectory.filter.\(option.rawValue)"))
+                        .font(.system(size: 13, weight: .bold, design: .rounded))
+                        .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .padding(.horizontal, 5)
+                        .foregroundStyle(filter == option ? .white : RoomTheme.ink)
+                        .background(filter == option ? RoomTheme.mint : RoomTheme.paper, in: Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(filter == option ? .isSelected : [])
+                .accessibilityIdentifier("catFilter_\(option.rawValue)")
+            }
+        }
+    }
+
     private func catCard(_ cat: CatState) -> some View {
         Button { path.append(.profile(cat.id)) } label: {
-            VStack(spacing: 7) {
-                GameIcon(asset: cat.appearance == .cow ? "cat-cow-idle" : "cat-idle",
-                         symbol: "cat.fill", size: 64, tint: RoomTheme.gold)
+            VStack(spacing: 5) {
+                GameIcon(asset: CatArtwork.asset("cat-idle", appearance: cat.appearance),
+                         symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
                     .background(RoomTheme.wood.opacity(0.12), in: Circle())
                 Text(verbatim: GameStrings.catName(cat))
                     .font(.headline).lineLimit(2).minimumScaleFactor(0.85)
@@ -151,7 +189,7 @@ struct CatCollectionView: View {
                     .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
                     .lineLimit(2).multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity).padding(14)
+            .frame(maxWidth: .infinity).padding(12)
             .gameCard(cornerRadius: 24)
             .contentShape(RoundedRectangle(cornerRadius: 24))
         }
@@ -164,19 +202,29 @@ struct CatCollectionView: View {
     }
 
     private func adoptionCard(_ offer: CatAdoptionOffer) -> some View {
-        Button { path.append(.adoption(offer.id)) } label: {
-            VStack(spacing: 7) {
-                GameIcon(asset: "cat-cow-idle", symbol: "cat.fill", size: 64, tint: RoomTheme.gold)
+        let available = store.snapshot.map {
+            $0.player.level >= offer.requiredPlayerLevel && $0.home.roomLevel >= offer.requiredRoomLevel
+                && $0.player.gold >= offer.price
+        } ?? false
+        return Button { path.append(.adoption(offer.id)) } label: {
+            VStack(spacing: 5) {
+                GameIcon(asset: CatArtwork.asset("cat-idle", appearance: offer.appearance), symbol: "cat.fill", size: 52, tint: RoomTheme.gold)
                     .background(RoomTheme.paleMint.opacity(0.5), in: Circle())
-                Text(GameStrings.text("cat.cowName")).font(.headline)
-                Label(GameStrings.text("cat.adoptionView"), systemImage: "heart.fill")
-                    .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
+                Text(GameStrings.catAdoptionName(offer)).font(.headline)
+                Label(GameStrings.text(available ? "cat.adoptionAvailable" : "cat.adoptionRequirements"),
+                      systemImage: available ? "heart.fill" : "lock.fill")
+                    .font(.caption.weight(.semibold)).foregroundStyle(available ? RoomTheme.darkMint : RoomTheme.secondary)
+                    .lineLimit(2).multilineTextAlignment(.center)
+                Text(GameStrings.format("cat.adoptionSummary", offer.requiredPlayerLevel, offer.requiredRoomLevel, offer.price))
+                    .font(.caption2).foregroundStyle(RoomTheme.secondary)
+                    .lineLimit(2).multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity).padding(14)
+            .frame(maxWidth: .infinity).padding(12)
             .gameCard(cornerRadius: 24)
             .contentShape(RoundedRectangle(cornerRadius: 24))
         }
         .buttonStyle(.plain).accessibilityElement(children: .combine)
+        .accessibilityValue(GameStrings.text(available ? "cat.adoptionAvailable" : "cat.adoptionRequirements"))
         .accessibilityIdentifier("catAdoption_\(offer.id)")
     }
 

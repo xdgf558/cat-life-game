@@ -19,7 +19,13 @@ struct CatFurnitureStepKeyframe: Sendable {
 /// Calibrated pose timing and support heights; the actor owns nodes, cancellation,
 /// and interpolation so extracting these values cannot create a second animator.
 enum CatFurnitureStepTimeline {
-    static func ascending(elevation: CGFloat) -> [CatFurnitureStepKeyframe] {
+    static let defaultContactProgress: CGFloat = 0.14
+    // Keep most of the entry after the paws have caught the rim. A larger
+    // required reach is not a supported step and must remain blocked.
+    static let maximumContactProgress: CGFloat = 0.40
+
+    static func ascending(elevation: CGFloat,
+                          contactProgress: CGFloat = defaultContactProgress) -> [CatFurnitureStepKeyframe] {
         // Most translation happens only after the front paws have caught the
         // edge. Each stop is a weight transfer, not another ground walk cycle.
         let keys: [CatFurnitureStepKeyframe] = [
@@ -27,9 +33,9 @@ enum CatFurnitureStepTimeline {
                   elevation: 0, shadowElevation: 0, duration: 0.12),
             .init(frame: 1, phase: .reaching, travel: 0.025, progress: 0.025,
                   elevation: 0, shadowElevation: 0, duration: 0.28),
-            .init(frame: 2, phase: .frontPaws, travel: 0.14, progress: 0.14,
+            .init(frame: 2, phase: .frontPaws, travel: contactProgress, progress: contactProgress,
                   elevation: 0, shadowElevation: 0, duration: 0.30),
-            .init(frame: 2, phase: .frontPaws, travel: 0.14, progress: 0.14,
+            .init(frame: 2, phase: .frontPaws, travel: contactProgress, progress: contactProgress,
                   elevation: 0, shadowElevation: 0, duration: 0.24),
             .init(frame: 3, phase: .lifting, travel: 0.78, progress: 0.78,
                   elevation: elevation, shadowElevation: elevation * 0.78, duration: 0.65),

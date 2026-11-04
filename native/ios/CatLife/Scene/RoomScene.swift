@@ -18,11 +18,12 @@ final class RoomScene: SKScene {
 #if DEBUG
             welcomePreloadPassCount += 1
 #endif
-            let names = ["room-empty", "bowl-empty", "bowl-full", "icon-play",
-                         "cat-idle", "cat-expressions", "cat-walk", "cat-rise",
-                         "cat-meal", "cat-play", "cat-rest", "cat-step"]
-                + ["cat-cow-idle", "cat-cow-expressions", "cat-cow-walk", "cat-cow-rise",
-                   "cat-cow-meal", "cat-cow-play", "cat-cow-rest", "cat-cow-step"]
+            let names = ["room-empty", "bowl-empty", "bowl-full", "icon-play"]
+                + CatAppearance.allCases.flatMap { appearance in
+                    (["cat-idle"] + CatClip.allCases.map(\.rawValue)).map {
+                        CatArtwork.asset($0, appearance: appearance)
+                    }
+                }
                 + FurnitureKind.allCases.map { FurnitureCatalog.metadata(for: $0).assetName }
             let textures = Set(names).sorted().map { SKTexture(imageNamed: $0) }
             // Serial requests avoid SpriteKit's cold-load setup racing across worker queues.
@@ -458,7 +459,8 @@ final class RoomScene: SKScene {
             if notify { self.onFurnitureNotice?(item.kind == .catBed ? "rest.goBed" : "rest.goCushion") }
             self.cat.rest(approach: visit.plan.approach, entry: visit.plan.entry,
                           facing: visit.plan.facing, duration: item.kind == .catBed ? 12 : 9,
-                          elevation: visit.elevation, onSettled: { [weak self] in
+                          elevation: visit.elevation, contactProgress: visit.entryContactProgress,
+                          onSettled: { [weak self] in
                 guard let self, self.revision == ticket, !self.restExiting else { return }
                 let sessionID = UUID().uuidString
                 self.restSessionID = sessionID

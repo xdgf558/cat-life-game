@@ -110,6 +110,10 @@ extension RoomScene {
         placementTask = nil
         preparePlacementNavigation()
         dragging = true
+#if DEBUG
+        diagnostics.furnitureDragPreviewSamples = 0
+        diagnostics.furnitureDragPreviewPoint = nil
+#endif
         dragScreenPoint = view.map { touch.location(in: $0) }
         if let point = dragScreenPoint { roomCamera.beginTouch(at: point, canPan: false) }
         setPlacementPending(true)
@@ -137,6 +141,10 @@ extension RoomScene {
 #endif
         let point = touch.location(in: self)
         selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
+#if DEBUG
+        diagnostics.furnitureDragPreviewSamples += 1
+        diagnostics.furnitureDragPreviewPoint = selectedNode.position
+#endif
         updateSelection()
         updateBowlLayers()
         updateFurnitureLayers()

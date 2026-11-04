@@ -1,0 +1,65 @@
+{
+  "tool": "built-in image_gen",
+  "generatedAssets": [
+    {
+      "clip": "idle",
+      "prompt": "Use case: precise-object-edit. Asset type: transparent PNG main sitting sprite for native iOS cozy cat game. Edit target Image 1 is the existing orange cat sitting sprite. Create Bluebell, a blue-gray short plush fur cat matching this exact cute 3D cartoon visual family. Change ONLY the coat from orange tabby to soft solid blue-gray/slate gray with slightly lighter cheeks, muzzle, chest and paw tips; change irises to clear sky blue. Keep the pink nose, inner ears, orange bow collar, cheerful expression, fine fur quality, exact sitting pose, head/body proportions, direction, paw/tail positions, silhouette placement and same portrait canvas. Do not make the cat bigger or smaller. This sprite must visually match the animation set which will follow. Isolate on real alpha transparency, no environment, ground plane, cast shadow, text, border or watermark. Preserve all four-paw anatomy and entire tail. Output one full body sitting cat, not a sheet.",
+      "editTarget": "CatLife/Assets.xcassets/cat-idle.imageset/cat-idle.png",
+      "identityReference": null
+    },
+    {
+      "clip": "avatar",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: a single cat avatar game sprite. Image 2 is the approved Bluebell identity reference. Change ONLY the cat identity in image 1 to match image 2: solid soft blue-gray/slate plush fur, slightly lighter cheeks muzzle chest and paw tips, clear sky-blue irises, pink nose and ears, orange neck bow. Remove all orange tabby stripes. Retain every pose, expression, head/body proportion, limb/tail position, silhouette, camera, scale and placement from image 1 exactly. Preserve exact original framing and canvas aspect ratio; output one cat only. Keep fine detailed cozy 3D cartoon fur. True alpha transparency, clear intercell gaps and outer margins; no speckle/residue, floor, shadows, text, grid or watermark.",
+      "editTarget": "CatLife/Assets.xcassets/cat-avatar.imageset/cat-avatar.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "eating",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: a single cat eating game sprite. Image 2 is the approved Bluebell identity reference. Change ONLY the cat identity in image 1 to match image 2: solid soft blue-gray/slate plush fur, slightly lighter cheeks muzzle chest and paw tips, clear sky-blue irises, pink nose and ears, orange neck bow. Remove all orange tabby stripes. Retain every pose, expression, head/body proportion, limb/tail position, silhouette, camera, scale and placement from image 1 exactly. Preserve exact original framing and canvas aspect ratio; output one cat only. Keep fine detailed cozy 3D cartoon fur. True alpha transparency, clear intercell gaps and outer margins; no speckle/residue, floor, shadows, text, grid or watermark.",
+      "editTarget": "CatLife/Assets.xcassets/cat-eating.imageset/cat-eating.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "expressions",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame game cat expressions sprite sheet, 4 columns by 2 rows. Image 2 is the approved Bluebell identity reference. Change ONLY the cat identity in image 1 to match image 2: solid soft blue-gray/slate plush fur, slightly lighter cheeks muzzle chest and paw tips, clear sky-blue irises, pink nose and ears, orange neck bow. Remove all orange tabby stripes. Retain every pose, expression, head/body proportion, limb/tail position, silhouette, camera, scale and placement from image 1 exactly. Preserve all eight row-major frames, separate original cell positions and transparent gaps, 4 columns by 2 rows, landscape 2:1 canvas; do not move, crop, add, repeat or merge frames. Keep fine detailed cozy 3D cartoon fur. True alpha transparency, clear intercell gaps and outer margins; no speckle/residue, floor, shadows, text, grid or watermark.",
+      "editTarget": "CatLife/Assets.xcassets/cat-expressions.imageset/cat-expressions.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "walk",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame walk animation sprite sheet, 4 columns x 2 rows. Image 2 is the approved Bluebell identity reference. Change ONLY all eight cats' coat and eye colors to match Image 2: solid soft blue-gray/slate plush fur, lighter muzzle/chest/paw tips, sky-blue eyes, pink nose and inner ears, orange neck bow. No tabby stripes. Preserve EXACTLY each frame's pose, every limb and tail position, head tilt, expression, mouth/tongue state, silhouette and scale from Image 1. Keep the original row-major layout, original cell positions, separate eight cats, original clear row/cell gaps and landscape 2:1 canvas. Do not crop, move, duplicate, add, merge or enlarge any frame. Clip walk must retain its original motion sequence. Keep soft detailed cozy 3D cartoon fur. True alpha-transparent background; all pixels outside cat silhouettes transparent, no background speckles, floor, cast shadows, grids, text or watermark. Especially preserve the mouth contact positions and paws from the target.",
+      "editTarget": "CatLife/Assets.xcassets/cat-walk.imageset/cat-walk.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "rise",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame rise animation sprite sheet, 4 columns x 2 rows. Image 2 is the approved Bluebell identity reference. Change ONLY all eight cats' coat and eye colors to match Image 2: solid soft blue-gray/slate plush fur, lighter muzzle/chest/paw tips, sky-blue eyes, pink nose and inner ears, orange neck bow. No tabby stripes. Preserve EXACTLY each frame's pose, every limb and tail position, head tilt, expression, mouth/tongue state, silhouette and scale from Image 1. Keep the original row-major layout, original cell positions, separate eight cats, original clear row/cell gaps and landscape 2:1 canvas. Do not crop, move, duplicate, add, merge or enlarge any frame. Clip rise must retain its original motion sequence. Keep soft detailed cozy 3D cartoon fur. True alpha-transparent background; all pixels outside cat silhouettes transparent, no background speckles, floor, cast shadows, grids, text or watermark. Especially preserve the mouth contact positions and paws from the target.",
+      "editTarget": "CatLife/Assets.xcassets/cat-rise.imageset/cat-rise.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "meal",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame meal animation sprite sheet, 4 columns x 2 rows. Image 2 is the approved Bluebell identity reference. Change ONLY all eight cats' coat and eye colors to match Image 2: solid soft blue-gray/slate plush fur, lighter muzzle/chest/paw tips, sky-blue eyes, pink nose and inner ears, orange neck bow. No tabby stripes. Preserve EXACTLY each frame's pose, every limb and tail position, head tilt, expression, mouth/tongue state, silhouette and scale from Image 1. Keep the original row-major layout, original cell positions, separate eight cats, original clear row/cell gaps and landscape 2:1 canvas. Do not crop, move, duplicate, add, merge or enlarge any frame. Clip meal must retain its original motion sequence. Keep soft detailed cozy 3D cartoon fur. True alpha-transparent background; all pixels outside cat silhouettes transparent, no background speckles, floor, cast shadows, grids, text or watermark. Especially preserve the mouth contact positions and paws from the target.",
+      "editTarget": "CatLife/Assets.xcassets/cat-meal.imageset/cat-meal.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "play",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame play animation sprite sheet, 4 columns x 2 rows, landscape 2:1 canvas. Image 2 is approved Bluebell identity. Change ONLY each cat's coat/eye colors to match Image 2: solid soft blue-gray/slate plush fur, lighter muzzle/chest/paw tips, sky-blue eyes, pink nose/inner ears, orange neck bow. No orange tabby stripes. Retain every original pose and its exact frame location: identical limb/paw/tail positions, head orientation/expression, silhouette, body proportions, scale and camera. Keep all eight cats in original row-major order and separate cells. Preserve 4 columns x 2 rows, landscape 2:1 canvas. Do NOT move, crop, add, merge, duplicate, or enlarge any frame.  Use same detailed cozy 3D cartoon fur. True transparent background and all interframe/outer gaps fully transparent. Remove speckle/residue outside each silhouette. No floor, cast shadows, gridlines, text or watermark.",
+      "editTarget": "CatLife/Assets.xcassets/cat-play.imageset/cat-play.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "rest",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame rest animation sprite sheet, 2 columns x 4 rows, portrait 1:2 canvas, preserving the original uneven transparent row gaps. Image 2 is approved Bluebell identity. Change ONLY each cat's coat/eye colors to match Image 2: solid soft blue-gray/slate plush fur, lighter muzzle/chest/paw tips, sky-blue eyes, pink nose/inner ears, orange neck bow. No orange tabby stripes. Retain every original pose and its exact frame location: identical limb/paw/tail positions, head orientation/expression, silhouette, body proportions, scale and camera. Keep all eight cats in original row-major order and separate cells. Preserve 2 columns x 4 rows, portrait 1:2 canvas, preserving the original uneven transparent row gaps. Do NOT move, crop, add, merge, duplicate, or enlarge any frame.  Use same detailed cozy 3D cartoon fur. True transparent background and all interframe/outer gaps fully transparent. Remove speckle/residue outside each silhouette. No floor, cast shadows, gridlines, text or watermark.",
+      "editTarget": "CatLife/Assets.xcassets/cat-rest.imageset/cat-rest.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    },
+    {
+      "clip": "step",
+      "prompt": "Use case: precise-object-edit. Image 1 is the EDIT TARGET: an eight-frame step animation sprite sheet, 4 columns x 2 rows, landscape 2:1 canvas. Image 2 is approved Bluebell identity. Change ONLY each cat's coat/eye colors to match Image 2: solid soft blue-gray/slate plush fur, lighter muzzle/chest/paw tips, sky-blue eyes, pink nose/inner ears, orange neck bow. No orange tabby stripes. Retain every original pose and its exact frame location: identical limb/paw/tail positions, head orientation/expression, silhouette, body proportions, scale and camera. Keep all eight cats in original row-major order and separate cells. Preserve 4 columns x 2 rows, landscape 2:1 canvas. Do NOT move, crop, add, merge, duplicate, or enlarge any frame. Critical: preserve reaching front paw, raised forepaws, trailing hind paw, all-paws-high, front-paw-down and hind-paw-down sequence from original; these paws will align to furniture. Use same detailed cozy 3D cartoon fur. True transparent background and all interframe/outer gaps fully transparent. Remove speckle/residue outside each silhouette. No floor, cast shadows, gridlines, text or watermark.",
+      "editTarget": "CatLife/Assets.xcassets/cat-step.imageset/cat-step.png",
+      "identityReference": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png"
+    }
+  ]
+}

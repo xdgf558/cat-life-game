@@ -85,6 +85,7 @@ final class RoomSceneArtwork {
         let ratio = texture.size().height / max(1, texture.size().width)
         node.size = CGSize(width: width, height: width * ratio)
         node.anchorPoint = CGPoint(x: 0.5, y: spec.anchorY)
+        node.xScale = item.orientation == .mirrored ? -1 : 1
         return node
     }
 
@@ -105,6 +106,7 @@ final class RoomSceneArtwork {
             if visit.item.kind == .catBed, cat.stepPhase == .supported {
                 let fraction: CGFloat = 0.22
                 restFront.isHidden = false
+                restFront.xScale = node.xScale
                 restFront.size = CGSize(width: node.size.width, height: node.size.height * fraction)
                 restFront.position = CGPoint(x: node.position.x,
                                              y: node.position.y + node.size.height * (fraction / 2 - node.anchorPoint.y))

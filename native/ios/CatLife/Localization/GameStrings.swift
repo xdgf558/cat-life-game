@@ -36,7 +36,15 @@ enum GameStrings {
     static func catName(_ cat: CatState) -> String {
         if let customName = cat.customName { return customName }
         if cat.id == CatCatalog.initialCatID, cat.name == "小橘" { return text("cat.defaultName") }
-        if cat.id == CatCatalog.cowCatID, cat.name == "牛奶" { return text("cat.cowName") }
+        if let offer = CatCatalog.adoptionOffer(catID: cat.id), cat.name == offer.name { return catAdoptionName(offer) }
         return cat.name
+    }
+
+    static func catAdoptionName(_ offer: CatAdoptionOffer) -> String {
+        text(offer.appearance == .orange ? "cat.defaultName" : "cat.\(offer.appearance.rawValue)Name")
+    }
+
+    static func catDescription(_ appearance: CatAppearance) -> String {
+        text("cat.\(appearance.rawValue)Description")
     }
 }

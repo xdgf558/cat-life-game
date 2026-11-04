@@ -19,6 +19,7 @@ final class CatActor: SKNode {
         let facing: CGFloat
         let duration: TimeInterval
         let elevation: CGFloat
+        let contactProgress: CGFloat
         let onSettled: () -> Void
     }
 
@@ -180,6 +181,8 @@ final class CatActor: SKNode {
         case (.orange, 3): offset = CGPoint(x: 0.3084 * visualWidth, y: 0.1472 * visualWidth)
         case (.cow, 2): offset = CGPoint(x: 0.356148 * visualWidth, y: 0.140313 * visualWidth)
         case (.cow, 3): offset = CGPoint(x: 0.322526 * visualWidth, y: 0.106760 * visualWidth)
+        case (.blue, 2): offset = CGPoint(x: 0.359527 * visualWidth, y: 0.144857 * visualWidth)
+        case (.blue, 3): offset = CGPoint(x: 0.269013 * visualWidth, y: 0.122571 * visualWidth)
         default: return nil
         }
         return pose.convert(offset, to: parent)
@@ -278,10 +281,13 @@ final class CatActor: SKNode {
     /// Completion ends the stay, not the furniture contact: remain lying down
     /// until the scene supplies a separately validated exit with leaveRest().
     func rest(approach: [CGPoint], entry: [CGPoint], facing: CGFloat,
-              duration: TimeInterval, elevation: CGFloat, onSettled: @escaping () -> Void,
+              duration: TimeInterval, elevation: CGFloat,
+              contactProgress: CGFloat = CatFurnitureStepTimeline.defaultContactProgress,
+              onSettled: @escaping () -> Void,
               completion: @escaping () -> Void) {
         submit(.rest(RestRequest(approach: approach, entry: entry, facing: facing,
-                                 duration: duration, elevation: elevation, onSettled: onSettled)),
+                                 duration: duration, elevation: elevation, contactProgress: contactProgress,
+                                 onSettled: onSettled)),
                completion: completion)
     }
 
@@ -471,6 +477,9 @@ final class CatActor: SKNode {
         let destination = request.entry.last ?? stage
         guard request.facing.isFinite, request.facing != 0,
               request.duration.isFinite, request.elevation.isFinite, request.elevation >= 0,
+              request.contactProgress.isFinite,
+              request.contactProgress >= CatFurnitureStepTimeline.defaultContactProgress,
+              request.contactProgress <= CatFurnitureStepTimeline.maximumContactProgress,
               Self.path(request.approach, connects: position, to: stage),
               Self.path(request.entry, connects: stage, to: destination)
         else { return frame(.expressions, 6, hold: 0.25) }
@@ -490,7 +499,7 @@ final class CatActor: SKNode {
             self.stepProgress = 0
             self.furnitureSurfaceElevation = request.elevation
         }, ascendingStep(along: request.entry, startingAt: stage, elevation: request.elevation,
-                         generation: generation), .run { [weak self] in
+                         contactProgress: request.contactProgress, generation: generation), .run { [weak self] in
             guard let self, self.activityGeneration == generation else { return }
             self.pose.position.y = request.elevation
             self.shadow.position.y = request.elevation
@@ -585,8 +594,8 @@ final class CatActor: SKNode {
     }
 
     private func ascendingStep(along path: [CGPoint], startingAt stage: CGPoint,
-                               elevation: CGFloat, generation: Int) -> SKAction {
-        let keys = CatFurnitureStepTimeline.ascending(elevation: elevation)
+                               elevation: CGFloat, contactProgress: CGFloat, generation: Int) -> SKAction {
+        let keys = CatFurnitureStepTimeline.ascending(elevation: elevation, contactProgress: contactProgress)
         return furnitureSteps(along: path, startingAt: stage, initialProgress: 0,
                               initialElevation: 0, initialShadowElevation: 0,
                               keys: keys, generation: generation)
@@ -679,8 +688,8 @@ final class CatActor: SKNode {
                     span = initial
                 } else if (spanTransition.blendsToSupport || spanTransition.releasesReachingPaw),
                           let initial = spanTransition.initialSpan {
-                    // Reach full support before travel reaches .139; the
-                    // following hold key therefore has the complete contact.
+                    // Finish reaching before the entry's contact key ends;
+                    // its following hold has complete support at any bed height.
                     let progress = min(1, eased / 0.95)
                     let blend = progress * progress * (3 - 2 * progress)
                     var initial = initial

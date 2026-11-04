@@ -56,6 +56,7 @@ final class GameStore {
     private(set) var isResolvingLayout = false
     private(set) var draftBowlPosition: NormalizedPoint?
     private(set) var draftFurniture: [FurniturePlacement]?
+    private(set) var draftFurnitureOrientations: [String: FurnitureOrientation]?
     private(set) var selectedFurnitureID: String?
     private(set) var placingFurnitureID: String?
     private(set) var restingFurnitureID: String?
@@ -238,6 +239,13 @@ final class GameStore {
         guard var value = snapshot else { return nil }
         if let draftBowlPosition { value.home.bowlPosition = draftBowlPosition }
         if let draftFurniture { value.home.furniture = draftFurniture }
+        if let draftFurnitureOrientations {
+            for index in value.inventory.furniture.indices {
+                if let orientation = draftFurnitureOrientations[value.inventory.furniture[index].id] {
+                    value.inventory.furniture[index].orientation = orientation
+                }
+            }
+        }
         return value
     }
 
@@ -260,7 +268,7 @@ final class GameStore {
     var selectedFurniture: FurnitureItem? {
         guard let id = selectedFurnitureID,
               placingFurnitureID == id || sceneSnapshot?.home.furniture.contains(where: { $0.itemID == id }) == true else { return nil }
-        return snapshot?.inventory.furniture.first { $0.id == id }
+        return sceneSnapshot?.inventory.furniture.first { $0.id == id }
     }
 
     var selectedFurnitureName: String {
@@ -270,6 +278,10 @@ final class GameStore {
     var canStoreSelectedFurniture: Bool {
         isDecorating && selectedFurniture != nil && placingFurnitureID == nil
             && !isBusy && !isSavingLayout && !isResolvingLayout
+    }
+
+    var canFlipSelectedFurniture: Bool {
+        canStoreSelectedFurniture && selectedFurniture?.kind.supportsMirroring == true
     }
 
     var catStatus: String {
@@ -576,6 +588,7 @@ final class GameStore {
         guard !isDecorating else { return }
         draftBowlPosition = snapshot.home.bowlPosition
         draftFurniture = snapshot.home.furniture
+        draftFurnitureOrientations = [:]
         selectedFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
@@ -769,6 +782,11 @@ final class GameStore {
         showNotice(GameStrings.text("layout.stored"))
     }
 
+    func flipSelectedFurniture() {
+        guard canFlipSelectedFurniture, let item = selectedFurniture else { return }
+        draftFurnitureOrientations?[item.id] = item.orientation == .normal ? .mirrored : .normal
+    }
+
     func placeFurniture(id: String) {
         guard !isBusy, !isSavingLayout, !isResolvingLayout,
               storedFurniture.contains(where: { $0.id == id }) else { return }
@@ -806,6 +824,7 @@ final class GameStore {
     private func clearLayoutDraft() {
         draftBowlPosition = nil
         draftFurniture = nil
+        draftFurnitureOrientations = nil
         selectedFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
@@ -814,9 +833,10 @@ final class GameStore {
 
     func finishDecorating() {
         guard isDecorating, !isResolvingLayout, placingFurnitureID == nil,
-              let point = draftBowlPosition, let furniture = draftFurniture else { return }
+              let point = draftBowlPosition, let furniture = draftFurniture,
+              let orientations = draftFurnitureOrientations else { return }
         perform(finishesLayout: true) {
-            GameEngine.setRoomLayout(&$0, bowlPosition: point, furniture: furniture, now: $1)
+            GameEngine.setRoomLayout(&$0, bowlPosition: point, furniture: furniture, orientations: orientations, now: $1)
         }
     }
 
