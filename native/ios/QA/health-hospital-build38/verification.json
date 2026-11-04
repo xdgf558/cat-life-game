@@ -12,10 +12,10 @@
     "10 relevant UI scenarios latest executions passed across small and large iPhone simulators; final cold-start paths passed six launches per simulator",
     "20 resource/generator tests passed; 70 runtime assets hydrated; 704 matching localization keys per language",
     "Final Debug test build and signed Release archive passed; dSYM, privacy and Release-only fixture exclusion verified",
-    "Xcode distribution export/upload succeeded; Apple acknowledged the uploaded package is processing"
+    "Xcode distribution export/upload succeeded; Apple acknowledged the uploaded package is processing",
+    "Fresh App Store Connect UI confirmed 0.10.0 build 38 finished processing and is Ready to Submit with no assigned test groups"
   ],
   "partiallyFinished": [
-    "Apple processing in progress; upload succeeded",
     "Physical-device/TestFlight acceptance remains with the user"
   ],
   "broken": [],
@@ -93,12 +93,16 @@
   "upload": {
     "attempted": true,
     "succeeded": true,
-    "processingCompleted": false,
+    "processingCompleted": true,
     "appID": "6830428076",
     "bundleID": "com.stationcat.catlife.native",
     "xcodebuildExitStatus": 0,
     "processingConfirmed": true,
-    "acknowledgedAt": "2026-11-04T15:17:53+08:00"
+    "acknowledgedAt": "2026-11-04T15:17:53+08:00",
+    "appStoreConnectBuildStatus": "Ready to Submit",
+    "buildAddedToGroups": false,
+    "betaReviewSubmitted": false,
+    "testersInvited": false
   },
   "notChecked": [
     "Physical-device and TestFlight installation of build 38",
@@ -107,7 +111,7 @@
     "Full historical UI suite; relevant changed paths were targeted"
   ],
   "nextWork": [
-    "Agent verifies TestFlight upload and Apple processing",
-    "User manages internal/external groups, invitations, review/distribution and device acceptance"
+    "User manages internal/external groups, invitations and review/distribution",
+    "User verifies build 38 on physical devices through TestFlight"
   ]
 }
