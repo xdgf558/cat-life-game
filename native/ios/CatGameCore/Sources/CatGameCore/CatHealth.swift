@@ -121,8 +121,11 @@ enum CatHealthEngine {
         cat.healthState = health
     }
 
-    static func relieveRisk(_ cat: inout CatState, points: Int) {
-        guard var health = cat.healthState else { return }
+    static func relieveRisk(_ cat: inout CatState, caringFor need: KeyPath<CatState, Int>, points: Int) {
+        let value = cat[keyPath: need]
+        guard var health = cat.healthState, health.illness == nil,
+              value < CatHealthCatalog.lowNeedThreshold,
+              value <= min(cat.satiety, min(cat.cleanliness, cat.energy)) else { return }
         health.riskPoints = max(0, health.riskPoints - points)
         cat.healthState = health
     }

@@ -58,6 +58,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         tasks = version < 3 && !values.contains(.tasks)
             ? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
             : try GameTaskState(from: values.superDecoder(forKey: .tasks), schemaVersion: version)
+        tasks.restoreFurniturePurchaseHistory(from: inventory.furniture)
     }
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {

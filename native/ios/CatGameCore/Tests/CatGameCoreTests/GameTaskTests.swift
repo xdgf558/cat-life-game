@@ -33,7 +33,7 @@ struct GameTaskTests {
         #expect(GameTaskCatalog.task(id: "missing") == nil)
     }
 
-    @Test func schemaOneAndTwoMigrateKnownProgressWithoutInventingCareOrPurchases() throws {
+    @Test func schemaOneAndTwoMigrateKnownProgressWithoutInventingCare() throws {
         var original = GameSnapshot.fresh(now: now)
         original.player.completedWorkCount = 12
         original.cats[0].intimacy = 65
@@ -44,11 +44,13 @@ struct GameTaskTests {
             object["schemaVersion"] = version
             object.removeValue(forKey: "tasks")
             let migrated = try decode(object)
-            #expect(migrated == original && migrated.schemaVersion == GameSnapshot.currentSchemaVersion)
-            for id in ["tutorial_work", "achievement_work10", "achievement_intimacy50", "achievement_room2"] {
+            var expected = original
+            expected.tasks.furniturePurchaseCount = 1
+            #expect(migrated == expected && migrated.schemaVersion == GameSnapshot.currentSchemaVersion)
+            for id in ["tutorial_work", "tutorial_furniture", "achievement_work10", "achievement_intimacy50", "achievement_room2"] {
                 #expect(GameTaskCatalog.isClaimable(try task(id), in: migrated))
             }
-            for id in ["tutorial_feed", "tutorial_furniture", "daily_work", "daily_feed", "daily_play"] {
+            for id in ["tutorial_feed", "tutorial_clean", "daily_work", "daily_feed", "daily_play", "daily_clean"] {
                 #expect(GameTaskCatalog.progress(for: try task(id), in: migrated) == 0)
             }
             #expect(migrated.tasks.claimedTaskIDs.isEmpty && migrated.tasks.dailyClaimedTaskIDs.isEmpty)
