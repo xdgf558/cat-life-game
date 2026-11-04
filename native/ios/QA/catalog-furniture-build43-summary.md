@@ -24,4 +24,14 @@ Verification iterations retained externally: the first large-screen blue-cat tes
 
 Not performed: physical-device acceptance, the entire historical UI suite, iPad or extreme accessibility text-size/VoiceOver testing, and real-device cold-start profiling. This remains the existing local, single-companion game; social visits, breeding, cloud saves and other unrelated web features were not added. TestFlight upload must wait for user PR approval.
 
-Final Release archive candidate: 0.12.0 (43), 140.7 MB including symbols; executable SHA256 `f574168781d18d048f9e19891e97da685beac59e910e5102bf49db964165648b`. Earlier local archive candidates were retained separately and were not uploaded.
+Pre-review Release archive candidate: 0.12.0 (43), 140.7 MB including symbols; executable SHA256 `f574168781d18d048f9e19891e97da685beac59e910e5102bf49db964165648b`. Earlier local archive candidates were retained separately and were not uploaded.
+
+## Haptic review follow-up — 2026-11-05
+
+Removed the task reward and hospital recovery SwiftUI sensory feedback modifiers. The audio controller is now the only haptic entry and honors `settings.haptics` independently from sound volume. Its existing 120 ms limit is shared across haptic effects, merging adjacent level-up/claim cues; cues without a haptic do not consume that interval. Sound effects retain their own playback timing. This is short-interval coalescing rather than transaction-ID deduplication. Saving, rewards, treatment costs and schema are unchanged.
+
+All 106 App tests passed after the fix, including three new controller regressions covering the haptics switch, muted sounds, both claim/level-up orders, subsequent treatment, non-haptic cues and foreground/readiness. The haptic counter exists only in DEBUG. The 286 Core tests and eleven UI methods above are the earlier feature validation; unchanged Core logic was not rerun for this audio/UI-only correction.
+
+Deferred P3 items: success feedback when leaving a page during an in-flight save; cached/prepared haptic generators; minute-boundary night-mode switching; further relocation of large art/audio source artifacts. PRs #7 through #11 remain separated by version with stacked bases; this correction belongs only to #11 and does not rewrite earlier published versions. Simulator checks cannot validate physical haptic feel or first-use latency.
+
+The two focused small-screen UI journeys passed: task reward with a level-up and hospital treatment with persistence/relaunch. The Release archive was rebuilt and rechecked after this fix: 0.12.0 (43), 140.7 MB; executable SHA256 `378e8ea68646b24d84bd2c6d7aff64231787aecb7d4c1661229d608f29284c09`. Signature, matching dSYM, privacy manifest and absence of DEBUG diagnostics passed. The pre-review archive remains separate. No physical-device installation, TestFlight upload or PR merge was performed.

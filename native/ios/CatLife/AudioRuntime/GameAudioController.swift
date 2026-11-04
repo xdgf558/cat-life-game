@@ -15,6 +15,7 @@ final class GameAudioController: NSObject {
     private(set) var musicPlaying = false
     #if DEBUG
     private(set) var effectPlayCount = 0
+    private(set) var hapticPlayCount = 0
     private(set) var effectPlayCounts: [String: Int] = [:]
     private(set) var lastEffect = ""
     private(set) var backgroundPauseCount = 0
@@ -35,7 +36,7 @@ final class GameAudioController: NSObject {
     @ObservationIgnored private var ducked = false
     @ObservationIgnored private var duckTask: Task<Void, Never>?
     @ObservationIgnored private var lastCatPlayed: TimeInterval = -100
-    @ObservationIgnored private var lastHaptic: [GameSoundEffect: TimeInterval] = [:]
+    @ObservationIgnored private var lastHapticAt: TimeInterval = -100
     @ObservationIgnored private var sessionActive = false
     @ObservationIgnored private var activationInFlight = false
     @ObservationIgnored private var recoveringInterruption = false
@@ -105,10 +106,14 @@ final class GameAudioController: NSObject {
         if userInitiated { noteUserInteraction() }
         guard !routePaused, !interrupted || recoveringInterruption else { return }
         let now = ProcessInfo.processInfo.systemUptime
-        if settings.haptics, now - (lastHaptic[effect] ?? -100) >= 0.12 {
+        // A saved reward can also level up; adjacent cues share one physical feedback.
+        if settings.haptics, effect.successHaptic || effect.lightHaptic, now - lastHapticAt >= 0.12 {
             if effect.successHaptic { UINotificationFeedbackGenerator().notificationOccurred(.success) }
             else if effect.lightHaptic { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
-            lastHaptic[effect] = now
+            lastHapticAt = now
+            #if DEBUG
+            hapticPlayCount += 1
+            #endif
         }
         guard GameAudioPolicy.effectVolume(effect, settings: settings) > 0 else { return }
         if effect.isCatVoice {

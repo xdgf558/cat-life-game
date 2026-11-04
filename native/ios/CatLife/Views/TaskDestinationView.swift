@@ -45,7 +45,6 @@ struct TaskDestinationView: View {
         }
         .background(RoomTheme.cream).fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
         .environment(\.locale, Locale(identifier: store.language.rawValue))
-        .sensoryFeedback(.success, trigger: reward?.taskID) { _, value in value != nil }
         .onAppear { isVisible = true }
         .onDisappear {
             isVisible = false

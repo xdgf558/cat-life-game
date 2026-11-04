@@ -57,4 +57,58 @@ final class GameAudioPolicyTests: XCTestCase {
             XCTAssertNotNil(bundle.url(forResource: name, withExtension: "caf", subdirectory: "Audio"), name)
         }
     }
+
+    @MainActor
+    func testHapticsRespectTheirSwitchIndependentlyOfMutedAudio() {
+        let controller = GameAudioController()
+        var settings = AudioSettings(musicEnabled: false, effectsEnabled: false, catEnabled: false, haptics: false)
+        controller.configure(settings: settings, track: .home, foreground: true, ready: true)
+        for effect in GameSoundEffect.allCases { controller.play(effect, userInitiated: true) }
+        XCTAssertEqual(controller.hapticPlayCount, 0)
+
+        settings.haptics = true
+        controller.configure(settings: settings, track: .home, foreground: true, ready: true)
+        controller.play(.claim)
+        XCTAssertEqual(controller.hapticPlayCount, 1, "Muted effects must not disable an enabled haptic.")
+        XCTAssertEqual(controller.effectPlayCount, 0)
+
+        settings.haptics = false
+        controller.configure(settings: settings, track: .home, foreground: true, ready: true)
+        controller.play(.treatDone)
+        controller.play(.levelUp)
+        XCTAssertEqual(controller.hapticPlayCount, 1)
+    }
+
+    @MainActor
+    func testRewardAndLevelUpShareOneHapticButLaterTreatmentStillResponds() async throws {
+        let settings = AudioSettings(musicEnabled: false, effectsEnabled: false, catEnabled: false)
+        for cues: [GameSoundEffect] in [[.levelUp, .claim], [.claim, .levelUp]] {
+            let controller = GameAudioController()
+            controller.configure(settings: settings, track: .home, foreground: true, ready: true)
+            for cue in cues { controller.play(cue) }
+            XCTAssertEqual(controller.hapticPlayCount, 1)
+
+            try await Task.sleep(for: .milliseconds(160))
+            controller.play(.tap)
+            controller.play(.catPurr)
+            controller.play(.treatDone)
+            controller.play(.treatDone)
+            XCTAssertEqual(controller.hapticPlayCount, 2, "Non-haptic cues must not consume the next feedback.")
+        }
+    }
+
+    @MainActor
+    func testHapticsStaySilentUntilReadyAndForeground() {
+        let controller = GameAudioController()
+        let settings = AudioSettings(musicEnabled: false, effectsEnabled: false, catEnabled: false)
+        controller.configure(settings: settings, track: .home, foreground: false, ready: true)
+        controller.play(.claim, userInitiated: true)
+        controller.configure(settings: settings, track: .home, foreground: true, ready: false)
+        controller.play(.treatDone, userInitiated: true)
+        XCTAssertEqual(controller.hapticPlayCount, 0)
+
+        controller.configure(settings: settings, track: .home, foreground: true, ready: true)
+        controller.play(.treatDone)
+        XCTAssertEqual(controller.hapticPlayCount, 1)
+    }
 }
