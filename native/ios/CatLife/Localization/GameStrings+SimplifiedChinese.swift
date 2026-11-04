@@ -108,6 +108,8 @@ extension GameStrings {
         "redesign.settings.audioDetails": "音量与试听",
         "redesign.settings.homeGroup": "我的小家",
         "redesign.settings.localSave": "进度自动保存在此设备",
+        "releases.37.title": "TestFlight 测试准备",
+        "releases.37.body": "完善测试版的隐私说明与安装配置，保留已有任务、猫咪和小家进度。",
         "releases.36.title": "成长任务与清爽列表",
         "releases.36.body": "领取奖励后，任务会自动从列表收起。打工等级达到 2、4、6、10 级时，会解锁更多每日目标与成就。每页最多展示 3 项任务，已有进度和领取记录继续保留。",
         "releases.35.title": "任务与日常目标",

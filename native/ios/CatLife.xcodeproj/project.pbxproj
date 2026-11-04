@@ -111,6 +111,7 @@
 		F3EBC70CAD6F36BCFBA74C66DF59E803 /* InventoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 13D35BF4D48BCA3B49C3096EBAF915D6 /* InventoryView.swift */; };
 		F6033FC1F49A0148AA4354DADB9E60DB /* GameNoticeCenter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 995443E8CA5D25CD1CB9790CF897E845 /* GameNoticeCenter.swift */; };
 		F6C5AC51DCD0A0923B24D8C47D29FE45 /* RoomLayoutPublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B84CB0E94D68E8CA954B0D017DE576B /* RoomLayoutPublicationTests.swift */; };
+		F871D67641BB671E25A0B5DECA6951C7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 49FCCEEB04197D12EDD88AE993EABD81 /* PrivacyInfo.xcprivacy */; };
 		FA0CC9540D49E6B3876B89919606B92B /* AppRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAEFDCCAD581FD7A99D1F61F95C6223 /* AppRelease.swift */; };
 /* End PBXBuildFile section */
 
@@ -167,6 +168,7 @@
 		3D3BB3990269AD2FA3677E5BD842372E /* RoomSceneInteraction.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RoomSceneInteraction.swift; path = Scene/RoomSceneInteraction.swift; sourceTree = "<group>"; };
 		3E3BC292D4D67D945EDA739100FD77E3 /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		44A25D9426B4B0CB98D66CD62FC34B71 /* GameStoreFixtures.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = GameStoreFixtures.swift; path = Store/GameStoreFixtures.swift; sourceTree = "<group>"; };
+		49FCCEEB04197D12EDD88AE993EABD81 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		4B84CB0E94D68E8CA954B0D017DE576B /* RoomLayoutPublicationTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoomLayoutPublicationTests.swift; sourceTree = "<group>"; };
 		4D620BC75C6E1B3507203FFD65A0A528 /* CatActor.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatActor.swift; path = Scene/CatActor.swift; sourceTree = "<group>"; };
 		4E05472C080920654AF66988830C56C9 /* CatAdoptionView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CatAdoptionView.swift; path = Views/CatAdoptionView.swift; sourceTree = "<group>"; };
@@ -424,6 +426,7 @@
 				DB61A4B90845453A49E4A3D04A00B2B8 /* WorkRestView.swift */,
 				7A5334E9A00F6FB490B33B069823A4FC /* WorkResultView.swift */,
 				3E3BC292D4D67D945EDA739100FD77E3 /* Assets.xcassets */,
+				49FCCEEB04197D12EDD88AE993EABD81 /* PrivacyInfo.xcprivacy */,
 				7B8F4C5E045C279A366063C216822577 /* Audio */,
 				4FEAC05500CE33F846E9A79081159076 /* Info.plist */,
 			);
@@ -535,6 +538,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				82F9CAA949F321E5429CCD379F58CE96 /* Assets.xcassets in Resources */,
+				F871D67641BB671E25A0B5DECA6951C7 /* PrivacyInfo.xcprivacy in Resources */,
 				9EEA9816C9866A1A619D69FDA71C4B7A /* Audio in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

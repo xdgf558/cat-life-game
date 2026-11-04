@@ -108,6 +108,8 @@ extension GameStrings {
         "redesign.settings.audioDetails": "Sound details & preview",
         "redesign.settings.homeGroup": "My home",
         "redesign.settings.localSave": "Progress is saved on this device",
+        "releases.37.title": "Ready for TestFlight testing",
+        "releases.37.body": "Updates privacy declarations and installation settings for beta testing, while preserving your goals, cats and home progress.",
         "releases.36.title": "Growing goals, tidier lists",
         "releases.36.body": "Goals leave the list after you claim their rewards. Work levels 2, 4, 6 and 10 unlock more daily goals and achievements. Each page shows up to 3 goals, while your progress and claimed rewards are kept.",
         "releases.35.title": "Tasks and daily goals",

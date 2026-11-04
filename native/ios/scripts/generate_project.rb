@@ -49,6 +49,7 @@ Dir.glob(File.join(root, 'CatLife', '**', '*.swift')).sort.each do |file|
   app.source_build_phase.add_file_reference(app_group.new_file(relative))
 end
 app.resources_build_phase.add_file_reference(app_group.new_file('Assets.xcassets'))
+app.resources_build_phase.add_file_reference(app_group.new_file('PrivacyInfo.xcprivacy'))
 audio_folder = app_group.new_file('Audio')
 audio_folder.last_known_file_type = 'folder'
 app.resources_build_phase.add_file_reference(audio_folder)

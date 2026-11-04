@@ -11,11 +11,10 @@
     "Debug simulator and signed Release builds",
     "Seven SE/Pro UI scenarios passed and selected screenshots inspected",
     "In-place iPhone installation; 4,433-byte save unchanged before first launch",
-    "Installed 0.9.1 (36) process verified; schema 3 to 4 migration preserves task progress, all five existing reward receipts, identities, ownership and room layout"
+    "Installed 0.9.1 (36) process verified; schema 3 to 4 migration preserves task progress, all five existing reward receipts, identities, ownership and room layout",
+    "User confirmed physical gameplay acceptance on 2026-11-04"
   ],
-  "partiallyFinished": [
-    "User physical gameplay acceptance remains pending"
-  ],
+  "partiallyFinished": [],
   "broken": [],
   "core": {
     "passed": 221,
@@ -111,7 +110,7 @@
     "launch": "passed after user unlocked and entered room",
     "runningProcessVerified": true,
     "deliveredOn": "2026-11-04",
-    "userAcceptance": "pending gameplay confirmation",
+    "userAcceptance": "passed; user confirmed physical gameplay on 2026-11-04",
     "schemaAfterStartup": 4,
     "identityOwnershipAndLayoutPreserved": true,
     "taskMigration": {
@@ -133,6 +132,6 @@
     "Long-term performance"
   ],
   "nextWork": [
-    "User physical gameplay acceptance"
+    "Prepare TestFlight distribution on a separate release branch"
   ]
 }

@@ -1,0 +1,58 @@
+{
+  "version": "0.9.2",
+  "build": 37,
+  "date": "2026-11-04",
+  "finished": [
+    "0.9.1 physical gameplay accepted by user; baseline preserved on codex/ios-task-growth-0.9.1",
+    "Release archive and Debug simulator build completed",
+    "Privacy manifest declares actual file timestamp and system boot time uses; verified in archive",
+    "No non-exempt encryption declared; existing iPad orientation declarations completed",
+    "20 resource/generator tests passed; regeneration stable",
+    "One SE release-history UI test passed with 0 failures",
+    "Prepared Chinese/English beta notes and upload configuration permitting external testing"
+  ],
+  "partiallyFinished": [
+    "TestFlight target record unverified: user reports no app named 打工养猫日记",
+    "App Store distribution signing and upload not attempted",
+    "External testing contacts, feedback email and privacy policy URL remain to be supplied"
+  ],
+  "broken": [],
+  "archive": {
+    "version": "0.9.2",
+    "build": "37",
+    "bundleID": "com.stationcat.catlife.native",
+    "privacyManifestPackaged": true,
+    "symbolArchivePresent": true,
+    "archiveDevelopmentSignatureVerified": true,
+    "UITestFixtureFlagsAbsent": true,
+    "binarySHA256": "bbd34a5498df54e9dbeb972f70bd582ea669b13cdc909f9c14a20db1f2a36811",
+    "archiveSizeMB": 91.0
+  },
+  "verification": {
+    "resourceTests": 20,
+    "runtimeAssets": 70,
+    "versionPageUITests": 1,
+    "versionPageUISeconds": 52.978,
+    "projectRegenerationStable": true,
+    "localizationKeysPerLanguage": 663,
+    "priorLocalizationValuesPreserved": true
+  },
+  "upload": {
+    "attempted": false,
+    "processingConfirmed": false,
+    "betaReviewSubmitted": false,
+    "externalTestingEnabled": false
+  },
+  "notChecked": [
+    "No new full gameplay suite: gameplay source is unchanged from accepted 0.9.1 (221 Core, 77 App and 7 UI scenarios)",
+    "Physical-device installation of 0.9.2",
+    "iPad gameplay and landscape layout",
+    "Apple server-side validation and TestFlight installation"
+  ],
+  "nextWork": [
+    "Confirm or create the game App Store Connect record and matching bundle/team",
+    "Distribution-sign and upload exact 0.9.2 (37) archive",
+    "Complete beta test information and submit for external review",
+    "Confirm TestFlight installation and save continuity before inviting testers"
+  ]
+}
