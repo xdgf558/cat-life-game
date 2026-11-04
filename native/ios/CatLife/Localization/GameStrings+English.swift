@@ -39,6 +39,8 @@ extension GameStrings {
         "task.achievement_clean10.detail": "Clean cats 10 times in total. Caring for different cats counts too.",
         "task.achievement_clean30.title": "A caring guardian",
         "task.achievement_clean30.detail": "Clean cats 30 times in total. Caring for different cats counts too.",
+        "releases.39.title": "Save compatibility fix",
+        "releases.39.body": "Fixes an issue that could prevent saves from opening after older goals change. Valid reward claims and existing game progress are preserved. Also fixes cats occasionally stopping their meal when switching to and from Settings.",
         "releases.38.title": "Cat health and the hospital",
         "releases.38.body": "View each cat’s health and treat colds, upset stomachs and skin irritation at the pet hospital. Feeding, cleaning and rest lower illness risk, with limited health changes while offline. Adds starter and daily cleaning goals plus care achievements unlocked by level. Existing saves and claimed rewards are preserved.",
         "tasks.title": "Home goals",
