@@ -46,7 +46,7 @@ struct TownView: View {
             HStack(spacing: 8) {
                 HStack(spacing: 6) {
                     Text(GameStrings.text("tab.town"))
-                    Image(systemName: "map.fill").font(.system(size: 15)).foregroundStyle(RoomTheme.darkMint)
+                    GameIcon(asset: "icon-town", symbol: "map.fill", size: 26, tint: RoomTheme.darkMint)
                 }
                 .font(.system(size: 20, weight: .heavy, design: .rounded))
                 .padding(.horizontal, 14).frame(height: 46)
@@ -131,8 +131,8 @@ struct TownView: View {
             Capsule().fill(RoomTheme.wood.opacity(0.7)).frame(width: 40, height: 5)
                 .frame(maxWidth: .infinity).accessibilityHidden(true)
             HStack(alignment: .top, spacing: 10) {
-                GameIconTile(symbol: selectedPlace.symbol, tint: selectedPlace.tint,
-                             background: selectedPlace.tile, size: 50)
+                GameIconTile(asset: selectedPlace.asset, symbol: selectedPlace.symbol, tint: selectedPlace.tint,
+                             background: selectedPlace.tile, size: 50, iconScale: 0.9)
                     .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white, lineWidth: 2))
                 VStack(alignment: .leading, spacing: 5) {
                     ViewThatFits(in: .horizontal) {
@@ -174,9 +174,14 @@ struct TownView: View {
     }
 
     private var primaryLabel: some View {
-        Label(GameStrings.text(primaryKey), systemImage: selectedPlace.symbol)
-            .font(.system(size: 16, weight: .heavy)).frame(maxWidth: .infinity)
-            .fixedSize(horizontal: false, vertical: true)
+        Label {
+            Text(GameStrings.text(primaryKey))
+        } icon: {
+            GameIcon(asset: selectedPlace.asset, symbol: selectedPlace.symbol, size: 26,
+                     tint: selectedPlace.isFuture || selectedPlace.isEmpty ? RoomTheme.ink : .white)
+        }
+        .font(.system(size: 16, weight: .heavy)).frame(maxWidth: .infinity)
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var statusChip: some View {

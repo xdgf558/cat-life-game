@@ -67,6 +67,8 @@ extension GameStrings {
         "audio.scene.town": "Cat Town",
         "audio.scene.hospital": "Pet Hospital",
         "audio.scene.shop": "Shop",
+        "releases.41.title": "Cartoon careers and a colorful town",
+        "releases.41.body": "All five careers now have cartoon characters, and Cat Town locations feature cozy illustrations. Matching icons appear in headings, bottom navigation and details. Locked careers keep their artwork and lock badge, with location availability clearly marked. Existing gameplay and saved progress are preserved.",
         "releases.40.title": "A warmer town and thoughtful care",
         "releases.40.body": "Redesigned hospital care, task rewards and the town map with clearer diagnoses, recovery results and direct reward collection. Added a clinic illustration, scene music, an independent cat voice channel, quiet nights and haptic settings. Existing saves and progress are preserved.",
         "town.yourCatsCount": "%d cats",

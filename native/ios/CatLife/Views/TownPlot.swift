@@ -14,7 +14,7 @@ struct TownPlot: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
-                Image(systemName: place.symbol).font(.system(size: 27, weight: .bold)).foregroundStyle(place.tint)
+                GameIcon(asset: place.asset, symbol: place.symbol, size: 38, tint: place.tint)
                 Text(GameStrings.text(place.titleKey)).font(.system(size: 12, weight: .heavy))
                     .lineLimit(2).minimumScaleFactor(0.75).multilineTextAlignment(.center)
             }
@@ -48,7 +48,7 @@ struct TownPlot: View {
                                     .scaleEffect(pulse ? 1.15 : 1)
                             }
                         }
-                        .offset(x: 3, y: -7).accessibilityHidden(true)
+                        .offset(x: 3, y: -12).accessibilityHidden(true)
                 }
             }
             .overlay(alignment: .topLeading) {

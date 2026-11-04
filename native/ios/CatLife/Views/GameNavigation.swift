@@ -11,11 +11,11 @@ struct GameBottomBar: View {
         HStack(spacing: 2) {
             tab("tab.home", english: "Home", symbol: "house.fill", id: "tabHome",
                 selected: store.activeSheet == nil && !store.isShowingSettings && !moreVisible) { select(nil) }
-            tab("tab.work", english: "Work", symbol: "briefcase.fill", id: "tabWork",
+            tab("tab.work", english: "Work", symbol: "briefcase.fill", asset: "icon-work", id: "tabWork",
                 selected: store.activeSheet == .work && !store.isShowingSettings && !moreVisible) { select(.work) }
             tab("tab.shop", english: "Shop", symbol: "storefront.fill", id: "tabShop",
                 selected: store.activeSheet == .shop && !store.isShowingSettings && !moreVisible) { select(.shop) }
-            tab("tab.town", english: "Cats", symbol: "pawprint.fill", id: "tabTown",
+            tab("tab.town", english: "Cats", symbol: "pawprint.fill", asset: "icon-town", id: "tabTown",
                 selected: [.town, .hospital].contains(store.activeSheet) && !store.isShowingSettings && !moreVisible) { select(.town) }
             tab("tab.more", english: "More", symbol: "ellipsis.circle.fill", id: "tabMore",
                 selected: moreVisible || store.isShowingSettings || [.inventory, .player, .upgrade, .tasks].contains(store.activeSheet)) {
@@ -29,12 +29,17 @@ struct GameBottomBar: View {
         .accessibilityIdentifier("homeNavigationBar")
     }
 
-    private func tab(_ key: String, english: String, symbol: String, id: String,
+    private func tab(_ key: String, english: String, symbol: String, asset: String = "", id: String,
                      selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 1) {
-                Image(systemName: symbol).font(.system(size: 23, weight: .bold))
-                    .symbolRenderingMode(.hierarchical).foregroundStyle(selected ? RoomTheme.mint : RoomTheme.secondary.opacity(0.7))
+                if asset.isEmpty {
+                    Image(systemName: symbol).font(.system(size: 23, weight: .bold))
+                        .symbolRenderingMode(.hierarchical).foregroundStyle(selected ? RoomTheme.mint : RoomTheme.secondary.opacity(0.7))
+                } else {
+                    GameIcon(asset: asset, symbol: symbol, size: 26,
+                             tint: selected ? RoomTheme.mint : RoomTheme.secondary.opacity(0.7))
+                }
                 Text(GameStrings.text(key)).font(.system(size: 12, weight: .heavy))
                     .lineLimit(1).minimumScaleFactor(0.75)
                 if store.language != .english {

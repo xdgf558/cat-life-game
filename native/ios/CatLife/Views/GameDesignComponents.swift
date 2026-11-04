@@ -16,9 +16,10 @@ struct GameIconTile: View {
     let tint: Color
     let background: Color
     var size: CGFloat = 48
+    var iconScale: CGFloat = 0.58
 
     var body: some View {
-        GameIcon(asset: asset, symbol: symbol, size: size * 0.58, tint: tint)
+        GameIcon(asset: asset, symbol: symbol, size: size * iconScale, tint: tint)
             .frame(width: size, height: size)
             .background(background, in: RoundedRectangle(cornerRadius: size * 0.32))
             .accessibilityHidden(true)

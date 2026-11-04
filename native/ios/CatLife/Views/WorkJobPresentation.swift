@@ -12,6 +12,17 @@ enum WorkJobPresentation {
             : GameStrings.format("work.durationSeconds", seconds / 60, seconds % 60)
     }
 
+    static func asset(_ id: String) -> String {
+        switch id {
+        case "job_flyer": "job-flyer-cartoon"
+        case "job_store": "job-store-cartoon"
+        case "job_petshop": "job-petshop-cartoon"
+        case "job_it_engineer": "job-it-cartoon"
+        case "job_cat_cafe_manager": "job-cafe-cartoon"
+        default: ""
+        }
+    }
+
     static func symbol(_ id: String) -> String {
         switch id {
         case "job_store": "storefront.fill"
@@ -46,9 +57,19 @@ struct WorkCareerCard: View {
         Button(action: action) {
             VStack(alignment: .leading, spacing: 9) {
                 HStack(alignment: .top) {
-                    GameIconTile(symbol: unlocked ? WorkJobPresentation.symbol(job.id) : "lock.fill",
+                    GameIconTile(asset: WorkJobPresentation.asset(job.id),
+                                 symbol: WorkJobPresentation.symbol(job.id),
                                  tint: unlocked ? accent : RoomTheme.secondary,
-                                 background: unlocked ? accent.opacity(0.16) : RoomTheme.track, size: 46)
+                                 background: unlocked ? accent.opacity(0.16) : RoomTheme.track,
+                                 size: 46, iconScale: 0.9)
+                        .overlay(alignment: .bottomTrailing) {
+                            if !unlocked {
+                                Image(systemName: "lock.fill")
+                                    .font(.system(size: 9, weight: .bold)).foregroundStyle(RoomTheme.ink)
+                                    .padding(4).background(RoomTheme.paper, in: Circle())
+                                    .accessibilityHidden(true)
+                            }
+                        }
                     Spacer(minLength: 0)
                     if selected {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(RoomTheme.mint)

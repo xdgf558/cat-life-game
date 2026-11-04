@@ -54,6 +54,7 @@ struct WorkDestinationView: View {
             HStack(spacing: 10) {
                 GamePageHeading(title: GameStrings.text("work.title"),
                                 subtitle: GameStrings.text("redesign.work.subtitle"),
+                                asset: "icon-work",
                                 symbol: "briefcase.fill", tint: RoomTheme.gold,
                                 background: RoomTheme.gold.opacity(0.2))
                 Spacer(minLength: 0)
@@ -183,8 +184,12 @@ struct WorkDestinationView: View {
                         .font(.caption).foregroundStyle(RoomTheme.coral)
                 }
                 Button { store.startWork(jobID: selectedJobID) } label: {
-                    Label(GameStrings.text("work.start"), systemImage: "briefcase.fill")
-                        .font(.headline).frame(maxWidth: .infinity)
+                    Label {
+                        Text(GameStrings.text("work.start"))
+                    } icon: {
+                        GameIcon(asset: "icon-work", symbol: "briefcase.fill", size: 24, tint: .white)
+                    }
+                    .font(.headline).frame(maxWidth: .infinity)
                 }
                 .buttonStyle(MintButtonStyle())
                 .disabled(store.isBusy || store.snapshot?.player.activeSleep != nil
@@ -208,9 +213,13 @@ struct WorkDestinationView: View {
                 Circle().trim(from: 0, to: progress(active))
                     .stroke(RoomTheme.wood, style: StrokeStyle(lineWidth: 8, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                Text(duration(until: active.endsAt))
-                    .font(.system(size: 19, weight: .heavy)).monospacedDigit().foregroundStyle(.white)
-                    .accessibilityIdentifier("workCountdown")
+                VStack(spacing: 2) {
+                    GameIcon(asset: WorkJobPresentation.asset(active.jobID),
+                             symbol: WorkJobPresentation.symbol(active.jobID), size: 24, tint: .white)
+                    Text(duration(until: active.endsAt))
+                        .font(.system(size: 19, weight: .heavy)).monospacedDigit().foregroundStyle(.white)
+                        .accessibilityIdentifier("workCountdown")
+                }
             }
             .frame(width: 84, height: 84)
             .accessibilityElement(children: .contain)
@@ -305,8 +314,8 @@ struct WorkDestinationView: View {
                 let seconds = shiftSeconds(job, captured: active, quote: quote)
                 VStack(alignment: .leading, spacing: 20) {
                     HStack(spacing: 14) {
-                        Image(systemName: WorkJobPresentation.symbol(job.id)).font(.largeTitle).foregroundStyle(RoomTheme.darkMint)
-                            .accessibilityHidden(true)
+                        GameIcon(asset: WorkJobPresentation.asset(job.id),
+                                 symbol: WorkJobPresentation.symbol(job.id), size: 36, tint: RoomTheme.darkMint)
                         Text(WorkJobPresentation.name(job.id)).font(.title2.weight(.bold))
                             .accessibilityIdentifier("careerJobName_\(job.id)")
                     }
