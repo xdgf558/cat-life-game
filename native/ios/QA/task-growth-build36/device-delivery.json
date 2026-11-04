@@ -4,8 +4,22 @@
   "installedInPlace": true,
   "saveByteIdenticalBeforeFirstLaunch": true,
   "saveBytes": 4433,
-  "launch": "blocked by iOS device lock",
-  "runningProcessVerified": false,
+  "launch": "passed after user unlocked and entered room",
+  "runningProcessVerified": true,
   "deliveredOn": "2026-11-04",
-  "userAcceptance": "pending gameplay confirmation"
+  "userAcceptance": "pending gameplay confirmation",
+  "schemaAfterStartup": 4,
+  "identityOwnershipAndLayoutPreserved": true,
+  "taskMigration": {
+    "schemaBefore": 3,
+    "schemaAfter": 4,
+    "dailyDayUnchanged": true,
+    "permanentReceiptCountBefore": 4,
+    "permanentReceiptCountAfter": 4,
+    "permanentReceiptsPreserved": true,
+    "dailyReceiptCountBefore": 1,
+    "dailyReceiptCountAfter": 1,
+    "dailyReceiptsPreserved": true,
+    "progressCountersPreserved": true
+  }
 }

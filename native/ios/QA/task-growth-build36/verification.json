@@ -10,10 +10,11 @@
     "221 Core tests and 77 App tests passed",
     "Debug simulator and signed Release builds",
     "Seven SE/Pro UI scenarios passed and selected screenshots inspected",
-    "In-place iPhone installation; 4,433-byte save unchanged before first launch"
+    "In-place iPhone installation; 4,433-byte save unchanged before first launch",
+    "Installed 0.9.1 (36) process verified; schema 3 to 4 migration preserves task progress, all five existing reward receipts, identities, ownership and room layout"
   ],
   "partiallyFinished": [
-    "User must unlock and open installed app for startup and task receipt migration check"
+    "User physical gameplay acceptance remains pending"
   ],
   "broken": [],
   "core": {
@@ -107,10 +108,24 @@
     "installedInPlace": true,
     "saveByteIdenticalBeforeFirstLaunch": true,
     "saveBytes": 4433,
-    "launch": "blocked by iOS device lock",
-    "runningProcessVerified": false,
+    "launch": "passed after user unlocked and entered room",
+    "runningProcessVerified": true,
     "deliveredOn": "2026-11-04",
-    "userAcceptance": "pending gameplay confirmation"
+    "userAcceptance": "pending gameplay confirmation",
+    "schemaAfterStartup": 4,
+    "identityOwnershipAndLayoutPreserved": true,
+    "taskMigration": {
+      "schemaBefore": 3,
+      "schemaAfter": 4,
+      "dailyDayUnchanged": true,
+      "permanentReceiptCountBefore": 4,
+      "permanentReceiptCountAfter": 4,
+      "permanentReceiptsPreserved": true,
+      "dailyReceiptCountBefore": 1,
+      "dailyReceiptCountAfter": 1,
+      "dailyReceiptsPreserved": true,
+      "progressCountersPreserved": true
+    }
   },
   "notChecked": [
     "iPad and landscape",
@@ -118,7 +133,6 @@
     "Long-term performance"
   ],
   "nextWork": [
-    "Confirm running process and task receipt migration after user unlock",
     "User physical gameplay acceptance"
   ]
 }
