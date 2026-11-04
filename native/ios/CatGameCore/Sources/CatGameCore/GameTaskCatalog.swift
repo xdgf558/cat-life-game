@@ -37,6 +37,7 @@ public struct GameTaskDefinition: Identifiable, Sendable {
 }
 
 /// Stable IDs are saved as receipts; rewards and conditions always come from this catalog.
+/// Keep IDs when renaming tasks; never reuse retired IDs for new rewards.
 public enum GameTaskCatalog {
     public static let all: [GameTaskDefinition] = [
         .init(id: "tutorial_work", category: .tutorial, target: 1, goldReward: 30, expReward: 10,
@@ -186,8 +187,11 @@ public struct GameTaskState: Codable, Equatable, Sendable {
             ? 0 : try values.decode(Int.self, forKey: .totalCleanCount)
         totalFeedCount = try values.decode(Int.self, forKey: .totalFeedCount)
         furniturePurchaseCount = try values.decode(Int.self, forKey: .furniturePurchaseCount)
+        // Retired catalog entries must not make an otherwise valid save unreadable.
         claimedTaskIDs = try values.decode([String].self, forKey: .claimedTaskIDs)
+            .filter { GameTaskCatalog.task(id: $0) != nil }
         dailyClaimedTaskIDs = try values.decode([String].self, forKey: .dailyClaimedTaskIDs)
+            .filter { GameTaskCatalog.task(id: $0) != nil }
         guard isValid else { throw SaveRepositoryError.invalidSnapshot }
     }
 

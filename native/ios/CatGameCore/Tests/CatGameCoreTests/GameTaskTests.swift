@@ -85,9 +85,13 @@ struct GameTaskTests {
             ("dailyFeedCount", 1), ("dailyCleanCount", 1), ("totalCleanCount", -1),
             ("dailyCleanCount", NSNull()), ("totalCleanCount", GameSnapshot.maximumGold + 1),
             ("totalCleanCount", "one"), ("totalFeedCount", "one"), ("furniturePurchaseCount", -1),
-            ("claimedTaskIDs", ["missing"]), ("claimedTaskIDs", ["daily_work"]),
+            ("claimedTaskIDs", ["retired_task", "daily_work"]),
             ("claimedTaskIDs", ["tutorial_work", "tutorial_work"]),
-            ("dailyClaimedTaskIDs", ["tutorial_work"]), ("dailyClaimedTaskIDs", ["daily_work", "daily_work"])
+            ("claimedTaskIDs", ["retired_task", "tutorial_work", "tutorial_work"]),
+            ("claimedTaskIDs", ["tutorial_work", 7]), ("claimedTaskIDs", NSNull()),
+            ("dailyClaimedTaskIDs", ["retired_daily", "tutorial_work"]),
+            ("dailyClaimedTaskIDs", ["retired_daily", "daily_work", "daily_work"]),
+            ("dailyClaimedTaskIDs", ["daily_work", 7]), ("dailyClaimedTaskIDs", NSNull())
         ]
         for (key, value) in invalid {
             var badTasks = tasks
@@ -95,6 +99,35 @@ struct GameTaskTests {
             var object = original
             object["tasks"] = badTasks
             #expect(throws: (any Error).self) { try decode(object) }
+        }
+    }
+
+    @Test func retiredTaskReceiptsAreIgnoredWithoutResettingKnownProgressOrRewards() throws {
+        var expected = GameSnapshot.fresh(now: now)
+        #expect(GameEngine.feed(&expected, catID: expected.activeCatID, now: now).succeeded)
+        #expect(GameEngine.claimTask(&expected, id: "tutorial_feed", now: now).succeeded)
+        #expect(GameEngine.claimTask(&expected, id: "daily_feed", expectedDayKey: expected.tasks.dailyDayKey, now: now).succeeded)
+        for version in [3, 4, 5] {
+            var object = try json(expected)
+            object["schemaVersion"] = version
+            var tasks = try #require(object["tasks"] as? [String: Any])
+            tasks["claimedTaskIDs"] = ["retired_tutorial", "tutorial_feed", "retired_achievement"]
+            tasks["dailyClaimedTaskIDs"] = ["retired_daily", "daily_feed"]
+            object["tasks"] = tasks
+            var loaded = try decode(object)
+            #expect(loaded == expected && loaded.isValid)
+            #expect(GameEngine.claimTask(&loaded, id: "tutorial_feed", now: now).failure == .taskAlreadyClaimed)
+            #expect(GameEngine.claimTask(&loaded, id: "daily_feed", expectedDayKey: loaded.tasks.dailyDayKey, now: now).failure == .taskAlreadyClaimed)
+            #expect(GameEngine.claimTask(&loaded, id: "retired_daily", expectedDayKey: loaded.tasks.dailyDayKey, now: now).failure == .taskMissing)
+            #expect(loaded == expected)
+
+            tasks["claimedTaskIDs"] = ["retired_tutorial"]
+            tasks["dailyClaimedTaskIDs"] = ["retired_daily"]
+            object["tasks"] = tasks
+            var noKnownReceipts = expected
+            noKnownReceipts.tasks.claimedTaskIDs = []
+            noKnownReceipts.tasks.dailyClaimedTaskIDs = []
+            #expect(try decode(object) == noKnownReceipts)
         }
     }
 
