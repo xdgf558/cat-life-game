@@ -1,8 +1,10 @@
 打工养猫日记 · TestFlight 0.9.2（37）
 
-发布状态（2026-11-04）：Release 归档和本地签名、隐私入包检查已完成，尚未上传；不代表已获批或已向测试者开放。
-目标 App Store Connect App：待核对或创建。最初提供的链接包含 App ID 6822797145，但尚未确认它属于本游戏，不作为已核对的上传目标。
-本地 Bundle ID：com.stationcat.catlife.native
+发布状态（2026-11-04）：Release 归档和本地签名、隐私入包检查已完成。游戏记录已创建，0.9.2（37）分发导出与上传成功，Apple 已处理完成，网页状态为“准备提交”；不代表已获批或已向测试者开放。
+目标 App Store Connect App：已创建并在页面核对，App ID 6830428076，名称“打工养猫日记”，SKU cat-life-game-ios。
+应用记录与本地 Bundle ID：com.stationcat.catlife.native，已核对一致。
+TestFlight：https://appstoreconnect.apple.com/apps/6830428076/testflight
+原 App ID 6822797145 已确认属于 Station Cat Music，不是本游戏的上传目标。
 发布分支：codex/testflight-0.9.2
 下方“测试版介绍”“测试重点”“审核备注”可分别粘贴到 TestFlight 对应字段，内外部测试使用同一套说明。
 
@@ -39,13 +41,17 @@ English · Beta App Review Notes / Sign-in
 No registration, sign-in, or demo account is required. Open the app, wait for loading to finish, and tap the enter-home button to begin. Language can be changed in Settings. Core gameplay works offline and saves remain on the device.
 
 发布与继续开发约定
+- 用户于2026-11-04指定：后续代理只负责构建、校验与上传版本；内测、外测、测试者邀请及审核分发由用户手动完成。
 - 同时准备内外部测试：上传时不要选择 TestFlight Internal Only；该模式的构建不能转给外部测试者。
 - 外测首个构建需经 Apple TestFlight App Review（Beta Review）；上传成功、处理完成、审核通过和测试开放须分别记录，不能混写为已发布。
-- 审核联系人、反馈邮箱和隐私政策 URL 尚未提供；保持待补，不编造联系人、邮箱或链接，不将占位内容提交给 Apple。
+- 审核联系人及用户授权使用的反馈邮箱已填写并保存到 TestFlight；仓库不记录实际邮箱、电话号码等联系资料。
+- 隐私政策 URL 尚未提供，后续补充真实链接；它不是 Beta 测试资料的通用必填字段，不单独阻断本次 Beta 提交，也不使用占位链接。
 - 本轮测试固定使用 0.9.2（37）的提交及归档，后续开发另开 codex/ 分支；新交付按仓库规则同步递增对外版本号和构建号。
 - 后续存档变更必须兼容已有进度；归档、上传及真机验证分别留下脱敏记录，不在本目录放签名私钥、设备标识或玩家真实存档。
-- 当前待完成：核对或创建正确的应用记录、分发签名与上传、补齐外测资料、Apple Beta Review，以及内外部测试反馈。
+- 后续由用户完成：内外测组配置、Beta Review、TestFlight 安装与反馈；隐私政策 URL 另行补充。
 
 Apple 官方流程依据（核对于 2026-11-04）：
 https://developer.apple.com/help/app-store-connect/test-a-beta-version/invite-external-testers
 https://developer.apple.com/help/app-store-connect/test-a-beta-version/provide-test-information/
+
+本次交接：内测组“内部验收”已按用户选择设为手动分发，尚未关联构建或测试者；没有创建外测组、发送邀请或提交Beta Review。构建0.9.2（37）已处理完成，可由用户继续配置。
