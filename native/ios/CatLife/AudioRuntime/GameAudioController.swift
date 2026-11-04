@@ -2,19 +2,7 @@ import AVFoundation
 import Foundation
 import Observation
 import CatGameCore
-
-enum GameMusicTrack: String, CaseIterable {
-    case home, work, sleep
-    var fileName: String { "bgm-\(rawValue)" }
-}
-
-enum GameSoundEffect: String, CaseIterable {
-    case tap, enter, purchase, place, feed, clean, play, sleep, wake
-    case workStart = "work-start"
-    case workComplete = "work-complete"
-    case catMeow = "cat-meow"
-    var fileName: String { "sfx-\(rawValue)" }
-}
+import UIKit
 
 /// One audio owner per app process. Preferences are committed by GameStore;
 /// players and audio-session state are intentionally never part of a game save.
@@ -27,6 +15,7 @@ final class GameAudioController: NSObject {
     private(set) var musicPlaying = false
     #if DEBUG
     private(set) var effectPlayCount = 0
+    private(set) var effectPlayCounts: [String: Int] = [:]
     private(set) var lastEffect = ""
     private(set) var backgroundPauseCount = 0
     private(set) var assetLoadFailures = 0
@@ -41,7 +30,12 @@ final class GameAudioController: NSObject {
     @ObservationIgnored private var effects: [GameSoundEffect: [AVAudioPlayer]] = [:]
     @ObservationIgnored private var lastPlayed: [GameSoundEffect: TimeInterval] = [:]
     @ObservationIgnored private var ready = false
-    @ObservationIgnored private var preparedEffects = false
+    @ObservationIgnored private var currentHour = 12
+    @ObservationIgnored private var previewPaused = false
+    @ObservationIgnored private var ducked = false
+    @ObservationIgnored private var duckTask: Task<Void, Never>?
+    @ObservationIgnored private var lastCatPlayed: TimeInterval = -100
+    @ObservationIgnored private var lastHaptic: [GameSoundEffect: TimeInterval] = [:]
     @ObservationIgnored private var sessionActive = false
     @ObservationIgnored private var activationInFlight = false
     @ObservationIgnored private var recoveringInterruption = false
@@ -69,21 +63,25 @@ final class GameAudioController: NSObject {
 
     deinit { NotificationCenter.default.removeObserver(self) }
 
-    func configure(settings: AudioSettings, track: GameMusicTrack, foreground: Bool, ready: Bool) {
+    func configure(settings: AudioSettings, track: GameMusicTrack, foreground: Bool, ready: Bool, now: Date = Date()) {
         #if DEBUG
         if isForeground && !foreground { backgroundPauseCount += 1 }
         #endif
         let becameActive = !isForeground && foreground
         self.settings = settings
-        currentTrack = track
+        currentHour = Calendar.current.component(.hour, from: now)
+        currentTrack = GameAudioPolicy.track(track, settings: settings, hour: currentHour)
         isForeground = foreground
         self.ready = ready
         if becameActive { routePaused = false }
-        if !settings.effectsEnabled || settings.effectsVolume == 0 {
-            stopEffects()
-            pendingEffects.removeAll()
+        for (effect, players) in effects {
+            let volume = GameAudioPolicy.effectVolume(effect, settings: settings)
+            for player in players {
+                player.volume = volume
+                if volume == 0 { player.stop(); player.currentTime = 0 }
+            }
         }
-        for player in effects.values.flatMap({ $0 }) { player.volume = Float(settings.effectsVolume) }
+        pendingEffects.removeAll { GameAudioPolicy.effectVolume($0.effect, settings: settings) == 0 }
         if !foreground || !ready {
             pauseAll()
             deactivateSession()
@@ -105,16 +103,28 @@ final class GameAudioController: NSObject {
     func play(_ effect: GameSoundEffect, userInitiated: Bool = false) {
         guard ready, isForeground else { return }
         if userInitiated { noteUserInteraction() }
-        guard !routePaused, !interrupted || recoveringInterruption,
-              settings.effectsEnabled, settings.effectsVolume > 0 else { return }
+        guard !routePaused, !interrupted || recoveringInterruption else { return }
         let now = ProcessInfo.processInfo.systemUptime
+        if settings.haptics, now - (lastHaptic[effect] ?? -100) >= 0.12 {
+            if effect.successHaptic { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+            else if effect.lightHaptic { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
+            lastHaptic[effect] = now
+        }
+        guard GameAudioPolicy.effectVolume(effect, settings: settings) > 0 else { return }
+        if effect.isCatVoice {
+            let pendingCat = pendingEffects.last(where: { $0.effect.isCatVoice })?.requestedAt ?? -100
+            guard now - max(lastCatPlayed, pendingCat) >= 4 else { return }
+        }
         pendingEffects.removeAll { now - $0.requestedAt > 0.5 }
         let lastRequested = pendingEffects.last(where: { $0.effect == effect })?.requestedAt ?? -100
         guard now - max(lastPlayed[effect] ?? -100, lastRequested) >= minimumGap(for: effect) else { return }
         if !sessionActive {
             // Keep the first fresh cue while activation yields the main actor.
             // Never replay a backlog after a slow activation or a lifecycle change.
-            guard pendingEffects.count < 4 else { return }
+            if pendingEffects.count >= GameAudioPolicy.simultaneousEffects {
+                guard let index = GameAudioPolicy.replacementIndex(for: effect, active: pendingEffects.map(\.effect)) else { return }
+                pendingEffects.remove(at: index)
+            }
             pendingEffects.append(PendingEffect(effect: effect, requestedAt: now))
             requestSessionActivation(recoveringInterruption: recoveringInterruption)
             return
@@ -123,33 +133,64 @@ final class GameAudioController: NSObject {
     }
 
     private func minimumGap(for effect: GameSoundEffect) -> TimeInterval {
-        effect == .catMeow ? 1.2 : (effect == .tap ? 0.065 : 0.15)
+        effect.isCatVoice ? 4 : 0.12
     }
 
     private func playPreparedEffect(_ effect: GameSoundEffect) {
         guard ready, isForeground, sessionActive, !interrupted, !routePaused,
-              settings.effectsEnabled, settings.effectsVolume > 0 else { return }
+              GameAudioPolicy.effectVolume(effect, settings: settings) > 0 else { return }
         let now = ProcessInfo.processInfo.systemUptime
-        guard now - (lastPlayed[effect] ?? -100) >= minimumGap(for: effect) else { return }
-        prepareEffects()
-        guard effects.values.flatMap({ $0 }).filter(\.isPlaying).count < 4,
-              let player = effects[effect]?.first(where: { !$0.isPlaying }) else { return }
+        guard now - (lastPlayed[effect] ?? -100) >= minimumGap(for: effect),
+              !effect.isCatVoice || now - lastCatPlayed >= 4 else { return }
+        if effects[effect] == nil { effects[effect] = (0..<2).compactMap { _ in makePlayer(effect.fileName) } }
+        let active = effects.flatMap { effect, players in
+            players.filter(\.isPlaying).map { (effect: effect, player: $0) }
+        }
+        if active.count >= GameAudioPolicy.simultaneousEffects {
+            guard let index = GameAudioPolicy.replacementIndex(for: effect, active: active.map(\.effect)) else { return }
+            active[index].player.stop()
+        }
+        guard let player = effects[effect]?.first(where: { !$0.isPlaying }) else { return }
         player.currentTime = 0
-        player.volume = Float(settings.effectsVolume)
+        player.volume = GameAudioPolicy.effectVolume(effect, settings: settings)
         if player.play() {
             lastPlayed[effect] = now
+            if effect.isCatVoice { lastCatPlayed = now }
+            if effect.ducksMusic { duckMusic() }
         #if DEBUG
             effectPlayCount += 1
+            effectPlayCounts[effect.rawValue, default: 0] += 1
             lastEffect = effect.rawValue
         #endif
         }
     }
 
-    private func prepareEffects() {
-        guard !preparedEffects else { return }
-        preparedEffects = true
-        for effect in GameSoundEffect.allCases {
-            effects[effect] = (0..<2).compactMap { _ in makePlayer(effect.fileName) }
+    func toggleMusicPreview() {
+        guard ready, isForeground, settings.musicEnabled, settings.musicVolume > 0 else { return }
+        let shouldPause = musicPlaying
+        noteUserInteraction()
+        previewPaused = shouldPause
+        reconcileMusic()
+    }
+
+    func endMusicPreview() {
+        previewPaused = false
+        reconcileMusic()
+    }
+
+    private var musicVolume: Float {
+        GameAudioPolicy.musicVolume(settings: settings, hour: currentHour, ducked: ducked)
+    }
+
+    private func duckMusic() {
+        duckTask?.cancel()
+        ducked = true
+        music?.setVolume(musicVolume, fadeDuration: 0.08)
+        duckTask = Task { [weak self] in
+            do { try await Task.sleep(for: .milliseconds(1_200)) } catch { return }
+            guard let self else { return }
+            self.ducked = false
+            self.music?.setVolume(self.musicVolume, fadeDuration: 0.25)
         }
     }
 
@@ -167,7 +208,7 @@ final class GameAudioController: NSObject {
             requestSessionActivation()
             return
         }
-        guard settings.musicEnabled, settings.musicVolume > 0 else {
+        guard settings.musicEnabled, settings.musicVolume > 0, !previewPaused else {
             pauseMusic()
             return
         }
@@ -181,12 +222,12 @@ final class GameAudioController: NSObject {
             fadeTask?.cancel()
             fadingMusic?.stop()
             fadingMusic = music
-            fadingMusic?.setVolume(0, fadeDuration: 0.6)
+            fadingMusic?.setVolume(0, fadeDuration: 1.2)
             music = next
             loadedTrack = currentTrack
-            next.setVolume(Float(settings.musicVolume), fadeDuration: 0.6)
+            next.setVolume(musicVolume, fadeDuration: 1.2)
             fadeTask = Task { [weak self] in
-                do { try await Task.sleep(for: .milliseconds(650)) } catch { return }
+                do { try await Task.sleep(for: .milliseconds(1_250)) } catch { return }
                 self?.fadingMusic?.stop()
                 self?.fadingMusic = nil
             }
@@ -195,7 +236,7 @@ final class GameAudioController: NSObject {
                 music.volume = 0
                 _ = music.play()
             }
-            music.setVolume(Float(settings.musicVolume), fadeDuration: 0.25)
+            music.setVolume(musicVolume, fadeDuration: 0.25)
         }
         musicPlaying = music?.isPlaying == true
     }
@@ -222,6 +263,7 @@ final class GameAudioController: NSObject {
     private var hasAudibleOutput: Bool {
         (settings.musicEnabled && settings.musicVolume > 0)
             || (settings.effectsEnabled && settings.effectsVolume > 0)
+            || (settings.catEnabled && settings.catVolume > 0)
     }
 
     private func requestSessionActivation(recoveringInterruption: Bool = false) {
@@ -270,7 +312,6 @@ final class GameAudioController: NSObject {
             return
         }
         reconcileMusic()
-        if settings.effectsEnabled, settings.effectsVolume > 0 { prepareEffects() }
         let queued = pendingEffects
         pendingEffects.removeAll()
         for request in queued where ProcessInfo.processInfo.systemUptime - request.requestedAt <= 0.5 {
@@ -300,6 +341,8 @@ final class GameAudioController: NSObject {
     }
 
     private func pauseMusic() {
+        duckTask?.cancel()
+        ducked = false
         fadeTask?.cancel()
         fadingMusic?.stop()
         fadingMusic = nil
@@ -353,7 +396,6 @@ final class GameAudioController: NSObject {
             self.music = nil
             self.loadedTrack = nil
             self.effects = [:]
-            self.preparedEffects = false
             self.interrupted = false
             self.reconcileMusic()
         }

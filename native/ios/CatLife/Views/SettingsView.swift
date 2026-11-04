@@ -32,6 +32,7 @@ struct SettingsView: View {
                     VStack(spacing: 18) {
                         audioControl(.music, compact: true)
                         audioControl(.effects, compact: true)
+                        audioControl(.cat, compact: true)
                         NavigationLink(value: Destination.audio) {
                             HStack {
                                 Text(GameStrings.text("redesign.settings.audioDetails"))
@@ -103,15 +104,18 @@ struct SettingsView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden()
                 .toolbar {
-                    ToolbarItem(placement: .topBarLeading) {
-                        Button { if !path.isEmpty { path.removeLast() } } label: {
-                            Label(GameStrings.text("common.back"), systemImage: "chevron.left")
-                                .font(.body.weight(.semibold))
-                                .frame(minHeight: 44)
+                    if destination != .audio {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Button { if !path.isEmpty { path.removeLast() } } label: {
+                                Label(GameStrings.text("common.back"), systemImage: "chevron.left")
+                                    .font(.body.weight(.semibold))
+                                    .frame(minHeight: 44)
+                            }
+                            .accessibilityIdentifier("settingsBackButton")
                         }
-                        .accessibilityIdentifier("settingsBackButton")
                     }
                 }
+                .toolbar(destination == .audio ? .hidden : .visible, for: .navigationBar)
             }
         }
         .fontDesign(.rounded)
@@ -193,36 +197,55 @@ struct SettingsView: View {
         hasLoadedAudioDraft = true
     }
 
-    private var audioPage: some View {
-        page {
-            Text(GameStrings.text("audio.hint"))
-                .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-
-            VStack(spacing: 18) {
-                audioControl(.music)
-                audioControl(.effects)
-                Button { store.previewSoundEffect() } label: {
-                    Label(GameStrings.text("audio.preview"), systemImage: "play.fill")
-                        .font(.headline).frame(maxWidth: .infinity, minHeight: 26)
+    private var audioHeader: some View {
+        HStack(spacing: 10) {
+            Button { if !path.isEmpty { path.removeLast() } } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .heavy))
+                    .frame(width: 44, height: 44)
+                    .background {
+                        Circle().fill(RoomTheme.paper)
+                            .overlay(Circle().stroke(.white, lineWidth: 2))
+                            .shadow(color: RoomTheme.ink.opacity(0.1), radius: 0, y: 3)
+                    }
+            }
+            .buttonStyle(.plain).foregroundStyle(RoomTheme.ink)
+            .accessibilityLabel(GameStrings.text("common.back"))
+            .accessibilityIdentifier("settingsBackButton")
+            Label(GameStrings.text("audio.pageTitle"), systemImage: "hifispeaker.fill")
+                .font(.system(size: 18, weight: .heavy, design: .rounded))
+                .padding(.horizontal, 16).padding(.vertical, 10)
+                .background {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(LinearGradient(colors: [RoomTheme.wood, Color(red: 0.91, green: 0.73, blue: 0.47)],
+                                             startPoint: .top, endPoint: .bottom))
+                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(RoomTheme.secondary.opacity(0.5), lineWidth: 3))
+                        .shadow(color: RoomTheme.secondary, radius: 0, y: 4)
                 }
-                .buttonStyle(MintButtonStyle())
-                .disabled(!audioDraft.effectsEnabled || audioDraft.effectsVolume == 0
-                          || isSavingAudio || hasUnsubmittedAudioChanges
-                          || store.pendingAudioSettings != nil || audioDraft != store.audioSettings)
-                .accessibilityIdentifier("audioPreviewButton")
-            }
-
-            if isSavingAudio || (store.pendingAudioSettings != nil && !store.audioSettingsSaveFailed) {
-                ProgressView(GameStrings.text("common.saving"))
-                    .font(.footnote).tint(RoomTheme.darkMint)
-                    .accessibilityIdentifier("audioSaveStatus")
-            }
-
-            Text(GameStrings.text("audio.systemHint"))
-                .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityIdentifier("audioPageHeading")
+            Spacer(minLength: 0)
         }
-        .accessibilityIdentifier("audioSettingsScroll")
+    }
+
+    private var audioPage: some View {
+        VStack(spacing: 0) {
+            audioHeader
+                .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 8)
+                .frame(maxWidth: 560).frame(maxWidth: .infinity)
+            page {
+                SettingsSoundPage(settings: $audioDraft,
+                                  track: store.currentMusicTrack, musicPlaying: store.isMusicPlaying,
+                                  saving: isSavingAudio || (store.pendingAudioSettings != nil && !store.audioSettingsSaveFailed),
+                                  previewDisabled: isSavingAudio || hasUnsubmittedAudioChanges
+                                    || store.pendingAudioSettings != nil || audioDraft != store.audioSettings,
+                                  onChange: { hasUnsubmittedAudioChanges = true }, onCommit: saveAudioDraft,
+                                  onMusicPreview: store.previewMusic, onEffectsPreview: store.previewSoundEffect,
+                                  onCatPreview: store.previewCatVoice)
+            }
+            .accessibilityIdentifier("audioSettingsScroll")
+        }
+        .background(RoomTheme.cream.ignoresSafeArea())
         .navigationTitle(GameStrings.text("settings.audio"))
         .onAppear {
             // A page can reappear while its previous request is waiting behind
@@ -230,7 +253,7 @@ struct SettingsView: View {
             // when opening a new editor after a failed or unfinished write.
             loadAudioDraft()
         }
-        .onDisappear { saveAudioDraft() }
+        .onDisappear { saveAudioDraft(); store.endMusicPreview() }
     }
 
     private func saveAudioDraft() {

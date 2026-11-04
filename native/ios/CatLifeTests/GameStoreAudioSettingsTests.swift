@@ -21,7 +21,9 @@ final class GameStoreAudioSettingsTests: XCTestCase {
             await repository.isSaveBlocked
         }
         let desired = AudioSettings(musicEnabled: false, effectsEnabled: false,
-                                    musicVolume: 0.2, effectsVolume: 0.8)
+                                    musicVolume: 0.2, effectsVolume: 0.8,
+                                    catEnabled: true, catVolume: 0.3,
+                                    sceneMusic: false, nightQuiet: false, haptics: false)
         let audioSave = Task { await store.updateAudioSettings(desired) }
         try await eventually("Audio intent must survive while the Store is busy") {
             store.pendingAudioSettings == desired

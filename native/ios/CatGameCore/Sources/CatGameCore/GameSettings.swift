@@ -34,8 +34,13 @@ public struct AudioSettings: Codable, Equatable, Sendable {
 
     public var musicEnabled: Bool
     public var effectsEnabled: Bool
+    public var catEnabled: Bool
+    public var sceneMusic: Bool
+    public var nightQuiet: Bool
+    public var haptics: Bool
     private var storedMusicVolume: Double
     private var storedEffectsVolume: Double
+    private var storedCatVolume: Double
 
     public var musicVolume: Double {
         get { storedMusicVolume }
@@ -47,17 +52,29 @@ public struct AudioSettings: Codable, Equatable, Sendable {
         set { storedEffectsVolume = Self.normalized(newValue, fallback: Self.defaultEffectsVolume) }
     }
 
+    public var catVolume: Double {
+        get { storedCatVolume }
+        set { storedCatVolume = Self.normalized(newValue, fallback: Self.defaultEffectsVolume) }
+    }
+
     public init(musicEnabled: Bool = true, effectsEnabled: Bool = true,
                 musicVolume: Double = Self.defaultMusicVolume,
-                effectsVolume: Double = Self.defaultEffectsVolume) {
+                effectsVolume: Double = Self.defaultEffectsVolume,
+                catEnabled: Bool? = nil, catVolume: Double? = nil,
+                sceneMusic: Bool = true, nightQuiet: Bool = true, haptics: Bool = true) {
         self.musicEnabled = musicEnabled
         self.effectsEnabled = effectsEnabled
+        self.catEnabled = catEnabled ?? effectsEnabled
+        self.sceneMusic = sceneMusic
+        self.nightQuiet = nightQuiet
+        self.haptics = haptics
         storedMusicVolume = Self.normalized(musicVolume, fallback: Self.defaultMusicVolume)
         storedEffectsVolume = Self.normalized(effectsVolume, fallback: Self.defaultEffectsVolume)
+        storedCatVolume = Self.normalized(catVolume ?? effectsVolume, fallback: Self.defaultEffectsVolume)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case musicEnabled, effectsEnabled, musicVolume, effectsVolume
+        case musicEnabled, effectsEnabled, musicVolume, effectsVolume, catEnabled, catVolume, sceneMusic, nightQuiet, haptics
     }
 
     public init(from decoder: Decoder) throws {
@@ -68,7 +85,12 @@ public struct AudioSettings: Codable, Equatable, Sendable {
         self.init(musicEnabled: (try? values.decode(Bool.self, forKey: .musicEnabled)) ?? true,
                   effectsEnabled: (try? values.decode(Bool.self, forKey: .effectsEnabled)) ?? true,
                   musicVolume: (try? values.decode(Double.self, forKey: .musicVolume)) ?? Self.defaultMusicVolume,
-                  effectsVolume: (try? values.decode(Double.self, forKey: .effectsVolume)) ?? Self.defaultEffectsVolume)
+                  effectsVolume: (try? values.decode(Double.self, forKey: .effectsVolume)) ?? Self.defaultEffectsVolume,
+                  catEnabled: try? values.decode(Bool.self, forKey: .catEnabled),
+                  catVolume: try? values.decode(Double.self, forKey: .catVolume),
+                  sceneMusic: (try? values.decode(Bool.self, forKey: .sceneMusic)) ?? true,
+                  nightQuiet: (try? values.decode(Bool.self, forKey: .nightQuiet)) ?? true,
+                  haptics: (try? values.decode(Bool.self, forKey: .haptics)) ?? true)
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -77,6 +99,11 @@ public struct AudioSettings: Codable, Equatable, Sendable {
         try values.encode(effectsEnabled, forKey: .effectsEnabled)
         try values.encode(musicVolume, forKey: .musicVolume)
         try values.encode(effectsVolume, forKey: .effectsVolume)
+        try values.encode(catEnabled, forKey: .catEnabled)
+        try values.encode(catVolume, forKey: .catVolume)
+        try values.encode(sceneMusic, forKey: .sceneMusic)
+        try values.encode(nightQuiet, forKey: .nightQuiet)
+        try values.encode(haptics, forKey: .haptics)
     }
 
     private static func normalized(_ volume: Double, fallback: Double) -> Double {

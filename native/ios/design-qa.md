@@ -1,3 +1,43 @@
+# 0.11.0（40）· 医院、任务、猫町与声音体验
+
+**当前状态：本轮视觉与定向交互验收通过。** 最终小屏 4/4、大屏 6/6 通过，覆盖范围内 23 个交互方法的最新执行均通过；250 项 Core、90 项 App 与 20 项资源脚本检查通过。上传与真机验收状态单独记录。
+
+依据为用户提供的 `design_handoff_catlife_0.10.zip`：README、医院 N1–N5、任务 N6–N7、地图 T1–T4、声音设置 A1 及相关入口。已实际配对查看源图和运行截图，不以编译通过代替视觉检查。范围为现有原生 SwiftUI 页面与声音体验；地图未实现的社区地块仅显示预览，不增加邻居拜访、预约通知等玩法，房间与猫咪尺寸保持。
+
+源图约为 390×845pt（含原型状态栏与底栏），模拟器为 SE 375×667pt、Pro 402×874pt。比较的是功能层级、内容边界和操作路径，不逐像素硬套原型安全区。SE 较矮，医院预防卡、诊疗方案、康复按钮与后续任务允许纵向滚动；治疗主按钮固定在底栏上方。原生使用系统安全区、圆体及中文系统字形、SF Symbols 与现有猫头像；医院前台占位改为新插画。健康、费用、保护时长、任务等级和奖励读取 Core 与测试存档，源图示例数值不同不算视觉偏差，不为截图改写玩家存档。
+
+## 五项视觉检查
+
+| 维度 | 观察与当前状态 |
+| --- | --- |
+| 字形与层级 | 医院珊瑚标题牌、任务木牌、病症/健康条与奖励层级对应方案；任务三语及目的地回归通过。卡片与按钮重影已消除，半透明标题底色残余字影已改为仅背景形状投影；最终 N1/N2/N6 配对截图确认无字形残影。 |
+| 间距与排版 | SE 医院头图曾撑宽整页，现明确约束到视口并裁剪，顶栏、钱包、猫行横向边界检查通过；任务维持三项分页，医院四只分页。猫町固定网格、地点面板和两步前往流程通过。保存失败提示条原先遮住猫町顶栏，已改为独立占位；最终边界检查、实际打开猫咪目录、重试保存及再次操作均通过。 |
+| 颜色 | 保留奶油底、棕色文字、薄荷主动作；医院珊瑚、可领奖金色、未开放社区淡紫分工清楚。康复射线已限制在内容区域；最终 N5 确认不再越界染色固定顶栏与状态栏。 |
+| 图像与图标 | 医院插画、现有猫头像均无横向拉伸；头像状态角标、诊断图标、任务目的地图标与地图状态一致。动画尊重减弱动态效果；声音设置 A1 的固定顶栏与独立通道布局已在小屏实际查看。 |
+| 文案与状态 | 病猫置顶、需求提示、金币不足去打工、可领任务置顶、领取后隐藏与空状态均有运行证据；治疗/领奖只在保存成功后展示结果，失败可重试。重复成功 toast 曾遮标题并与治疗展示争抢注意，现仅抑制这两项自身成功通知，保留失败及同时结算的打工通知；最终 N4/N7 确认没有重复 toast，标题与结果无遮挡。 |
+
+## 证据索引与修复记录
+
+原始截图、日志与 xcresult 保留在外部验证产物中，不纳入本次 Git 变更。按结果 tag 和 XCTest 附件标题可定位：
+
+| 结果 tag | 测试/附件 | 已确认范围 |
+| --- | --- | --- |
+| `ui-small-final` | `testHospitalTreatmentPersistsAndKeepsOtherCatAndRoomUnchanged`；`Hospital — compact cat directory`、`diagnosis and treatment cost`、`committed care presentation`、`recovery and protection` | N1/N2/N4/N5；横向溢出修复、治疗与存档流程通过。最终标题阴影/射线/toast 补丁晚于这组图。 |
+| `ui-small-final` | `testHospitalInsufficientGoldCanReturnToWorkFromCatProfile`；`Hospital — insufficient coins and route to work` | N3；档案内金币不足去打工与返回保留病症。 |
+| `ui-small-final` | `testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch`；`Tasks — ready card with direct reward action`、`committed reward celebration` | N6/N7；卡片直接操作、持久化奖励与隐藏。2.4秒弹层数值改由 Store 回执及持久化总额精确校验，截图只读一次状态。 |
+| `ui-large-final` | 任务三语、直接目的地、高等级分页与空状态；`Town — map destinations use the native collection and adoption flow`、`Town — reserved plots remain previews without fake unlocks` | Pro 适配及地图正常/预留地块通过。升级领奖测试曾在弹层自动关闭瞬间点击失效按钮，已改为等待自然关闭，最终定向复跑已通过。 |
+| `audio-small` | `Audio — independent music and effect controls`、`Audio redesign — independent cat voice and saved playback options` | A1 配对查看；固定顶栏与音乐、效果、猫叫独立控件通过。 |
+| `ui-release-small` | 医院主流程、任务喂食领奖、猫町保存失败后档案导航、前台保存失败提示与恢复，共 4 项；医院/任务附件名称同上 | 4/4 通过。已再次逐对查看源 N1/N2/N4/N5/N6/N7 与该结果附件：标题无重影，射线未越界，治疗/奖励无重复 toast；提示条独立占位及实际恢复操作通过。 |
+
+保存失败重试、原存档重启、其他猫不变、房间大小不变继续由现有事务和 UI 回归覆盖。对成功通知的定点调整另有 Store 断言：医院不再重复播报完成，任务领取与工资同时结算时仍保留打工通知。测试弹层消失竞态与真实产品缺陷分开记录，未通过延长产品弹层时间隐藏测试问题。
+
+
+最终补充证据：`ui-release-large` 的升级领奖、版本导航全部通过；附件 `Design handoff — More menu with the full-width task entry` 与 `Design handoff — home health and task entries preserve the room` 已与 E 入口方案配对查看，任务整行置顶、首页木牌下任务胶囊、固定底栏均清晰且可操作。首页图处于原有避让猫咪的紧凑状态，不将它冒充展开属性卡截图。最终已见范围内没有未解决的 P1/P2 视觉或交互问题。
+
+**未验证边界：** iPad、极大辅助字体、VoiceOver 实机操作、真机主观音色/音量平衡与耳机/蓝牙/静音等真实音频路由尚未验收。没有把对这些场景的实现支持等同于验证通过；最后回归结果、签名与上传状态由各自发布记录确认。
+
+---
+
 0.8.0（33）的十页原生 UI/UX 改版记录见 [Build 33 Design QA](QA/redesign-build33/design-qa.md)。交互与真机交付状态以该目录的 verification.json 为准。
 
 最新欢迎页与进度条更新 0.4.3（22）的独立验收见 [欢迎页 Build 22 Design QA](QA/welcome-build22/design-qa.md)。以下保留原第14版及后续索引记录。

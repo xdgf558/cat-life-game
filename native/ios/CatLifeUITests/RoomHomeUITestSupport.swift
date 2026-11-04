@@ -53,7 +53,7 @@ extension RoomHomeUITests {
 
     @MainActor
     func scrollPage(_ scrollIdentifier: String, to identifier: String,
-                              allowDisabled: Bool, maximumDrags: Int,
+                              allowDisabled: Bool, maximumDrags: Int, requiresHitPoint: Bool = true,
                               in app: XCUIApplication,
                               file: StaticString = #filePath, line: UInt = #line) {
         waitForElement(scrollIdentifier, in: app, file: file, line: line)
@@ -78,7 +78,7 @@ extension RoomHomeUITests {
             if target.exists {
                 let frame = target.frame
                 if frame.width > 0, frame.height > 0, viewport.contains(frame),
-                   (allowDisabled && !target.isEnabled) || target.isHittable { return }
+                   !requiresHitPoint || (allowDisabled && !target.isEnabled) || target.isHittable { return }
                 // Move only the amount required to reveal the target, with a
                 // small margin. Full-screen swipes can repeatedly overshoot a
                 // short stat row or equipment tile in opposite directions.
@@ -158,8 +158,13 @@ extension RoomHomeUITests {
                                             scrollIdentifier: String = "destinationScroll",
                                             in app: XCUIApplication, context: String,
                                             file: StaticString = #filePath, line: UInt = #line) throws {
-        scrollCareerPage(scrollIdentifier, to: identifier, in: app, file: file, line: line)
+        // A readable timer can have no AX activation point: it is not a button.
+        // Still require its full frame inside the viewport, excluding fixed bars.
+        scrollPage(scrollIdentifier, to: identifier, allowDisabled: true, maximumDrags: 9,
+                   requiresHitPoint: false, in: app, file: file, line: line)
         let timer = element(identifier, in: app)
+        XCTAssertTrue(unobscuredScrollViewport(element(scrollIdentifier, in: app), in: app).contains(timer.frame),
+                      "The whole countdown must be visible before observing time", file: file, line: line)
         let initialLabel = timer.label
         let initial = try XCTUnwrap(displayedTimerSeconds(initialLabel),
                                    "Expected a displayed duration in \(identifier): \(initialLabel)",
