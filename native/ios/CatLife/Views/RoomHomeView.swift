@@ -8,6 +8,7 @@ struct RoomHomeView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var moreVisible = false
     @State private var catNeedPresentation = CatNeedPresentation()
+    @State private var arrangementPanelHeight: CGFloat = 0
     #if DEBUG
     @State private var waitingForWelcomeTestRelease = false
     private var holdsWelcomeForTesting: Bool {
@@ -56,7 +57,8 @@ struct RoomHomeView: View {
         .sheet(isPresented: catSheetVisible) {
             CatCollectionView(store: store, initialCatID: store.inspectedCatID)
         }
-        .saveRecoveryAlert(store: store, isActive: store.inspectedCatID == nil && store.activeSheet != .town && store.activeSheet != .player)
+        .saveRecoveryAlert(store: store, isActive: store.inspectedCatID == nil && store.activeSheet != .town
+                          && store.activeSheet != .player && !store.isPresentingAdoptionConfirmation)
     }
 
     private func shell(_ snapshot: GameSnapshot) -> some View {
@@ -90,6 +92,13 @@ struct RoomHomeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .top) {
                     if store.hasSaveFailure && homeVisible && !moreVisible { SaveStatusBanner(store: store) }
+                    else if !store.hasSaveFailure, !moreVisible, store.inspectedCatID == nil,
+                            !store.isPresentingAdoptionConfirmation, !store.isDecorating,
+                            (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
+                            let offer = store.adoptionReminders.pendingOffer {
+                        AdoptionAvailableBanner(store: store, offer: offer)
+                            .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)
+                    }
                     else if !store.hasSaveFailure, let toast = store.toast, !toast.isEmpty, !moreVisible {
                         Text(toast).font(.system(size: 13, weight: .bold)).lineLimit(6)
                             .multilineTextAlignment(.center).accessibilityLabel(toast)
@@ -171,11 +180,13 @@ struct RoomHomeView: View {
         ZStack(alignment: .top) {
             RoomSceneHost(store: store,
                           isActive: scenePhase == .active && homeVisible && !moreVisible && store.inspectedCatID == nil,
-                          reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation)
+                          reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
+                          arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
                 .ignoresSafeArea(.container, edges: .top)
             RoomHomeHUD(store: store, catNeedPresentation: catNeedPresentation)
             if store.isDecorating {
                 VStack { Spacer(minLength: 0); RoomArrangementPanel(store: store) }
+                    .onPreferenceChange(ArrangementPanelHeightKey.self) { arrangementPanelHeight = $0 }
             }
         }
     }

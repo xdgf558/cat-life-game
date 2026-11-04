@@ -2,6 +2,99 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testCatalogDesignReadyConfirmationSuccessAndBringHome() throws {
+        continueAfterFailure = false
+        let app = launchCatAdoptionFixture("--uitesting-blue-adoption-ready")
+        openTownCollection(in: app)
+        waitForObservedValue("catCollectionProgress", "2/3", in: app)
+        waitForObservedValue("catFilter_all", "3", in: app)
+        waitForObservedValue("catFilter_owned", "2", in: app)
+        waitForObservedValue("catFilter_unowned", "1", in: app)
+        XCTAssertTrue(element("tabTown", in: app).exists, "The collection stays inside Cat Town with persistent navigation.")
+        attachScreenshot(app, named: "C1 — collection progress and adopted cards")
+        tapAnimationControl("catFilter_unowned", in: app)
+        waitForObservedValue("catAdoption_cat_003", "可以领养", in: app)
+        attachScreenshot(app, named: "C2 — unadopted blue friend")
+        tapAnimationControl("catAdoption_cat_003", in: app)
+        waitForObservedValue("catAdoptionConditionsMet", "3/3", in: app)
+        attachScreenshot(app, named: "C4 — all live adoption requirements met")
+        tapAnimationControl("catAdoptionButton", in: app)
+        waitForLabel("catAdoptionConfirmationTitle", "让蓝影加入小家？", in: app)
+        waitForObservedValue("catAdoptionConfirmation", "cat_003:1000:600", in: app)
+        attachScreenshot(app, named: "C5 — confirmation names the correct cat")
+        tapAnimationControl("catAdoptionCancelButton", in: app)
+        waitForObservedValue("catAdoptionGold", "1,000", in: app)
+        confirmCatAdoption(in: app)
+        waitForObservedValue("catAdoptionSuccess", "cat_003", in: app)
+        waitForObservedValue("catAdoptionSuccessProgress", "3/3", in: app)
+        XCTAssertEqual(app.buttons.matching(identifier: "catAdoptionBringHomeButton").count, 1,
+                       "The success action must retain its own accessible identity.")
+        XCTAssertEqual(app.buttons.matching(identifier: "catAdoptionLaterButton").count, 1)
+        attachScreenshot(app, named: "C6 — successful blue adoption")
+        tapAnimationControl("catAdoptionBringHomeButton", in: app)
+        waitForObservedValue("homeCatName", "蓝影", in: app)
+        waitForObservedValue("goldCount", "400", in: app)
+        relaunchPreservingSave(app)
+        waitForObservedValue("homeCatName", "蓝影", in: app)
+        waitForObservedValue("goldCount", "400", in: app)
+        openTownCollection(in: app)
+        tapAnimationControl("catFilter_unowned", in: app)
+        waitForElement("catCollectionEmpty", in: app)
+        XCTAssertEqual(app.buttons.matching(identifier: "catCollectionSeeOwned").count, 1,
+                       "The empty-state action must retain its own accessible identity.")
+        attachScreenshot(app, named: "C7 — every available cat adopted")
+        tapAnimationControl("catCollectionSeeOwned", in: app)
+        XCTAssertTrue(element("catFilter_owned", in: app).isSelected)
+        waitForObservedValue("catCount", "3", in: app)
+    }
+
+    @MainActor
+    func testCatalogLockedConditionsOpenWorkAndRoomUpgrade() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        openTownCollection(in: app)
+        tapAnimationControl("catFilter_unowned", in: app)
+        tapAnimationControl("catAdoption_cat_003", in: app)
+        waitForObservedValue("catAdoptionConditionsMet", "0/3", in: app)
+        XCTAssertFalse(element("catAdoptionButton", in: app).exists)
+        attachScreenshot(app, named: "C3 — locked blue adoption has useful next actions")
+        tapAnimationControl("catAdoptionRequirementAction", in: app)
+        waitForElement("playerExperience", in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "200", in: app)
+        openTownCollection(in: app)
+        tapAnimationControl("catFilter_unowned", in: app)
+        tapAnimationControl("catAdoption_cat_003", in: app)
+        scrollCareerPage("catAdoptionScroll", to: "catAdoptionRoomRequirementAction", in: app)
+        tapAnimationControl("catAdoptionRoomRequirementAction", in: app)
+        waitForElement("homeUpgradeScroll", in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+    }
+
+    @MainActor
+    func testAdoptionConfirmationUsesEachLanguageAndCorrectBlueName() throws {
+        continueAfterFailure = false
+        let app = launchCatAdoptionFixture("--uitesting-blue-adoption-ready")
+        for (code, title) in [("zh-Hans", "让蓝影加入小家？"), ("zh-Hant", "讓藍影加入小家？"),
+                              ("en", "Welcome Bluebell home?")] {
+            if code != "zh-Hans" { selectCatTestLanguage(code, in: app) }
+            openTownCollection(in: app)
+            tapAnimationControl("catFilter_unowned", in: app)
+            tapAnimationControl("catAdoption_cat_003", in: app)
+            tapAnimationControl("catAdoptionButton", in: app)
+            waitForLabel("catAdoptionConfirmationTitle", title, in: app)
+            attachScreenshot(app, named: "C5 — localized confirmation \(code)")
+            tapAnimationControl("catAdoptionCancelButton", in: app)
+            tapAnimationControl("catAdoptionBackButton", in: app)
+            tapAnimationControl("closeSheetButton", in: app)
+            tapAnimationControl("tabHome", in: app)
+            waitForObservedValue("goldCount", "1,000", in: app)
+        }
+    }
+
+    @MainActor
     func testBlueCatCatalogAdoptionFiltersAndRelaunch() throws {
         continueAfterFailure = false
         let app = launchCatAdoptionFixture("--uitesting-blue-adoption-ready", extra: ["--cat-adoption-save-failure-once"])
@@ -27,6 +120,7 @@ extension RoomHomeUITests {
         waitForObservedValue("catAdoptionHint", "failed", in: app)
         waitForObservedValue("catAdoptionGold", "1,000", in: app)
         confirmCatAdoption(in: app)
+        openNewlyAdoptedProfile("cat_003", in: app)
         waitForObservedValue("catProfileScroll", "cat_003", in: app)
         waitForObservedValue("catProfileName", "蓝影", in: app)
         waitForObservedValue("catCompanionButton", "available", in: app)
@@ -45,6 +139,7 @@ extension RoomHomeUITests {
         waitForObservedValue("catCompanionButton", "active", in: app)
         tapAnimationControl("catProfileBackButton", in: app)
         waitForObservedValue("catCollectionProgress", "3/3", in: app)
+        tapAnimationControl("catFilter_unowned", in: app)
         waitForElement("catCollectionEmpty", in: app)
         XCTAssertFalse(element("catPageSummary", in: app).exists)
         XCTAssertFalse(element("catAdoption_cat_003", in: app).exists)
@@ -83,14 +178,14 @@ extension RoomHomeUITests {
             openTownCollection(in: app)
             waitForObservedValue("catCount", "1", in: app)
             tapAnimationControl("catAdoption_cat_002", in: app)
-            XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 8))
+            waitForLabel("catCollectionTitle", title, in: app)
             XCTAssertTrue(app.staticTexts[name].firstMatch.exists)
             for identifier in ["catAdoptionPlayerRequirement", "catAdoptionRoomRequirement", "catAdoptionGoldRequirement"] {
                 scrollCareerPage("catAdoptionScroll", to: identifier, in: app)
                 waitForObservedValue(identifier, code == "en" ? "Not met" : (code == "zh-Hant" ? "尚未符合" : "未满足"), in: app)
             }
-            scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
-            XCTAssertFalse(element("catAdoptionButton", in: app).isEnabled)
+            XCTAssertFalse(element("catAdoptionButton", in: app).exists)
+            XCTAssertTrue(element("catAdoptionRequirementAction", in: app).isEnabled)
             attachScreenshot(app, named: "Adoption — locked requirements in \(code)")
             tapAnimationControl("catAdoptionBackButton", in: app)
             scrollCareerPage("catCollectionScroll", to: "catFilter_unowned", in: app)
@@ -103,9 +198,10 @@ extension RoomHomeUITests {
                 scrollCareerPage("catAdoptionScroll", to: identifier, in: app)
                 waitForObservedValue(identifier, code == "en" ? "Not met" : (code == "zh-Hant" ? "尚未符合" : "未满足"), in: app)
             }
-            scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
-            XCTAssertFalse(element("catAdoptionButton", in: app).isEnabled)
+            XCTAssertFalse(element("catAdoptionButton", in: app).exists)
+            XCTAssertTrue(element("catAdoptionRequirementAction", in: app).isEnabled)
             attachScreenshot(app, named: "Blue adoption — independent requirements and localized identity in \(code)")
+            tapAnimationControl("catAdoptionBackButton", in: app)
             tapAnimationControl("closeSheetButton", in: app)
             tapAnimationControl("tabHome", in: app)
             waitForObservedValue("goldCount", "200", in: app)
@@ -122,11 +218,11 @@ extension RoomHomeUITests {
         tapAnimationControl("catAdoption_cat_002", in: app)
         scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
         tapAnimationControl("catAdoptionButton", in: app)
-        let cancel = app.alerts.buttons["取消"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 8))
-        cancel.tap()
+        waitForLabel("catAdoptionConfirmationTitle", "让牛奶加入小家？", in: app)
+        tapAnimationControl("catAdoptionCancelButton", in: app)
         waitForObservedValue("catAdoptionGold", "1,000", in: app)
         confirmCatAdoption(in: app)
+        openNewlyAdoptedProfile("cat_002", in: app)
         waitForObservedValue("catProfileScroll", "cat_002", in: app)
         waitForObservedValue("catProfileName", "牛奶", in: app)
         waitForObservedValue("catCompanionButton", "available", in: app)
@@ -220,6 +316,7 @@ extension RoomHomeUITests {
         XCTAssertTrue(element("catAdoptionButton", in: app).isEnabled)
         attachScreenshot(app, named: "Adoption — failed save keeps coins and offers retry")
         confirmCatAdoption(in: app)
+        openNewlyAdoptedProfile("cat_002", in: app)
         waitForObservedValue("catProfileScroll", "cat_002", in: app)
         scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
         tapAnimationControl("catCompanionButton", in: app)
@@ -466,9 +563,9 @@ extension RoomHomeUITests {
     private func confirmCatAdoption(in app: XCUIApplication) {
         scrollCareerPage("catAdoptionScroll", to: "catAdoptionButton", in: app)
         tapAnimationControl("catAdoptionButton", in: app)
-        let confirmation = app.alerts.buttons["确认领养"].firstMatch
-        XCTAssertTrue(confirmation.waitForExistence(timeout: 8))
-        confirmation.tap()
+        waitForElement("catAdoptionConfirmation", in: app)
+        scrollCareerPage("catAdoptionConfirmation", to: "catAdoptionConfirmButton", in: app)
+        tapAnimationControl("catAdoptionConfirmButton", in: app)
     }
 
     @MainActor
@@ -479,5 +576,18 @@ extension RoomHomeUITests {
         // close its alert. The probe must never replay a purchase or selection.
         let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: alert)
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 8), .completed)
+        if element("catAdoptionCancelButton", in: app).exists {
+            waitForObservedValue("catAdoptionConfirmationHint", "failed", in: app)
+            tapAnimationControl("catAdoptionCancelButton", in: app)
+        }
+    }
+
+    @MainActor
+    private func openNewlyAdoptedProfile(_ id: String, in app: XCUIApplication) {
+        waitForObservedValue("catAdoptionSuccess", id, in: app)
+        tapAnimationControl("catAdoptionLaterButton", in: app)
+        XCTAssertTrue(element("catFilter_owned", in: app).isSelected)
+        scrollCareerPage("catCollectionScroll", to: "catProfile_\(id)", in: app)
+        tapAnimationControl("catProfile_\(id)", in: app)
     }
 }

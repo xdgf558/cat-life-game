@@ -35,7 +35,11 @@ final class GameStore {
     var activeSheet: HomeSheet? {
         didSet {
             syncAudio()
-            if oldValue != activeSheet { playNavigationSound() }
+            if oldValue != activeSheet {
+                catCollectionFilter = nil
+                adoptionCatID = nil
+                playNavigationSound()
+            }
         }
     }
     var isShowingSettings = false {
@@ -44,6 +48,10 @@ final class GameStore {
     var inventoryCategory: InventoryCategory = .supplies
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
+    var catCollectionFilter: CatCollectionView.Filter?
+    var adoptionCatID: String?
+    var isPresentingAdoptionConfirmation = false
+    let adoptionReminders: GameAdoptionReminderCenter
     var hospitalCatID: String?
     var isInspectingHealth = false { didSet { syncAudio() } }
     private(set) var now = Date()
@@ -114,19 +122,27 @@ final class GameStore {
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         let testing = arguments.contains("--ui-testing")
+        let reminderDefaults = testing ? UserDefaults(suiteName: "com.stationcat.catlife.ui-testing")! : .standard
+        if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
+            reminderDefaults.removeObject(forKey: GameAdoptionReminderCenter.presentedIDsKey)
+        }
         let saveDirectory = directory ?? base.appendingPathComponent(testing ? "CatLife-UITests" : "CatLife", isDirectory: true)
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)
         if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
             try? FileManager.default.removeItem(at: saveDirectory)
         }
         #else
+        let reminderDefaults = UserDefaults.standard
         let saveDirectory = directory ?? base.appendingPathComponent("CatLife", isDirectory: true)
         #endif
         repository = FileSaveRepository(directory: saveDirectory)
+        adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults)
     }
 
-    init(repository: any GameSaveRepository) {
+    init(repository: any GameSaveRepository, reminderDefaults: UserDefaults? = nil) {
         self.repository = repository
+        adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults
+            ?? UserDefaults(suiteName: "com.stationcat.catlife.tests.\(UUID().uuidString)")!)
     }
 
     var cat: CatState? { snapshot?.activeCat }
@@ -284,6 +300,23 @@ final class GameStore {
         canStoreSelectedFurniture && selectedFurniture?.kind.supportsMirroring == true
     }
 
+    var hasUnsavedLayoutChanges: Bool {
+        guard isDecorating, let snapshot else { return false }
+        return draftBowlPosition != snapshot.home.bowlPosition || draftFurniture != snapshot.home.furniture
+            || (draftFurnitureOrientations ?? [:]).contains { id, direction in
+                snapshot.inventory.furniture.first(where: { $0.id == id })?.orientation != direction
+            }
+    }
+
+    func openCatCollection(filter: CatCollectionView.Filter = .all, adoptionID: String? = nil) {
+        guard !isDecorating else { return }
+        isShowingSettings = false
+        inspectedCatID = nil
+        activeSheet = .town
+        catCollectionFilter = filter
+        adoptionCatID = adoptionID
+    }
+
     var catStatus: String {
         guard let cat else { return "" }
         if let illness = cat.healthState?.illness {
@@ -378,6 +411,7 @@ final class GameStore {
         clearSaveFailure()
         let canPlayProgress = silentProgressThrough == nil && foreground && hasEnteredHome && !isLoading
             && context.foregroundEpoch == foregroundEpoch
+        if canPlayProgress { adoptionReminders.consider(from: context.original, to: context.candidate) }
         if canPlayProgress, let sound = GameProgressFeedback.sound(from: context.original, to: context.candidate) {
             audio.play(sound)
         }
@@ -506,6 +540,7 @@ final class GameStore {
 
     func setForeground(_ active: Bool) {
         if foreground != active { foregroundEpoch &+= 1 }
+        if !active { adoptionReminders.clearPending() }
         foreground = active
         syncAudio()
         now = Date()
@@ -817,8 +852,9 @@ final class GameStore {
     }
 
     func cancelDecorating() {
-        guard !isSavingLayout else { return }
+        guard isDecorating, !isSavingLayout else { return }
         clearLayoutDraft()
+        showNotice(GameStrings.text("layout.restored"))
     }
 
     private func clearLayoutDraft() {
@@ -862,8 +898,10 @@ final class GameStore {
     }
 
     @discardableResult
-    func adoptCat(catID: String) async -> Bool {
-        await performPersistedAction { GameEngine.adoptCat(&$0, catID: catID, now: $1) }
+    func adoptCat(catID: String, playsSound: Bool = true, showsSuccessNotice: Bool = true) async -> Bool {
+        await performPersistedAction(playsSound: playsSound, showsSuccessNotice: showsSuccessNotice) {
+            GameEngine.adoptCat(&$0, catID: catID, now: $1)
+        }
     }
 
     @discardableResult

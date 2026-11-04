@@ -7,6 +7,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/AppIcon.appiconset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/LaunchCream.colorset
 $(SRCROOT)/CatLife/Assets.xcassets/LaunchCream.colorset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/adoption-success-rays.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/adoption-success-rays.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/adoption-success-rays.imageset/adoption-success-rays.png
 $(SRCROOT)/CatLife/Assets.xcassets/bowl-empty.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/bowl-empty.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/bowl-empty.imageset/bowl-empty.png

@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "resources": [
     "CatLife/Assets.xcassets/AppIcon.appiconset/AppIcon.png",
+    "CatLife/Assets.xcassets/adoption-success-rays.imageset/adoption-success-rays.png",
     "CatLife/Assets.xcassets/bowl-empty.imageset/bowl-empty.png",
     "CatLife/Assets.xcassets/bowl-full.imageset/bowl-full.png",
     "CatLife/Assets.xcassets/cat-avatar.imageset/cat-avatar.png",

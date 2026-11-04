@@ -262,8 +262,30 @@ extension RoomHomeUITests {
                                  file: StaticString = #filePath, line: UInt = #line) throws -> FurnitureState {
         let state = furnitureState(in: app, file: file, line: line)
         let item = try XCTUnwrap(state.items.first { $0.id == id }, "Expected placed furniture \(id)", file: file, line: line)
-        let touch = CGVector(dx: item.x, dy: item.y - (item.isWall ? 0 : 0.02))
-        element("roomScene", in: app).coordinate(withNormalizedOffset: touch).tap()
+        let room = element("roomScene", in: app)
+        let roomFrame = room.frame
+        var touch = CGVector(dx: item.x, dy: item.y - (item.isWall ? 0 : 0.02))
+        let point = CGPoint(x: roomFrame.minX + touch.dx * roomFrame.width,
+                            y: roomFrame.minY + touch.dy * roomFrame.height)
+        let quickActions = ["flipFurnitureButton", "quickStoreFurnitureButton"].map { element($0, in: app) }
+            .filter(\.exists).reduce(CGRect.null) { $0.union($1.frame) }.insetBy(dx: -8, dy: -8)
+        if quickActions.contains(point) {
+            // Select the exposed artwork, not the previous selection's floating controls.
+            let sprite = app.descendants(matching: .any)
+                .matching(NSPredicate(format: "label == %@", "furniture-" + id)).firstMatch
+            XCTAssertTrue(sprite.exists, "Expected visible furniture artwork \(id)", file: file, line: line)
+            let visible = sprite.frame.intersection(roomFrame).insetBy(dx: 3, dy: 3)
+            let candidates = [0.5, 0.25, 0.75].flatMap { y in
+                [0.5, 0.25, 0.75].map { x in
+                    CGPoint(x: visible.minX + visible.width * x, y: visible.minY + visible.height * y)
+                }
+            }
+            let exposed = try XCTUnwrap(candidates.first { visible.contains($0) && !quickActions.contains($0) },
+                                       "Expected an exposed tap point on \(id)", file: file, line: line)
+            touch = CGVector(dx: (exposed.x - roomFrame.minX) / roomFrame.width,
+                             dy: (exposed.y - roomFrame.minY) / roomFrame.height)
+        }
+        room.coordinate(withNormalizedOffset: touch).tap()
         return waitForFurniture(in: app, description: "\(id) to be selected",
                                 matching: { $0.selected == id && !$0.pending }, file: file, line: line)
     }

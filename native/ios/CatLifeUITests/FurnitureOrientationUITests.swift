@@ -256,20 +256,31 @@ extension RoomHomeUITests {
         let editing = waitForFurniture(in: app, description: "furniture controls initially select the bowl") {
             $0.phase == "editing" && !$0.pending && $0.selected == "bowl"
         }
-        XCTAssertFalse(element("flipFurnitureButton", in: app).isEnabled)
+        waitForElement("flipFurnitureButton", in: app)
+        tapAnimationControl("flipFurnitureButton", in: app)
+        waitForLabel("actionToast", "食盆不提供转向", in: app, contains: true)
         let frontToBack = editing.items.sorted {
             if $0.isWall != $1.isWall { return !$0.isWall }
             if $0.y != $1.y { return $0.y > $1.y }
             return $0.id < $1.id
         }
         var flippedKinds = Set<String>()
+        var capturedWallExplanation = false
         for item in frontToBack {
             _ = try selectFurnitureForFacing(item.id, in: app)
-            XCTAssertEqual(element("flipFurnitureButton", in: app).isEnabled, !item.isWall)
+            XCTAssertTrue(element("flipFurnitureButton", in: app).isEnabled)
             if !item.isWall {
                 tapAnimationControl("flipFurnitureButton", in: app)
                 _ = waitForFurnitureOrientation(item.id, "mirrored", in: app)
                 flippedKinds.insert(item.kind)
+            } else {
+                tapAnimationControl("flipFurnitureButton", in: app)
+                waitForLabel("actionToast", "墙饰贴在墙上，不能左右转向", in: app, contains: true)
+                XCTAssertEqual(furnitureState(in: app).items.first { $0.id == item.id }?.orientation, "normal")
+                if !capturedWallExplanation {
+                    attachScreenshot(app, named: "F3 — wall direction is unavailable with an explanation")
+                    capturedWallExplanation = true
+                }
             }
             tapAnimationControl("storeFurnitureButton", in: app)
             _ = waitForFurniture(in: app, description: "stored \(item.id) reveals the next furniture control") {
@@ -285,6 +296,83 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Furniture directions — cancelling restores all original furniture")
         waitForObservedValue("goldCount", "200", in: app)
         waitForObservedValue("foodCount", "3", in: app)
+    }
+
+    @MainActor
+    func testArrangementSegmentsQuickActionsAndUnsavedBadgeUseOneDraft() throws {
+        continueAfterFailure = false
+        let app = launchFurnitureHome()
+        tapAnimationControl("homeDecorateButton", in: app)
+        _ = try selectFurnitureForFacing("catBed", in: app)
+        XCTAssertFalse(element("layoutUnsavedChanges", in: app).exists)
+        let initialControls = ["flipFurnitureButton", "quickStoreFurnitureButton", "storeFurnitureButton",
+                               "furnitureOrientation_normal", "furnitureOrientation_mirrored", "layoutDoneButton"]
+            .map { id in
+                let control = element(id, in: app)
+                return "\(id): exists=\(control.exists), enabled=\(control.isEnabled), hittable=\(control.isHittable), frame=\(control.frame)"
+            }.joined(separator: "\n")
+        let initialHitTesting = XCTAttachment(string: initialControls + "\nScene: \(element("roomScene", in: app).value ?? "nil")\n\n" + app.debugDescription)
+        initialHitTesting.name = "Arrangement — initial button hit testing and accessibility hierarchy"
+        initialHitTesting.lifetime = .keepAlways
+        add(initialHitTesting)
+        attachScreenshot(app, named: "Arrangement — initial quick-action hit-testing checkpoint")
+        for id in ["flipFurnitureButton", "quickStoreFurnitureButton"] {
+            let button = element(id, in: app)
+            if !(button.exists && button.isEnabled && button.isHittable) {
+                let ready = XCTNSPredicateExpectation(
+                    predicate: NSPredicate(format: "exists == true AND enabled == true AND hittable == true"), object: button)
+                let result = XCTWaiter.wait(for: [ready], timeout: 8)
+                if result != .completed {
+                    let failure = XCTAttachment(string: "\(id): enabled=\(button.isEnabled), frame=\(button.frame)\n" + app.debugDescription)
+                    failure.name = "Arrangement — quick-action hit-testing timeout"
+                    failure.lifetime = .keepAlways
+                    add(failure)
+                    attachScreenshot(app, named: "Arrangement — quick-action hit-testing timeout")
+                }
+                XCTAssertEqual(result, .completed, "\(id) must become enabled and hittable after native layout or saving settles.")
+            }
+            XCTAssertTrue(button.isHittable, "\(id) must remain tappable after settling.")
+            XCTAssertGreaterThanOrEqual(button.frame.minX, app.frame.minX + 10)
+            XCTAssertLessThanOrEqual(button.frame.maxX, app.frame.maxX - 10)
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44)
+        }
+        for id in ["furnitureOrientation_normal", "furnitureOrientation_mirrored"] {
+            XCTAssertGreaterThanOrEqual(element(id, in: app).frame.height, 44)
+        }
+        attachScreenshot(app, named: "F1 — default furniture direction and quick actions")
+        tapAnimationControl("furnitureOrientation_mirrored", in: app)
+        _ = waitForFurnitureOrientation("catBed", "mirrored", in: app)
+        waitForElement("layoutUnsavedChanges", in: app)
+        waitForObservedValue("flipFurnitureButton", "反向朝向", in: app)
+        attachScreenshot(app, named: "F2 — mirrored selection, segments and unsaved state")
+        tapAnimationControl("furnitureOrientation_normal", in: app)
+        _ = waitForFurnitureOrientation("catBed", "normal", in: app)
+        XCTAssertFalse(element("layoutUnsavedChanges", in: app).exists)
+        tapAnimationControl("quickStoreFurnitureButton", in: app)
+        _ = waitForFurniture(in: app, description: "quick storage uses the same arrangement draft") {
+            !$0.pending && !$0.items.contains { $0.id == "catBed" }
+        }
+        waitForElement("layoutUnsavedChanges", in: app)
+        tapAnimationControl("layoutCancelButton", in: app)
+        _ = waitForFurnitureOrientation("catBed", "normal", phase: "idle", in: app)
+        waitForLabel("actionToast", "已恢复原来的布置", in: app, contains: true)
+
+        tapAnimationControl("homeDecorateButton", in: app)
+        _ = try selectFurnitureForFacing("catBed", in: app)
+        tapAnimationControl("furnitureInventoryButton", in: app)
+        waitForElement("layoutReturnButton", in: app)
+        XCTAssertFalse(element("flipFurnitureButton", in: app).exists)
+        tapAnimationControl("layoutReturnButton", in: app)
+        _ = waitForFurniture(in: app, description: "returning from the bag restores the same selected furniture") {
+            $0.phase == "editing" && !$0.pending && $0.selected == "catBed"
+        }
+        waitForObservedValue("flipFurnitureButton", "默认朝向", in: app)
+        XCTAssertTrue(element("flipFurnitureButton", in: app).isHittable)
+        XCTAssertTrue(element("quickStoreFurnitureButton", in: app).isHittable)
+        XCTAssertFalse(element("layoutUnsavedChanges", in: app).exists)
+        tapAnimationControl("layoutCancelButton", in: app)
+        _ = waitForFurnitureOrientation("catBed", "normal", phase: "idle", in: app)
     }
 
     @MainActor

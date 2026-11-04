@@ -60,6 +60,10 @@ final class RoomScene: SKScene {
         didSet { visualFrameSampler = CatVisualFrameSampler() }
     }
     private var visualFrameSampler = CatVisualFrameSampler()
+    var onArrangementFrameChanged: ((CGRect?) -> Void)? {
+        didSet { arrangementFrameSampler = CatVisualFrameSampler() }
+    }
+    private var arrangementFrameSampler = CatVisualFrameSampler()
     var canShowCatNeed: Bool {
         presentationActive && !editing && !presentationBusy && !cat.isPerforming
             && !cat.isHidden && bowlPlanningRequest == nil
@@ -106,6 +110,7 @@ final class RoomScene: SKScene {
     var reducedMotion = false {
         didSet {
             guard reducedMotion != oldValue else { return }
+            if reducedMotion { artwork.finishOrientationAnimations() }
             cancelCameraInteraction()
             if activeRest != nil { leaveFurnitureRest(); return }
             cancelPresentation(at: cat.position)
@@ -252,6 +257,17 @@ final class RoomScene: SKScene {
             }
             if visualFrameSampler.sample(projected, at: currentTime) { onCatVisualFrameChanged(projected) }
         }
+        if let onArrangementFrameChanged {
+            var projected: CGRect?
+            if editing, presentationActive, !dragging, !isPlacementPending, view != nil {
+                let selectedFrame = selectedNode.frame
+                let topLeft = convertPoint(toView: CGPoint(x: selectedFrame.minX, y: selectedFrame.maxY))
+                let bottomRight = convertPoint(toView: CGPoint(x: selectedFrame.maxX, y: selectedFrame.minY))
+                projected = CGRect(x: min(topLeft.x, bottomRight.x), y: min(topLeft.y, bottomRight.y),
+                                   width: abs(bottomRight.x - topLeft.x), height: abs(bottomRight.y - topLeft.y))
+            }
+            if arrangementFrameSampler.sample(projected, at: currentTime) { onArrangementFrameChanged(projected) }
+        }
 #if DEBUG
         if bowlPlanningRequest == nil, diagnostics.enabled,
            diagnostics.sample(at: currentTime, cat: cat, floor: floor, navigation: navigation,
@@ -353,7 +369,8 @@ final class RoomScene: SKScene {
 
     private func synchronizeFurnitureNodes() {
         artwork.synchronizeFurniture(items: ownedFurniture, placements: renderedFurniture,
-                                     keeping: newPlacementID, transform: artworkTransform)
+                                     keeping: newPlacementID, transform: artworkTransform,
+                                     animateOrientation: editing && !reducedMotion)
         updateFurnitureLayers()
     }
 
@@ -495,6 +512,7 @@ final class RoomScene: SKScene {
         if !active {
             needAnchorSampler = CatNeedAnchorSampler()
             visualFrameSampler = CatVisualFrameSampler()
+            arrangementFrameSampler = CatVisualFrameSampler()
             cancelCameraInteraction()
             cancelBowlPlanning(keepingRequest: true)
         }

@@ -6,19 +6,30 @@ struct TownView: View {
     @Bindable var store: GameStore
     @State private var selectedPlace: TownPlace = .plaza
     @State private var layer: TownLayer = .all
-    @State private var presentedCollection: CollectionRequest?
-
-    private struct CollectionRequest: Identifiable {
-        let id = UUID()
-        var filter: CatCollectionView.Filter
-    }
     private var cats: [CatState] { store.snapshot?.cats ?? [] }
     private var sickCount: Int { cats.filter { $0.healthState?.illness != nil }.count }
     private var availableOffer: CatAdoptionOffer? {
-        CatCatalog.adoptionOffers.first { offer in !cats.contains { $0.id == offer.id } }
+        CatCatalog.adoptionOffers.first { offer in
+            guard let snapshot = store.snapshot else { return false }
+            return !cats.contains { $0.id == offer.id } && snapshot.player.level >= offer.requiredPlayerLevel
+                && snapshot.home.roomLevel >= offer.requiredRoomLevel && snapshot.player.gold >= offer.price
+        }
     }
 
     var body: some View {
+        Group {
+            if let filter = store.catCollectionFilter {
+                CatCollectionView(store: store, initialFilter: filter, embedded: true,
+                                  initialAdoptionID: store.adoptionCatID, onClose: {
+                    store.catCollectionFilter = nil
+                    store.adoptionCatID = nil
+                }).id(store.adoptionCatID ?? "collection")
+            } else { map }
+        }
+        .saveRecoveryAlert(store: store, isActive: store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation)
+    }
+
+    private var map: some View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: 0) {
@@ -34,10 +45,6 @@ struct TownView: View {
             .scrollBounceBehavior(.basedOnSize)
             .background(TownPalette.grass)
             .accessibilityIdentifier("townMapScroll")
-        }
-        .saveRecoveryAlert(store: store, isActive: presentedCollection == nil)
-        .sheet(item: $presentedCollection) { request in
-            CatCollectionView(store: store, initialFilter: request.filter)
         }
     }
 
@@ -107,7 +114,7 @@ struct TownView: View {
             ForEach(TownPlace.allCases) { place in
                 TownPlot(place: place, selected: selectedPlace == place,
                          inLayer: layer == .all || place.layer == layer || place.isEmpty,
-                         sickCount: sickCount) { choose(place) }
+                         sickCount: sickCount, availableAdoption: availableOffer != nil) { choose(place) }
             }
         }
         .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 24)
@@ -185,7 +192,7 @@ struct TownView: View {
     }
 
     private var statusChip: some View {
-        Text(GameStrings.text(selectedPlace.statusKey(sickCount: sickCount)))
+        Text(GameStrings.text(selectedPlace == .adoption && availableOffer != nil ? "cat.adoptionAvailable" : selectedPlace.statusKey(sickCount: sickCount)))
             .font(.system(size: 11, weight: .heavy)).fixedSize()
             .foregroundStyle(selectedPlace.isFuture ? RoomTheme.lilac :
                 (selectedPlace == .hospital && sickCount > 0 ? RoomTheme.coral : RoomTheme.darkMint))
@@ -219,7 +226,7 @@ struct TownView: View {
 
     private func openCollection(filter: CatCollectionView.Filter = .all) {
         store.playNavigationSound()
-        presentedCollection = CollectionRequest(filter: filter)
+        store.openCatCollection(filter: filter)
     }
 
     private func enterPlace() {
