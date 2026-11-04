@@ -131,6 +131,7 @@ struct RoomHomeView: View {
             case .player: PlayerProfileView(store: store)
             case .tasks: TaskDestinationView(store: store)
             case .town: TownView(store: store)
+            case .hospital: HospitalView(store: store, initialCatID: store.hospitalCatID)
             case .shop, .inventory, .upgrade:
                 NavigationStack {
                     Group {

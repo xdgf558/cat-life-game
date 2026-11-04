@@ -2,6 +2,20 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testWelcomePreparationSurvivesRepeatedColdLaunches() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        for attempt in 0..<6 {
+            app.launchArguments = arguments(reset: attempt == 0)
+            launchAndEnterHome(app)
+            waitForObservedValue("goldCount", "200", in: app)
+            waitForObservedValue("foodCount", "3", in: app)
+            XCTAssertFalse(element("welcomeLoading", in: app).exists)
+            app.terminate()
+        }
+    }
+
+    @MainActor
     func testFixedHomeNavigationIgnoresSwipesAndKeepsRoomStable() throws {
         continueAfterFailure = false
         let app = launchNavigationHome()
@@ -142,7 +156,7 @@ extension RoomHomeUITests {
         waitForLabel("welcomeEnterButton", "进入小家", in: app, file: file, line: line)
         waitForElement("welcomeHero", in: app, file: file, line: line)
         waitForElement("welcomeNotice", in: app, file: file, line: line)
-        waitForObservedValue("welcomeVersion", "0.8.0 (33)", in: app, file: file, line: line)
+        waitForObservedValue("welcomeVersion", "0.10.0 (38)", in: app, file: file, line: line)
         waitForObservedValue("welcomeProgress", "100%", in: app, file: file, line: line)
         // This may be a real offline-work or recovery notice, so assert that
         // it is readable without replacing it with a fixed ready message.

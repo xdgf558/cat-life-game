@@ -6,6 +6,7 @@ struct CatProfileView: View {
     @Bindable var store: GameStore
     let catID: String
     @Binding var isSaving: Bool
+    let health: () -> Void
     let rename: () -> Void
     @State private var selectionFailed = false
     private var cat: CatState? { store.snapshot?.cats.first { $0.id == catID } }
@@ -69,7 +70,18 @@ struct CatProfileView: View {
                     attributeGroup("catProfile.wellbeing") {
                         stat("stat.mood", value: cat.mood, identifier: "catProfileMood")
                         stat("stat.bond", value: cat.intimacy, identifier: "catProfileIntimacy")
-                        stat("stat.health", value: cat.health, identifier: "catProfileHealth")
+                        HStack(spacing: 10) {
+                            stat("stat.health", value: cat.health, identifier: "catProfileHealth")
+                            Button(action: health) {
+                                Image(systemName: "chevron.right").font(.footnote.weight(.bold))
+                                    .foregroundStyle(RoomTheme.darkMint).frame(width: 44, height: 44)
+                                    .background(RoomTheme.paleMint, in: Circle())
+                            }
+                            .buttonStyle(.plain).disabled(isSaving)
+                            .accessibilityLabel(GameStrings.text("hospital.profileEntry"))
+                            .accessibilityValue("\(cat.health)/100")
+                            .accessibilityIdentifier("catHealthButton")
+                        }
                     }
                 } else {
                     Text(GameStrings.text("catProfile.missing")).foregroundStyle(RoomTheme.secondary)
@@ -84,6 +96,9 @@ struct CatProfileView: View {
     }
 
     static func status(for cat: CatState) -> String {
+        if let illness = cat.healthState?.illness {
+            return GameStrings.text(CatHealthCatalog.definition(for: illness).nameKey)
+        }
         if cat.activeRest != nil { return GameStrings.format("rest.recovering", cat.energy) }
         if cat.satiety < 50 { return GameStrings.text("cat.hungry") }
         if cat.cleanliness < 40 { return GameStrings.text("cat.cleanNeeded") }

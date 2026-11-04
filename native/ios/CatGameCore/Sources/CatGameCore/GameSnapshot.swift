@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 4
+    public static let currentSchemaVersion = 5
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -43,6 +43,9 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         schemaVersion = Self.currentSchemaVersion
         player = try values.decode(PlayerState.self, forKey: .player)
         let decodedCats = try values.decode([CatState].self, forKey: .cats)
+        guard version < 5 || decodedCats.allSatisfy({ $0.healthState != nil }) else {
+            throw SaveRepositoryError.invalidSnapshot
+        }
         cats = decodedCats
         // Selection is a display preference; a stale ID must not roll back cats or purchases.
         let selected = try? values.decode(String.self, forKey: .activeCatID)
@@ -54,7 +57,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         // Only pre-task saves receive empty receipts; damaged new receipts must never grant rewards again.
         tasks = version < 3 && !values.contains(.tasks)
             ? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
-            : try values.decode(GameTaskState.self, forKey: .tasks)
+            : try GameTaskState(from: values.superDecoder(forKey: .tasks), schemaVersion: version)
     }
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {
@@ -178,6 +181,8 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public var intimacy: Int
     public var energy: Int
     public var health: Int
+    /// nil exists only while loading a pre-health save, until its first synchronization.
+    public var healthState: CatHealthState?
     public var isPregnant: Bool
     public var decayTracker: CatDecayTracker
     public var activeRest: CatRest?
@@ -188,7 +193,8 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
                 mood: Int = 85, intimacy: Int = 12, energy: Int = 80,
                 health: Int = 90, isPregnant: Bool = false, now: Date,
                 activeRest: CatRest? = nil, lastRestSessionID: String? = nil,
-                customName: String? = nil, appearance: CatAppearance = .orange) {
+                customName: String? = nil, appearance: CatAppearance = .orange,
+                healthState: CatHealthState? = nil) {
         self.id = id
         self.name = name
         self.customName = customName
@@ -199,6 +205,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         self.intimacy = intimacy
         self.energy = energy
         self.health = health
+        self.healthState = healthState ?? CatHealthState(now: now)
         self.isPregnant = isPregnant
         self.decayTracker = CatDecayTracker(now: now)
         self.activeRest = activeRest
@@ -207,7 +214,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case id, name, customName, appearance, satiety, cleanliness, mood, intimacy, energy, health
-        case isPregnant, decayTracker, activeRest, lastRestSessionID
+        case isPregnant, decayTracker, activeRest, lastRestSessionID, healthState
     }
 
     public init(from decoder: Decoder) throws {
@@ -224,6 +231,8 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         intimacy = try values.decode(Int.self, forKey: .intimacy)
         energy = try values.decode(Int.self, forKey: .energy)
         health = try values.decode(Int.self, forKey: .health)
+        healthState = values.contains(.healthState)
+            ? try values.decode(CatHealthState.self, forKey: .healthState) : nil
         isPregnant = try values.decode(Bool.self, forKey: .isPregnant)
         decayTracker = try values.decode(CatDecayTracker.self, forKey: .decayTracker)
         activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)

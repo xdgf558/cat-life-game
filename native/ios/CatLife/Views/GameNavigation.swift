@@ -16,7 +16,7 @@ struct GameBottomBar: View {
             tab("tab.shop", english: "Shop", symbol: "storefront.fill", id: "tabShop",
                 selected: store.activeSheet == .shop && !store.isShowingSettings && !moreVisible) { select(.shop) }
             tab("tab.town", english: "Cats", symbol: "pawprint.fill", id: "tabTown",
-                selected: store.activeSheet == .town && !store.isShowingSettings && !moreVisible) { select(.town) }
+                selected: [.town, .hospital].contains(store.activeSheet) && !store.isShowingSettings && !moreVisible) { select(.town) }
             tab("tab.more", english: "More", symbol: "ellipsis.circle.fill", id: "tabMore",
                 selected: moreVisible || store.isShowingSettings || [.inventory, .player, .upgrade, .tasks].contains(store.activeSheet)) {
                 store.playNavigationSound()

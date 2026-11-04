@@ -49,6 +49,7 @@ extension GameTaskState {
         dailyWorkCount = 0
         dailyFeedCount = 0
         dailyPlayCount = 0
+        dailyCleanCount = 0
         dailyClaimedTaskIDs = []
     }
 
@@ -61,6 +62,13 @@ extension GameTaskState {
         totalFeedCount = min(GameSnapshot.maximumGold, totalFeedCount + 1)
         if dailyDayKey != nil, Self.dayKey(for: date) == dailyDayKey {
             dailyFeedCount = min(GameSnapshot.maximumGold, dailyFeedCount + 1)
+        }
+    }
+
+    mutating func recordClean(at date: Date) {
+        totalCleanCount = min(GameSnapshot.maximumGold, totalCleanCount + 1)
+        if dailyDayKey != nil, Self.dayKey(for: date) == dailyDayKey {
+            dailyCleanCount = min(GameSnapshot.maximumGold, dailyCleanCount + 1)
         }
     }
 

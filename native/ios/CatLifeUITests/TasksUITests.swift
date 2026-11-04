@@ -11,7 +11,7 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", "200", in: app)
 
         tapAnimationControl("homeTasksButton", in: app)
-        waitForObservedValue("tasksDailySummary", "1/3", in: app)
+        waitForObservedValue("tasksDailySummary", "1/4", in: app)
         waitForObservedValue("tasksClaimableSummary", "2", in: app)
         openTaskCard("daily_feed", category: "daily", in: app)
         waitForObservedValue("taskProgress_daily_feed", "1/1", in: app)
@@ -37,7 +37,7 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("homeTasksButton", in: app).frame.intersects(element("homeCatInfo", in: app).frame),
                        "The compact cat status card must not cover the daily-goal entry after relaunch.")
         tapAnimationControl("homeTasksButton", in: app)
-        waitForObservedValue("tasksDailySummary", "1/3", in: app)
+        waitForObservedValue("tasksDailySummary", "1/4", in: app)
         waitForObservedValue("tasksClaimableSummary", "0", in: app)
         assertClaimedTaskIsHidden("daily_feed", in: app)
         selectTaskCategory("tutorial", in: app)
@@ -46,6 +46,42 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", "235", in: app)
         waitForObservedValue("foodCount", "2", in: app)
         assertRoomFrame(roomFrame, in: app, context: "reopening claimed goals after cold launch")
+    }
+
+    @MainActor
+    func testCleaningCompletesCareGoalsAndClaimedCardsStayHiddenAfterRelaunch() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        tapAnimationControl("cleanButton", in: app)
+        tapAnimationControl("homeTasksButton", in: app)
+        waitForObservedValue("tasksDailySummary", "1/4", in: app)
+        waitForObservedValue("tasksClaimableSummary", "2", in: app)
+        for (id, category) in [("daily_clean", "daily"), ("tutorial_clean", "tutorial")] {
+            selectTaskCategory(category, in: app)
+            turnTaskPage("tasksNextPage", in: app)
+            waitForObservedValue("tasksPageIndicator", "2/2", in: app)
+            tapAnimationControl("taskCard_\(id)", in: app)
+            waitForObservedValue("taskProgress_\(id)", "1/1", in: app)
+            tapAnimationControl("taskClaim_\(id)", in: app)
+            assertClaimedTaskIsHidden(id, in: app)
+            assertTaskCardCount(3, in: app)
+            XCTAssertFalse(element("tasksPageIndicator", in: app).exists,
+                           "Claiming the only care goal on page two must leave one compact page.")
+        }
+        attachScreenshot(app, named: "Tasks — cleaning rewards disappear and the category contracts to one page")
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "235", in: app)
+        relaunchPreservingSave(app)
+        waitForObservedValue("goldCount", "235", in: app)
+        tapAnimationControl("homeTasksButton", in: app)
+        waitForObservedValue("tasksClaimableSummary", "0", in: app)
+        for category in ["daily", "tutorial"] {
+            selectTaskCategory(category, in: app)
+            assertTaskCardCount(3, in: app)
+            XCTAssertFalse(element("tasksPageIndicator", in: app).exists)
+        }
+        tapAnimationControl("tabWork", in: app)
+        waitForObservedValue("playerExperience", "9", in: app)
     }
 
     @MainActor
@@ -58,7 +94,7 @@ extension RoomHomeUITests {
         XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
         XCTAssertGreaterThanOrEqual(entry.frame.width, 44)
         tapAnimationControl("tabTasks", in: app)
-        waitForObservedValue("tasksDailySummary", "0/3", in: app)
+        waitForObservedValue("tasksDailySummary", "0/4", in: app)
         assertFixedNavigationAvailable(in: app)
 
         for category in ["tutorial", "daily", "achievement"] {
@@ -154,7 +190,7 @@ extension RoomHomeUITests {
         app.launchArguments = arguments(reset: true) + ["--tasks-level10-fixture"]
         launchAndEnterHome(app)
         tapAnimationControl("homeTasksButton", in: app)
-        waitForObservedValue("tasksDailySummary", "7/7", in: app)
+        waitForObservedValue("tasksDailySummary", "8/8", in: app)
         waitForObservedValue("tasksPageIndicator", "1/3", in: app)
         XCTAssertFalse(element("tasksPreviousPage", in: app).isEnabled)
         XCTAssertFalse(element("tasksNextUnlock", in: app).exists)
@@ -166,19 +202,26 @@ extension RoomHomeUITests {
         turnTaskPage("tasksNextPage", in: app)
         waitForObservedValue("tasksPageIndicator", "3/3", in: app)
         XCTAssertFalse(element("tasksNextPage", in: app).isEnabled)
-        assertTaskCardCount(1, in: app)
+        assertTaskCardCount(2, in: app)
         scrollPage("tasksScroll", to: "taskCard_daily_work3", allowDisabled: false, maximumDrags: 6, in: app)
         tapAnimationControl("taskCard_daily_work3", in: app)
         waitForObservedValue("taskProgress_daily_work3", "3/3", in: app)
         tapAnimationControl("taskClaim_daily_work3", in: app)
         assertClaimedTaskIsHidden("daily_work3", in: app)
+        waitForObservedValue("tasksPageIndicator", "3/3", in: app)
+        assertTaskCardCount(1, in: app)
+        scrollPage("tasksScroll", to: "taskCard_daily_clean", allowDisabled: false, maximumDrags: 6, in: app)
+        tapAnimationControl("taskCard_daily_clean", in: app)
+        waitForObservedValue("taskProgress_daily_clean", "1/1", in: app)
+        tapAnimationControl("taskClaim_daily_clean", in: app)
+        assertClaimedTaskIsHidden("daily_clean", in: app)
         waitForObservedValue("tasksPageIndicator", "2/2", in: app)
         assertTaskCardCount(3, in: app)
         assertFixedNavigationAvailable(in: app)
         attachScreenshot(app, named: "Tasks — claiming the final page returns to the last nonempty page")
 
         selectTaskCategory("achievement", in: app)
-        waitForObservedValue("tasksPageIndicator", "1/4", in: app)
+        waitForObservedValue("tasksPageIndicator", "1/5", in: app)
         assertTaskCardCount(3, in: app)
         selectTaskCategory("daily", in: app)
         waitForObservedValue("tasksPageIndicator", "1/2", in: app)
@@ -188,7 +231,7 @@ extension RoomHomeUITests {
             assertClaimedTaskIsHidden(id, in: app)
         }
         waitForElement("tasksEmptyState", in: app)
-        waitForObservedValue("tasksDailySummary", "7/7", in: app)
+        waitForObservedValue("tasksDailySummary", "8/8", in: app)
         assertTaskCardCount(0, in: app)
         XCTAssertFalse(element("tasksPageIndicator", in: app).exists)
         XCTAssertFalse(element("tasksNextPage", in: app).exists)
@@ -198,16 +241,16 @@ extension RoomHomeUITests {
         assertTaskCardCount(3, in: app)
         XCTAssertFalse(element("tasksEmptyState", in: app).exists, "An empty daily list must not hide starter goals.")
         tapAnimationControl("tabHome", in: app)
-        waitForObservedValue("goldCount", "380", in: app)
+        waitForObservedValue("goldCount", "395", in: app)
         tapAnimationControl("tabWork", in: app)
         waitForObservedValue("playerLevel", "10", in: app)
-        waitForObservedValue("playerExperience", "44", in: app)
+        waitForObservedValue("playerExperience", "48", in: app)
 
         relaunchPreservingSave(app)
-        waitForObservedValue("goldCount", "380", in: app)
+        waitForObservedValue("goldCount", "395", in: app)
         tapAnimationControl("homeTasksButton", in: app)
         waitForElement("tasksEmptyState", in: app)
-        waitForObservedValue("tasksDailySummary", "7/7", in: app)
+        waitForObservedValue("tasksDailySummary", "8/8", in: app)
         assertTaskCardCount(0, in: app)
         XCTAssertFalse(element("tasksPageIndicator", in: app).exists)
     }
@@ -219,7 +262,7 @@ extension RoomHomeUITests {
         app.launchArguments = arguments(reset: true) + ["--tasks-level-up-fixture"]
         launchAndEnterHome(app)
         tapAnimationControl("homeTasksButton", in: app)
-        waitForObservedValue("tasksDailySummary", "2/3", in: app)
+        waitForObservedValue("tasksDailySummary", "2/4", in: app)
         waitForObservedValue("tasksNextUnlock", "2", in: app)
         assertTaskCardCount(3, in: app)
         XCTAssertFalse(element("taskCard_daily_work2", in: app).exists,
@@ -227,7 +270,7 @@ extension RoomHomeUITests {
         openTaskCard("daily_feed", category: "daily", in: app)
         tapAnimationControl("taskClaim_daily_feed", in: app)
         assertClaimedTaskIsHidden("daily_feed", in: app)
-        waitForObservedValue("tasksDailySummary", "3/4", in: app)
+        waitForObservedValue("tasksDailySummary", "3/5", in: app)
         waitForObservedValue("tasksNextUnlock", "4", in: app)
         assertTaskCardCount(3, in: app)
         waitForElement("taskCard_daily_work2", in: app)
@@ -245,8 +288,8 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Tasks — a reward level-up unlocks a goal using existing daily progress")
         tapAnimationControl("taskClaim_daily_work2", in: app)
         assertClaimedTaskIsHidden("daily_work2", in: app)
-        waitForObservedValue("tasksDailySummary", "3/4", in: app)
-        assertTaskCardCount(2, in: app)
+        waitForObservedValue("tasksDailySummary", "3/5", in: app)
+        assertTaskCardCount(3, in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "250", in: app)
         waitForObservedValue("foodCount", "2", in: app)

@@ -55,14 +55,27 @@ final class CatSpriteLibraryTests: XCTestCase {
 
     @MainActor
     func testConcurrentWelcomePreparationRegistersEachAtlasOnlyOnce() async {
+        await RoomScene.resetWelcomeResourcesForTests()
         await CatSpriteLibrary.resetCacheForTests()
-        let first = Task { await CatSpriteLibrary.preload() }
-        let second = Task { await CatSpriteLibrary.preload() }
-        await first.value
-        await second.value
+        XCTAssertFalse(RoomScene.welcomeResourcesReadyForTests)
+        let first = Task {
+            await RoomScene.preloadWelcomeResources()
+            return RoomScene.welcomeResourcesReadyForTests
+        }
+        let second = Task {
+            await RoomScene.preloadWelcomeResources()
+            return RoomScene.welcomeResourcesReadyForTests
+        }
+        let firstReady = await first.value
+        let secondReady = await second.value
+        XCTAssertTrue(firstReady)
+        XCTAssertTrue(secondReady)
+        XCTAssertEqual(RoomScene.welcomePreloadPassCount, 1)
         XCTAssertEqual(CatSpriteLibrary.backgroundRegistrations,
                        CatAppearance.allCases.count * CatClip.allCases.count)
         XCTAssertEqual(CatSpriteLibrary.synchronousRegistrations, 0)
+        await RoomScene.preloadWelcomeResources()
+        XCTAssertEqual(RoomScene.welcomePreloadPassCount, 1)
     }
 #endif
 }

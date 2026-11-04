@@ -6,6 +6,8 @@ public enum ActionKind: String, Codable, Sendable {
 }
 
 public enum ActionFailure: String, Equatable, Sendable {
+    case hospitalHealthy = "hospital.healthy"
+    case hospitalGoldRequired = "hospital.goldRequired"
     case taskMissing = "tasks.error.unknown"
     case taskLevelRequired = "tasks.error.levelRequired"
     case taskAlreadyClaimed = "tasks.error.alreadyClaimed"
@@ -48,6 +50,7 @@ public enum ActionFailure: String, Equatable, Sendable {
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
+    case catTreated = "hospital.treated"
     case taskClaimed = "tasks.claimedNotice"
     case catAdopted = "cat.adopted"
     case companionSelected = "cat.companionSelected"
@@ -76,7 +79,7 @@ public enum ActionSuccess: String, Equatable, Sendable {
         switch self {
         case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
              .foodPurchased, .litterPurchased, .toyPurchased: return .purchase
-        case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped, .taskClaimed: return .none
+        case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped, .taskClaimed, .catTreated: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

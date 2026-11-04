@@ -3,7 +3,7 @@ import Observation
 import CatGameCore
 
 enum HomeSheet: String, Identifiable {
-    case work, shop, inventory, town, player, upgrade, tasks
+    case work, shop, inventory, town, player, upgrade, tasks, hospital
     var id: String { rawValue }
 }
 
@@ -44,6 +44,7 @@ final class GameStore {
     var inventoryCategory: InventoryCategory = .supplies
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
+    var hospitalCatID: String?
     private(set) var now = Date()
     var toast: String? { notices.toast }
     private(set) var feedback: RoomFeedback?
@@ -249,6 +250,9 @@ final class GameStore {
 
     var catStatus: String {
         guard let cat else { return "" }
+        if let illness = cat.healthState?.illness {
+            return GameStrings.text(CatHealthCatalog.definition(for: illness).nameKey)
+        }
         if restingFurnitureID != nil {
             return GameStrings.format("rest.recovering", cat.energy)
         }
@@ -779,6 +783,19 @@ final class GameStore {
         guard !isDecorating else { return }
         audio.play(.catMeow, userInitiated: true)
         inspectedCatID = cat?.id
+    }
+
+    func openHospital(catID: String? = nil) {
+        guard !isDecorating, snapshot != nil else { return }
+        hospitalCatID = catID.flatMap { id in snapshot?.cats.contains { $0.id == id } == true ? id : nil }
+        inspectedCatID = nil
+        isShowingSettings = false
+        activeSheet = .hospital
+    }
+
+    @discardableResult
+    func treatCat(catID: String) async -> Bool {
+        await performPersistedAction { GameEngine.treatCat(&$0, catID: catID, now: $1) }
     }
 
     @discardableResult

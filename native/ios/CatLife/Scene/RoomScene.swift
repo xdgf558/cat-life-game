@@ -9,22 +9,46 @@ final class RoomScene: SKScene {
     // Keep the initial room textures resident between the welcome screen and
     // scene creation. The progress bar completes only after SpriteKit is ready.
     private static var welcomeTextures: [SKTexture]?
+    private static var welcomePreloadTask: Task<Void, Never>?
 
     static func preloadWelcomeResources() async {
         guard welcomeTextures == nil else { return }
-        let names = ["room-empty", "bowl-empty", "bowl-full", "icon-play",
-                     "cat-idle", "cat-expressions", "cat-walk", "cat-rise",
-                     "cat-meal", "cat-play", "cat-rest", "cat-step"]
-            + ["cat-cow-idle", "cat-cow-expressions", "cat-cow-walk", "cat-cow-rise",
-               "cat-cow-meal", "cat-cow-play", "cat-cow-rest", "cat-cow-step"]
-            + FurnitureKind.allCases.map { FurnitureCatalog.metadata(for: $0).assetName }
-        let textures = Set(names).sorted().map { SKTexture(imageNamed: $0) }
-        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
-            SKTexture.preload(textures) { continuation.resume() }
+        if let welcomePreloadTask { await welcomePreloadTask.value; return }
+        let task = Task {
+#if DEBUG
+            welcomePreloadPassCount += 1
+#endif
+            let names = ["room-empty", "bowl-empty", "bowl-full", "icon-play",
+                         "cat-idle", "cat-expressions", "cat-walk", "cat-rise",
+                         "cat-meal", "cat-play", "cat-rest", "cat-step"]
+                + ["cat-cow-idle", "cat-cow-expressions", "cat-cow-walk", "cat-cow-rise",
+                   "cat-cow-meal", "cat-cow-play", "cat-cow-rest", "cat-cow-step"]
+                + FurnitureKind.allCases.map { FurnitureCatalog.metadata(for: $0).assetName }
+            let textures = Set(names).sorted().map { SKTexture(imageNamed: $0) }
+            // Serial requests avoid SpriteKit's cold-load setup racing across worker queues.
+            for texture in textures {
+                await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                    SKTexture.preload([texture]) { continuation.resume() }
+                }
+            }
+            await CatSpriteLibrary.preload()
+            welcomeTextures = textures
         }
-        await CatSpriteLibrary.preload()
-        welcomeTextures = textures
+        welcomePreloadTask = task
+        await task.value
+        welcomePreloadTask = nil
     }
+
+#if DEBUG
+    private(set) static var welcomePreloadPassCount = 0
+    static var welcomeResourcesReadyForTests: Bool { welcomeTextures?.isEmpty == false }
+
+    static func resetWelcomeResourcesForTests() async {
+        await welcomePreloadTask?.value
+        welcomeTextures = nil
+        welcomePreloadPassCount = 0
+    }
+#endif
 
     var onCatTapped: (() -> Void)?
     var onCatNeedAnchorChanged: ((CGPoint?) -> Void)? {

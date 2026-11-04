@@ -3,9 +3,10 @@ import Observation
 
 /// Presentation priorities only; care effects and spending still belong to Core.
 enum CatNeed: Equatable {
-    case food, buyFood, clean, play
+    case food, buyFood, clean, play, hospital
 
-    static func current(satiety: Int, cleanliness: Int, mood: Int, hasFood: Bool) -> CatNeed? {
+    static func current(satiety: Int, cleanliness: Int, mood: Int, hasFood: Bool, isIll: Bool = false) -> CatNeed? {
+        if isIll { return .hospital }
         if satiety < 50 { return hasFood ? .food : .buyFood }
         if cleanliness < 40 { return .clean }
         if mood < 45 { return .play }
@@ -18,6 +19,7 @@ enum CatNeed: Equatable {
         case .buyFood: "catNeed.buyFood"
         case .clean: "catNeed.clean"
         case .play: "catNeed.play"
+        case .hospital: "hospital.healthAlert"
         }
     }
     var symbol: String {
@@ -26,6 +28,7 @@ enum CatNeed: Equatable {
         case .buyFood: "basket.fill"
         case .clean: "sparkles"
         case .play: "party.popper.fill"
+        case .hospital: "cross.case.fill"
         }
     }
 }
@@ -75,25 +78,26 @@ struct CatNeedBubble: View {
     private var need: CatNeed? {
         guard let cat = store.cat else { return nil }
         return CatNeed.current(satiety: cat.satiety, cleanliness: cat.cleanliness,
-                               mood: cat.mood, hasFood: store.hasFood)
+                               mood: cat.mood, hasFood: store.hasFood, isIll: cat.healthState?.illness != nil)
     }
 
     var body: some View {
         if isActive, !store.isBusy, !store.isDecorating, let anchor = presentation.anchor, let need {
             Button {
-                guard !store.isBusy, !store.isDecorating, canAct() else { return }
+                guard !store.isBusy, !store.isDecorating, need == .hospital || canAct() else { return }
                 switch need {
                 case .food, .buyFood: store.feed()
                 case .clean: store.clean()
                 case .play: store.play()
+                case .hospital: store.openHospital(catID: store.cat?.id)
                 }
             } label: {
                 Label(GameStrings.text(need.titleKey), systemImage: need.symbol)
-                    .font(.system(size: 13, weight: .heavy, design: .rounded))
+                    .font(.system(.footnote, design: .rounded, weight: .heavy))
                     .lineLimit(2).multilineTextAlignment(.center)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .frame(minHeight: 44).frame(maxWidth: 190)
-                    .foregroundStyle(need == .clean ? RoomTheme.sky : RoomTheme.ink)
+                    .foregroundStyle(need == .hospital ? RoomTheme.coral : (need == .clean ? RoomTheme.sky : RoomTheme.ink))
                     .background(RoomTheme.paper, in: Capsule())
                     .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                     .shadow(color: RoomTheme.ink.opacity(0.16), radius: 5, y: 4)

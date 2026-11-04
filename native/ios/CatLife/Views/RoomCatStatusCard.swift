@@ -78,6 +78,12 @@ struct RoomCatStatusCard: View {
                 GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
                          symbol: "cat.fill", size: compact ? 34 : 40, tint: RoomTheme.gold)
                     .frame(width: 44, height: 44).background(RoomTheme.wood.opacity(0.25), in: Circle())
+                    .overlay(alignment: .topTrailing) {
+                        if store.cat?.healthState?.illness != nil {
+                            Image(systemName: "cross.circle.fill").font(.system(size: 16, weight: .bold))
+                                .foregroundStyle(RoomTheme.coral, RoomTheme.paper).accessibilityHidden(true)
+                        }
+                    }
             }
             .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catProfile.title"))
             .accessibilityIdentifier("homeCatProfileButton")
@@ -87,7 +93,8 @@ struct RoomCatStatusCard: View {
                     .accessibilityIdentifier("homeCatName")
                     .accessibilityValue(Text(verbatim: store.cat.map(GameStrings.catName) ?? ""))
                 Text(store.catStatus).font(.system(size: 12, weight: .bold))
-                    .foregroundStyle((store.cat?.satiety ?? 100) < 50 ? RoomTheme.coral : RoomTheme.secondary)
+                    .foregroundStyle(store.cat?.healthState?.illness != nil || (store.cat?.satiety ?? 100) < 50
+                                     ? RoomTheme.coral : RoomTheme.secondary)
                     .lineLimit(1).minimumScaleFactor(0.7)
                     .accessibilityIdentifier("catSatiety").accessibilityLabel(GameStrings.text("stat.satiety"))
                     .accessibilityValue("\(store.cat?.satiety ?? 0)")

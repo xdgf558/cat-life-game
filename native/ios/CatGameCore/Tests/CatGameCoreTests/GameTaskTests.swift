@@ -82,7 +82,9 @@ struct GameTaskTests {
         let invalid: [(String, Any)] = [
             ("dailyDayKey", "2026-02-30"), ("dailyDayKey", "2026-1-02"), ("dailyDayKey", "not-a-date"),
             ("dailyWorkCount", -1), ("dailyPlayCount", GameSnapshot.maximumGold + 1),
-            ("dailyFeedCount", 1), ("totalFeedCount", "one"), ("furniturePurchaseCount", -1),
+            ("dailyFeedCount", 1), ("dailyCleanCount", 1), ("totalCleanCount", -1),
+            ("dailyCleanCount", NSNull()), ("totalCleanCount", GameSnapshot.maximumGold + 1),
+            ("totalCleanCount", "one"), ("totalFeedCount", "one"), ("furniturePurchaseCount", -1),
             ("claimedTaskIDs", ["missing"]), ("claimedTaskIDs", ["daily_work"]),
             ("claimedTaskIDs", ["tutorial_work", "tutorial_work"]),
             ("dailyClaimedTaskIDs", ["tutorial_work"]), ("dailyClaimedTaskIDs", ["daily_work", "daily_work"])
@@ -174,6 +176,8 @@ struct GameTaskTests {
             state.tasks.dailyFeedCount = 2
             state.tasks.dailyWorkCount = 3
             state.tasks.dailyPlayCount = 2
+            state.tasks.dailyCleanCount = 1
+            state.tasks.totalCleanCount = 30
             let before = state.player
             let outcome = GameEngine.claimTask(&state, id: definition.id, expectedDayKey: state.tasks.dailyDayKey, now: now)
             #expect(outcome.success == .taskClaimed && outcome.amount == definition.goldReward)
@@ -297,10 +301,13 @@ struct GameTaskTests {
         state.tasks.totalFeedCount = GameSnapshot.maximumGold
         state.tasks.dailyFeedCount = GameSnapshot.maximumGold
         state.tasks.dailyPlayCount = GameSnapshot.maximumGold
+        state.tasks.dailyCleanCount = GameSnapshot.maximumGold
+        state.tasks.totalCleanCount = GameSnapshot.maximumGold
         state.tasks.dailyWorkCount = GameSnapshot.maximumGold
         state.tasks.furniturePurchaseCount = GameSnapshot.maximumGold
         state.player.level = 2
         state.inventory.toys = 1
+        #expect(GameEngine.clean(&state, catID: "cat_001", now: now).succeeded)
         #expect(GameEngine.feed(&state, catID: "cat_001", now: now).succeeded)
         #expect(GameEngine.play(&state, catID: "cat_001", now: now).succeeded)
         #expect(GameEngine.purchaseFurniture(&state, offerID: "potted_plant", now: now).succeeded)
@@ -309,6 +316,7 @@ struct GameTaskTests {
         #expect(state.tasks.totalFeedCount == GameSnapshot.maximumGold && state.tasks.dailyFeedCount == GameSnapshot.maximumGold)
         #expect(state.tasks.dailyPlayCount == GameSnapshot.maximumGold && state.tasks.dailyWorkCount == GameSnapshot.maximumGold)
         #expect(state.tasks.furniturePurchaseCount == GameSnapshot.maximumGold && state.isValid)
+        #expect(state.tasks.dailyCleanCount == GameSnapshot.maximumGold && state.tasks.totalCleanCount == GameSnapshot.maximumGold)
     }
 
     @Test func durableReloadPreservesReceiptsAndColdLaunchCrossesDayOnce() async throws {

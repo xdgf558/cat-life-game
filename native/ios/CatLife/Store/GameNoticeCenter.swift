@@ -52,7 +52,7 @@ enum GameActionNotice {
                 return GameStrings.text("action.purchase")
             case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
                  .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
-                 .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded:
+                 .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded, .catTreated:
                 return GameStrings.text(success.rawValue)
             case .workStarted:
                 if let active = snapshot?.player.activeWork, let job = WorkCatalog.job(id: active.jobID) {
@@ -74,10 +74,10 @@ enum GameActionNotice {
              .sleepWorkActive, .workSleeping, .restInvalidFurniture,
              .workJobMissing, .workLevelRequired, .workProgressLimit,
              .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,
-             .catAdoptionMissing, .catAlreadyOwned:
+             .catAdoptionMissing, .catAlreadyOwned, .hospitalHealthy:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
-             .catPlayerLevelRequired, .catRoomLevelRequired:
+             .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:
             return GameStrings.format(outcome.messageKey, outcome.amount)
         case .roomCapacityReached:
             let canUpgrade = HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil

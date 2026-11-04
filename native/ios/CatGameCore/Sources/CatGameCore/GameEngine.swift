@@ -185,6 +185,7 @@ public enum GameEngine {
         state.inventory.food -= units
         state.cats[index].satiety = cap(state.cats[index].satiety + 25)
         state.cats[index].mood = cap(state.cats[index].mood + 4)
+        CatHealthEngine.relieveRisk(&state.cats[index], points: 2)
         state.cats[index].decayTracker.satiety = max(state.cats[index].decayTracker.satiety, timestamp)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.tasks.recordFeed(at: timestamp)
@@ -204,9 +205,32 @@ public enum GameEngine {
         state.inventory.litter -= 1
         state.cats[index].cleanliness = cap(state.cats[index].cleanliness + 30)
         state.cats[index].health = cap(state.cats[index].health + 4)
+        CatHealthEngine.relieveRisk(&state.cats[index], points: 2)
         state.cats[index].decayTracker.cleanliness = max(
             state.cats[index].decayTracker.cleanliness, timestamp)
+        state.tasks.recordClean(at: timestamp)
         return ActionOutcome(success: .cleaned, amount: 1)
+    }
+
+    public static func treatCat(_ state: inout GameSnapshot, catID: String,
+                                now: Date = Date()) -> ActionOutcome {
+        let synchronized = synchronize(&state, now: now)
+        guard synchronized.succeeded else { return synchronized }
+        guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
+            return failure(.careCatMissing)
+        }
+        guard let illness = state.cats[index].healthState?.illness else { return failure(.hospitalHealthy) }
+        let cost = CatHealthCatalog.definition(for: illness).treatmentCost
+        guard state.player.gold >= cost else { return failure(.hospitalGoldRequired, amount: cost) }
+        var candidate = state
+        let timestamp = effectiveTime(state, now: now)
+        candidate.player.gold -= cost
+        candidate.cats[index].healthState = CatHealthState(now: timestamp)
+        candidate.cats[index].health = max(CatHealthCatalog.treatedHealth, candidate.cats[index].health)
+        candidate.cats[index].mood = cap(candidate.cats[index].mood + 6)
+        guard candidate.isValid else { return failure(.gameInvalidState) }
+        state = candidate
+        return ActionOutcome(success: .catTreated, amount: cost)
     }
 
     public static func play(_ state: inout GameSnapshot, catID: String,
@@ -342,13 +366,8 @@ public enum GameEngine {
         }
         for index in state.cats.indices {
             var cat = state.cats[index]
-            decay(&cat.satiety, tracker: &cat.decayTracker.satiety,
-                  interval: 12 * 60, now: timestamp)
-            decay(&cat.cleanliness, tracker: &cat.decayTracker.cleanliness,
-                  interval: 8 * 60, now: timestamp)
-            decay(&cat.mood, tracker: &cat.decayTracker.mood,
-                  interval: 6 * 60, now: timestamp)
-            settleCatEnergy(&cat, now: timestamp)
+            CatHealthEngine.synchronize(&cat, now: timestamp)
+            settleCatNeeds(&cat, now: timestamp)
             state.cats[index] = cat
         }
 
@@ -463,13 +482,23 @@ public enum GameEngine {
         tracker = timestamp
     }
 
+    static func settleCatNeeds(_ cat: inout CatState, now: Date) {
+        decay(&cat.satiety, tracker: &cat.decayTracker.satiety, interval: 12 * 60, now: now)
+        decay(&cat.cleanliness, tracker: &cat.decayTracker.cleanliness, interval: 8 * 60, now: now)
+        decay(&cat.mood, tracker: &cat.decayTracker.mood, interval: 6 * 60, now: now)
+        settleCatEnergy(&cat, now: now)
+    }
+
     private static func settleCatEnergy(_ cat: inout CatState, now: Date) {
         if var rest = cat.activeRest {
             let through = min(rest.endsAt, max(rest.startedAt, now))
             let duration = rest.endsAt.timeIntervalSince(rest.startedAt)
             let earned = through >= rest.endsAt ? rest.energyReward
                 : Int(floor(Double(rest.energyReward) * through.timeIntervalSince(rest.startedAt) / duration))
-            cat.energy = cap(cat.energy + max(0, earned - rest.energyGranted))
+            let recovered = min(100 - cat.energy, max(0, earned - rest.energyGranted))
+            cat.energy += recovered
+            CatHealthEngine.relieveRisk(&cat, points: max(0,
+                (rest.energyGranted + recovered) / 5 - rest.energyGranted / 5))
             rest.energyGranted = max(rest.energyGranted, earned)
             let paused = max(0, through.timeIntervalSince(rest.energyPausedUntil))
             cat.decayTracker.energy = cat.decayTracker.energy.addingTimeInterval(paused)
@@ -559,6 +588,7 @@ extension GameSnapshot {
             guard !cat.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   !cat.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   cat.customName.map({ CatNameRules.normalized($0) == $0 }) ?? true,
+                  cat.healthState?.isValid ?? true,
                   [cat.satiety, cat.cleanliness, cat.mood, cat.intimacy, cat.energy, cat.health].allSatisfy({ (0...100).contains($0) }),
                   [cat.decayTracker.satiety, cat.decayTracker.cleanliness, cat.decayTracker.mood,
                    cat.decayTracker.energy].allSatisfy({ $0.timeIntervalSince1970.isFinite })

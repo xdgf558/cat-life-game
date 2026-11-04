@@ -64,6 +64,10 @@ struct TownView: View {
                       selected: selectedPlace == .cats) { selectedPlace = .cats }
                 .accessibilityIdentifier("townCatsMarker")
                 .position(mapPoint(x: 0.20, y: 0.25, in: geometry.size))
+            mapMarker(GameStrings.text("hospital.title"), symbol: "cross.case.fill", tint: RoomTheme.coral,
+                      selected: cats.contains { $0.healthState?.illness != nil }) { store.openHospital() }
+                .accessibilityIdentifier("townHospitalMarker")
+                .position(mapPoint(x: 0.78, y: 0.47, in: geometry.size))
         }
         .frame(height: height)
     }

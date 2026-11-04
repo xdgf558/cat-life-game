@@ -10,7 +10,7 @@ public enum GameTaskDestination: String, Sendable {
 }
 
 enum GameTaskMetric: Sendable {
-    case totalWork, totalFeed, furniturePurchases, dailyWork, dailyFeed, dailyPlay, intimacy, roomLevel
+    case totalWork, totalFeed, furniturePurchases, dailyWork, dailyFeed, dailyPlay, totalClean, dailyClean, intimacy, roomLevel
 }
 
 public struct GameTaskDefinition: Identifiable, Sendable {
@@ -80,7 +80,15 @@ public enum GameTaskCatalog {
         .init(id: "achievement_work100", category: .achievement, target: 100, goldReward: 500, expReward: 80,
               destination: .work, metric: .totalWork, requiredLevel: 10),
         .init(id: "achievement_furniture5", category: .achievement, target: 5, goldReward: 180, expReward: 35,
-              destination: .furnitureShop, metric: .furniturePurchases, requiredLevel: 10)
+              destination: .furnitureShop, metric: .furniturePurchases, requiredLevel: 10),
+        .init(id: "tutorial_clean", category: .tutorial, target: 1, goldReward: 20, expReward: 5,
+              destination: .care, metric: .totalClean),
+        .init(id: "daily_clean", category: .daily, target: 1, goldReward: 15, expReward: 4,
+              destination: .care, metric: .dailyClean),
+        .init(id: "achievement_clean10", category: .achievement, target: 10, goldReward: 100, expReward: 20,
+              destination: .care, metric: .totalClean, requiredLevel: 2),
+        .init(id: "achievement_clean30", category: .achievement, target: 30, goldReward: 180, expReward: 35,
+              destination: .care, metric: .totalClean, requiredLevel: 6)
     ]
 
     public static func task(id: String) -> GameTaskDefinition? { all.first { $0.id == id } }
@@ -93,6 +101,8 @@ public enum GameTaskCatalog {
         case .dailyWork: state.tasks.dailyWorkCount
         case .dailyFeed: state.tasks.dailyFeedCount
         case .dailyPlay: state.tasks.dailyPlayCount
+        case .totalClean: state.tasks.totalCleanCount
+        case .dailyClean: state.tasks.dailyCleanCount
         case .intimacy: state.cats.map(\.intimacy).max() ?? 0
         case .roomLevel: state.home.roomLevel
         }
@@ -125,6 +135,8 @@ public struct GameTaskState: Codable, Equatable, Sendable {
     public var dailyWorkCount: Int
     public var dailyFeedCount: Int
     public var dailyPlayCount: Int
+    public var dailyCleanCount: Int
+    public var totalCleanCount: Int
     public var totalFeedCount: Int
     public var furniturePurchaseCount: Int
     public var claimedTaskIDs: [String]
@@ -132,11 +144,14 @@ public struct GameTaskState: Codable, Equatable, Sendable {
 
     public init(dailyDayKey: String? = nil, dailyWorkCount: Int = 0, dailyFeedCount: Int = 0,
                 dailyPlayCount: Int = 0, totalFeedCount: Int = 0, furniturePurchaseCount: Int = 0,
+                dailyCleanCount: Int = 0, totalCleanCount: Int = 0,
                 claimedTaskIDs: [String] = [], dailyClaimedTaskIDs: [String] = []) {
         self.dailyDayKey = dailyDayKey
         self.dailyWorkCount = dailyWorkCount
         self.dailyFeedCount = dailyFeedCount
         self.dailyPlayCount = dailyPlayCount
+        self.dailyCleanCount = dailyCleanCount
+        self.totalCleanCount = totalCleanCount
         self.totalFeedCount = totalFeedCount
         self.furniturePurchaseCount = furniturePurchaseCount
         self.claimedTaskIDs = claimedTaskIDs
@@ -146,11 +161,17 @@ public struct GameTaskState: Codable, Equatable, Sendable {
     private enum CodingKeys: String, CodingKey, CaseIterable {
         case dailyDayKey, dailyWorkCount, dailyFeedCount, dailyPlayCount
         case totalFeedCount, furniturePurchaseCount, claimedTaskIDs, dailyClaimedTaskIDs
+        case dailyCleanCount, totalCleanCount
     }
 
     public init(from decoder: Decoder) throws {
+        try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
+    }
+
+    init(from decoder: Decoder, schemaVersion: Int) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         for key in CodingKeys.allCases where !values.contains(key) {
+            if schemaVersion < 5, key == .dailyCleanCount || key == .totalCleanCount { continue }
             throw DecodingError.keyNotFound(key, .init(codingPath: values.codingPath,
                                                        debugDescription: "Incomplete task state"))
         }
@@ -158,6 +179,11 @@ public struct GameTaskState: Codable, Equatable, Sendable {
         dailyWorkCount = try values.decode(Int.self, forKey: .dailyWorkCount)
         dailyFeedCount = try values.decode(Int.self, forKey: .dailyFeedCount)
         dailyPlayCount = try values.decode(Int.self, forKey: .dailyPlayCount)
+        // Only legacy schemas can lack cleaning counters; current saves must retain them.
+        dailyCleanCount = schemaVersion < 5 && !values.contains(.dailyCleanCount)
+            ? 0 : try values.decode(Int.self, forKey: .dailyCleanCount)
+        totalCleanCount = schemaVersion < 5 && !values.contains(.totalCleanCount)
+            ? 0 : try values.decode(Int.self, forKey: .totalCleanCount)
         totalFeedCount = try values.decode(Int.self, forKey: .totalFeedCount)
         furniturePurchaseCount = try values.decode(Int.self, forKey: .furniturePurchaseCount)
         claimedTaskIDs = try values.decode([String].self, forKey: .claimedTaskIDs)
@@ -171,6 +197,8 @@ public struct GameTaskState: Codable, Equatable, Sendable {
         try values.encode(dailyWorkCount, forKey: .dailyWorkCount)
         try values.encode(dailyFeedCount, forKey: .dailyFeedCount)
         try values.encode(dailyPlayCount, forKey: .dailyPlayCount)
+        try values.encode(dailyCleanCount, forKey: .dailyCleanCount)
+        try values.encode(totalCleanCount, forKey: .totalCleanCount)
         try values.encode(totalFeedCount, forKey: .totalFeedCount)
         try values.encode(furniturePurchaseCount, forKey: .furniturePurchaseCount)
         try values.encode(claimedTaskIDs, forKey: .claimedTaskIDs)

@@ -1,0 +1,113 @@
+{
+  "version": "0.10.0",
+  "build": 38,
+  "date": "2026-11-04",
+  "saveSchema": 5,
+  "finished": [
+    "Independent cat health, three illnesses, risk reduction through care, bounded offline health progression and 24-hour protection",
+    "Hospital list/detail plus town, profile and home entries; atomic treatment and coin spending",
+    "Four care goals; original 21 goals, rewards and claimed receipts preserved",
+    "246 unique Core tests passed: 245 full-suite tests plus one new repository migration boundary test in a passing 20-test targeted rerun",
+    "82 App tests passed on the final binary, including parallel welcome preload and hospital transaction tests",
+    "10 relevant UI scenarios latest executions passed across small and large iPhone simulators; final cold-start paths passed six launches per simulator",
+    "20 resource/generator tests passed; 70 runtime assets hydrated; 704 matching localization keys per language",
+    "Final Debug test build and signed Release archive passed; dSYM, privacy and Release-only fixture exclusion verified",
+    "Xcode distribution export/upload succeeded; Apple acknowledged the uploaded package is processing"
+  ],
+  "partiallyFinished": [
+    "Apple processing in progress; upload succeeded",
+    "Physical-device/TestFlight acceptance remains with the user"
+  ],
+  "broken": [],
+  "verification": {
+    "coreUniqueTests": 246,
+    "coreInitialFullSuite": 245,
+    "coreFinalTargetedTests": 20,
+    "appTests": 82,
+    "resourceTests": 20,
+    "runtimeAssets": 70,
+    "localizationKeysPerLanguage": 704,
+    "uiUniqueScenarios": 10,
+    "uiLatestResults": {
+      "testCleaningCompletesCareGoalsAndClaimedCardsStayHiddenAfterRelaunch": "passed",
+      "testHospitalFailedSaveLeavesTreatmentUnpaidAndOffersRetry": "passed",
+      "testHospitalInsufficientGoldCanReturnToWorkFromCatProfile": "passed",
+      "testHospitalLanguagesAndHealthyDirectoryPagination": "passed",
+      "testHospitalTreatmentPersistsAndKeepsOtherCatAndRoomUnchanged": "passed",
+      "testTaskHighLevelPaginationClampsAndDailyEmptyStatePersists": "passed",
+      "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation": "passed",
+      "testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch": "passed",
+      "testWelcomeCannotEnterUntilTheRealSaveLoadFinishes": "passed",
+      "testWelcomePreparationSurvivesRepeatedColdLaunches": "passed"
+    },
+    "uiRuns": [
+      {
+        "run": "hospital-se",
+        "device": "iPhone SE",
+        "passed": 2,
+        "failed": 3
+      },
+      {
+        "run": "hospital-pro",
+        "device": "iPhone Pro Max",
+        "passed": 4,
+        "failed": 1
+      },
+      {
+        "run": "hospital-se-final",
+        "device": "iPhone SE",
+        "passed": 4,
+        "failed": 1
+      },
+      {
+        "run": "cold-launch-se",
+        "device": "iPhone SE",
+        "passed": 3,
+        "failed": 0
+      },
+      {
+        "run": "cold-launch-pro",
+        "device": "iPhone Pro Max",
+        "passed": 2,
+        "failed": 0
+      }
+    ],
+    "coldLaunchesPerDevice": 6
+  },
+  "initialFailures": [
+    "Early UI assertions expected unformatted 1000 rather than the actual localized 1,000 value; corrected the expectation",
+    "Scroll helper mistakenly counted the home navigation bar behind the presented profile sheet as an obstruction; require hit-test visibility and rerun passed",
+    "One simulator cold launch crashed inside SpriteKit bulk texture preloading; serialize asynchronous texture preloads, share the in-flight task, then rerun App and cold-launch UI checks successfully"
+  ],
+  "archive": {
+    "version": "0.10.0",
+    "build": "38",
+    "bundleID": "com.stationcat.catlife.native",
+    "archiveDevelopmentSignatureVerified": true,
+    "privacyManifestPackaged": true,
+    "symbolArchivePresent": true,
+    "UITestFixtureFlagsAbsent": true,
+    "binarySHA256": "521aee6ed7c59a6baeb33f5eb8c275833062f933f3dea8ec0e1e75e5fd169122",
+    "archiveSizeMB": 96.7
+  },
+  "upload": {
+    "attempted": true,
+    "succeeded": true,
+    "processingCompleted": false,
+    "appID": "6830428076",
+    "bundleID": "com.stationcat.catlife.native",
+    "xcodebuildExitStatus": 0,
+    "processingConfirmed": true,
+    "acknowledgedAt": "2026-11-04T15:17:53+08:00"
+  },
+  "notChecked": [
+    "Physical-device and TestFlight installation of build 38",
+    "iPad/landscape and real VoiceOver",
+    "Long-running real-day balance and battery usage",
+    "Full historical UI suite; relevant changed paths were targeted"
+  ],
+  "nextWork": [
+    "Agent verifies TestFlight upload and Apple processing",
+    "User manages internal/external groups, invitations, review/distribution and device acceptance"
+  ]
+}
