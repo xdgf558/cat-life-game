@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "version": "0.9.0",
+  "build": 35,
+  "finished": [
+    "Nine goals in three categories with gold and EXP rewards",
+    "Atomic progress and reward receipts; schema 1/2 migration to schema 3",
+    "Compact task navigation and localized content",
+    "209 Core tests and 76 App tests passed",
+    "Debug simulator build and signed Release build",
+    "Six affected UI scenarios passed across SE and Pro, including final cold-launch no-overlap and reward retention checks",
+    "Installed in place with byte-identical save before first launch",
+    "Running version confirmed; schema 2 to 3 task migration and identity/ownership/layout preserved"
+  ],
+  "partiallyFinished": [
+    "User physical gameplay acceptance pending"
+  ],
+  "broken": [],
+  "core": {
+    "passed": 209,
+    "suites": 18,
+    "newTaskTests": 20
+  },
+  "app": {
+    "passed": 76,
+    "newTaskTests": 4,
+    "finalHUDTestsPassed": 10,
+    "note": "Full App suite passed before the compact status-card offset fix. The 10 affected HUD tests passed again on the final runtime; task/store runtime was unchanged."
+  },
+  "localization": {
+    "keysPerLanguage": 628,
+    "previousKeysPerLanguage": 579,
+    "previousValuesUnchanged": true
+  },
+  "runtimeAssets": 70,
+  "saveSchema": 3,
+  "ui": {
+    "status": "passed",
+    "earlierRuns": [
+      {
+        "run": "se-tasks",
+        "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+        "status": "failed",
+        "seconds": 21.936
+      },
+      {
+        "run": "se-tasks",
+        "method": "testTaskCategoriesDetailsAndCareRouteTranslateInAllThreeLanguages",
+        "status": "failed",
+        "seconds": 39.886
+      },
+      {
+        "run": "se-tasks",
+        "method": "testTaskClaimSaveFailureKeepsRewardAvailableUntilSuccessfulRetry",
+        "status": "passed",
+        "seconds": 71.564
+      },
+      {
+        "run": "se-tasks",
+        "method": "testTaskDestinationsAndThreeCardCategoriesPreserveResources",
+        "status": "passed",
+        "seconds": 100.538
+      },
+      {
+        "run": "se-tasks",
+        "method": "testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch",
+        "status": "failed",
+        "seconds": 77.157
+      },
+      {
+        "run": "pro-tasks",
+        "method": "testSettingsDismissalResumesAnInProgressMeal",
+        "status": "failed",
+        "seconds": 94.78
+      },
+      {
+        "run": "pro-tasks",
+        "method": "testTaskDestinationsAndThreeCardCategoriesPreserveResources",
+        "status": "passed",
+        "seconds": 115.59
+      },
+      {
+        "run": "pro-tasks",
+        "method": "testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch",
+        "status": "failed",
+        "seconds": 95.356
+      }
+    ],
+    "triage": [
+      "The compact cat status card overlapped the new home task entry. Moved only the compact card below the header controls and added a no-overlap assertion to the cold-launch UI flow; no room or cat resizing.",
+      "Task card accessibility labels include progress and reward content. Changed a translation assertion from exact equality to containment.",
+      "An existing meal/settings regression still requested the now-hidden build 32 release note. Updated the visible third release to build 33 and kept build 32 absent.",
+      "The first SE settings run stayed on Home after the synthesized More tap; recording confirms the menu never opened, not a clipped Settings tile. A subsequent run reached the menu. No separate product root cause is claimed; the final version-page rerun passed."
+    ],
+    "uniqueScenarios": 6,
+    "finalRuns": [
+      {
+        "run": "se-final",
+        "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+        "status": "passed",
+        "seconds": 51.591
+      },
+      {
+        "run": "se-final",
+        "method": "testTaskCategoriesDetailsAndCareRouteTranslateInAllThreeLanguages",
+        "status": "passed",
+        "seconds": 129.126
+      },
+      {
+        "run": "se-final",
+        "method": "testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch",
+        "status": "passed",
+        "seconds": 96.888
+      },
+      {
+        "run": "pro-final",
+        "method": "testSettingsDismissalResumesAnInProgressMeal",
+        "status": "passed",
+        "seconds": 93.735
+      },
+      {
+        "run": "pro-final",
+        "method": "testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch",
+        "status": "passed",
+        "seconds": 127.301
+      }
+    ],
+    "note": "13 executions of 6 unique scenarios: 5 earlier failures are retained; all latest results passed. Final SE/Pro cold-launch assertions directly verify the compact cat card does not overlap the task entry. Destinations and write-failure retry passed before that offset-only runtime fix."
+  },
+  "release": {
+    "version": "0.9.0",
+    "build": 35,
+    "inputCount": 219,
+    "inputSHA256": "6fd343a5a8f272ef693a241499fd0fcbadecacbf202b7becf69931eafa02f00c",
+    "binarySHA256": "66ee82f8aff7c5003dfe1f3cf38cbcfb738c98ed23c573d015b152bbe5aa8695",
+    "signatureVerified": true
+  },
+  "deviceDelivery": {
+    "version": "0.9.0",
+    "build": 35,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4837,
+    "launch": "passed",
+    "runningProcessVerified": true,
+    "schemaAfterStartup": 3,
+    "identityOwnershipAndLayoutPreserved": true,
+    "deliveredOn": "2026-11-04",
+    "userAcceptance": "pending gameplay confirmation",
+    "tasksMigration": {
+      "fromSchema": 2,
+      "toSchema": 3,
+      "taskStatePresent": true,
+      "noRewardsAutomaticallyClaimed": true,
+      "historicalWorkCountPreserved": true
+    }
+  },
+  "notChecked": [
+    "iPad and landscape",
+    "Largest Dynamic Type settings and live VoiceOver",
+    "Long-term performance"
+  ],
+  "nextWork": [
+    "User physical gameplay acceptance"
+  ],
+  "project": {
+    "addedProjectLines": 16,
+    "removedProjectLines": 0,
+    "repeatGenerationByteIdentical": true
+  }
+}

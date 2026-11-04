@@ -1,0 +1,26 @@
+0.10.0（38）— TestFlight 测试内容
+以下中英段落可分别复制到对应语言的“测试内容”栏。安装包已上传且 Apple 已处理完成，尚未提交本版测试审核；测试组、邀请和审核由用户手动安排。
+
+简体中文
+欢迎体验“猫咪健康与医院”。本版新增宠物医院、每只猫独立的健康与治疗记录，以及清洁相关的新手、每日和成就任务。无需注册或登录，游戏进度保存在当前设备。
+
+请重点体验：
+• 从“猫町 → 宠物医院”或“猫咪档案 → 健康与就诊”查看健康状态；切换猫咪后，名字、病症与治疗费用应对应正确。
+• 生病时治疗能正确扣除金币并解除病症；健康猫不应扣费，金币不足时可前往打工。治疗后重新打开游戏，结果和金币应保留。
+• 正常喂食、清洁和休息的操作与动画是否流畅，首页的健康提示是否清楚。新猫和旧存档升级后有 24 小时保护，无需故意让猫咪生病；保护期内可先测试健康页面与日常照料。
+• 清洁后，新手和每日任务进度应增加；领取奖励后任务自动隐藏。累计清洁成就在玩家等级 2、6 解锁，原来的任务进度和领奖记录应保留。
+• 检查小屏幕、简体中文、繁体中文和 English 下的文字、滚动、返回及按钮是否正常；升级后原有猫咪、名字、家具布局、用品和工作进度是否保留。
+
+如遇问题，请通过 TestFlight 反馈，附上发生前的操作、截图或录屏、设备型号和 iOS 版本。尤其欢迎反馈卡顿、崩溃、错误扣费或存档异常。
+
+English
+Welcome to “Cat Health and the Hospital.” This update adds a pet hospital, health and treatment records for each cat, and starter, daily and achievement goals for cleaning. No account or login is required. Progress is saved on this device.
+
+Please focus on:
+• Open Town → Pet hospital, or a cat’s profile → Health and treatment. Check that each cat’s name, condition and treatment price are correct when switching cats.
+• Treating an ill cat should deduct the correct coins and clear its illness. Healthy cats should never be charged. If you do not have enough coins, the work shortcut should help you continue. Treatment and coin balances should persist after reopening the app.
+• Check that feeding, cleaning and resting still feel smooth, and that health notices are clear. New cats and cats in upgraded saves have 24 hours of protection. You do not need to make a cat ill; you can test the healthy views and normal care during this period.
+• Cleaning should advance the starter and daily goals. Claimed goals should disappear. Lifetime cleaning achievements unlock at player levels 2 and 6, while previous goal progress and claimed rewards remain intact.
+• Check text, scrolling, back navigation and buttons on small screens and in Simplified Chinese, Traditional Chinese and English. After updating, your cats, names, furniture layout, supplies and work progress should remain intact.
+
+Please send feedback through TestFlight with the steps that led to the issue, a screenshot or recording, your device model and iOS version. Reports of stuttering, crashes, incorrect charges or save problems are especially helpful.

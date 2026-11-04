@@ -10,7 +10,7 @@ struct CatCollectionView: View {
     @State private var page = 0
     @State private var isSaving = false
 
-    private enum Route: Hashable { case profile(String), name(String), adoption(String) }
+    private enum Route: Hashable { case profile(String), name(String), adoption(String), health(String) }
     private enum Entry: Identifiable {
         case owned(CatState), adoption(CatAdoptionOffer)
         var id: String {
@@ -43,12 +43,24 @@ struct CatCollectionView: View {
                 .navigationDestination(for: Route.self) { route in
                     switch route {
                     case .profile(let id):
-                        CatProfileView(store: store, catID: id, isSaving: $isSaving) { path.append(.name(id)) }
+                        CatProfileView(store: store, catID: id, isSaving: $isSaving,
+                                       health: { path.append(.health(id)) }, rename: { path.append(.name(id)) })
                             .navigationBarBackButtonHidden()
                             .toolbar {
                                 backButton("catProfileBackButton")
                                 doneButton
                             }
+                    case .health(let id):
+                        HospitalCatDetailView(store: store, catID: id, isSaving: $isSaving) {
+                            dismiss()
+                            store.inspectedCatID = nil
+                            store.activeSheet = .work
+                        }
+                        .navigationBarBackButtonHidden()
+                        .toolbar {
+                            backButton("catHealthBackButton")
+                            doneButton
+                        }
                     case .name(let id):
                         CatNameEditorView(store: store, catID: id, isSaving: $isSaving)
                             .navigationBarBackButtonHidden()

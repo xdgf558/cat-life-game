@@ -118,6 +118,8 @@ class RuntimeAssetPreflightTests(unittest.TestCase):
         scripts = Path(__file__).resolve().parent
         for filename in ("generate_project.rb", "check_runtime_assets.py"):
             (self.root / "scripts" / filename).write_bytes((scripts / filename).read_bytes())
+        privacy = "CatLife/PrivacyInfo.xcprivacy"
+        (self.root / privacy).write_bytes((scripts.parent / privacy).read_bytes())
         for relative in ("CatLife/A/Shared.swift", "CatLife/B/Shared.swift", "CatLife/ZScene.swift",
                          "CatLifeUITests/RoomTests.swift", "CatLifeTests/StoreTests.swift"):
             source = self.root / relative
@@ -142,6 +144,13 @@ class RuntimeAssetPreflightTests(unittest.TestCase):
         baseline = generate()
         self.assertEqual(generate(), baseline)
         original = objects()
+        app = next(value for value in original.values()
+                   if value["isa"] == "PBXNativeTarget" and value["name"] == "CatLife")
+        resources = next(original[identifier] for identifier in app["buildPhases"]
+                         if original[identifier]["isa"] == "PBXResourcesBuildPhase")
+        resource_paths = [original[original[identifier]["fileRef"]]["path"]
+                          for identifier in resources["files"]]
+        self.assertEqual(resource_paths.count("PrivacyInfo.xcprivacy"), 1)
         for reference in ET.fromstring(baseline[1]).iter("BuildableReference"):
             self.assertEqual(original[reference.attrib["BlueprintIdentifier"]]["isa"], "PBXNativeTarget")
         for value in original.values():

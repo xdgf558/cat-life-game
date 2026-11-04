@@ -52,7 +52,7 @@ enum GameActionNotice {
                 return GameStrings.text("action.purchase")
             case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
                  .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
-                 .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded:
+                 .sleepStarted, .sleepEnded, .catRestStarted, .catRestEnded, .catTreated:
                 return GameStrings.text(success.rawValue)
             case .workStarted:
                 if let active = snapshot?.player.activeWork, let job = WorkCatalog.job(id: active.jobID) {
@@ -64,18 +64,20 @@ enum GameActionNotice {
                 }
                 return GameStrings.text("action.workStarted")
             case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
+            case .taskClaimed: return GameStrings.format("tasks.claimedNotice", outcome.amount)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
         switch outcome.failure {
-        case .playerAvatarMissing, .equipmentItemMissing, .equipmentNotOwned,
+        case .taskMissing, .taskAlreadyClaimed, .taskIncomplete, .taskDayChanged, .taskProgressLimit,
+             .playerAvatarMissing, .equipmentItemMissing, .equipmentNotOwned,
              .sleepWorkActive, .workSleeping, .restInvalidFurniture,
              .workJobMissing, .workLevelRequired, .workProgressLimit,
              .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,
-             .catAdoptionMissing, .catAlreadyOwned:
+             .catAdoptionMissing, .catAlreadyOwned, .hospitalHealthy:
             return GameStrings.text(outcome.messageKey)
-        case .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
-             .catPlayerLevelRequired, .catRoomLevelRequired:
+        case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
+             .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:
             return GameStrings.format(outcome.messageKey, outcome.amount)
         case .roomCapacityReached:
             let canUpgrade = HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil

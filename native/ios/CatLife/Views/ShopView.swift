@@ -4,7 +4,6 @@ import CatGameCore
 @MainActor
 struct ShopView: View {
     @Bindable var store: GameStore
-    @State private var category = ShopCategory.supplies
 
     var body: some View {
         ScrollView {
@@ -24,20 +23,20 @@ struct ShopView: View {
                 if let featured = ShopListing.list(.furniture).last { featuredCard(featured) }
                 HStack(spacing: 4) {
                     ForEach(ShopCategory.allCases, id: \.self) { option in
-                        Button { category = option } label: {
+                        Button { store.shopCategory = option } label: {
                             Text(GameStrings.text("shop.category.\(option.rawValue)"))
                                 .font(.system(size: 14, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
                                 .frame(maxWidth: .infinity, minHeight: 44)
-                                .foregroundStyle(category == option ? RoomTheme.darkMint : RoomTheme.secondary)
-                                .background(category == option ? RoomTheme.paper : .clear, in: Capsule())
+                                .foregroundStyle(store.shopCategory == option ? RoomTheme.darkMint : RoomTheme.secondary)
+                                .background(store.shopCategory == option ? RoomTheme.paper : .clear, in: Capsule())
                         }
                         .buttonStyle(.plain).accessibilityIdentifier("shopCategory_\(option.rawValue)")
-                        .accessibilityAddTraits(category == option ? .isSelected : [])
+                        .accessibilityAddTraits(store.shopCategory == option ? .isSelected : [])
                     }
                 }
                 .padding(4).background(RoomTheme.chipBg, in: Capsule())
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 14) {
-                    ForEach(ShopListing.list(category)) { product in productCard(product) }
+                    ForEach(ShopListing.list(store.shopCategory)) { product in productCard(product) }
                 }
             }
             .padding(16).padding(.bottom, 8).frame(maxWidth: 560).frame(maxWidth: .infinity)
@@ -84,7 +83,7 @@ struct ShopView: View {
 
     private func productCard(_ product: ShopListing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            if category == .supplies {
+            if store.shopCategory == .supplies {
                 productContents(product)
             } else {
                 NavigationLink(value: product) { productContents(product) }
@@ -153,7 +152,7 @@ private struct ShopPriceButtonStyle: ButtonStyle {
     }
 }
 
-private enum ShopCategory: String, CaseIterable { case supplies, furniture, equipment }
+enum ShopCategory: String, CaseIterable { case supplies, furniture, equipment }
 
 private struct ShopListing: Identifiable, Hashable {
     enum Kind: Hashable { case food, litter, toy, equipment, furniture }

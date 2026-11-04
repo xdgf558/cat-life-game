@@ -51,8 +51,12 @@ struct RoomHomeHUD: View {
                     .padding(.horizontal, 14).frame(height: 44)
                     .background(RoomTheme.mint, in: Capsule())
             } else {
-                HomeNamePlaque(name: store.homeDisplayName, height: 62)
-                    .frame(maxWidth: .infinity).accessibilityIdentifier("homeNamePlaque")
+                VStack(alignment: .leading, spacing: 8) {
+                    HomeNamePlaque(name: store.homeDisplayName, height: 62)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("homeNamePlaque")
+                    if !controlsHidden { HomeTaskEntry(store: store) }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
             VStack(alignment: .trailing, spacing: 8) {
                 HStack(spacing: 8) {

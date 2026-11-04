@@ -7,9 +7,11 @@ struct GameStoreFixtures {
     var initialSnapshot: GameSnapshot?
     var failRestExitOnce = false
     var failWorkCompletionOnce = false
+    private var failTaskClaimOnce = false
     private var failCatRenameOnce = false
     private var failCatAdoptionOnce = false
     private var failCatSelectionOnce = false
+    private var failTreatmentOnce = false
     private var failUserSaves = false
     private var outageStarted = false
 
@@ -19,11 +21,42 @@ struct GameStoreFixtures {
         failRestExitOnce = arguments.contains("--recovery-end-failure-once")
         let reset = allowsSeeding && arguments.contains("--reset-ui-test-save")
         failWorkCompletionOnce = reset && arguments.contains("--career-save-failure-once")
+        failTaskClaimOnce = reset && arguments.contains("--task-claim-save-failure-once")
         failCatRenameOnce = reset && arguments.contains("--cat-name-save-failure-once")
         failCatAdoptionOnce = reset && arguments.contains("--cat-adoption-save-failure-once")
         failCatSelectionOnce = reset && arguments.contains("--cat-companion-save-failure-once")
+        failTreatmentOnce = reset && arguments.contains("--hospital-save-failure-once")
         guard reset else { return }
-        if arguments.contains("--uitesting-adoption-ready") || arguments.contains("--uitesting-adoption-owned") {
+        if arguments.contains("--hospital-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            value.player.gold = arguments.contains("--hospital-low-gold") ? 10 : 1000
+            value.cats[0].health = 50
+            value.cats[0].healthState = CatHealthState(illness: .cold, riskPoints: 8,
+                lastEvaluatedAt: now, protectedUntil: now.addingTimeInterval(-3600))
+            value.cats.append(CatState(id: CatCatalog.cowCatID, name: "牛奶", satiety: 70,
+                cleanliness: 80, mood: 85, energy: 80, health: 90, now: now, appearance: .cow))
+            initialSnapshot = value
+        } else if arguments.contains("--tasks-level10-fixture") || arguments.contains("--tasks-level-up-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            if arguments.contains("--tasks-level10-fixture") {
+                value.player.level = 10
+                value.player.completedWorkCount = 10
+                value.tasks.dailyWorkCount = 3
+                value.tasks.totalFeedCount = 2
+                value.tasks.dailyFeedCount = 2
+                value.tasks.dailyPlayCount = 2
+                value.tasks.dailyCleanCount = 1
+                value.tasks.totalCleanCount = 30
+            } else {
+                value.player.exp = 99
+                _ = GameEngine.feed(&value, catID: value.activeCatID, now: now)
+                value.player.completedWorkCount = 2
+                value.tasks.dailyWorkCount = 2
+            }
+            initialSnapshot = value
+        } else if arguments.contains("--uitesting-adoption-ready") || arguments.contains("--uitesting-adoption-owned") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 2
             value.player.gold = 1000
@@ -93,6 +126,19 @@ struct GameStoreFixtures {
 
     mutating func checkSave(_ candidate: GameSnapshot, original: GameSnapshot,
                             exitsRest: Bool) throws {
+        if failTreatmentOnce, candidate.player.gold < original.player.gold,
+           original.cats.contains(where: { old in
+               old.healthState?.illness != nil
+                   && candidate.cats.first(where: { $0.id == old.id })?.healthState?.illness == nil
+           }) {
+            failTreatmentOnce = false
+            throw CocoaError(.fileWriteUnknown)
+        }
+        if failTaskClaimOnce && (candidate.tasks.claimedTaskIDs != original.tasks.claimedTaskIDs
+            || candidate.tasks.dailyClaimedTaskIDs != original.tasks.dailyClaimedTaskIDs) {
+            failTaskClaimOnce = false
+            throw CocoaError(.fileWriteUnknown)
+        }
         if failCatAdoptionOnce && candidate.cats.count > original.cats.count {
             failCatAdoptionOnce = false
             throw CocoaError(.fileWriteUnknown)

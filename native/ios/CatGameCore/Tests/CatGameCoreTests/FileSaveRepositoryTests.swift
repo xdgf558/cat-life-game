@@ -65,6 +65,44 @@ struct FileSaveRepositoryTests {
         #expect(try await repository.loadOrCreate(now: now) == first)
     }
 
+    @Test func retiredTaskReceiptsLoadFromPrimaryAndBackupAndRemainWritable() async throws {
+        let folder = try directory()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        var expected = try await repository.loadOrCreate(now: now)
+        #expect(GameEngine.feed(&expected, catID: expected.activeCatID, now: now).succeeded)
+        #expect(GameEngine.claimTask(&expected, id: "tutorial_feed", now: now).succeeded)
+        #expect(GameEngine.claimTask(&expected, id: "daily_feed", expectedDayKey: expected.tasks.dailyDayKey, now: now).succeeded)
+        try await repository.save(expected, now: now)
+        var object = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: repository.saveURL)) as? [String: Any])
+        var tasks = try #require(object["tasks"] as? [String: Any])
+        tasks["claimedTaskIDs"] = ["retired_tutorial", "tutorial_feed"]
+        tasks["dailyClaimedTaskIDs"] = ["daily_feed", "retired_daily"]
+        object["tasks"] = tasks
+        let original = try JSONSerialization.data(withJSONObject: object)
+        try original.write(to: repository.saveURL)
+        try original.write(to: repository.backupURL)
+
+        let loaded = try await repository.loadOrCreate(now: now)
+        #expect(loaded == expected)
+        #expect(await repository.lastLoadDisposition == .loaded)
+        #expect(try Data(contentsOf: repository.saveURL) == original)
+        try await repository.checkWritable()
+        try await repository.save(loaded, now: now)
+        #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
+        #expect(try Data(contentsOf: repository.backupURL) == original)
+
+        try Data("damaged primary".utf8).write(to: repository.saveURL)
+        var recovered = try await repository.loadOrCreate(now: now)
+        #expect(recovered == expected)
+        #expect(await repository.lastLoadDisposition == .recoveredBackup)
+        #expect(GameEngine.claimTask(&recovered, id: "tutorial_feed", now: now).failure == .taskAlreadyClaimed)
+        #expect(GameEngine.claimTask(&recovered, id: "daily_feed", expectedDayKey: recovered.tasks.dailyDayKey, now: now).failure == .taskAlreadyClaimed)
+        #expect(recovered == expected)
+        try await repository.save(recovered, now: now)
+        #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
+    }
+
     @Test func corruptedSaveWithoutBackupIsNeverReplacedWithNewGame() async throws {
         let folder = try directory()
         defer { try? FileManager.default.removeItem(at: folder) }
@@ -137,7 +175,7 @@ struct FileSaveRepositoryTests {
 
         let migrated = try await repository.loadOrCreate(now: now.addingTimeInterval(60))
         #expect(migrated == expected)
-        #expect(migrated.schemaVersion == 2 && migrated.activeCat?.appearance == .cow)
+        #expect(migrated.schemaVersion == GameSnapshot.currentSchemaVersion && migrated.activeCat?.appearance == .cow)
         #expect(await repository.lastLoadDisposition == .loaded)
         #expect(try Data(contentsOf: repository.saveURL) == legacyBytes)
         var invalid = migrated
@@ -147,7 +185,7 @@ struct FileSaveRepositoryTests {
 
         try await repository.save(migrated, now: now)
         let saved = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: repository.saveURL)) as? [String: Any])
-        #expect(saved["schemaVersion"] as? Int == 2)
+        #expect(saved["schemaVersion"] as? Int == GameSnapshot.currentSchemaVersion)
         #expect(try Data(contentsOf: repository.backupURL) == legacyBytes)
         #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == expected)
         try Data("interrupted migrated primary".utf8).write(to: repository.saveURL)
@@ -182,7 +220,7 @@ struct FileSaveRepositoryTests {
 
         let migrated = try await repository.loadOrCreate(now: now)
         #expect(migrated == expected)
-        #expect(migrated.schemaVersion == 2 && migrated.home.roomLevel == 1)
+        #expect(migrated.schemaVersion == GameSnapshot.currentSchemaVersion && migrated.home.roomLevel == 1)
         #expect(migrated.activeCat?.appearance == .orange)
         #expect(try Data(contentsOf: repository.saveURL) == legacyBytes)
         try await repository.save(migrated, now: now)
@@ -190,7 +228,7 @@ struct FileSaveRepositoryTests {
     }
 
     @Test func unsupportedSchemaIsRejectedBeforeAnyGameplayFieldsDecode() throws {
-        for version in [0, 3, 99] {
+        for version in [0, GameSnapshot.currentSchemaVersion + 1, 99] {
             let data = Data("{\"schemaVersion\":\(version),\"player\":null,\"cats\":\"future-format\"}".utf8)
             #expect(throws: SaveRepositoryError.unsupportedSchemaVersion(version)) {
                 try JSONDecoder().decode(GameSnapshot.self, from: data)

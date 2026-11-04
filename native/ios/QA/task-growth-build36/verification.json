@@ -1,0 +1,137 @@
+{
+  "schema": 1,
+  "version": "0.9.1",
+  "build": 36,
+  "finished": [
+    "Claimed tasks hide only after durable save; failure retains the reward",
+    "21 catalog tasks with player-level unlocks at 2, 4, 6 and 10",
+    "Three remaining tasks per page with boundary clamping and empty states",
+    "Schema 4 migration preserves previous progress and reward receipts",
+    "221 Core tests and 77 App tests passed",
+    "Debug simulator and signed Release builds",
+    "Seven SE/Pro UI scenarios passed and selected screenshots inspected",
+    "In-place iPhone installation; 4,433-byte save unchanged before first launch",
+    "Installed 0.9.1 (36) process verified; schema 3 to 4 migration preserves task progress, all five existing reward receipts, identities, ownership and room layout",
+    "User confirmed physical gameplay acceptance on 2026-11-04"
+  ],
+  "partiallyFinished": [],
+  "broken": [],
+  "core": {
+    "passed": 221,
+    "suites": 19,
+    "newUnlockTests": 12
+  },
+  "app": {
+    "passed": 77,
+    "newRewardLevelTransactionTests": 1
+  },
+  "localization": {
+    "keysPerLanguage": 661,
+    "previousKeysPerLanguage": 628,
+    "changedExistingKeys": [
+      "tasks.legacyNotice"
+    ],
+    "otherExistingValuesUnchanged": true
+  },
+  "runtimeAssets": 70,
+  "saveSchema": 4,
+  "taskCounts": {
+    "tutorial": 3,
+    "daily": 7,
+    "achievement": 11
+  },
+  "project": {
+    "generatedProjectDiffLines": 0
+  },
+  "release": {
+    "version": "0.9.1",
+    "build": 36,
+    "inputCount": 220,
+    "inputSHA256": "887aa4f4a17ad295644c44dbb6d026fe7cf3663adbf9d05dd1bab4e309668172",
+    "binarySHA256": "415c05d65d268e535356c38e309bf30a20ac5662952a82f9c4e9441235b7cc52",
+    "signatureVerified": true
+  },
+  "ui": {
+    "status": "passed",
+    "uniqueScenarios": 7,
+    "runs": [
+      {
+        "run": "se-growth",
+        "method": "testSettingsUpdatesShowCurrentVersionAndOnlyThreeReleasesWithWorkingNavigation",
+        "status": "passed",
+        "seconds": 54.057
+      },
+      {
+        "run": "se-growth",
+        "method": "testTaskCategoriesDetailsAndCareRouteTranslateInAllThreeLanguages",
+        "status": "passed",
+        "seconds": 123.321
+      },
+      {
+        "run": "se-growth",
+        "method": "testTaskFeedRewardsCommitOnceAndPersistAcrossRelaunch",
+        "status": "passed",
+        "seconds": 85.112
+      },
+      {
+        "run": "se-growth",
+        "method": "testTaskHighLevelPaginationClampsAndDailyEmptyStatePersists",
+        "status": "passed",
+        "seconds": 149.049
+      },
+      {
+        "run": "pro-growth",
+        "method": "testTaskClaimSaveFailureKeepsRewardAvailableUntilSuccessfulRetry",
+        "status": "passed",
+        "seconds": 83.885
+      },
+      {
+        "run": "pro-growth",
+        "method": "testTaskDestinationsAndThreeCardCategoriesPreserveResources",
+        "status": "passed",
+        "seconds": 110.814
+      },
+      {
+        "run": "pro-growth",
+        "method": "testTaskRewardLevelUpRevealsEligibleGoalsWithoutResettingProgress",
+        "status": "passed",
+        "seconds": 86.714
+      }
+    ],
+    "screensInspected": true,
+    "coverage": "Six task scenarios plus release history on SE and Pro: successful claims hide and pop; write failure retains detail; reload retains hidden receipts; three languages; level-up unlocks; pagination 3/3/1 to 3/3 to empty; resource invariants."
+  },
+  "deviceDelivery": {
+    "version": "0.9.1",
+    "build": 36,
+    "installedInPlace": true,
+    "saveByteIdenticalBeforeFirstLaunch": true,
+    "saveBytes": 4433,
+    "launch": "passed after user unlocked and entered room",
+    "runningProcessVerified": true,
+    "deliveredOn": "2026-11-04",
+    "userAcceptance": "passed; user confirmed physical gameplay on 2026-11-04",
+    "schemaAfterStartup": 4,
+    "identityOwnershipAndLayoutPreserved": true,
+    "taskMigration": {
+      "schemaBefore": 3,
+      "schemaAfter": 4,
+      "dailyDayUnchanged": true,
+      "permanentReceiptCountBefore": 4,
+      "permanentReceiptCountAfter": 4,
+      "permanentReceiptsPreserved": true,
+      "dailyReceiptCountBefore": 1,
+      "dailyReceiptCountAfter": 1,
+      "dailyReceiptsPreserved": true,
+      "progressCountersPreserved": true
+    }
+  },
+  "notChecked": [
+    "iPad and landscape",
+    "Largest Dynamic Type settings and live VoiceOver",
+    "Long-term performance"
+  ],
+  "nextWork": [
+    "Prepare TestFlight distribution on a separate release branch"
+  ]
+}

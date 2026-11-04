@@ -1,0 +1,25 @@
+{
+  "version": "0.9.1",
+  "build": 36,
+  "installedInPlace": true,
+  "saveByteIdenticalBeforeFirstLaunch": true,
+  "saveBytes": 4433,
+  "launch": "passed after user unlocked and entered room",
+  "runningProcessVerified": true,
+  "deliveredOn": "2026-11-04",
+  "userAcceptance": "passed; user confirmed physical gameplay on 2026-11-04",
+  "schemaAfterStartup": 4,
+  "identityOwnershipAndLayoutPreserved": true,
+  "taskMigration": {
+    "schemaBefore": 3,
+    "schemaAfter": 4,
+    "dailyDayUnchanged": true,
+    "permanentReceiptCountBefore": 4,
+    "permanentReceiptCountAfter": 4,
+    "permanentReceiptsPreserved": true,
+    "dailyReceiptCountBefore": 1,
+    "dailyReceiptCountAfter": 1,
+    "dailyReceiptsPreserved": true,
+    "progressCountersPreserved": true
+  }
+}

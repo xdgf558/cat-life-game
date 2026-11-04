@@ -1,0 +1,93 @@
+{
+  "version": "0.9.2",
+  "build": 37,
+  "date": "2026-11-04",
+  "finished": [
+    "0.9.1 physical gameplay accepted by user; baseline preserved on codex/ios-task-growth-0.9.1",
+    "Release archive and Debug simulator build completed",
+    "Privacy manifest declares actual file timestamp and system boot time uses; verified in archive",
+    "No non-exempt encryption declared; existing iPad orientation declarations completed",
+    "20 resource/generator tests passed; regeneration stable",
+    "One SE release-history UI test passed with 0 failures",
+    "Prepared Chinese/English beta notes and upload configuration permitting external testing",
+    "Registered explicit game bundle ID and created App Store Connect game record 6830428076; name, SKU and bundle verified in UI",
+    "Xcode automatic distribution export/upload succeeded; Apple acknowledged uploaded package is processing",
+    "Saved Chinese beta app description and bilingual no-sign-in review notes in TestFlight",
+    "Saved user-provided review contact and authorized feedback email in TestFlight; actual contact details excluded from repository",
+    "Fresh App Store Connect UI confirmed version 0.9.2 build 37 is Ready to Submit after Apple processing",
+    "Internal acceptance group creation, requested before handoff, confirmed successful; manual distribution, no build/testers added"
+  ],
+  "partiallyFinished": [
+    "TestFlight device installation and save continuity are not yet verified; user owns test setup",
+    "Privacy policy URL not provided; separately handled by user"
+  ],
+  "broken": [],
+  "archive": {
+    "version": "0.9.2",
+    "build": "37",
+    "bundleID": "com.stationcat.catlife.native",
+    "privacyManifestPackaged": true,
+    "symbolArchivePresent": true,
+    "archiveDevelopmentSignatureVerified": true,
+    "UITestFixtureFlagsAbsent": true,
+    "binarySHA256": "bbd34a5498df54e9dbeb972f70bd582ea669b13cdc909f9c14a20db1f2a36811",
+    "archiveSizeMB": 91.0
+  },
+  "verification": {
+    "resourceTests": 20,
+    "runtimeAssets": 70,
+    "versionPageUITests": 1,
+    "versionPageUISeconds": 52.978,
+    "projectRegenerationStable": true,
+    "localizationKeysPerLanguage": 663,
+    "priorLocalizationValuesPreserved": true
+  },
+  "upload": {
+    "attempted": true,
+    "processingConfirmed": true,
+    "betaReviewSubmitted": false,
+    "externalTestingEnabled": false,
+    "succeeded": true,
+    "xcodebuildExitStatus": 0,
+    "processingCompleted": true,
+    "acknowledgedAt": "2026-11-04T10:03:14+08:00",
+    "betaDescriptionSaved": true,
+    "reviewNotesSaved": true,
+    "reviewContactSaved": true,
+    "feedbackEmailSaved": true,
+    "privacyPolicyURLProvided": false,
+    "appStoreConnectBuildStatus": "Ready to Submit"
+  },
+  "notChecked": [
+    "No new full gameplay suite: gameplay source is unchanged from accepted 0.9.1 (221 Core, 77 App and 7 UI scenarios)",
+    "Physical-device installation of 0.9.2",
+    "iPad gameplay and landscape layout",
+    "TestFlight installation"
+  ],
+  "nextWork": [
+    "User manages internal/external tester groups and beta review",
+    "User verifies TestFlight installation and save continuity",
+    "Future agent work limited to building, verifying and uploading versions unless explicitly reauthorized"
+  ],
+  "appStoreConnect": {
+    "appID": "6830428076",
+    "name": "打工养猫日记",
+    "sku": "cat-life-game-ios",
+    "bundleID": "com.stationcat.catlife.native",
+    "recordCreated": true,
+    "targetVerifiedInUI": true,
+    "testFlightURL": "https://appstoreconnect.apple.com/apps/6830428076/testflight",
+    "originalLinkWasDifferentApp": true
+  },
+  "testingOwnership": "User manages internal/external testing, invitations and review/distribution after explicit handoff on 2026-11-04; agent only builds, verifies and uploads future releases.",
+  "testGroups": {
+    "internalGroupName": "内部验收",
+    "automaticDistribution": false,
+    "creationRequestSentBeforeHandoff": true,
+    "creationConfirmed": true,
+    "lastObservedState": "Fresh page lists internal group; build 37 has no assigned groups or invites",
+    "externalGroupCreated": false,
+    "testersInvited": false,
+    "buildAdded": false
+  }
+}
