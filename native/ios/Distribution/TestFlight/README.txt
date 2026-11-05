@@ -1,3 +1,7 @@
+当前准备版：0.13.2（48）存档管理与欢迎页恢复 UI/UX 重制，按 design_handoff_catlife_0.13.zip 实现备份明信片、导入对照、勾选确认及失败/成功状态；更新入口打开 TestFlight。尚未上传、未安装真实设备，等待 PR #14 审查后再发布。当前玩家版本历史为 48、44、43；本轮验证状态与限制见 ../../QA/save-design-build48-summary.md，中英测试重点见 save-design-0.13.2-48.txt。最终归档与验证结论以本轮 QA 记录为准。
+
+历史准备版：0.13.1（47）存档备份、安全恢复与新图标，尚未上传或安装真实设备，现已纳入 0.13.2。候选归档为 ../CatLife-0.13.1-47-reviewed.xcarchive，验证见 ../../QA/save-recovery-build47-summary.md，测试内容见 save-recovery-0.13.1-47.txt。0.13.0（46）为未发布的历史准备包，由 47 接替；用户审查通过后再上传。
+
 最新上传：0.12.1（44）猫咪图鉴、领养与家具布置体验，2026-11-05 09:48（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，Apple 已开始处理；尚未确认处理完成或测试开放。未关联测试组、邀请测试者或提交测试审核，由用户手动完成。
 PR #7、#8、#9、#10、#12 已依次合入 main；#11 由 #12 替代并关闭，保留分支。发布源码为 45be278c592696ccd12afdbb0c680181a239b28c，源码树与已审查和测试的 24373f2 完全一致。
 从 main 新建 CatLife-0.12.1-44-main.xcarchive，未使用修复前候选包。Bundle ID、版本、签名、dSYM、隐私清单和 Release 测试入口隔离检查通过；归档二进制 SHA256：f2767fd9876026d6acca113408f3409fb21c31fe1d5e4c29e58665ad12671f6e。

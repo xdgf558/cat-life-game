@@ -79,7 +79,11 @@ struct RoomSceneHost: View {
                     scene.onFurnitureSelected = { store.selectFurniture(id: $0) }
                     scene.onFurnitureMoved = { store.moveFurniture(id: $0, to: $1) }
                     scene.onFurniturePlacementFinished = { store.finishFurniturePlacement(id: $0, succeeded: $1) }
-                    scene.onRestingFurnitureChanged = { store.setRestingFurniture(id: $0, sessionID: $1, catID: $2) }
+                    let generation = store.saveSceneGeneration
+                    scene.onRestingFurnitureChanged = { furnitureID, sessionID, catID in
+                        guard store.saveSceneGeneration == generation else { return }
+                        store.setRestingFurniture(id: furnitureID, sessionID: sessionID, catID: catID)
+                    }
                     scene.onFurnitureNotice = { store.showFurnitureNotice($0) }
                     refreshScene()
                     scene.setPresentationActive(isActive)

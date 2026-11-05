@@ -288,7 +288,7 @@ struct CatHealthTests {
         #expect(await repository.lastLoadDisposition == .recoveredBackup)
     }
 
-    @Test func legacyRepositoryCannotWriteIncompleteMigrationOverTheOriginalSave() async throws {
+    @Test func legacyRepositoryCompletesHealthMigrationBeforeAnySave() async throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
         defer { try? FileManager.default.removeItem(at: directory) }
         let repository = FileSaveRepository(directory: directory)
@@ -310,12 +310,11 @@ struct CatHealthTests {
 
         let firstOpen = now.addingTimeInterval(20 * 86400)
         var loaded = try await repository.loadOrCreate(now: firstOpen)
-        #expect(loaded.cats[0].healthState == nil && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
-        await #expect(throws: SaveRepositoryError.invalidSnapshot) {
-            try await repository.save(loaded, now: firstOpen)
-        }
-        #expect(try Data(contentsOf: repository.saveURL) == originalBytes)
-        #expect(!FileManager.default.fileExists(atPath: repository.backupURL.path))
+        #expect(loaded.cats[0].healthState == CatHealthState(now: firstOpen))
+        #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
+        try await repository.save(loaded, now: firstOpen)
+        #expect(try await repository.loadOrCreate(now: firstOpen) == loaded)
+        #expect(try Data(contentsOf: repository.backupURL) == originalBytes)
 
         #expect(GameEngine.synchronize(&loaded, now: firstOpen).succeeded)
         try await repository.save(loaded, now: firstOpen)

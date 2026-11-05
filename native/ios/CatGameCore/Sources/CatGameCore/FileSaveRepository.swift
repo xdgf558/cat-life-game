@@ -5,6 +5,8 @@ public enum SaveRepositoryError: Error, Equatable, Sendable {
     case invalidSnapshot
     /// Neither the primary nor a validated backup can be loaded. Nothing is reset.
     case unreadableSave
+    /// A transient load failure has cleared; retry loading instead of replacing progress.
+    case currentSaveReadable
 }
 
 public enum SaveLoadDisposition: Sendable {
@@ -22,33 +24,37 @@ public actor FileSaveRepository {
     public nonisolated let directory: URL
     public nonisolated let saveURL: URL
     public nonisolated let backupURL: URL
+    public nonisolated let importRecoveryURL: URL
     public private(set) var lastLoadDisposition: SaveLoadDisposition = .loaded
 
     public init(directory: URL) {
         self.directory = directory
         saveURL = directory.appendingPathComponent("cat-life-native-v1.json")
         backupURL = directory.appendingPathComponent("cat-life-native-v1.backup.json")
+        importRecoveryURL = directory.appendingPathComponent("cat-life-before-import.json")
     }
 
     public func loadOrCreate(now: Date = Date()) async throws -> GameSnapshot {
         try ensureDirectory()
+        // An inaccessible historical diagnostic must not block a valid primary.
+        try? PreservedNewerSaveFiles(directory: directory).promoteLegacyFiles()
         let manager = FileManager.default
         if manager.fileExists(atPath: saveURL.path) {
             // A read-permission/I/O failure propagates instead of silently replacing a file.
             let primaryData = try Data(contentsOf: saveURL)
             do {
-                let state = try decode(primaryData)
+                let state = try decode(primaryData, now: now)
                 lastLoadDisposition = .loaded
                 return state
             } catch SaveRepositoryError.unsupportedSchemaVersion(let version) {
                 // Never downgrade a future native save by restoring an older backup.
                 throw SaveRepositoryError.unsupportedSchemaVersion(version)
             } catch {
-                return try recoverBackup(preserving: primaryData)
+                return try recoverBackup(preserving: primaryData, now: now)
             }
         }
         if manager.fileExists(atPath: backupURL.path) {
-            return try recoverBackup(preserving: nil)
+            return try recoverBackup(preserving: nil, now: now)
         }
         guard now.timeIntervalSince1970.isFinite else { throw SaveRepositoryError.invalidSnapshot }
         let fresh = GameSnapshot.fresh(now: now)
@@ -101,6 +107,81 @@ public actor FileSaveRepository {
         try candidate.write(to: saveURL, options: .atomic)
     }
 
+
+    /// Explicit replacement keeps a separate, durable undo point. Unlike the
+    /// rolling automatic checkpoint, ordinary saves never overwrite this file.
+    public func importSnapshot(_ state: GameSnapshot) async throws {
+        guard state.schemaVersion == GameSnapshot.currentSchemaVersion else {
+            throw SaveRepositoryError.unsupportedSchemaVersion(state.schemaVersion)
+        }
+        guard state.isValid else { throw SaveRepositoryError.invalidSnapshot }
+        let candidate = try encode(state)
+        _ = try decode(candidate)
+        try ensureDirectory()
+        // A missing, unreadable or corrupt current save is never silently replaced.
+        let previous = try Data(contentsOf: saveURL)
+        _ = try decode(previous)
+        guard previous != candidate else { return }
+        try previous.write(to: importRecoveryURL, options: .atomic)
+        // Last throwing operation: an error cannot report failure after committing.
+        // The regular checkpoint retains its normal previous-progress semantics.
+        try candidate.write(to: saveURL, options: .atomic)
+    }
+
+    public func loadImportRecovery() async throws -> GameSnapshot? {
+        guard FileManager.default.fileExists(atPath: importRecoveryURL.path) else { return nil }
+        return try decode(Data(contentsOf: importRecoveryURL))
+    }
+
+    /// The welcome-page recovery is explicit: preserve unreadable/newer files
+    /// before replacing them, without weakening ordinary import's valid-save guard.
+    public func restoreSnapshotAfterLoadFailure(_ state: GameSnapshot) async throws {
+        guard state.schemaVersion == GameSnapshot.currentSchemaVersion else {
+            throw SaveRepositoryError.unsupportedSchemaVersion(state.schemaVersion)
+        }
+        guard state.isValid else { throw SaveRepositoryError.invalidSnapshot }
+        let candidate = try encode(state)
+        _ = try decode(candidate)
+        try ensureDirectory()
+        // Read both first. Permission/I/O failures are not missing or corrupt data.
+        let primary = try existingData(at: saveURL)
+        let backup = try existingData(at: backupURL)
+        if let primary, (try? decode(primary)) != nil {
+            throw SaveRepositoryError.currentSaveReadable
+        }
+        if primary == nil, let backup, (try? decode(backup)) != nil {
+            throw SaveRepositoryError.currentSaveReadable
+        }
+        try PreservedNewerSaveFiles(directory: directory).promoteLegacyFiles()
+        var preserved = Set<URL>()
+        if let primary { preserved.insert(try preserveRecoveryData(primary)) }
+        if let backup { preserved.insert(try preserveRecoveryData(backup)) }
+        if let backup {
+            let backupIsUsable: Bool
+            do { _ = try decode(backup); backupIsUsable = true }
+            catch { backupIsUsable = false }
+            // A future checkpoint would reject the next normal save. Its exact
+            // bytes already exist in recovery evidence before this removal.
+            if !backupIsUsable { try FileManager.default.removeItem(at: backupURL) }
+        }
+        // Never stage the candidate as an automatic backup: a failed primary
+        // write must not silently import that candidate on the next launch.
+        try candidate.write(to: saveURL, options: .atomic)
+        lastLoadDisposition = .loaded
+        cleanUpRecoveryFiles(preserving: preserved)
+    }
+
+    private func existingData(at url: URL) throws -> Data? {
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+            guard attributes[.type] as? FileAttributeType == .typeRegular else {
+                throw CocoaError(.fileReadUnknown)
+            }
+            return try Data(contentsOf: url)
+        }
+        catch let error as CocoaError where error.code == .fileReadNoSuchFile { return nil }
+    }
+
     private func ensureDirectory() throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
@@ -124,53 +205,68 @@ public actor FileSaveRepository {
         return now.timeIntervalSince(checkpointAt) >= Self.backupInterval
     }
 
-    private func recoverBackup(preserving corruptData: Data?) throws -> GameSnapshot {
+    private func recoverBackup(preserving corruptData: Data?, now: Date) throws -> GameSnapshot {
         guard FileManager.default.fileExists(atPath: backupURL.path) else {
             throw SaveRepositoryError.unreadableSave
         }
         let backupData = try Data(contentsOf: backupURL)
         let recovered: GameSnapshot
         do {
-            recovered = try decode(backupData)
+            recovered = try decode(backupData, now: now)
         } catch SaveRepositoryError.unsupportedSchemaVersion(let version) {
             throw SaveRepositoryError.unsupportedSchemaVersion(version)
         } catch {
             throw SaveRepositoryError.unreadableSave
         }
-        if let corruptData {
-            // Retrying a failed restore must not produce unlimited identical evidence.
-            let alreadyPreserved = try recoveryFiles().first { url in
-                (try? Data(contentsOf: url)) == corruptData
-            }
-            if let alreadyPreserved {
-                try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: alreadyPreserved.path)
-            } else {
-                let recoveryURL = directory.appendingPathComponent("unreadable-save-\(UUID().uuidString).json")
-                try corruptData.write(to: recoveryURL, options: .atomic)
-            }
-        }
+        var preserved = Set<URL>()
+        if let corruptData { preserved.insert(try preserveRecoveryData(corruptData)) }
         try backupData.write(to: saveURL, options: .atomic)
         lastLoadDisposition = .recoveredBackup
-        // Cleanup cannot turn a successfully restored save into a load failure.
-        // Keep the three newest recovery files, and never touch unrelated documents.
-        if let files = try? recoveryFiles() {
-            for url in files.dropFirst(Self.maximumRecoveryFiles) {
-                try? FileManager.default.removeItem(at: url)
-            }
-        }
+        cleanUpRecoveryFiles(preserving: preserved)
         return recovered
     }
 
+    private func preserveRecoveryData(_ data: Data) throws -> URL {
+        if let schema = try? NativeSaveTransfer.rawSnapshotSchema(data), schema > GameSnapshot.currentSchemaVersion {
+            return try PreservedNewerSaveFiles(directory: directory).preserve(data)
+        }
+        // Retrying a failed restore must not produce unlimited identical evidence.
+        if let existing = try recoveryFiles().first(where: { (try? Data(contentsOf: $0)) == data }) {
+            try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: existing.path)
+            return existing
+        }
+        let url = directory.appendingPathComponent("unreadable-save-\(UUID().uuidString).json")
+        try data.write(to: url, options: .atomic)
+        return url
+    }
+
+    private func cleanUpRecoveryFiles(preserving protected: Set<URL>) {
+        // Cleanup cannot turn a successfully restored save into a load failure.
+        // Keep this recovery's originals plus recent evidence, up to three files.
+        do { try PreservedNewerSaveFiles(directory: directory).promoteLegacyFiles() }
+        catch { return }
+        if let files = try? recoveryFiles() {
+            // Directory enumeration can resolve a symlinked save directory;
+            // match the unique evidence filename rather than URL representation.
+            let protectedNames = Set(protected.map(\.lastPathComponent))
+                .intersection(files.map(\.lastPathComponent))
+            var remaining = max(0, Self.maximumRecoveryFiles - protectedNames.count)
+            for url in files where !protectedNames.contains(url.lastPathComponent) {
+                if remaining > 0 { remaining -= 1 }
+                else { try? FileManager.default.removeItem(at: url) }
+            }
+        }
+    }
+
     private func recoveryFiles() throws -> [URL] {
-        let files = try FileManager.default.contentsOfDirectory(at: directory,
-            includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey])
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
         return files.compactMap { url -> (URL, Date)? in
             let name = url.lastPathComponent
             guard name.hasPrefix("unreadable-save-"), name.hasSuffix(".json"),
                   UUID(uuidString: String(name.dropFirst("unreadable-save-".count).dropLast(5))) != nil,
-                  let values = try? url.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey]),
-                  values.isRegularFile == true else { return nil }
-            return (url, values.contentModificationDate ?? .distantPast)
+                  let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+                  attributes[.type] as? FileAttributeType == .typeRegular else { return nil }
+            return (url, attributes[.modificationDate] as? Date ?? .distantPast)
         }.sorted {
             if $0.1 == $1.1 { return $0.0.lastPathComponent < $1.0.lastPathComponent }
             return $0.1 > $1.1
@@ -178,41 +274,10 @@ public actor FileSaveRepository {
     }
 
     private func encode(_ snapshot: GameSnapshot) throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .custom { date, encoder in
-            var container = encoder.singleValueContainer()
-            try container.encode(Self.dateString(date))
-        }
-        return try encoder.encode(snapshot)
+        try NativeSaveCodec.encoder().encode(snapshot)
     }
 
-    private func decode(_ data: Data) throws -> GameSnapshot {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let string = try container.decode(String.self)
-            guard let date = Self.parseDate(string) else {
-                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid ISO-8601 date")
-            }
-            return date
-        }
-        let snapshot = try decoder.decode(GameSnapshot.self, from: data)
-        guard snapshot.isValid else { throw SaveRepositoryError.invalidSnapshot }
-        return snapshot
-    }
-
-    private static func dateString(_ date: Date) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.string(from: date)
-    }
-
-    private static func parseDate(_ string: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: string) { return date }
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter.date(from: string)
+    private func decode(_ data: Data, now: Date = Date()) throws -> GameSnapshot {
+        try NativeSaveCodec.decodeSnapshot(data, now: now)
     }
 }
