@@ -39,23 +39,26 @@ final class GameStoreAdoptionReminderTests: XCTestCase {
     }
 
     @MainActor
-    func testLoadCanSettleAQualifyingWorkLevelWithoutShowingOrConsumingReminder() async throws {
+    func testOfflineWorkUpgradeWaitsForHomeBeforeQueuingUnseenReminder() async throws {
         let defaults = try isolatedDefaults()
         let repository = AdoptionReminderSaveRepository(completedWorkSeed())
         let store = GameStore(repository: repository, reminderDefaults: defaults)
         store.setForeground(true)
         defer { store.setForeground(false) }
         await store.load()
-        store.enterHome()
         XCTAssertEqual(store.snapshot?.player.level, 3)
         XCTAssertEqual(store.snapshot?.player.gold, 350)
         XCTAssertNil(store.snapshot?.player.activeWork)
         XCTAssertNil(store.adoptionReminders.pendingOffer)
         XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey))
+        store.enterHome()
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.cowCatID)
+        XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey),
+                     "Entering the room can queue a reminder, but only its visible banner records presentation.")
     }
 
     @MainActor
-    func testFailedLoadReconciliationRemainsQuietWhenRetriedInForeground() async throws {
+    func testFailedOfflineWorkSettlementQueuesReminderOnlyAfterSuccessfulRetry() async throws {
         let defaults = try isolatedDefaults()
         let repository = AdoptionReminderSaveRepository(completedWorkSeed(), writesFailing: true)
         let store = GameStore(repository: repository, reminderDefaults: defaults)
@@ -65,16 +68,18 @@ final class GameStoreAdoptionReminderTests: XCTestCase {
         store.enterHome()
         store.setForeground(true)
         defer { store.setForeground(false) }
+        XCTAssertNil(store.adoptionReminders.pendingOffer)
+        XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey))
         await repository.setWritesFailing(false)
         store.retrySaving()
         try await eventually { !store.isBusy && !store.hasSaveFailure && store.snapshot?.player.level == 3 }
         XCTAssertEqual(store.snapshot?.player.gold, 350)
-        XCTAssertNil(store.adoptionReminders.pendingOffer)
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.cowCatID)
         XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey))
     }
 
     @MainActor
-    func testUpgradeSavingAcrossBackgroundDoesNotReplayReminderOnReturn() async throws {
+    func testUpgradeSavedInBackgroundQueuesUnseenReminderOnReturn() async throws {
         let defaults = try isolatedDefaults()
         let repository = AdoptionReminderSaveRepository(upgradeSeed())
         let store = GameStore(repository: repository, reminderDefaults: defaults)
@@ -92,8 +97,74 @@ final class GameStoreAdoptionReminderTests: XCTestCase {
         store.setForeground(true)
         try await eventually { !store.isBusy }
         XCTAssertEqual(store.snapshot?.player.gold, 550)
-        XCTAssertNil(store.adoptionReminders.pendingOffer)
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.cowCatID)
         XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey))
+    }
+
+    @MainActor
+    func testEarningGoldAfterRoomUpgradeQueuesBlueCatOnlyAfterRewardIsSaved() async throws {
+        let defaults = try isolatedDefaults()
+        var seed = upgradeSeed()
+        seed.player.level = 4
+        seed.home.roomLevel = 2
+        seed.player.gold = 1_499
+        seed.tasks.totalFeedCount = 1
+        seed.cats.append(CatState(id: CatCatalog.cowCatID, name: "牛奶", now: seed.meta.lastSyncAt, appearance: .cow))
+        let repository = AdoptionReminderSaveRepository(seed)
+        let store = GameStore(repository: repository, reminderDefaults: defaults)
+        await makeLive(store)
+        defer { store.setForeground(false) }
+        try await eventually { !store.isBusy }
+
+        store.upgradeHome(toLevel: 3)
+        try await eventually { !store.isBusy && store.snapshot?.home.roomLevel == 3 }
+        XCTAssertEqual(store.snapshot?.player.gold, 599)
+        XCTAssertNil(store.adoptionReminders.pendingOffer)
+        await repository.setWritesFailing(true)
+        let failedReceipt = await store.claimTaskWithReceipt(id: "tutorial_feed")
+        XCTAssertNil(failedReceipt)
+        XCTAssertEqual(store.snapshot?.player.gold, 599)
+        XCTAssertNil(store.adoptionReminders.pendingOffer)
+
+        await repository.setWritesFailing(false)
+        let receipt = await store.claimTaskWithReceipt(id: "tutorial_feed")
+        XCTAssertNotNil(receipt)
+        XCTAssertEqual(store.snapshot?.player.gold, 619)
+        XCTAssertEqual(store.snapshot?.player.level, 4, "A level increase must not be required to restore the reminder.")
+        XCTAssertEqual(store.snapshot?.home.roomLevel, 3)
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.blueCatID)
+        XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey))
+    }
+
+    @MainActor
+    func testBackgroundReturnRestoresUndisplayedSecondOfferWithoutAnotherSaveOrUpgrade() async throws {
+        let defaults = try isolatedDefaults()
+        var seed = upgradeSeed()
+        seed.player.level = 4
+        seed.home.roomLevel = 3
+        seed.player.gold = 2_000
+        let repository = AdoptionReminderSaveRepository(seed)
+        let store = GameStore(repository: repository, reminderDefaults: defaults)
+        await makeLive(store)
+        defer { store.setForeground(false) }
+        try await eventually { !store.isBusy }
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.cowCatID)
+        store.adoptionReminders.markPresented(CatCatalog.cowCatID)
+        store.adoptionReminders.dismiss(CatCatalog.cowCatID)
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.blueCatID)
+        let savedBeforeBackground = try XCTUnwrap(store.snapshot)
+        let saveCount = await repository.saveCount
+
+        store.setForeground(false)
+        XCTAssertNil(store.adoptionReminders.pendingOffer)
+        store.setForeground(true)
+        try await eventually { !store.isBusy }
+
+        XCTAssertEqual(store.snapshot, savedBeforeBackground)
+        let savesAfterReturn = await repository.saveCount
+        XCTAssertEqual(savesAfterReturn, saveCount, "A timestamp-only return must not need another disk write to restore the queue.")
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.blueCatID)
+        XCTAssertEqual(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey), [CatCatalog.cowCatID])
     }
 
     @MainActor
@@ -152,6 +223,7 @@ private actor AdoptionReminderSaveRepository: GameSaveRepository {
     private var shouldHold = false
     private var heldSave: CheckedContinuation<Void, Never>?
     private(set) var lastAttempt: GameSnapshot?
+    private(set) var saveCount = 0
     var isSaveBlocked: Bool { heldSave != nil }
 
     init(_ snapshot: GameSnapshot, writesFailing: Bool = false) {
@@ -174,5 +246,6 @@ private actor AdoptionReminderSaveRepository: GameSaveRepository {
         }
         if fails { throw AdoptionReminderSaveError.unavailable }
         saved = snapshot
+        saveCount += 1
     }
 }

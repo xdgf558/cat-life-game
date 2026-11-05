@@ -411,7 +411,7 @@ final class GameStore {
         clearSaveFailure()
         let canPlayProgress = silentProgressThrough == nil && foreground && hasEnteredHome && !isLoading
             && context.foregroundEpoch == foregroundEpoch
-        if canPlayProgress { adoptionReminders.consider(from: context.original, to: context.candidate) }
+        refreshAdoptionReminders()
         if canPlayProgress, let sound = GameProgressFeedback.sound(from: context.original, to: context.candidate) {
             audio.play(sound)
         }
@@ -429,6 +429,12 @@ final class GameStore {
               context.foregroundEpoch == foregroundEpoch,
               context.candidate.meta.lastSyncAt >= through else { return }
         silentProgressThrough = nil
+    }
+
+    private func refreshAdoptionReminders() {
+        guard foreground, hasEnteredHome, !isLoading, let snapshot else { return }
+        // Eligibility uses durable state, independently of silent catch-up audio.
+        adoptionReminders.consider(snapshot)
     }
 
     private func clearSaveFailure() {
@@ -462,6 +468,7 @@ final class GameStore {
     func enterHome() {
         guard snapshot != nil, !isLoading, !loadFailed, !hasEnteredHome else { return }
         hasEnteredHome = true
+        refreshAdoptionReminders()
         syncAudio()
         audio.play(.enter, userInitiated: true)
         notices.enterHome()
@@ -1001,6 +1008,7 @@ final class GameStore {
         guard hasSaveFailure || needsSave else {
             acknowledgeTransitions(context.transitions)
             finishSilentCatchUp(context)
+            refreshAdoptionReminders()
             return
         }
         isBusy = true
@@ -1017,6 +1025,7 @@ final class GameStore {
                     acknowledgeTransitions(context.transitions)
                     clearSaveFailure()
                     finishSilentCatchUp(context)
+                    refreshAdoptionReminders()
                 }
             } catch { recordSaveFailure(userInitiated: userInitiated) }
             isBusy = false

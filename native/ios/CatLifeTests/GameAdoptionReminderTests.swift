@@ -5,13 +5,12 @@ import CatGameCore
 
 final class GameAdoptionReminderTests: XCTestCase {
     @MainActor
-    func testLevelGainQueuesBothOffersOnceAndPresentationSurvivesRelaunch() throws {
+    func testEligibleOffersQueueOnceAndPresentationSurvivesRelaunch() throws {
         let defaults = try isolatedDefaults()
         let reminders = GameAdoptionReminderCenter(defaults: defaults)
-        let old = snapshot(level: 1, room: 3, gold: 2_000)
         let new = snapshot(level: 4, room: 3, gold: 2_000)
-        reminders.consider(from: old, to: new)
-        reminders.consider(from: old, to: new)
+        reminders.consider(new)
+        reminders.consider(new)
         XCTAssertEqual(reminders.pendingOffer?.id, CatCatalog.cowCatID)
         reminders.markPresented(CatCatalog.cowCatID)
         reminders.dismiss(CatCatalog.cowCatID)
@@ -23,33 +22,30 @@ final class GameAdoptionReminderTests: XCTestCase {
                        [CatCatalog.cowCatID, CatCatalog.blueCatID])
 
         let reopened = GameAdoptionReminderCenter(defaults: defaults)
-        reopened.consider(from: old, to: new)
+        reopened.consider(new)
         XCTAssertNil(reopened.pendingOffer)
     }
 
     @MainActor
-    func testRoomUpgradeChecksRemainingGoldRatherThanPreUpgradeBalance() throws {
+    func testRoomUpgradeWithInsufficientGoldCanNotifyAfterSavingEnough() throws {
         let reminders = GameAdoptionReminderCenter(defaults: try isolatedDefaults())
-        let old = snapshot(level: 4, room: 2, gold: 1_499)
-        reminders.consider(from: old, to: snapshot(level: 4, room: 3, gold: 599))
+        // The first companion has already been adopted; only blue remains.
+        reminders.consider(snapshot(level: 4, room: 2, gold: 1_499, ownsCow: true))
+        reminders.consider(snapshot(level: 4, room: 3, gold: 599, ownsCow: true))
         XCTAssertNil(reminders.pendingOffer)
-        reminders.consider(from: snapshot(level: 4, room: 2, gold: 1_500),
-                           to: snapshot(level: 4, room: 3, gold: 600))
+        reminders.consider(snapshot(level: 4, room: 3, gold: 600, ownsCow: true))
         XCTAssertEqual(reminders.pendingOffer?.id, CatCatalog.blueCatID)
     }
 
     @MainActor
-    func testExistingEligibilityAndGoldOnlyChangesDoNotCreateReminders() throws {
+    func testExistingEligibilityIsBackfilledWithoutBypassingLevelOrRoomRequirements() throws {
         let reminders = GameAdoptionReminderCenter(defaults: try isolatedDefaults())
-        reminders.consider(from: snapshot(level: 4, room: 3, gold: 600),
-                           to: snapshot(level: 5, room: 3, gold: 700))
+        reminders.consider(snapshot(level: 3, room: 3, gold: 2_000, ownsCow: true))
         XCTAssertNil(reminders.pendingOffer)
-        reminders.consider(from: snapshot(level: 4, room: 3, gold: 599),
-                           to: snapshot(level: 4, room: 3, gold: 600))
+        reminders.consider(snapshot(level: 4, room: 2, gold: 2_000, ownsCow: true))
         XCTAssertNil(reminders.pendingOffer)
-        reminders.consider(from: snapshot(level: 1, room: 1, gold: 2_000),
-                           to: snapshot(level: 4, room: 1, gold: 2_000))
-        XCTAssertNil(reminders.pendingOffer, "A player level alone cannot bypass the room requirement.")
+        reminders.consider(snapshot(level: 4, room: 3, gold: 600, ownsCow: true))
+        XCTAssertEqual(reminders.pendingOffer?.id, CatCatalog.blueCatID)
     }
 
     @MainActor
@@ -62,7 +58,7 @@ final class GameAdoptionReminderTests: XCTestCase {
         var new = old
         new.player.level = 4
         new.home.roomLevel = 3
-        reminders.consider(from: old, to: new)
+        reminders.consider(new)
         XCTAssertNil(reminders.pendingOffer)
     }
 
@@ -70,21 +66,20 @@ final class GameAdoptionReminderTests: XCTestCase {
     func testOnlyDisplayedHeadIsRememberedAndClearingPendingPreservesHistory() throws {
         let defaults = try isolatedDefaults()
         let reminders = GameAdoptionReminderCenter(defaults: defaults)
-        let old = snapshot(level: 1, room: 3, gold: 2_000)
         let new = snapshot(level: 4, room: 3, gold: 2_000)
-        reminders.consider(from: old, to: new)
+        reminders.consider(new)
         reminders.markPresented(CatCatalog.blueCatID)
         XCTAssertNil(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey))
         reminders.clearPending()
         XCTAssertNil(reminders.pendingOffer)
-        reminders.consider(from: old, to: new)
+        reminders.consider(new)
         XCTAssertEqual(reminders.pendingOffer?.id, CatCatalog.cowCatID,
                        "A queued but hidden offer must not be marked as presented.")
         reminders.markPresented(CatCatalog.cowCatID)
         reminders.clearPending()
 
         let reopened = GameAdoptionReminderCenter(defaults: defaults)
-        reopened.consider(from: old, to: new)
+        reopened.consider(new)
         XCTAssertEqual(reopened.pendingOffer?.id, CatCatalog.blueCatID)
         XCTAssertEqual(defaults.stringArray(forKey: GameAdoptionReminderCenter.presentedIDsKey), [CatCatalog.cowCatID])
     }
@@ -92,27 +87,31 @@ final class GameAdoptionReminderTests: XCTestCase {
     @MainActor
     func testPendingOfferIsRemovedIfFundsAreSpentOrCatIsAdopted() throws {
         let reminders = GameAdoptionReminderCenter(defaults: try isolatedDefaults())
-        let old = snapshot(level: 3, room: 3, gold: 600)
-        let ready = snapshot(level: 4, room: 3, gold: 600)
-        reminders.consider(from: old, to: ready)
+        let ready = snapshot(level: 4, room: 3, gold: 600, ownsCow: true)
+        reminders.consider(ready)
         XCTAssertEqual(reminders.pendingOffer?.id, CatCatalog.blueCatID)
         var spent = ready
         spent.player.gold = 599
-        reminders.consider(from: ready, to: spent)
+        reminders.consider(spent)
         XCTAssertNil(reminders.pendingOffer)
 
-        reminders.consider(from: old, to: ready)
+        reminders.consider(ready)
         var adopted = ready
         adopted.cats.append(CatState(id: CatCatalog.blueCatID, name: "蓝影", now: adopted.meta.lastSyncAt, appearance: .blue))
-        reminders.consider(from: ready, to: adopted)
+        reminders.consider(adopted)
         XCTAssertNil(reminders.pendingOffer)
     }
 
-    private func snapshot(level: Int, room: Int, gold: Int) -> GameSnapshot {
+    private func snapshot(level: Int, room: Int, gold: Int, ownsCow: Bool = false) -> GameSnapshot {
         var value = GameSnapshot.fresh()
         value.player.level = level
         value.home.roomLevel = room
         value.player.gold = gold
+        if ownsCow {
+            let offer = CatCatalog.adoptionOffers.first { $0.id == CatCatalog.cowCatID }!
+            value.cats.append(CatState(id: offer.id, name: offer.name,
+                now: value.meta.lastSyncAt, appearance: offer.appearance))
+        }
         return value
     }
 

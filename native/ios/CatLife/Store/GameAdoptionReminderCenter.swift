@@ -20,15 +20,14 @@ final class GameAdoptionReminderCenter {
         pendingIDs.first.flatMap { CatCatalog.adoptionOffer(catID: $0) }
     }
 
-    /// The caller supplies only successfully saved, live foreground transitions.
-    func consider(from old: GameSnapshot, to new: GameSnapshot) {
+    /// Recheck saved eligibility so interrupted or previously unaffordable offers can return.
+    func consider(_ snapshot: GameSnapshot) {
         pendingIDs.removeAll { id in
             guard let offer = CatCatalog.adoptionOffer(catID: id) else { return true }
-            return !eligible(offer, in: new)
+            return !eligible(offer, in: snapshot)
         }
-        guard new.player.level > old.player.level || new.home.roomLevel > old.home.roomLevel else { return }
         for offer in CatCatalog.adoptionOffers where !presentedIDs.contains(offer.id)
-            && !pendingIDs.contains(offer.id) && !eligible(offer, in: old) && eligible(offer, in: new) {
+            && !pendingIDs.contains(offer.id) && eligible(offer, in: snapshot) {
             pendingIDs.append(offer.id)
         }
     }
