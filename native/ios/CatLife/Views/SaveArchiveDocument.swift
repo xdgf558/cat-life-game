@@ -21,25 +21,39 @@ struct SaveArchiveDocument: FileDocument {
     }
 }
 
+struct SaveArchiveSelection: Sendable {
+    let archive: NativeSaveArchive
+    let filename: String
+    let byteCount: Int
+}
+
 enum SaveArchiveFiles {
-    /// Read outside the main actor, with the same cap as the archive decoder.
     static func read(_ url: URL) throws -> NativeSaveArchive {
+        try readSelection(url).archive
+    }
+
+    /// Read outside the main actor, with the same cap as the archive decoder.
+    static func readSelection(_ url: URL) throws -> SaveArchiveSelection {
         let scoped = url.startAccessingSecurityScopedResource()
         defer { if scoped { url.stopAccessingSecurityScopedResource() } }
         // File providers may need to materialize or coordinate the selected item.
         // Keep both the security scope and the bounded read inside that access.
         let coordinator = NSFileCoordinator(filePresenter: nil)
         var coordinationError: NSError?
-        var result: Result<NativeSaveArchive, Error>?
+        var result: Result<SaveArchiveSelection, Error>?
         coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &coordinationError) { coordinatedURL in
-            result = Result { try readCoordinatedFile(coordinatedURL) }
+            result = Result {
+                let data = try readCoordinatedFile(coordinatedURL)
+                return SaveArchiveSelection(archive: try NativeSaveTransfer.decode(data),
+                                            filename: url.lastPathComponent, byteCount: data.count)
+            }
         }
         if let coordinationError { throw coordinationError }
         guard let result else { throw SaveTransferError.readFailed }
         return try result.get()
     }
 
-    private static func readCoordinatedFile(_ url: URL) throws -> NativeSaveArchive {
+    private static func readCoordinatedFile(_ url: URL) throws -> Data {
         let handle = try FileHandle(forReadingFrom: url)
         defer { try? handle.close() }
         var data = Data()
@@ -51,7 +65,7 @@ enum SaveArchiveFiles {
         guard data.count <= NativeSaveTransfer.maximumFileSize else {
             throw SaveTransferError.fileTooLarge
         }
-        return try NativeSaveTransfer.decode(data)
+        return data
     }
 
     static func prepareShareFile(_ data: Data) throws -> URL {

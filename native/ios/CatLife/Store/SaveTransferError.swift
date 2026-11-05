@@ -4,7 +4,7 @@ import CatGameCore
 enum SaveTransferError: Error, Equatable, Sendable {
     case busy, invalidFile, fileTooLarge, unsupportedVersion, readFailed, writeFailed
 
-    static func messageKey(for error: Error) -> String {
+    static func reason(for error: Error) -> SaveTransferError {
         let reason: SaveTransferError
         if let error = error as? SaveTransferError { reason = error }
         else if let error = error as? NativeSaveTransferError {
@@ -19,7 +19,11 @@ enum SaveTransferError: Error, Equatable, Sendable {
             case .invalidSnapshot, .unreadableSave: reason = .invalidFile
             }
         } else { reason = .readFailed }
-        switch reason {
+        return reason
+    }
+
+    static func messageKey(for error: Error) -> String {
+        switch reason(for: error) {
         case .busy: return "saveTransfer.busy"
         case .invalidFile: return "saveTransfer.invalidFile"
         case .fileTooLarge: return "saveTransfer.fileTooLarge"

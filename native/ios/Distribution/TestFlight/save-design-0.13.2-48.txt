@@ -1,0 +1,21 @@
+打工养猫日记 0.13.2（48）· 存档管理与安全恢复体验
+状态：PR #14 审查准备内容，尚未上传 TestFlight，未安装真实设备。
+设计来源：design_handoff_catlife_0.13.zip。本版只调整原生 iOS 界面与交互呈现，存档规则和网页版保持独立。
+
+简体中文 · 测试重点
+1. 设置 → 存档管理：检查玩家、小家名、等级、金币、猫咪和房间数据；制作备份后核对文件名、大小与时间，并尝试保存到文件或分享。
+2. 选择本游戏 iOS 备份：核对当前进度与备份对照、升降标记和较早备份提醒；未勾选“我知道当前进度会被替换”时不能确认。取消后当前进度应保持。
+3. 已有恢复点时，确认页应说明将替换哪个恢复点。处理中应禁用返回和关闭；成功页显示实际进度与恢复点，可回到小家或留在存档管理。恢复不会合并金币、物品或重复领取奖励。
+4. 尝试无效文件，检查错误说明和“当前进度未更改”提示，以及重新选择、关闭后的返回路径。恢复旧进度前，请先导出仍需保留的当前进度。
+5. 若实际遇到读档失败，检查欢迎页备份恢复入口；成功后应停留在欢迎页，手动进入再核对进度。来自较新版本的存档可优先打开 TestFlight 更新；无法打开时应显示手动更新说明。不要为测试故意破坏真实存档。
+6. 恢复后重启核对名字、背包、任务记录和家具布置。检查三种语言、大小屏与较大字体，确认对照数据、按钮和提示可阅读、可操作。
+仅支持本游戏 iOS 原生备份，不支持网页存档。请反馈设备、系统版本、复现步骤及提示内容，无需附上个人存档。
+
+English · What to Test
+1. Open Settings → Save Management. Check the player and home names, level, coins, cats and room data. Prepare a backup, review its filename, size and time, then try saving it to Files or sharing it.
+2. Select a backup exported by this iOS game. Check the current-versus-backup comparison, increase/decrease markers and older-backup warning. Confirmation must remain disabled until you acknowledge replacement. Cancelling must keep your current progress.
+3. If a recovery point exists, the confirmation must explain which one will be replaced. Back and dismiss actions should be unavailable during processing. The success screen should show actual progress and recovery information, with actions to return home or stay in Save Management. Restoring must not combine coins, items or claimed rewards.
+4. Try an invalid file. Check the error explanation, unchanged-progress message, choose-again action and close path. Export any current progress you want to keep before restoring an older backup.
+5. If you encounter a genuine save-loading failure, check the welcome-page backup recovery entry. After recovery, the app should wait for you to enter the home manually. For a newer-version save, try opening TestFlight to update; if it cannot open, manual instructions should appear. Do not deliberately damage your real save for testing.
+6. Restart after restoring and check names, inventory, task records and furniture placement. Check all three languages, small and large screens, and larger text sizes for readable data and usable controls.
+Only native backups from this iOS game are supported; web-game saves are separate. Please report your device, OS version, reproduction steps and displayed message. You do not need to share your personal save file.

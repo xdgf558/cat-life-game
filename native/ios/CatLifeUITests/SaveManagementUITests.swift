@@ -11,14 +11,16 @@ extension RoomHomeUITests {
         tapSettingsRootControl("settingsSaveManagementRow", in: app)
         waitForElement("saveManagementScroll", in: app)
         waitForElement("saveCurrentSummary", in: app)
+        attachScreenshot(app, named: "Save design S1 — current progress and backup actions")
         waitForLabel("saveExportButton", "制作备份", in: app, contains: true)
+        scrollSaveManagement(to: "saveExportButton", in: app)
         tapAnimationControl("saveExportButton", in: app)
         waitForElement("saveExportPrepared", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveExportShareButton", in: app)
+        scrollSaveManagement(to: "saveExportShareButton", in: app)
         XCTAssertTrue(element("saveExportFilesButton", in: app).exists)
         XCTAssertTrue(element("saveExportShareButton", in: app).isHittable)
         attachScreenshot(app, named: "Save management — prepared iOS backup with Files and Share actions")
-        scrollCareerPage("saveManagementScroll", to: "saveRecoveryCard", in: app)
+        scrollSaveManagement(to: "saveRecoveryCard", in: app)
         XCTAssertFalse(element("saveRecoveryButton", in: app).exists,
                        "Exporting must not create a before-import recovery point.")
         tapAnimationControl("settingsBackButton", in: app)
@@ -36,22 +38,21 @@ extension RoomHomeUITests {
         let food = try XCTUnwrap(element("foodCount", in: app).value as? String)
         tapAnimationControl("settingsButton", in: app)
         tapSettingsRootControl("settingsSaveManagementRow", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveImportButton", in: app)
+        scrollSaveManagement(to: "saveImportButton", in: app)
         tapAnimationControl("saveImportButton", in: app)
         cancelSystemSaveFilePanel(app, screenshot: "Save management — native Files import picker")
         XCTAssertFalse(element("saveImportPreview", in: app).exists)
         XCTAssertFalse(element("saveRecoveryButton", in: app).exists)
 
-        scrollCareerPage("saveManagementScroll", to: "saveExportButton", in: app)
+        scrollSaveManagement(to: "saveExportButton", in: app)
         tapAnimationControl("saveExportButton", in: app)
         waitForElement("saveExportPrepared", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveExportFilesButton", in: app)
+        scrollSaveManagement(to: "saveExportFilesButton", in: app)
         tapAnimationControl("saveExportFilesButton", in: app)
         cancelSystemSaveFilePanel(app, screenshot: "Save management — native Files export panel")
-        scrollCareerPage("saveManagementScroll", to: "saveRecoveryCard", in: app)
+        scrollSaveManagement(to: "saveRecoveryCard", in: app)
         XCTAssertFalse(element("saveRecoveryButton", in: app).exists)
-        XCTAssertFalse(element("saveTransferStatus", in: app).exists,
-                       "Cancelling a system file panel must not report success or an error.")
+        waitForLabel("saveTransferStatus", "当前进度未更改", in: app, contains: true)
         tapAnimationControl("settingsBackButton", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", gold, in: app)
@@ -90,31 +91,40 @@ extension RoomHomeUITests {
 
         chooseNativeBackup(named: filename, in: app)
         waitForElement("saveImportPreview", in: app)
+        assertUnacknowledgedSavePreview(in: app)
         attachScreenshot(app, named: "Save management — real exported file preview before replacement")
+        acknowledgeSaveReplacement(in: app)
+        attachScreenshot(app, named: "Save design S4 — acknowledgement enables replacement")
         tapSavePreviewControl("saveCancelImportButton", in: app)
         XCTAssertFalse(element("saveRecoveryButton", in: app).exists,
                        "Preview cancellation must not replace progress or create a recovery point.")
         chooseNativeBackup(named: filename, in: app)
         waitForElement("saveImportPreview", in: app)
+        assertUnacknowledgedSavePreview(in: app)
+        acknowledgeSaveReplacement(in: app)
         tapSavePreviewControl("saveConfirmImportButton", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveTransferStatus", in: app)
-        waitForLabel("saveTransferStatus", "备份已导入", in: app, contains: true)
+        waitForElement("saveImportSuccess", in: app)
+        attachScreenshot(app, named: "Save design S6 — imported progress and recovery point")
+        tapSavePreviewControl("saveStayManagementButton", in: app)
         // A subsequent file import would replace the single recovery point.
         // The confirmation must disclose that point before any write occurs.
         chooseNativeBackup(named: filename, in: app)
         waitForElement("saveRecoveryReplacementWarning", in: app)
         waitForLabel("saveExistingRecoverySummary", "等级 1 · 1 只猫咪", in: app, contains: true)
         waitForElement("saveExistingRecoveryTime", in: app)
+        assertUnacknowledgedSavePreview(in: app)
         attachScreenshot(app, named: "Save management — existing recovery point replacement disclosed")
         tapSavePreviewControl("saveCancelImportButton", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveRecoveryButton", in: app)
+        scrollSaveManagement(to: "saveRecoveryButton", in: app)
         tapAnimationControl("saveRecoveryButton", in: app)
         waitForElement("saveImportPreview", in: app)
         waitForLabel("saveConfirmImportButton", "恢复这份进度", in: app, contains: true)
+        assertUnacknowledgedSavePreview(in: app)
         attachScreenshot(app, named: "Save management — pre-import recovery point confirmation")
-        tapSavePreviewControl("saveCancelImportButton", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("tabHome", in: app)
+        acknowledgeSaveReplacement(in: app)
+        tapSavePreviewControl("saveConfirmImportButton", in: app)
+        waitForElement("saveImportSuccess", in: app)
+        tapSavePreviewControl("saveReturnHomeButton", in: app)
         waitForObservedValue("goldCount", gold, in: app)
         waitForObservedValue("foodCount", food, in: app)
     }
@@ -127,6 +137,12 @@ extension RoomHomeUITests {
             app.launchArguments = arguments(reset: true) + [fixture]
             app.launch()
             waitForElement("welcomeLoadError", in: app)
+            if fixture == "--save-load-future-fixture" {
+                waitForElement("welcomeUpdateButton", in: app)
+            } else {
+                XCTAssertFalse(element("welcomeUpdateButton", in: app).exists)
+            }
+            attachScreenshot(app, named: "Welcome design W1 — failure " + fixture)
             tapWelcomeRestoreButton(in: app)
             waitForElement("saveImportButton", in: app)
             XCTAssertFalse(element("saveExportButton", in: app).exists)
@@ -161,6 +177,8 @@ extension RoomHomeUITests {
         chooseNativeBackup(named: filename, in: app)
         waitForElement("saveFailureRawPreservationNotice", in: app)
         XCTAssertFalse(element("saveExistingRecoverySummary", in: app).exists)
+        assertUnacknowledgedSavePreview(in: app)
+        acknowledgeSaveReplacement(in: app)
         attachScreenshot(app, named: "Welcome save recovery — raw preservation explained before confirmation")
         tapSavePreviewControl("saveCancelImportButton", in: app)
         tapAnimationControl("saveRecoveryDismissButton", in: app)
@@ -168,12 +186,16 @@ extension RoomHomeUITests {
 
         tapWelcomeRestoreButton(in: app)
         chooseNativeBackup(named: filename, in: app)
+        assertUnacknowledgedSavePreview(in: app)
+        acknowledgeSaveReplacement(in: app)
         tapSavePreviewControl("saveConfirmImportButton", in: app)
         let entry = element("welcomeEnterButton", in: app)
         let ready = XCTNSPredicateExpectation(
             predicate: NSPredicate(format: "exists == true AND enabled == true"), object: entry)
         XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 45), .completed, app.debugDescription)
         XCTAssertFalse(element("welcomeLoadError", in: app).exists)
+        waitForElement("welcomeRecoverySuccess", in: app)
+        waitForElement("welcomeRecoverySummary", in: app)
         XCTAssertFalse(element("feedButton", in: app).exists,
                        "Successful recovery must still wait for the player's Enter action.")
         attachScreenshot(app, named: "Welcome save recovery — recovered and waiting to enter home")
@@ -183,6 +205,91 @@ extension RoomHomeUITests {
         relaunchPreservingSave(app)
         waitForObservedValue("goldCount", gold, in: app)
         waitForObservedValue("foodCount", food, in: app)
+    }
+
+    @MainActor
+    func testSavePreviewRemainsUsableAtAccessibilityTextSize() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true)
+            + ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        app.launch()
+        waitForElement("welcomeEnterButton", in: app)
+        bringIntoView("welcomeEnterButton", in: app)
+        waitForWelcomeEntryReady(in: app)
+        tapAnimationControl("welcomeEnterButton", in: app)
+        waitForElement("feedButton", in: app)
+        let gold = try XCTUnwrap(element("goldCount", in: app).value as? String)
+        let filename = try exportNativeBackupToFiles(in: app)
+        chooseNativeBackup(named: filename, in: app)
+        waitForElement("saveImportPreview", in: app)
+        assertUnacknowledgedSavePreview(in: app)
+        attachScreenshot(app, named: "Save design — accessibility text comparison before scrolling")
+        scrollPage("saveImportPreview", to: "saveComparison_saveTransfer.stat.level",
+                   allowDisabled: true, maximumDrags: 24, requiresHitPoint: false, in: app)
+        attachScreenshot(app, named: "Save design — accessibility text complete level comparison")
+        acknowledgeSaveReplacement(in: app)
+        attachScreenshot(app, named: "Save design — accessibility text acknowledgement and actions")
+        tapSavePreviewControl("saveCancelImportButton", in: app)
+        waitForLabel("saveTransferStatus", "当前进度未更改", in: app, contains: true)
+        tapAnimationControl("settingsBackButton", in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", gold, in: app)
+    }
+
+    @MainActor
+    func testSaveManagementInvalidFilesShowSafetyAndCanChooseAgain() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        let gold = try XCTUnwrap(element("goldCount", in: app).value as? String)
+        let food = try XCTUnwrap(element("foodCount", in: app).value as? String)
+        tapAnimationControl("settingsButton", in: app)
+        tapSettingsRootControl("settingsSaveManagementRow", in: app)
+        scrollSaveManagement(to: "saveImportButton", in: app)
+        tapAnimationControl("saveImportButton", in: app)
+        // This integration fixture is placed in the isolated simulator's Files
+        // provider by the host QA runner, never in a player's save directory.
+        let filename = "CatLife-QA-invalid-build48"
+        let item = app.descendants(matching: .any).matching(NSPredicate(
+            format: "label CONTAINS %@ AND (elementType == %d OR elementType == %d)",
+            filename, XCUIElement.ElementType.cell.rawValue, XCUIElement.ElementType.staticText.rawValue)).firstMatch
+        if !item.waitForExistence(timeout: 5) {
+            // A host-created file is not necessarily indexed in Recents. Use
+            // the real local Files location rather than assuming that index.
+            let browse = app.buttons.matching(NSPredicate(format: "label IN %@",
+                ["浏览", "瀏覽", "Browse"])).firstMatch
+            if browse.waitForExistence(timeout: 10), browse.isHittable { browse.tap() }
+            let local = app.descendants(matching: .any).matching(NSPredicate(
+                format: "label IN %@ AND (elementType == %d OR elementType == %d)",
+                ["我的iPhone", "我的 iPhone", "On My iPhone"], XCUIElement.ElementType.cell.rawValue,
+                XCUIElement.ElementType.staticText.rawValue)).firstMatch
+            if !local.waitForExistence(timeout: 3), browse.exists, browse.isHittable { browse.tap() }
+            if local.waitForExistence(timeout: 10), local.isHittable { local.tap() }
+        }
+        attachScreenshot(app, named: "Save design — locating the host-provided invalid file in local Files")
+        XCTAssertTrue(item.waitForExistence(timeout: 30),
+                      "The isolated simulator's local Files fixture must be installed and reachable.\n" + app.debugDescription)
+        XCTAssertTrue(item.isHittable)
+        item.tap()
+        waitForElement("saveImportErrorTitle", in: app)
+        waitForLabel("saveImportErrorSafety", "当前进度未更改", in: app, contains: true)
+        XCTAssertFalse(element("saveConfirmImportButton", in: app).exists)
+        attachScreenshot(app, named: "Save design S7 — invalid file with unchanged-progress reassurance")
+        tapSavePreviewControl("saveErrorChooseAgainButton", in: app)
+        cancelSystemSaveFilePanel(app, screenshot: "Save design — choose again returns to native Files")
+        XCTAssertFalse(element("saveRecoveryButton", in: app).exists)
+        tapAnimationControl("settingsBackButton", in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", gold, in: app)
+        waitForObservedValue("foodCount", food, in: app)
+    }
+
+    @MainActor
+    private func scrollSaveManagement(to identifier: String, in app: XCUIApplication,
+                                      file: StaticString = #filePath, line: UInt = #line) {
+        // At the largest accessible size, the backup card spans several screens.
+        scrollPage("saveManagementScroll", to: identifier, allowDisabled: true, maximumDrags: 24,
+                   in: app, file: file, line: line)
     }
 
     @MainActor
@@ -199,9 +306,10 @@ extension RoomHomeUITests {
         var filename = "CatLife-QA-" + String(UUID().uuidString.prefix(8))
         tapAnimationControl("settingsButton", in: app)
         tapSettingsRootControl("settingsSaveManagementRow", in: app)
+        scrollSaveManagement(to: "saveExportButton", in: app)
         tapAnimationControl("saveExportButton", in: app)
         waitForElement("saveExportPrepared", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveExportFilesButton", in: app)
+        scrollSaveManagement(to: "saveExportFilesButton", in: app)
         tapAnimationControl("saveExportFilesButton", in: app)
         let save = app.buttons.matching(NSPredicate(
             format: "identifier == %@ OR label IN %@", "DOCPicker.actionButton",
@@ -270,14 +378,14 @@ extension RoomHomeUITests {
             add(hierarchy)
         }
         XCTAssertEqual(savedResult, .completed, app.debugDescription)
-        scrollCareerPage("saveManagementScroll", to: "saveTransferStatus", in: app)
+        scrollSaveManagement(to: "saveTransferStatus", in: app)
         return filename
     }
 
     @MainActor
     private func chooseNativeBackup(named filename: String, in app: XCUIApplication,
                                     file: StaticString = #filePath, line: UInt = #line) {
-        scrollCareerPage("saveManagementScroll", to: "saveImportButton", in: app)
+        scrollSaveManagement(to: "saveImportButton", in: app)
         tapAnimationControl("saveImportButton", in: app)
         let item = app.descendants(matching: .any).matching(NSPredicate(
             format: "label CONTAINS %@ AND (elementType == %d OR elementType == %d)",
@@ -294,11 +402,30 @@ extension RoomHomeUITests {
                                        file: StaticString = #filePath, line: UInt = #line) {
         let target = element(identifier, in: app)
         waitForElement(identifier, in: app, file: file, line: line)
-        if !target.isHittable {
+        for _ in 0..<6 where !target.isHittable {
             let sheet = app.scrollViews.containing(.button, identifier: identifier).firstMatch
             sheet.swipeUp()
         }
         tapAnimationControl(identifier, in: app, file: file, line: line)
+    }
+
+    @MainActor
+    private func assertUnacknowledgedSavePreview(in app: XCUIApplication,
+                                                 file: StaticString = #filePath, line: UInt = #line) {
+        waitForElement("saveImportAcknowledgement", in: app, file: file, line: line)
+        waitForObservedValue("saveImportAcknowledgement", "0", in: app, file: file, line: line)
+        XCTAssertFalse(element("saveConfirmImportButton", in: app).isEnabled,
+                       "Each new preview requires its own explicit replacement acknowledgement.",
+                       file: file, line: line)
+    }
+
+    @MainActor
+    private func acknowledgeSaveReplacement(in app: XCUIApplication,
+                                             file: StaticString = #filePath, line: UInt = #line) {
+        tapSavePreviewControl("saveImportAcknowledgement", in: app, file: file, line: line)
+        waitForObservedValue("saveImportAcknowledgement", "1", in: app, file: file, line: line)
+        XCTAssertTrue(element("saveConfirmImportButton", in: app).isEnabled,
+                      file: file, line: line)
     }
 
     @MainActor
@@ -312,9 +439,9 @@ extension RoomHomeUITests {
             tapSettingsRootControl("languageOption_" + language, in: app)
             assertSettingsLanguageSelection(language, in: app)
             tapSettingsRootControl("settingsSaveManagementRow", in: app)
-            XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 8))
+            waitForLabel("saveManagementTitle", title, in: app, contains: true)
             waitForLabel("saveExportButton", export, in: app, contains: true)
-            scrollCareerPage("saveManagementScroll", to: "saveRecoveryCard", in: app)
+            scrollSaveManagement(to: "saveRecoveryCard", in: app)
             attachScreenshot(app, named: "Save management — " + language)
             tapAnimationControl("settingsBackButton", in: app)
         }

@@ -9,6 +9,7 @@ struct RoomHomeView: View {
     @State private var moreVisible = false
     @State private var catNeedPresentation = CatNeedPresentation()
     @State private var arrangementPanelHeight: CGFloat = 0
+    @State private var saveTransferWorking = false
     #if DEBUG
     @State private var waitingForWelcomeTestRelease = false
     private var holdsWelcomeForTesting: Bool {
@@ -123,6 +124,7 @@ struct RoomHomeView: View {
                         }.padding(.horizontal, 16)
                     } else {
                         GameBottomBar(store: store, moreVisible: $moreVisible, select: select)
+                            .disabled(saveTransferWorking || store.saveTransferInProgress)
                     }
                 }
                 .frame(height: 64)
@@ -136,7 +138,9 @@ struct RoomHomeView: View {
     }
 
     @ViewBuilder private var destination: some View {
-        if store.isShowingSettings { SettingsView(store: store) }
+        if store.isShowingSettings {
+            SettingsView(store: store, onSaveTransferWorkingChange: { saveTransferWorking = $0 })
+        }
         else {
             switch store.activeSheet {
             case .work: WorkDestinationView(store: store)
@@ -170,6 +174,7 @@ struct RoomHomeView: View {
     }
 
     private func select(_ destination: HomeSheet?) {
+        guard !saveTransferWorking, !store.saveTransferInProgress else { return }
         moreVisible = false
         store.isShowingSettings = false
         if destination == .town { store.inspectedCatID = nil }

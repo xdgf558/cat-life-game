@@ -10,13 +10,19 @@ final class SaveArchiveFilesTests: XCTestCase {
         let date = Date(timeIntervalSince1970: 1_793_800_000)
         let snapshot = GameSnapshot.fresh(now: date)
         let url = directory.appendingPathComponent("我的备份🐾.json")
-        try NativeSaveTransfer.encode(snapshot: snapshot, exportedAt: date).write(to: url)
+        let data = try NativeSaveTransfer.encode(snapshot: snapshot, exportedAt: date)
+        try data.write(to: url)
+        let selection = try SaveArchiveFiles.readSelection(url)
+        XCTAssertEqual(selection.filename, "我的备份🐾.json")
+        XCTAssertEqual(selection.byteCount, data.count)
+        XCTAssertEqual(selection.archive.snapshot, snapshot)
         let archive = try SaveArchiveFiles.read(url)
         XCTAssertEqual(archive.snapshot, snapshot)
         XCTAssertEqual(archive.exportedAt, date)
 
         try Data("{\"player\":\"unrelated document\"}".utf8).write(to: url)
         XCTAssertThrowsError(try SaveArchiveFiles.read(url))
+        XCTAssertThrowsError(try SaveArchiveFiles.readSelection(url))
         XCTAssertThrowsError(try SaveArchiveFiles.read(directory.appendingPathComponent("missing.json")))
     }
 

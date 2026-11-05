@@ -6,6 +6,9 @@ import SwiftUI
 struct WelcomeView: View {
     @Bindable var store: GameStore
     @State private var isShowingSaveRecovery = false
+    @State private var isRecoveryWorking = false
+    @State private var isRetryingSaveRead = false
+    @State private var didRecoverSave = false
     #if DEBUG
     var releaseTestLoad: (() -> Void)?
     #endif
@@ -23,32 +26,41 @@ struct WelcomeView: View {
     var body: some View {
         GeometryReader { geometry in
             let compact = geometry.size.height < 700
-            ScrollView {
-                VStack(spacing: compact ? 14 : 20) {
-                    VStack(spacing: 0) {
-                        HomeNamePlaque(name: GameStrings.text("home.name"), height: compact ? 88 : 108)
-                            .accessibilityIdentifier("welcomeTitle")
-                        Text("Cat Life Diary").font(.system(size: 12, weight: .heavy))
-                            .foregroundStyle(RoomTheme.secondary).padding(.top, -14)
+            if store.loadFailed || didRecoverSave || isRetryingSaveRead {
+                WelcomeSaveRecoveryView(store: store, restored: didRecoverSave,
+                                        busy: isRecoveryWorking || isRetryingSaveRead,
+                                        availableHeight: geometry.size.height,
+                                        version: "\(version) (\(build))",
+                                        onRestore: { isShowingSaveRecovery = true },
+                                        onRetry: retrySaveRead)
+            } else {
+                ScrollView {
+                    VStack(spacing: compact ? 14 : 20) {
+                        VStack(spacing: 0) {
+                            HomeNamePlaque(name: GameStrings.text("home.name"), height: compact ? 88 : 108)
+                                .accessibilityIdentifier("welcomeTitle")
+                            Text("Cat Life Diary").font(.system(size: 12, weight: .heavy))
+                                .foregroundStyle(RoomTheme.secondary).padding(.top, -14)
+                        }
+                        .rotationEffect(.degrees(-1.5))
+                        Image("welcome-homecoming").resizable().scaledToFill()
+                            .frame(height: compact ? 204 : min(318, geometry.size.height * 0.41))
+                            .frame(maxWidth: .infinity).clipped()
+                            .clipShape(RoundedRectangle(cornerRadius: 32))
+                            .overlay(RoundedRectangle(cornerRadius: 32).strokeBorder(.white, lineWidth: 5))
+                            .shadow(color: RoomTheme.ink.opacity(0.12), radius: 0, y: 6)
+                            .accessibilityLabel(GameStrings.text("welcome.hero"))
+                            .accessibilityIdentifier("welcomeHero")
+                        Text(GameStrings.text("welcome.subtitle"))
+                            .font(.system(size: compact ? 13 : 15, weight: .bold))
+                            .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center)
+                        entry(compact: compact)
                     }
-                    .rotationEffect(.degrees(-1.5))
-                    Image("welcome-homecoming").resizable().scaledToFill()
-                        .frame(height: compact ? 204 : min(318, geometry.size.height * 0.41))
-                        .frame(maxWidth: .infinity).clipped()
-                        .clipShape(RoundedRectangle(cornerRadius: 32))
-                        .overlay(RoundedRectangle(cornerRadius: 32).strokeBorder(.white, lineWidth: 5))
-                        .shadow(color: RoomTheme.ink.opacity(0.12), radius: 0, y: 6)
-                        .accessibilityLabel(GameStrings.text("welcome.hero"))
-                        .accessibilityIdentifier("welcomeHero")
-                    Text(GameStrings.text("welcome.subtitle"))
-                        .font(.system(size: compact ? 13 : 15, weight: .bold))
-                        .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center)
-                    entry(compact: compact)
+                    .padding(.horizontal, 24).padding(.vertical, 12)
+                    .frame(maxWidth: 500).frame(maxWidth: .infinity, minHeight: geometry.size.height)
                 }
-                .padding(.horizontal, 24).padding(.vertical, 12)
-                .frame(maxWidth: 500).frame(maxWidth: .infinity, minHeight: geometry.size.height)
+                .scrollBounceBehavior(.basedOnSize).scrollIndicators(.hidden)
             }
-            .scrollBounceBehavior(.basedOnSize).scrollIndicators(.hidden)
         }
         .background(LinearGradient(colors: [RoomTheme.wood.opacity(0.58), RoomTheme.cream, RoomTheme.cream],
                                    startPoint: .top, endPoint: .bottom).ignoresSafeArea())
@@ -56,19 +68,31 @@ struct WelcomeView: View {
         .sheet(isPresented: $isShowingSaveRecovery) {
             NavigationStack {
                 SaveManagementView(store: store, recoveryOnly: true,
-                                   onRecovered: { isShowingSaveRecovery = false })
+                                   onRecovered: {
+                                       didRecoverSave = true
+                                       isShowingSaveRecovery = false
+                                   }, onWorkingChange: { isRecoveryWorking = $0 })
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
                             Button(GameStrings.text("common.cancel")) { isShowingSaveRecovery = false }
-                                .disabled(store.saveTransferInProgress || store.isBusy)
+                                .disabled(isRecoveryWorking || store.saveTransferInProgress || store.isBusy)
                                 .accessibilityIdentifier("saveRecoveryDismissButton")
                         }
                     }
             }
             .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
             .environment(\.locale, Locale(identifier: store.language.rawValue))
-            .interactiveDismissDisabled(store.saveTransferInProgress || store.isBusy)
+            .interactiveDismissDisabled(isRecoveryWorking || store.saveTransferInProgress || store.isBusy)
+        }
+    }
+
+    private func retrySaveRead() {
+        guard !isRetryingSaveRead, !store.isBusy else { return }
+        isRetryingSaveRead = true
+        Task {
+            await store.load()
+            isRetryingSaveRead = false
         }
     }
 
@@ -115,41 +139,22 @@ struct WelcomeView: View {
             }
             .padding(16).gameCard(cornerRadius: 28).padding(.bottom, compact ? 10 : 18)
 
-            if store.loadFailed {
-                Button {
-                    Task { await store.load() }
-                } label: {
-                    Label(GameStrings.text("common.retry"), systemImage: "arrow.clockwise")
-                        .font(.headline).frame(maxWidth: .infinity, minHeight: 26)
+            Button { store.enterHome() } label: {
+                HStack(spacing: 12) {
+                    Image(systemName: "house.fill").font(.system(size: 23, weight: .semibold))
+                        .accessibilityHidden(true)
+                    Text(GameStrings.text(ready ? "welcome.enter" : "welcome.homecoming"))
+                    Spacer(minLength: 0)
+                    Image(systemName: "arrow.right").font(.body.weight(.bold))
+                        .accessibilityHidden(true)
                 }
-                .buttonStyle(MintButtonStyle())
-                .disabled(store.isLoading || store.isBusy || store.saveTransferInProgress)
-                .accessibilityIdentifier("welcomeRetryButton")
-                Button { isShowingSaveRecovery = true } label: {
-                    Label(GameStrings.text("saveTransfer.failureEntry"), systemImage: "square.and.arrow.down")
-                        .font(.system(size: 15, weight: .bold)).frame(maxWidth: .infinity)
-                }
-                .buttonStyle(SoftButtonStyle())
-                .disabled(store.isLoading || store.isBusy || store.saveTransferInProgress)
-                .accessibilityIdentifier("welcomeRestoreBackupButton")
-            } else {
-                Button { store.enterHome() } label: {
-                    HStack(spacing: 12) {
-                        Image(systemName: "house.fill").font(.system(size: 23, weight: .semibold))
-                            .accessibilityHidden(true)
-                        Text(GameStrings.text(ready ? "welcome.enter" : "welcome.homecoming"))
-                        Spacer(minLength: 0)
-                        Image(systemName: "arrow.right").font(.body.weight(.bold))
-                            .accessibilityHidden(true)
-                    }
-                    .font(.system(size: compact ? 20 : 22, weight: .bold, design: .rounded))
-                    .frame(maxWidth: .infinity, minHeight: compact ? 24 : 28)
-                }
-                .buttonStyle(MintButtonStyle())
-                .disabled(!ready)
-                .opacity(ready ? 1 : 0.6)
-                .accessibilityIdentifier("welcomeEnterButton")
+                .font(.system(size: compact ? 20 : 22, weight: .bold, design: .rounded))
+                .frame(maxWidth: .infinity, minHeight: compact ? 24 : 28)
             }
+            .buttonStyle(MintButtonStyle())
+            .disabled(!ready)
+            .opacity(ready ? 1 : 0.6)
+            .accessibilityIdentifier("welcomeEnterButton")
 
             #if DEBUG
             if let releaseTestLoad {
@@ -170,17 +175,7 @@ struct WelcomeView: View {
     }
 
     @ViewBuilder private var status: some View {
-        if store.loadFailed {
-            VStack(spacing: 6) {
-                Label(GameStrings.text(store.needsNewerVersion ? "save.newerVersionTitle" : "save.loadTitle"), systemImage: "exclamationmark.circle")
-                    .font(.headline)
-                Text(GameStrings.text(store.needsNewerVersion ? "save.newerVersionBody" : "save.loadBody"))
-                    .font(.footnote)
-            }
-            .foregroundStyle(RoomTheme.secondary)
-            .multilineTextAlignment(.center)
-            .accessibilityIdentifier("welcomeLoadError")
-        } else if store.isLoading {
+        if store.isLoading {
             HStack(spacing: 8) {
                 Text(GameStrings.text(store.startupPhase))
                 Spacer(minLength: 4)

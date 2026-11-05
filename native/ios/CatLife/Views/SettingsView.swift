@@ -6,6 +6,7 @@ import CatGameCore
 @MainActor
 struct SettingsView: View {
     @Bindable var store: GameStore
+    var onSaveTransferWorkingChange: ((Bool) -> Void)?
     @State private var path: [Destination] = []
     @State private var homeNameDraft = ""
     @State private var savedNameDraft: String?
@@ -16,6 +17,8 @@ struct SettingsView: View {
     @State private var hasLoadedAudioDraft = false
     @State private var hasUnsubmittedAudioChanges = false
     @State private var audioSaveGeneration = 0
+    @State private var hasImportRecovery = false
+    @State private var saveTransferWorking = false
     @FocusState private var nameFieldFocused: Bool
 
     private enum Destination: Hashable { case homeName, updates, audio, saves }
@@ -60,12 +63,6 @@ struct SettingsView: View {
                         }
                         .accessibilityIdentifier("settingsHomeNameRow")
                         Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
-                        NavigationLink(value: Destination.saves) {
-                            settingRow(symbol: "externaldrive.fill", title: "saveTransfer.title",
-                                       value: GameStrings.text("saveTransfer.subtitle"), tint: RoomTheme.mint)
-                        }
-                        .accessibilityIdentifier("settingsSaveManagementRow")
-                        Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
                         NavigationLink(value: Destination.updates) {
                             settingRow(symbol: "clock.arrow.circlepath", title: "settings.updates",
                                        value: AppVersion.current.display, tint: RoomTheme.gold)
@@ -73,6 +70,15 @@ struct SettingsView: View {
                         .accessibilityIdentifier("settingsUpdatesRow")
                     }
                     .buttonStyle(.plain).gameCard()
+                }
+                VStack(alignment: .leading, spacing: 12) {
+                    sectionTitle("saveTransfer.settingsGroup")
+                    NavigationLink(value: Destination.saves) {
+                        settingRow(symbol: "externaldrive.fill", title: "saveTransfer.title",
+                                   value: saveStatusSummary, tint: RoomTheme.mint)
+                    }
+                    .buttonStyle(.plain).gameCard()
+                    .accessibilityIdentifier("settingsSaveManagementRow")
                 }
                 HStack(spacing: 8) {
                     Image(systemName: store.hasSaveFailure ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
@@ -95,6 +101,11 @@ struct SettingsView: View {
             }
             .accessibilityIdentifier("settingsScroll")
             .onAppear { loadAudioDraft() }
+            .task(id: store.saveSceneGeneration) {
+                let recovery = try? await store.importRecoveryPreview()
+                guard !Task.isCancelled else { return }
+                hasImportRecovery = recovery != nil
+            }
             .onDisappear { saveAudioDraft() }
             .navigationTitle(GameStrings.text("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
@@ -105,24 +116,33 @@ struct SettingsView: View {
                     case .homeName: homeNamePage
                     case .updates: updatesPage
                     case .audio: audioPage
-                    case .saves: SaveManagementView(store: store)
+                    case .saves:
+                        SaveManagementView(store: store, onWorkingChange: { working in
+                            saveTransferWorking = working
+                            onSaveTransferWorkingChange?(working)
+                        }, onReturnHome: {
+                            path.removeAll()
+                            store.isShowingSettings = false
+                            store.activeSheet = nil
+                        })
                     }
                 }
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationBarBackButtonHidden()
                 .toolbar {
-                    if destination != .audio {
+                    if destination != .audio && destination != .saves {
                         ToolbarItem(placement: .topBarLeading) {
                             Button { if !path.isEmpty { path.removeLast() } } label: {
                                 Label(GameStrings.text("common.back"), systemImage: "chevron.left")
                                     .font(.body.weight(.semibold))
                                     .frame(minHeight: 44)
                             }
+                            .disabled(saveTransferWorking || store.saveTransferInProgress)
                             .accessibilityIdentifier("settingsBackButton")
                         }
                     }
                 }
-                .toolbar(destination == .audio ? .hidden : .visible, for: .navigationBar)
+                .toolbar(destination == .audio || destination == .saves ? .hidden : .visible, for: .navigationBar)
             }
         }
         .fontDesign(.rounded)
@@ -142,6 +162,16 @@ struct SettingsView: View {
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif
+    }
+
+    private var saveStatusSummary: String {
+        if store.hasSaveFailure { return GameStrings.text("save.writeTitle") }
+        if store.isBusy { return GameStrings.text("common.saving") }
+        guard let snapshot = store.snapshot else { return GameStrings.text("saveTransfer.subtitle") }
+        let time = snapshot.meta.lastSyncAt.formatted(Date.FormatStyle(date: .omitted, time: .shortened)
+            .locale(Locale(identifier: store.language.rawValue)))
+        let status = GameStrings.format("saveTransfer.savedAt", time)
+        return hasImportRecovery ? status + " · " + GameStrings.text("saveTransfer.oneRecovery") : status
     }
 
     private func page<Content: View>(@ViewBuilder content: () -> Content) -> some View {
