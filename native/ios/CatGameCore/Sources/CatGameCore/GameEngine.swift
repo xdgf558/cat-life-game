@@ -183,12 +183,12 @@ public enum GameEngine {
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory.food -= units
+        CatHealthEngine.relieveRisk(&state.cats[index], caringFor: \.satiety, points: 2)
         state.cats[index].satiety = cap(state.cats[index].satiety + 25)
         state.cats[index].mood = cap(state.cats[index].mood + 4)
-        CatHealthEngine.relieveRisk(&state.cats[index], points: 2)
         state.cats[index].decayTracker.satiety = max(state.cats[index].decayTracker.satiety, timestamp)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
-        state.tasks.recordFeed(at: timestamp)
+        state.tasks.recordFeed()
         return ActionOutcome(success: .fed, amount: units)
     }
 
@@ -203,12 +203,12 @@ public enum GameEngine {
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory.litter -= 1
+        CatHealthEngine.relieveRisk(&state.cats[index], caringFor: \.cleanliness, points: 2)
         state.cats[index].cleanliness = cap(state.cats[index].cleanliness + 30)
         state.cats[index].health = cap(state.cats[index].health + 4)
-        CatHealthEngine.relieveRisk(&state.cats[index], points: 2)
         state.cats[index].decayTracker.cleanliness = max(
             state.cats[index].decayTracker.cleanliness, timestamp)
-        state.tasks.recordClean(at: timestamp)
+        state.tasks.recordClean()
         return ActionOutcome(success: .cleaned, amount: 1)
     }
 
@@ -252,7 +252,7 @@ public enum GameEngine {
         state.player.mood = cap(state.player.mood + 4)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.cats[index].decayTracker.energy = max(state.cats[index].decayTracker.energy, timestamp)
-        state.tasks.recordPlay(at: timestamp)
+        state.tasks.recordPlay()
         return ActionOutcome(success: .played, amount: 1)
     }
 
@@ -483,10 +483,10 @@ public enum GameEngine {
     }
 
     static func settleCatNeeds(_ cat: inout CatState, now: Date) {
+        settleCatEnergy(&cat, now: now)
         decay(&cat.satiety, tracker: &cat.decayTracker.satiety, interval: 12 * 60, now: now)
         decay(&cat.cleanliness, tracker: &cat.decayTracker.cleanliness, interval: 8 * 60, now: now)
         decay(&cat.mood, tracker: &cat.decayTracker.mood, interval: 6 * 60, now: now)
-        settleCatEnergy(&cat, now: now)
     }
 
     private static func settleCatEnergy(_ cat: inout CatState, now: Date) {
@@ -496,9 +496,20 @@ public enum GameEngine {
             let earned = through >= rest.endsAt ? rest.energyReward
                 : Int(floor(Double(rest.energyReward) * through.timeIntervalSince(rest.startedAt) / duration))
             let recovered = min(100 - cat.energy, max(0, earned - rest.energyGranted))
-            cat.energy += recovered
-            CatHealthEngine.relieveRisk(&cat, points: max(0,
-                (rest.energyGranted + recovered) / 5 - rest.energyGranted / 5))
+            if recovered > 0 {
+                for point in 1...recovered {
+                    let creditedEnergy = rest.energyGranted + point
+                    if creditedEnergy.isMultiple(of: 5) {
+                        // Judge the need at recovery time, not at a later offline checkpoint.
+                        let creditedAt = min(through, rest.startedAt.addingTimeInterval(
+                            duration * Double(creditedEnergy) / Double(rest.energyReward)))
+                        decay(&cat.satiety, tracker: &cat.decayTracker.satiety, interval: 12 * 60, now: creditedAt)
+                        decay(&cat.cleanliness, tracker: &cat.decayTracker.cleanliness, interval: 8 * 60, now: creditedAt)
+                        CatHealthEngine.relieveRisk(&cat, caringFor: \.energy, points: 1)
+                    }
+                    cat.energy += 1
+                }
+            }
             rest.energyGranted = max(rest.energyGranted, earned)
             let paused = max(0, through.timeIntervalSince(rest.energyPausedUntil))
             cat.decayTracker.energy = cat.decayTracker.energy.addingTimeInterval(paused)

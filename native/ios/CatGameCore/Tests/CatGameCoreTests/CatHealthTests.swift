@@ -76,6 +76,8 @@ struct CatHealthTests {
 
     @Test func careLowersRiskOnlyAfterSuppliesAreSuccessfullyConsumed() {
         var value = unprotected(risk: 7)
+        value.cats[0].satiety = 20
+        value.cats[0].cleanliness = 20
         #expect(GameEngine.feed(&value, catID: "cat_001", now: now).succeeded)
         #expect(value.cats[0].healthState?.riskPoints == 5)
         #expect(GameEngine.clean(&value, catID: "cat_001", now: now).succeeded)
@@ -97,7 +99,7 @@ struct CatHealthTests {
         _ = GameEngine.synchronize(&once, now: now.addingTimeInterval(12))
         for second in 1...12 { _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(Double(second))) }
         #expect(value == once)
-        #expect(value.cats[0].healthState?.riskPoints == 3)
+        #expect(value.cats[0].healthState?.riskPoints == 5)
         let settled = value
         _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(12))
         #expect(value == settled)
@@ -114,7 +116,7 @@ struct CatHealthTests {
         }
     }
 
-    @Test func restCompletionBeforeHealthCheckIsNotLostDuringCatchUp() {
+    @Test func restCannotMaskAnEquallyLowHungerNeedDuringCatchUp() {
         var value = unprotected(risk: 7)
         value.cats[0].satiety = 20
         value.cats[0].energy = 20
@@ -125,8 +127,8 @@ struct CatHealthTests {
         for second in 1...12 { _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(Double(second))) }
         _ = GameEngine.synchronize(&value, now: now.addingTimeInterval(interval))
         #expect(value == single)
-        #expect(value.cats[0].healthState?.riskPoints == 4)
-        #expect(value.cats[0].healthState?.illness == nil)
+        #expect(value.cats[0].healthState?.riskPoints == 8)
+        #expect(value.cats[0].healthState?.illness == .stomachache)
     }
 
     @Test func longAbsenceIsBoundedAndCannotBeReplayed() {

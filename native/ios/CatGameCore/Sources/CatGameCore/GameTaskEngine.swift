@@ -58,27 +58,36 @@ extension GameTaskState {
         dailyWorkCount = min(GameSnapshot.maximumGold, dailyWorkCount + 1)
     }
 
-    mutating func recordFeed(at date: Date) {
+    // Immediate care follows synchronization and belongs to the open ledger, even after westward travel.
+    mutating func recordFeed() {
         totalFeedCount = min(GameSnapshot.maximumGold, totalFeedCount + 1)
-        if dailyDayKey != nil, Self.dayKey(for: date) == dailyDayKey {
+        if dailyDayKey != nil {
             dailyFeedCount = min(GameSnapshot.maximumGold, dailyFeedCount + 1)
         }
     }
 
-    mutating func recordClean(at date: Date) {
+    mutating func recordClean() {
         totalCleanCount = min(GameSnapshot.maximumGold, totalCleanCount + 1)
-        if dailyDayKey != nil, Self.dayKey(for: date) == dailyDayKey {
+        if dailyDayKey != nil {
             dailyCleanCount = min(GameSnapshot.maximumGold, dailyCleanCount + 1)
         }
     }
 
-    mutating func recordPlay(at date: Date) {
-        if dailyDayKey != nil, Self.dayKey(for: date) == dailyDayKey {
+    mutating func recordPlay() {
+        if dailyDayKey != nil {
             dailyPlayCount = min(GameSnapshot.maximumGold, dailyPlayCount + 1)
         }
     }
 
     mutating func recordFurniturePurchase() {
         furniturePurchaseCount = min(GameSnapshot.maximumGold, furniturePurchaseCount + 1)
+    }
+
+    mutating func restoreFurniturePurchaseHistory(from furniture: [FurnitureItem]) {
+        // Exact shop instances prove earlier purchases; starter gifts and arbitrary IDs do not.
+        let purchasedInstances = Set(ShopCatalog.furnitureOffers.flatMap { offer in
+            (1...offer.maxOwned).map { FurnitureItem(id: offer.instanceID($0), kind: offer.kind) }
+        })
+        furniturePurchaseCount = max(furniturePurchaseCount, Set(furniture).intersection(purchasedInstances).count)
     }
 }
