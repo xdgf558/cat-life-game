@@ -2,6 +2,9 @@
 
 采用 SwiftUI + SpriteKit + Foundation，最低 iOS 17。独立于仓库根目录的网页版。
 
+0.12.2（45）全新 App 图标（审查准备版，未上传）
+按 design_handoff_catlife_appicon.zip 的 C 定稿替换 AppIcon：打工帽上的小橘与玩家人物，保留浅色、深色、着色三种外观。图标素材直接使用交付 PNG，旧素材导入脚本不再覆盖 AppIcon。版本记录和三语说明同步更新；游戏玩法、存档、房间和猫咪尺寸保持。验证与来源见 QA/app-icon-build45-summary.md。
+
 0.12.1（44）图鉴、领养与家具布置 UI/UX 重制（2026-11-05 已合并并上传，Apple 处理中）
 按 design_handoff_catlife_0.12.zip 重做猫咪图鉴的品种进度、筛选计数和卡片；领养详情逐项显示真实条件与直达入口，确认页使用当前猫名，保存成功后进入独立成功页并可带回房间。布置模式提供随家具移动的转向/收纳快捷条、双朝向选项与未保存提示；不可转向的墙饰和食盆会解释原因。已保存状态满足领养条件时显示一次可操作提醒；攒够金币、离线升级和返回前台均会补齐未展示的提醒，已展示记录仅保存在本机偏好中。复用原有猫与家具美术，玩法、费用、存档 schema 6、房间与猫咪尺寸保持；本轮由 PR #12 接替 #11，已随前序 #7–#10 合入 main；0.12.1（44）上传成功，Apple 已开始处理，内外测分发由用户手动完成。验证摘要见 QA/catalog-ux-build44-summary.md。
 
@@ -90,7 +93,7 @@ CLANG_MODULE_CACHE_PATH="$CATLIFE_CORE_CACHE/ModuleCache" SWIFT_MODULECACHE_PATH
 工程和资源维护（以下命令同样从仓库根目录执行）
 通常直接使用已提交工程，不需要重新生成。新增 Swift 源文件后，可用 ruby native/ios/scripts/generate_project.rb 生成工程（需要 xcodeproj gem）；生成器在创建或替换工程前先执行同一素材检查，失败不覆盖原工程。
 工程对象 ID 按目标、构建阶段与文件相对路径固定；重复生成不产生差异，增删源文件不会重编号无关对象。首次从旧随机 ID 迁移会产生一次工程与 scheme 的 ID 更新，构建设置不变。
-新增美术资源前先按文末说明下载 ArtSource，再用 python3 native/ios/scripts/import_assets.py 更新资产目录；场景原图直接复制，AppIcon 由 macOS sips 导出为 1024×1024，原始设计图保留。确定添加或移除运行素材后，执行 python3 -B native/ios/scripts/check_runtime_assets.py --update-manifest，这会同时更新 runtime_assets.json 与 runtime_assets.xcfilelist，把两个清单与素材一起提交；普通构建和生成工程不会自动重写清单。
+新增美术资源前先按文末说明下载 ArtSource，再用 python3 native/ios/scripts/import_assets.py 更新资产目录；场景原图直接复制；AppIcon.appiconset 独立维护，素材导入不覆盖其中的图标或外观配置。确定添加或移除运行素材后，执行 python3 -B native/ios/scripts/check_runtime_assets.py --update-manifest，这会同时更新 runtime_assets.json 与 runtime_assets.xcfilelist，把两个清单与素材一起提交；普通构建和生成工程不会自动重写清单。
 前置检查与工程生成的临时夹具自测：python3 -B -m unittest discover -s native/ios/scripts -p test_check_runtime_assets.py。自测需要 xcodeproj gem，覆盖重复生成与各 target 增删源文件的 ID 稳定性，不改真实素材，不运行 Xcode 或模拟器。
 
 当前范围
@@ -138,8 +141,8 @@ CatActor 只执行已验证折线路径，步态按总里程连续推进，不�
 
 连点时合并的是尚未播放的视觉反馈，当前动作不会被硬重置到房间原点；每次成功的喂食、清洁或陪玩仍由原有 Store 独立处理消耗与保存。动画帧与临时姿态不写入存档；第 17 版新增的休息会话单独保存实际起止时间，由核心按时间结算，不按播放帧数发放精力。
 开启系统“减少动态效果”后，停止自主散步、循环呼吸和跳动；原有照顾互动改为短暂的平静表情。主动点击猫窝或坐垫仍保留安全进出所需的路径移动，省去呼吸和步态形变。进入布置会结束一般视觉反馈并停在当前位置；若猫正在家具上，先等待它走回安全地板，再开放拖动和收回。切到后台由 SKView 暂停场景，回到前台继续显示，游戏进度仍按真实时间同步。
-app-icon-v2.png 为正式图标源图：薄荷绿背景、小橘笑脸与薄荷领结；原始提示词同目录保存。
-AppIcon.appiconset 已配置 1024×1024 不透明 PNG，由系统生成所需尺寸与圆角；app-icon.png 保留为早期候选。
+app-icon-v2.png 是历史图标源图；0.12.2 起正式图标直接维护在 Assets.xcassets/AppIcon.appiconset，来源见 ArtSource/app-icon-build45/README.md。
+AppIcon.appiconset 配置 1024×1024 不透明 PNG 的浅色、深色与着色外观，由系统生成所需尺寸与圆角；旧图标源图仅作历史保留。
 构建号 2 已随正式图标更新到 iPhone Air；QA/app-icon-iphone-air.png 为手机返回的 60pt @3x 实际图标，已确认非占位图。
 
 验证结果

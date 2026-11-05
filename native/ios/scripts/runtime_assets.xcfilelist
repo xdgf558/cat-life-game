@@ -2,6 +2,8 @@ $(SRCROOT)/CatLife/Assets.xcassets
 $(SRCROOT)/CatLife/Assets.xcassets/AccentColor.colorset
 $(SRCROOT)/CatLife/Assets.xcassets/AccentColor.colorset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/AppIcon.appiconset
+$(SRCROOT)/CatLife/Assets.xcassets/AppIcon.appiconset/AppIcon-dark.png
+$(SRCROOT)/CatLife/Assets.xcassets/AppIcon.appiconset/AppIcon-tinted.png
 $(SRCROOT)/CatLife/Assets.xcassets/AppIcon.appiconset/AppIcon.png
 $(SRCROOT)/CatLife/Assets.xcassets/AppIcon.appiconset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/Contents.json

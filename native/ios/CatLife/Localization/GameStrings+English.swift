@@ -40,6 +40,8 @@ extension GameStrings {
         "layout.cannotFlipHint": "Tap to learn why this cannot be flipped",
         "cat.adoptionUnlocked": "%@ is ready to adopt",
         "cat.adoptionSeeOffer": "Take a look",
+        "releases.45.title": "A new app icon",
+        "releases.45.body": "Meet our new app icon: a work cap with an orange cat perched on top, with light, dark and tinted appearances. Your progress and gameplay stay the same.",
         "releases.44.title": "Collection, adoption and decorating refreshed",
         "releases.44.body": "Browse breed progress, counted filters and clear adoption requirements. Confirm the price before adoption, then bring your new companion home. Floating furniture controls, direction selectors and unsaved-change hints make decorating easier. Eligible companions are announced after upgrades. Existing cats, rooms and saves are preserved.",
         "audio.pageTitle": "Sound",

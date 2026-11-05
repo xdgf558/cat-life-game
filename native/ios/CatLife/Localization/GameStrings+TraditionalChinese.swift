@@ -40,6 +40,8 @@ extension GameStrings {
         "layout.cannotFlipHint": "輕點了解不能轉向的原因",
         "cat.adoptionUnlocked": "%@可以領養啦",
         "cat.adoptionSeeOffer": "去看看",
+        "releases.45.title": "全新 App 圖示",
+        "releases.45.body": "換上「打工帽與頭頂小橘」全新 App 圖示，支援淺色、深色和著色外觀。保留遊戲進度與現有玩法。",
         "releases.44.title": "圖鑑、領養與布置體驗煥新",
         "releases.44.body": "貓咪圖鑑新增品種分段進度、數量篩選和清楚的領養條件。領養前可確認花費，成功後選擇陪伴貓回房間。家具新增浮動轉向與收納操作、朝向分段和未儲存提示；升級達標後提醒可領養夥伴。保留貓咪、房間與存檔資料。",
         "audio.pageTitle": "聲音",
