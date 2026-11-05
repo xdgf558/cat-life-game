@@ -53,11 +53,16 @@ struct RoomCatStatusCard: View {
                 identity(compact: compact)
                 if !compact {
                     HStack(spacing: 8) {
-                        GameStatRing(value: store.cat?.satiety ?? 0, title: GameStrings.text("stat.satiety"))
+                        GameStatRing(value: store.cat?.satiety ?? 0, title: GameStrings.text("stat.satiety"), size: 38)
                         Spacer(minLength: 0)
-                        GameStatRing(value: store.cat?.cleanliness ?? 0, title: GameStrings.text("stat.cleanliness"))
+                        GameStatRing(value: store.cat?.cleanliness ?? 0, title: GameStrings.text("stat.cleanliness"), size: 38)
                         Spacer(minLength: 0)
-                        GameStatRing(value: store.cat?.mood ?? 0, title: GameStrings.text("stat.mood"))
+                        GameStatRing(value: store.cat?.mood ?? 0, title: GameStrings.text("stat.mood"), size: 38)
+                        Spacer(minLength: 0)
+                        Button { store.openHospital(catID: store.cat?.id) } label: {
+                            GameStatRing(value: store.cat?.health ?? 0, title: GameStrings.text("stat.health"), size: 38)
+                                .frame(minWidth: 44, minHeight: 44)
+                        }.buttonStyle(.plain).accessibilityIdentifier("homeCatHealthButton")
                     }.padding(.horizontal, 3)
                 }
             }
@@ -100,6 +105,27 @@ struct RoomCatStatusCard: View {
                     .accessibilityValue("\(store.cat?.satiety ?? 0)")
             }
             Spacer(minLength: 0)
+            if let illness = store.cat?.healthState?.illness {
+                Button { store.openHospital(catID: store.cat?.id) } label: {
+                    HStack(spacing: 3) {
+                        Image(systemName: "cross.case.fill")
+                        if !compact {
+                            Text(GameStrings.text("health.illness.\(illness.rawValue).name"))
+                                .lineLimit(2).minimumScaleFactor(0.8)
+                        }
+                        Image(systemName: "chevron.right")
+                    }
+                    .font(.system(size: 10, weight: .heavy))
+                    .foregroundStyle(RoomTheme.coralDeep)
+                    .padding(.horizontal, 7).padding(.vertical, 7)
+                    .background(RoomTheme.paleCoral, in: Capsule())
+                    .frame(minWidth: 44, minHeight: 44)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(GameStrings.text("health.illness.\(illness.rawValue).name"))
+                .accessibilityHint(GameStrings.text("hospital.healthDetails"))
+                .accessibilityIdentifier("homeCatIllnessButton")
+            }
         }
     }
 }

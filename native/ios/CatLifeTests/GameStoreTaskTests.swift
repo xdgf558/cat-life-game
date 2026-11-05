@@ -5,6 +5,27 @@ import CatGameCore
 
 final class GameStoreTaskTests: XCTestCase {
     @MainActor
+    func testClaimReceiptUsesCappedGoldAndIsAbsentOnSaveFailure() async throws {
+        let maximumGold = 1_000_000_000
+        var seed = try fedSnapshot()
+        seed.player.gold = maximumGold - 7
+        let repository = TaskSaveRepository(seed)
+        let store = GameStore(repository: repository)
+        await store.load()
+        await repository.setWritesFailing(true)
+        let failed = await store.claimTaskWithReceipt(id: "tutorial_feed")
+        XCTAssertNil(failed)
+        XCTAssertEqual(store.snapshot?.player.gold, maximumGold - 7)
+        await repository.setWritesFailing(false)
+        let receipt = await store.claimTaskWithReceipt(id: "tutorial_feed")
+        XCTAssertEqual(receipt, TaskClaimReceipt(taskID: "tutorial_feed", goldAwarded: 7,
+                         experienceAwarded: try XCTUnwrap(GameTaskCatalog.task(id: "tutorial_feed")).expReward))
+        XCTAssertEqual(store.snapshot?.player.gold, maximumGold)
+        let duplicate = await store.claimTaskWithReceipt(id: "tutorial_feed")
+        XCTAssertNil(duplicate)
+    }
+
+    @MainActor
     func testFailedClaimKeepsEarnedProgressUntilRetryAndRemainsClaimedAfterReload() async throws {
         let repository = TaskSaveRepository(mutedSnapshot())
         let store = GameStore(repository: repository)
@@ -168,9 +189,11 @@ final class GameStoreTaskTests: XCTestCase {
         let baseline = await repository.attempts.count
 
         await repository.setWritesFailing(false)
-        let claimed = await store.claimTask(id: task.id)
+        let claimReceipt = await store.claimTaskWithReceipt(id: task.id)
 
-        XCTAssertTrue(claimed, "The same transaction must settle work before checking its task goal.")
+        XCTAssertEqual(claimReceipt, TaskClaimReceipt(taskID: task.id, goldAwarded: task.goldReward,
+                                                     experienceAwarded: task.expReward),
+                       "The task receipt must exclude wages settled by the same transaction.")
         let committed = try XCTUnwrap(store.snapshot)
         let result = try XCTUnwrap(committed.player.lastWorkResult)
         XCTAssertNil(committed.player.activeWork)
@@ -192,7 +215,8 @@ final class GameStoreTaskTests: XCTestCase {
         XCTAssertEqual(committed.tasks.dailyWorkCount, completedToday ? 1 : 0)
         XCTAssertEqual(store.pendingWorkResultID, work.id)
         XCTAssertTrue(store.toast?.contains(GameStrings.format("action.workFinished", work.goldReward)) == true)
-        XCTAssertTrue(store.toast?.contains(GameStrings.format("tasks.claimedNotice", task.goldReward)) == true)
+        XCTAssertFalse(store.toast?.contains(GameStrings.format("tasks.claimedNotice", task.goldReward)) == true,
+                       "The reward celebration replaces only its own success notice, never the settled-work notice.")
         XCTAssertFalse(store.hasSaveFailure)
         let saved = await repository.savedSnapshot
         let finalAttempts = await repository.attempts.count

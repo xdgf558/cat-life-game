@@ -71,6 +71,9 @@ struct RoomHomeView: View {
             }
             .ignoresSafeArea(.keyboard, edges: .bottom)
             VStack(spacing: 0) {
+                if store.hasSaveFailure && (!homeVisible || moreVisible) {
+                    SaveStatusBanner(store: store)
+                }
                 ZStack {
                     Color.clear.allowsHitTesting(false).accessibilityHidden(true)
                     if !homeVisible {
@@ -86,8 +89,8 @@ struct RoomHomeView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .top) {
-                    if store.hasSaveFailure { SaveStatusBanner(store: store) }
-                    else if let toast = store.toast, !toast.isEmpty, !moreVisible {
+                    if store.hasSaveFailure && homeVisible && !moreVisible { SaveStatusBanner(store: store) }
+                    else if !store.hasSaveFailure, let toast = store.toast, !toast.isEmpty, !moreVisible {
                         Text(toast).font(.system(size: 13, weight: .bold)).lineLimit(6)
                             .multilineTextAlignment(.center).accessibilityLabel(toast)
                             .padding(.horizontal, 16).padding(.vertical, 10)

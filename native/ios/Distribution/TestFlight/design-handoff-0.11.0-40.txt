@@ -1,0 +1,13 @@
+打工养猫日记 0.11.0（40）· 温暖猫町与贴心照料
+
+本次重点测试医院、任务、猫町和声音的新界面。
+
+宠物医院：从猫町或猫咪健康入口进入，检查患病猫排序、诊断、治疗费用；金币不足时可前往打工。治疗成功后查看康复结果，再回家或返回医院。
+小家任务：直接在任务卡领取奖励，检查成功领取后任务隐藏、金币与经验只增加一次；切换分类、翻页和升级解锁应正常。
+猫町：点选地图地块后进入医院、打工、商店、小家或领养中心。邻居和社区地点仅展示后续开放，不含实际拜访或预约。
+声音：分别调整背景音乐、游戏音效和猫咪声音，试听并重启确认保存；尝试场景音乐、夜间安静、触感开关，以及后台恢复和静音/耳机切换。
+存档与房间：请直接覆盖更新，检查角色与猫咪名称、金币、背包、任务记录、房间等级和家具布置保留；房间与猫咪大小未调整。
+请反馈复现步骤、设备型号、系统版本及截图。内测和外测分组、邀请、审核由你在 App Store Connect 手动处理。
+
+English
+Please test the redesigned hospital, direct task rewards, town map and sound settings. Verify treatment costs and recovery, one-time rewards and hidden claimed tasks, and selection-then-entry map navigation. Adjust music, effects and cat voices independently and check saved preferences, scene music, quiet nights, haptics and background recovery. Social locations are previews only. Update in place and confirm existing progress and room arrangements remain intact.

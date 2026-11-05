@@ -5,10 +5,11 @@ extension RoomHomeUITests {
     func testTownMapPresentsBackgroundSaveFailureBeforeAutomaticRecovery() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = arguments(reset: true) + ["--career-active-fixture", "--career-save-failure-once"]
+        app.launchArguments = arguments(reset: true) + ["--career-active-fixture", "--career-save-failure-once", "--audio-test"]
         launchAndEnterHome(app)
         tapAnimationControl("tabTown", in: app)
         waitForElement("townMapScroll", in: app)
+        assertWorkCompletionSoundCount(0, in: app)
 
         // This shift finishes about 45 seconds after launch. Its one failed
         // settlement retries after two seconds, so observe the alert directly.
@@ -21,6 +22,7 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("saveStatusBanner", in: app).exists)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "360", in: app)
+        assertWorkCompletionSoundCount(1, in: app)
         XCTAssertFalse(app.alerts.firstMatch.exists,
                        "Returning home must not present a delayed map error after saving has recovered.")
     }
@@ -41,6 +43,11 @@ extension RoomHomeUITests {
         dismissExpectedSaveFailure(in: app)
         assertPersistentSaveRetryVisible(in: app)
 
+        let collection = element("townCollectionButton", in: app)
+        let failureBanner = element("saveStatusBanner", in: app)
+        XCTAssertTrue(collection.isHittable, "The persistent failure banner must leave the cat directory reachable.")
+        XCTAssertGreaterThanOrEqual(collection.frame.minY, failureBanner.frame.maxY,
+                                    "Map navigation belongs below the persistent failure banner, never underneath it.")
         openTownCollection(in: app)
         tapAnimationControl("catProfile_cat_001", in: app)
         waitForObservedValue("catProfileScroll", "cat_001", in: app)

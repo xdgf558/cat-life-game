@@ -15,7 +15,11 @@ extension RoomHomeUITests {
         waitForObservedValue("tasksClaimableSummary", "2", in: app)
         openTaskCard("daily_feed", category: "daily", in: app)
         waitForObservedValue("taskProgress_daily_feed", "1/1", in: app)
+        attachScreenshot(app, named: "Tasks — ready card with direct reward action")
         tapAnimationControl("taskClaim_daily_feed", in: app)
+        waitForObservedValue("taskRewardCelebration", "daily_feed", in: app)
+        // The brief celebration closes itself; durable totals below and Store tests verify its receipt.
+        attachScreenshot(app, named: "Tasks — committed reward celebration")
         assertClaimedTaskIsHidden("daily_feed", in: app)
         waitForObservedValue("tasksClaimableSummary", "1", in: app)
 
@@ -57,16 +61,17 @@ extension RoomHomeUITests {
         waitForObservedValue("tasksDailySummary", "1/4", in: app)
         waitForObservedValue("tasksClaimableSummary", "2", in: app)
         for (id, category) in [("daily_clean", "daily"), ("tutorial_clean", "tutorial")] {
-            selectTaskCategory(category, in: app)
-            turnTaskPage("tasksNextPage", in: app)
-            waitForObservedValue("tasksPageIndicator", "2/2", in: app)
-            tapAnimationControl("taskCard_\(id)", in: app)
+            openTaskCard(id, category: category, in: app)
+            waitForObservedValue("tasksPageIndicator", "1/2", in: app)
+            XCTAssertLessThan(element("taskCard_\(id)", in: app).frame.minY,
+                              element("taskCard_\(category)_work", in: app).frame.minY,
+                              "Claimable care goals must move ahead of unfinished work goals.")
             waitForObservedValue("taskProgress_\(id)", "1/1", in: app)
             tapAnimationControl("taskClaim_\(id)", in: app)
             assertClaimedTaskIsHidden(id, in: app)
             assertTaskCardCount(3, in: app)
             XCTAssertFalse(element("tasksPageIndicator", in: app).exists,
-                           "Claiming the only care goal on page two must leave one compact page.")
+                           "Claiming the prioritized care goal must leave one compact page.")
         }
         attachScreenshot(app, named: "Tasks — cleaning rewards disappear and the category contracts to one page")
         tapAnimationControl("tabHome", in: app)
@@ -159,7 +164,7 @@ extension RoomHomeUITests {
         XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed)
         XCTAssertFalse(element("taskClaimed_daily_feed", in: app).exists,
                        "A rejected write must not mark the reward as claimed.")
-        waitForObservedValue("taskDetailScroll", "daily_feed", in: app)
+        waitForElement("tasksScroll", in: app)
         waitForElement("taskClaim_daily_feed", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "200", in: app)
@@ -203,15 +208,13 @@ extension RoomHomeUITests {
         waitForObservedValue("tasksPageIndicator", "3/3", in: app)
         XCTAssertFalse(element("tasksNextPage", in: app).isEnabled)
         assertTaskCardCount(2, in: app)
-        scrollPage("tasksScroll", to: "taskCard_daily_work3", allowDisabled: false, maximumDrags: 6, in: app)
-        tapAnimationControl("taskCard_daily_work3", in: app)
+        scrollPage("tasksScroll", to: "taskClaim_daily_work3", allowDisabled: false, maximumDrags: 6, in: app)
         waitForObservedValue("taskProgress_daily_work3", "3/3", in: app)
         tapAnimationControl("taskClaim_daily_work3", in: app)
         assertClaimedTaskIsHidden("daily_work3", in: app)
         waitForObservedValue("tasksPageIndicator", "3/3", in: app)
         assertTaskCardCount(1, in: app)
-        scrollPage("tasksScroll", to: "taskCard_daily_clean", allowDisabled: false, maximumDrags: 6, in: app)
-        tapAnimationControl("taskCard_daily_clean", in: app)
+        scrollPage("tasksScroll", to: "taskClaim_daily_clean", allowDisabled: false, maximumDrags: 6, in: app)
         waitForObservedValue("taskProgress_daily_clean", "1/1", in: app)
         tapAnimationControl("taskClaim_daily_clean", in: app)
         assertClaimedTaskIsHidden("daily_clean", in: app)
@@ -305,11 +308,11 @@ extension RoomHomeUITests {
         let roomFrame = element("roomScene", in: app).frame
         let languages = [
             (code: "zh-Hans", tutorial: "新手", daily: "每日", achievement: "成就",
-             title: "好好吃饭", details: "任务详情", action: "去完成"),
+             title: "好好吃饭", action: "回家照顾"),
             (code: "en", tutorial: "Starter", daily: "Daily", achievement: "Achievements",
-             title: "A lovely meal", details: "Goal details", action: "Get started"),
+             title: "A lovely meal", action: "Care at home"),
             (code: "zh-Hant", tutorial: "新手", daily: "每日", achievement: "成就",
-             title: "好好吃飯", details: "任務詳情", action: "去完成")
+             title: "好好吃飯", action: "回家照顧")
         ]
         for language in languages {
             tapAnimationControl("settingsButton", in: app)
@@ -321,7 +324,7 @@ extension RoomHomeUITests {
             waitForLabel("taskCategory_achievement", language.achievement, in: app)
             waitForLabel("taskCard_daily_feed", language.title, in: app, contains: true)
             openTaskCard("daily_feed", category: "daily", in: app)
-            XCTAssertTrue(app.navigationBars[language.details].exists)
+            XCTAssertFalse(element("taskDetailScroll", in: app).exists, "Actions now live on compact task cards.")
             waitForObservedValue("taskProgress_daily_feed", "0/1", in: app)
             waitForLabel("taskGo_daily_feed", language.action, in: app, contains: true)
             assertTaskActionAboveNavigation("taskGo_daily_feed", in: app)
@@ -337,10 +340,13 @@ extension RoomHomeUITests {
     @MainActor
     private func assertClaimedTaskIsHidden(_ id: String, in app: XCUIApplication,
                                           file: StaticString = #filePath, line: UInt = #line) {
-        let detail = element("taskDetailScroll", in: app)
-        let returned = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: detail)
-        XCTAssertEqual(XCTWaiter.wait(for: [returned], timeout: 6), .completed,
-                       "A saved reward must return to its category list.", file: file, line: line)
+        let card = element("taskCard_\(id)", in: app)
+        let hidden = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: card)
+        XCTAssertEqual(XCTWaiter.wait(for: [hidden], timeout: 8), .completed, file: file, line: line)
+        // Let the short-lived celebration close instead of racing its dismiss button's removal.
+        let celebration = element("taskRewardCelebration", in: app)
+        let closed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: celebration)
+        XCTAssertEqual(XCTWaiter.wait(for: [closed], timeout: 6), .completed, file: file, line: line)
         waitForElement("tasksScroll", in: app, file: file, line: line)
         XCTAssertFalse(element("taskCard_\(id)", in: app).exists,
                        "Claimed goals must stay hidden, including after cold launch.", file: file, line: line)
@@ -375,10 +381,18 @@ extension RoomHomeUITests {
     private func openTaskCard(_ id: String, category: String, in app: XCUIApplication,
                               file: StaticString = #filePath, line: UInt = #line) {
         selectTaskCategory(category, in: app, file: file, line: line)
-        scrollPage("tasksScroll", to: "taskCard_\(id)", allowDisabled: false,
+        for _ in 0..<6 {
+            if element("taskCard_\(id)", in: app).exists { break }
+            guard element("tasksNextPage", in: app).exists && element("tasksNextPage", in: app).isEnabled else { break }
+            turnTaskPage("tasksNextPage", in: app, file: file, line: line)
+        }
+        let claim = "taskClaim_\(id)"
+        let go = "taskGo_\(id)"
+        let action = element(claim, in: app).exists ? claim : go
+        scrollPage("tasksScroll", to: action, allowDisabled: false,
                    maximumDrags: 6, in: app, file: file, line: line)
-        tapAnimationControl("taskCard_\(id)", in: app, file: file, line: line)
-        waitForObservedValue("taskDetailScroll", id, in: app, file: file, line: line)
+        waitForElement("taskCard_\(id)", in: app, file: file, line: line)
+
     }
 
     @MainActor

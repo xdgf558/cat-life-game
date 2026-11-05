@@ -9,6 +9,11 @@ extension RoomHomeUITests {
         waitForLabel("catNeedBubble", "不太舒服，去医院看看", in: app)
         openHospitalDirectory(in: app)
         waitForObservedValue("hospitalSummary", "1/2", in: app)
+        for id in ["hospitalBackToTown", "hospitalPageTitle", "hospitalWallet", "hospitalCat_cat_001"] {
+            let frame = element(id, in: app).frame
+            XCTAssertGreaterThanOrEqual(frame.minX, app.frame.minX, "\(id) must fit the screen horizontally.")
+            XCTAssertLessThanOrEqual(frame.maxX, app.frame.maxX, "\(id) must fit the screen horizontally.")
+        }
         attachScreenshot(app, named: "Hospital — compact cat directory")
         tapAnimationControl("hospitalCat_cat_001", in: app)
         waitForObservedValue("hospitalCondition", "cold", in: app)
@@ -17,12 +22,16 @@ extension RoomHomeUITests {
         scrollCareerPage("hospitalDetailScroll", to: "hospitalTreatButton", in: app)
         attachScreenshot(app, named: "Hospital — diagnosis and treatment cost")
         tapAnimationControl("hospitalTreatButton", in: app)
+        waitForElement("hospitalTreatingState", in: app)
+        XCTAssertFalse(element("hospitalBackButton", in: app).isEnabled)
+        attachScreenshot(app, named: "Hospital — committed care presentation")
         waitForElement("hospitalHealthyState", in: app)
-        scrollCareerPage("hospitalDetailScroll", to: "hospitalHealth", in: app)
+        scrollCareerPage("hospitalRecoveryScroll", to: "hospitalHealth", in: app)
         waitForObservedValue("hospitalHealth", "80/100", in: app)
         XCTAssertFalse(element("hospitalTreatButton", in: app).exists)
         attachScreenshot(app, named: "Hospital — recovery and protection")
-        tapAnimationControl("hospitalBackButton", in: app)
+        scrollCareerPage("hospitalRecoveryScroll", to: "hospitalRecoveryDirectory", in: app)
+        tapAnimationControl("hospitalRecoveryDirectory", in: app)
         waitForObservedValue("hospitalSummary", "0/2", in: app)
         tapAnimationControl("hospitalCat_cat_002", in: app)
         waitForObservedValue("hospitalHealth", "90/100", in: app)
@@ -76,8 +85,7 @@ extension RoomHomeUITests {
         tapAnimationControl("homeCatProfileButton", in: app)
         scrollCareerPage("catProfileScroll", to: "catHealthButton", in: app)
         tapAnimationControl("catHealthButton", in: app)
-        scrollCareerPage("hospitalDetailScroll", to: "hospitalTreatButton", in: app)
-        XCTAssertFalse(element("hospitalTreatButton", in: app).isEnabled)
+        XCTAssertFalse(element("hospitalTreatButton", in: app).exists, "Insufficient funds shows the work action instead of a disabled treatment button.")
         waitForObservedValue("hospitalGoldCount", "10", in: app)
         scrollCareerPage("hospitalDetailScroll", to: "hospitalWorkButton", in: app)
         attachScreenshot(app, named: "Hospital — insufficient coins and route to work")
@@ -113,7 +121,7 @@ extension RoomHomeUITests {
         for (code, title) in [("zh-Hant", "寵物醫院"), ("en", "Pet hospital")] {
             selectCatTestLanguage(code, in: app)
             openHospitalDirectory(in: app)
-            XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 8))
+            waitForLabel("hospitalPageTitle", title, in: app, contains: true)
             tapAnimationControl("hospitalCat_cat_001", in: app)
             waitForObservedValue("hospitalCondition", "healthy", in: app)
             attachScreenshot(app, named: "Hospital — localized health details in \(code)")
@@ -134,6 +142,8 @@ extension RoomHomeUITests {
         tapAnimationControl("tabTown", in: app)
         scrollCareerPage("townMapScroll", to: "townHospitalMarker", in: app)
         tapAnimationControl("townHospitalMarker", in: app)
+        scrollCareerPage("townMapScroll", to: "townHospitalButton", in: app)
+        tapAnimationControl("townHospitalButton", in: app)
         waitForElement("hospitalDirectoryScroll", in: app)
     }
 }

@@ -45,6 +45,7 @@ final class GameStore {
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
     var hospitalCatID: String?
+    var isInspectingHealth = false { didSet { syncAudio() } }
     private(set) var now = Date()
     var toast: String? { notices.toast }
     private(set) var feedback: RoomFeedback?
@@ -66,7 +67,10 @@ final class GameStore {
     @ObservationIgnored private let notices = GameNoticeCenter()
     @ObservationIgnored private var lastSyncCheck = Date.distantPast
     @ObservationIgnored private var foreground = false
+    @ObservationIgnored private var foregroundEpoch = 0
     @ObservationIgnored private var pendingSynchronization = false
+    // Keep recovery quiet across failed writes and every queued save path.
+    @ObservationIgnored private var silentProgressThrough: Date?
     @ObservationIgnored private var loadingInProgress = false
     @ObservationIgnored private var presentedRestSessionID: String?
     @ObservationIgnored private var restTransitions: [RestTransition] = []
@@ -101,6 +105,7 @@ final class GameStore {
         let original: GameSnapshot
         var candidate: GameSnapshot
         let transitions: [RestTransition]
+        let foregroundEpoch: Int
     }
 
     init(directory: URL? = nil) {
@@ -128,17 +133,31 @@ final class GameStore {
 
     private func syncAudio() {
         let track: GameMusicTrack
-        if !hasEnteredHome { track = .home }
+        if !hasEnteredHome { track = .cover }
+        else if activeSheet == .hospital || isInspectingHealth { track = .hospital }
+        else if activeSheet == .shop { track = .shop }
+        else if activeSheet == .town { track = .town }
         else if snapshot?.player.activeSleep != nil { track = .sleep }
-        else if snapshot?.player.activeWork != nil || activeSheet == .work { track = .work }
+        else if activeSheet == .work { track = .work }
+        else if cat?.activeRest != nil { track = .sleep }
         else { track = .home }
         audio.configure(settings: audioSettings, track: track, foreground: foreground,
                         ready: snapshot != nil && !isLoading && !loadFailed)
     }
 
     func playNavigationSound() { audio.play(.tap, userInitiated: true) }
-    func previewSoundEffect() { audio.play(.catMeow, userInitiated: true) }
-    func playSceneSound(_ sound: GameSoundEffect) { audio.play(sound) }
+    var currentMusicTrack: GameMusicTrack { audio.currentTrack }
+    var isMusicPlaying: Bool { audio.musicPlaying }
+    func previewMusic() { audio.toggleMusicPreview() }
+    func endMusicPreview() { audio.endMusicPreview() }
+    func previewCatVoice() { audio.play(.catCoax, userInitiated: true) }
+    func previewSoundEffect() { audio.play(.coins, userInitiated: true) }
+    func playFeedback(_ sound: GameSoundEffect) { audio.play(sound, userInitiated: true) }
+    func playSceneSound(_ sound: GameSoundEffect) {
+        audio.play(sound)
+        if sound == .feed { audio.play(.catHappy) }
+        if sound == .play { audio.play(.catCoax) }
+    }
 
     #if DEBUG
     /// Read-only diagnostics are exposed only by the isolated audio UI test.
@@ -146,8 +165,12 @@ final class GameStore {
         let value: [String: Any] = [
             "musicEnabled": audioSettings.musicEnabled, "effectsEnabled": audioSettings.effectsEnabled,
             "musicVolume": audioSettings.musicVolume, "effectsVolume": audioSettings.effectsVolume,
+            "catEnabled": audioSettings.catEnabled, "catVolume": audioSettings.catVolume,
+            "sceneMusic": audioSettings.sceneMusic, "nightQuiet": audioSettings.nightQuiet,
+            "haptics": audioSettings.haptics,
             "isForeground": audio.isForeground, "musicPlaying": audio.musicPlaying,
             "currentTrack": audio.currentTrack.rawValue, "effectPlayCount": audio.effectPlayCount,
+            "effectPlayCounts": audio.effectPlayCounts,
             "lastEffect": audio.lastEffect, "backgroundPauseCount": audio.backgroundPauseCount,
             "assetLoadFailures": audio.assetLoadFailures
         ]
@@ -190,6 +213,7 @@ final class GameStore {
                     audioSaveRequest = nil
                     pendingAudioSettings = nil
                     audioSettingsSaveFailed = false
+                    audio.play(.toggle, userInitiated: true)
                 }
             } catch {
                 if audioSaveRequest?.id == request.id {
@@ -317,7 +341,8 @@ final class GameStore {
                     sessionID: transition.sessionID, now: transition.occurredAt)
             }
         }
-        return SaveContext(original: original, candidate: candidate, transitions: transitions)
+        return SaveContext(original: original, candidate: candidate, transitions: transitions,
+                           foregroundEpoch: foregroundEpoch)
     }
 
     private func acknowledgeTransitions(_ transitions: [RestTransition]) {
@@ -339,12 +364,25 @@ final class GameStore {
         snapshot = context.candidate
         acknowledgeTransitions(context.transitions)
         clearSaveFailure()
+        let canPlayProgress = silentProgressThrough == nil && foreground && hasEnteredHome && !isLoading
+            && context.foregroundEpoch == foregroundEpoch
+        if canPlayProgress, let sound = GameProgressFeedback.sound(from: context.original, to: context.candidate) {
+            audio.play(sound)
+        }
         if let receipt = context.candidate.player.lastWorkResult,
            receipt.id != context.original.player.lastWorkResult?.id {
             pendingWorkResultID = receipt.id
-            audio.play(.workComplete)
+            if canPlayProgress { audio.play(.workComplete) }
             showNotice(GameStrings.format("action.workFinished", receipt.goldReward))
         }
+        finishSilentCatchUp(context)
+    }
+
+    private func finishSilentCatchUp(_ context: SaveContext) {
+        guard let through = silentProgressThrough,
+              context.foregroundEpoch == foregroundEpoch,
+              context.candidate.meta.lastSyncAt >= through else { return }
+        silentProgressThrough = nil
     }
 
     private func clearSaveFailure() {
@@ -379,7 +417,7 @@ final class GameStore {
         guard snapshot != nil, !isLoading, !loadFailed, !hasEnteredHome else { return }
         hasEnteredHome = true
         syncAudio()
-        audio.play(pendingWorkResultID == nil ? .enter : .workComplete, userInitiated: true)
+        audio.play(.enter, userInitiated: true)
         notices.enterHome()
     }
 
@@ -426,6 +464,7 @@ final class GameStore {
         startupPhase = "welcome.syncing"
         await Task.yield()
         let loadDate = Date()
+        silentProgressThrough = max(silentProgressThrough ?? .distantPast, loadDate)
         let hadCatRest = loaded.cats.contains { $0.activeRest != nil }
         for cat in loaded.cats {
             if let rest = cat.activeRest {
@@ -454,12 +493,13 @@ final class GameStore {
     }
 
     func setForeground(_ active: Bool) {
+        if foreground != active { foregroundEpoch &+= 1 }
         foreground = active
         syncAudio()
         now = Date()
         timerTask?.cancel()
         timerTask = nil
-        if snapshot != nil { synchronize() }
+        if snapshot != nil { synchronize(playsProgressFeedback: false) }
         guard active else { return }
         timerTask = Task { [weak self] in
             while !Task.isCancelled {
@@ -470,6 +510,7 @@ final class GameStore {
                 let workDue = self.snapshot?.player.activeWork.map { $0.endsAt <= self.now } ?? false
                 let restDue = self.snapshot?.cats.contains { $0.activeRest.map { $0.endsAt <= self.now } ?? false } ?? false
                 if workDue || restDue || self.now.timeIntervalSince(self.lastSyncCheck) >= 60 {
+                    self.syncAudio()
                     self.synchronize()
                 }
             }
@@ -781,7 +822,9 @@ final class GameStore {
 
     func inspectCat() {
         guard !isDecorating else { return }
-        audio.play(.catMeow, userInitiated: true)
+        let voice: GameSoundEffect = cat?.healthState?.illness != nil ? .catUnwell
+            : ((cat?.satiety ?? 100) < 50 ? .catHungry : .catHappy)
+        audio.play(voice, userInitiated: true)
         inspectedCatID = cat?.id
     }
 
@@ -795,7 +838,7 @@ final class GameStore {
 
     @discardableResult
     func treatCat(catID: String) async -> Bool {
-        await performPersistedAction { GameEngine.treatCat(&$0, catID: catID, now: $1) }
+        await performPersistedAction(playsSound: false, showsSuccessNotice: false) { GameEngine.treatCat(&$0, catID: catID, now: $1) }
     }
 
     @discardableResult
@@ -810,12 +853,22 @@ final class GameStore {
 
     @discardableResult
     func claimTask(id: String, expectedDayKey: String? = nil) async -> Bool {
-        await performPersistedAction {
-            GameEngine.claimTask(&$0, id: id, expectedDayKey: expectedDayKey, now: $1)
-        }
+        await claimTaskWithReceipt(id: id, expectedDayKey: expectedDayKey) != nil
     }
 
-    private func performPersistedAction(_ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
+    func claimTaskWithReceipt(id: String, expectedDayKey: String? = nil) async -> TaskClaimReceipt? {
+        var awarded = 0
+        let succeeded = await performPersistedAction(playsSound: false, showsSuccessNotice: false) {
+            let outcome = GameEngine.claimTask(&$0, id: id, expectedDayKey: expectedDayKey, now: $1)
+            awarded = outcome.amount
+            return outcome
+        }
+        guard succeeded, let task = GameTaskCatalog.task(id: id) else { return nil }
+        return TaskClaimReceipt(taskID: id, goldAwarded: awarded, experienceAwarded: task.expReward)
+    }
+
+    private func performPersistedAction(playsSound: Bool = true, showsSuccessNotice: Bool = true,
+                                        _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
         guard !isBusy, !isDecorating, var context = saveContext() else { return false }
         isBusy = true
         defer { isBusy = false; drainPendingSynchronization() }
@@ -823,11 +876,13 @@ final class GameStore {
         do {
             // Publish actions and their rewards only after the entire transaction is durable.
             if context.candidate != context.original { try await commit(context) }
-            if outcome.succeeded { playCommittedSound(outcome.kind) }
-            showNotice(message(for: outcome))
+            if outcome.succeeded && playsSound { playCommittedSound(outcome.kind) }
+            if !outcome.succeeded { playFailureSound(outcome.failure) }
+            if showsSuccessNotice || !outcome.succeeded { showNotice(message(for: outcome)) }
             return outcome.succeeded
         } catch {
             recordSaveFailure(userInitiated: true)
+            audio.play(.softError, userInitiated: true)
             return false
         }
     }
@@ -845,6 +900,7 @@ final class GameStore {
             isBusy = false
             isSavingLayout = false
             showNotice(message(for: outcome))
+            playFailureSound(outcome.failure)
             drainPendingSynchronization()
             return
         }
@@ -858,6 +914,7 @@ final class GameStore {
                     playCommittedSound(outcome.kind)
                 }
                 showNotice(message(for: outcome))
+                if !outcome.succeeded { playFailureSound(outcome.failure) }
             } catch {
                 recordSaveFailure(userInitiated: true)
             }
@@ -867,7 +924,10 @@ final class GameStore {
         }
     }
 
-    private func synchronize(userInitiated: Bool = false) {
+    private func synchronize(userInitiated: Bool = false, playsProgressFeedback: Bool = true) {
+        if !playsProgressFeedback {
+            silentProgressThrough = max(silentProgressThrough ?? .distantPast, Date())
+        }
         guard snapshot != nil else { return }
         guard !isBusy else {
             pendingSynchronization = true
@@ -882,6 +942,7 @@ final class GameStore {
         let needsSave = requiresDurableSave(context.candidate, comparedTo: context.original)
         guard hasSaveFailure || needsSave else {
             acknowledgeTransitions(context.transitions)
+            finishSilentCatchUp(context)
             return
         }
         isBusy = true
@@ -897,6 +958,7 @@ final class GameStore {
                     try await repository.checkWritable()
                     acknowledgeTransitions(context.transitions)
                     clearSaveFailure()
+                    finishSilentCatchUp(context)
                 }
             } catch { recordSaveFailure(userInitiated: userInitiated) }
             isBusy = false
@@ -926,7 +988,7 @@ final class GameStore {
         switch kind {
         case .purchase: audio.play(.purchase, userInitiated: true)
         case .workStarted: audio.play(.workStart, userInitiated: true)
-        case .workFinished: audio.play(.workComplete)
+        case .workFinished: break // The durable receipt owns this cue, including recovery gating.
         case .layout: audio.play(.place, userInitiated: true)
         case .sleepStarted: audio.play(.sleep, userInitiated: true)
         case .sleepEnded: audio.play(.wake, userInitiated: true)
@@ -934,6 +996,12 @@ final class GameStore {
         // Care sounds are emitted by the actor at the actual contact/gesture.
         case .feed, .clean, .play, .catRestStarted, .catRestEnded: break
         }
+    }
+
+    private func playFailureSound(_ failure: ActionFailure?) {
+        guard let failure else { return }
+        audio.play([.shopGoldRequired, .hospitalGoldRequired].contains(failure) ? .shortGold : .softError,
+                   userInitiated: true)
     }
 
     private func showNotice(_ message: String) { notices.show(message, ready: hasEnteredHome) }

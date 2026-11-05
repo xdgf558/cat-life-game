@@ -69,6 +69,7 @@ final class CatNeedPresentation {
 
 @MainActor
 struct CatNeedBubble: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let store: GameStore
     let presentation: CatNeedPresentation
     let canvasSize: CGSize
@@ -97,9 +98,18 @@ struct CatNeedBubble: View {
                     .lineLimit(2).multilineTextAlignment(.center)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .frame(minHeight: 44).frame(maxWidth: 190)
-                    .foregroundStyle(need == .hospital ? RoomTheme.coral : (need == .clean ? RoomTheme.sky : RoomTheme.ink))
+                    .foregroundStyle(need == .hospital ? RoomTheme.coralDeep : (need == .clean ? RoomTheme.sky : RoomTheme.ink))
                     .background(RoomTheme.paper, in: Capsule())
-                    .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
+                    .overlay(Capsule().strokeBorder(need == .hospital ? RoomTheme.coralBorder : .white, lineWidth: 2))
+                    .background {
+                        if need == .hospital && !reduceMotion {
+                            Capsule().stroke(RoomTheme.coralBorder.opacity(0.5), lineWidth: 2)
+                                .phaseAnimator([false, true]) { content, expanded in
+                                    content.scaleEffect(expanded ? 1.08 : 1).opacity(expanded ? 0 : 1)
+                                } animation: { _ in .easeOut(duration: 1.4) }
+                                .accessibilityHidden(true)
+                        }
+                    }
                     .shadow(color: RoomTheme.ink.opacity(0.16), radius: 5, y: 4)
                     .overlay(alignment: .bottom) {
                         Image(systemName: "arrowtriangle.down.fill")

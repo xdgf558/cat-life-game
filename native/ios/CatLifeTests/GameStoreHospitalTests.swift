@@ -26,6 +26,8 @@ final class GameStoreHospitalTests: XCTestCase {
         XCTAssertEqual(store.snapshot?.player.gold, original.player.gold - 120)
         XCTAssertNil(store.cat?.healthState?.illness)
         XCTAssertEqual(store.cat?.health, 80)
+        XCTAssertFalse((store.toast ?? store.startupNotice)?.contains(GameStrings.text("hospital.treated")) == true,
+                       "The recovery presentation replaces the treatment success toast.")
         XCTAssertFalse(store.hasSaveFailure)
         let duplicate = await store.treatCat(catID: CatCatalog.initialCatID)
         XCTAssertFalse(duplicate)

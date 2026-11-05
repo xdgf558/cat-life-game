@@ -1,0 +1,15 @@
+# 0.11.0 (40) design handoff validation
+
+Scope: native hospital, task rewards, town plots, sound settings and home/More entries, based on design_handoff_catlife_0.10.zip. Existing room/cat scale and gameplay values remain unchanged. Future social locations remain unavailable previews, with no simulated neighbors, unlock requirements or reminders.
+
+Implementation: SwiftUI and existing SF Symbols/character art. The clinic reception illustration replaces the supplied image placeholder and has recorded generation provenance. Audio adds five original music loops and 24 short effects/cat voices, with eight music tracks and 35 effects available overall. Optional preferences preserve old saves and inherit the old effects mute/volume for the new cat channel. Schema remains 5.
+
+Final checks: 250 Core tests, 90 App tests, 20 runtime-asset script tests, identical 814-key locale tables and 99 hydrated runtime files. Release signing, dSYM pairing, privacy manifest, version and absence of UI fixture flags passed. All 23 distinct targeted UI methods passed on their latest executions across SE and Pro, including failure/retry transactions, three-language flows, cold launch and real slider changes. The final small suite passed 4/4 and final large suite 6/6. Uploaded successfully at 19:20 GMT+8 on 2026-11-04; Apple processing completed and the 0.11.0 (40) row was verified as Ready to Submit in App Store Connect. No group/review action was performed. Source commit: c8c689e.
+
+Visual iterations found and corrected hospital banner intrinsic-width overflow, shadows behind content, translucent header shadows, scrolling audio back navigation, recovery rays escaping their content bounds, and redundant treatment/claim success notices. A real persistent-save-error banner covered the town directory button; it now reserves space above non-home destinations while the separate room canvas keeps its dimensions. Work settlement and failure notices remain intact. Final paired screenshots confirm the last visual patch. The More task entry and home task capsule were also compared with the entry design.
+
+Test iterations retained outside Git: transient reward popup inspection/tapping raced its 2.4-second dismissal; the timer helper incorrectly required a readonly label to be hittable; a legacy shop test waited for an offscreen LazyVGrid item before scrolling; native normalized slider adjustment produced no value change. Tests now preserve actual state/amount/persistence assertions while using observed-frame visibility, explicit scrolling and real slow slider drags. Each failed method subsequently passed; original failures remain in the external records.
+
+Raw logs, recordings, screenshots and xcresults remain outside Git. This report contains no device saves, private contact data or device identifiers. Native visual comparison is recorded in ../design-qa.md. User performs TestFlight group assignment and review submission.
+
+Final archive candidate: 0.11.0 (40), 114.2 MB including symbols; executable SHA256 0be80bd7cffd22308fa9baec9f933ec97fe5763ce2d6535012b22dd7dc1b3f97.

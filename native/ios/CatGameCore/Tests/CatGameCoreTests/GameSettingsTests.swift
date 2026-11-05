@@ -209,7 +209,34 @@ struct GameSettingsTests {
         audio.effectsVolume = -7
         #expect(audio.musicVolume == 1 && audio.effectsVolume == 0)
         let encoded = try object(in: JSONEncoder().encode(audio))
-        #expect(Set(encoded.keys) == ["musicEnabled", "effectsEnabled", "musicVolume", "effectsVolume"])
+        #expect(Set(encoded.keys) == ["musicEnabled", "effectsEnabled", "musicVolume", "effectsVolume", "catEnabled", "catVolume", "sceneMusic", "nightQuiet", "haptics"])
+    }
+
+    @Test func legacyCatChannelInheritsMutedEffectsWithoutChangingExistingVolumes() throws {
+        let legacy = Data(#"{"musicEnabled":false,"effectsEnabled":false,"musicVolume":0.2,"effectsVolume":0.4}"#.utf8)
+        let audio = try JSONDecoder().decode(AudioSettings.self, from: legacy)
+        #expect(!audio.catEnabled && audio.catVolume == 0.4)
+        #expect(!audio.musicEnabled && !audio.effectsEnabled && audio.musicVolume == 0.2)
+        #expect(audio.sceneMusic && audio.nightQuiet && audio.haptics)
+        #expect(try JSONDecoder().decode(AudioSettings.self, from: JSONEncoder().encode(audio)) == audio)
+    }
+
+    @Test func independentCatAndScenePreferencesRoundTripAndNormalizeSafely() throws {
+        var audio = AudioSettings(effectsEnabled: false, effectsVolume: 0.4,
+                                  catEnabled: true, catVolume: 0.8,
+                                  sceneMusic: false, nightQuiet: false, haptics: false)
+        #expect(audio.catEnabled && !audio.effectsEnabled)
+        #expect(try JSONDecoder().decode(AudioSettings.self, from: JSONEncoder().encode(audio)) == audio)
+        audio.catVolume = .infinity
+        #expect(audio.catVolume == AudioSettings.defaultEffectsVolume)
+        audio.catVolume = -2
+        #expect(audio.catVolume == 0)
+        audio.catVolume = 3
+        #expect(audio.catVolume == 1)
+        let malformed = Data(#"{"effectsEnabled":false,"effectsVolume":0.4,"catEnabled":"true","catVolume":{},"sceneMusic":4,"nightQuiet":null,"haptics":"false"}"#.utf8)
+        let fallback = try JSONDecoder().decode(AudioSettings.self, from: malformed)
+        #expect(!fallback.catEnabled && fallback.catVolume == 0.4)
+        #expect(fallback.sceneMusic && fallback.nightQuiet && fallback.haptics)
     }
 
     @Test func independentMuteAndZeroVolumePersistWithoutChangingOtherGameData() async throws {

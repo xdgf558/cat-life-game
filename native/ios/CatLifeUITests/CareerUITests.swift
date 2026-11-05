@@ -287,7 +287,7 @@ extension RoomHomeUITests {
     func testActiveCareerCompletesInBackgroundAndKeepsOnePersistentResult() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = arguments(reset: true) + ["--career-active-fixture"]
+        app.launchArguments = arguments(reset: true) + ["--career-active-fixture", "--career-save-failure-once", "--audio-test"]
         launchAndEnterHome(app)
         waitForObservedValue("goldCount", "200", in: app)
         openCareerHome(in: app)
@@ -296,10 +296,7 @@ extension RoomHomeUITests {
                                       context: "a previously saved pet-shop shift resumes")
         let remaining = try XCTUnwrap(displayedTimerSeconds(element("workCountdown", in: app).label))
         let expectedCompletion = Date().addingTimeInterval(TimeInterval(remaining + 2))
-        tapCareerControl("careerChooseJobButton", in: app)
-        openCareerDetailsFromDirectory("job_flyer", in: app)
-        XCTAssertTrue(element("careerDetailScroll", in: app).exists,
-                      "Settlement must replace the nested job preview, not only the Work root.")
+        assertWorkCompletionSoundCount(0, in: app)
         XCUIDevice.shared.press(.home)
         waitForAppBackground(in: app)
         let deadline = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -307,10 +304,15 @@ extension RoomHomeUITests {
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [deadline], timeout: TimeInterval(remaining + 6)), .completed)
         app.activate()
+        let recoveryFailure = app.alerts["这次操作还没有保存"]
+        XCTAssertTrue(recoveryFailure.waitForExistence(timeout: 8),
+                      "The first foreground catch-up write must exercise the injected failure.")
+        let saveRecovered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: recoveryFailure)
+        XCTAssertEqual(XCTWaiter.wait(for: [saveRecovered], timeout: 10), .completed)
         waitForElement("workResultID", in: app, timeout: 15)
-        XCTAssertFalse(element("careerDetailScroll", in: app).exists)
         let resultID = try assertCareerResult(job: "job_petshop", gold: 160, experience: 52,
                                              levelBefore: 4, levelAfter: 4, expAfter: 52, in: app)
+        assertWorkCompletionSoundCount(0, in: app)
         attachScreenshot(app, named: "Career — returning from background opens the real completed result")
         closeCareerResult(in: app)
         waitForObservedValue("playerLevel", "4", in: app)
@@ -322,7 +324,7 @@ extension RoomHomeUITests {
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "360", in: app)
         app.terminate()
-        app.launchArguments = arguments(reset: false) + ["--career-active-fixture"]
+        app.launchArguments = arguments(reset: false) + ["--career-active-fixture", "--audio-test"]
         launchAndEnterHome(app)
         waitForObservedValue("goldCount", "360", in: app)
         openCareerHome(in: app)
@@ -330,6 +332,7 @@ extension RoomHomeUITests {
         waitForObservedValue("playerExperience", "52", in: app)
         openCareerResult(in: app)
         waitForObservedValue("workResultID", resultID, in: app)
+        assertWorkCompletionSoundCount(0, in: app)
         closeCareerResult(in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "360", in: app)

@@ -1,0 +1,60 @@
+import XCTest
+import CatGameCore
+@testable import CatLife
+
+final class GameAudioPolicyTests: XCTestCase {
+    func testSceneAndNightChoicesRespectBoundariesAndPlayerPreferences() {
+        var settings = AudioSettings()
+        for hour in [0, 6, 22, 23] {
+            XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: hour), .night)
+            XCTAssertEqual(GameAudioPolicy.musicVolume(settings: settings, hour: hour, ducked: false), 0.245, accuracy: 0.0001)
+        }
+        for hour in [7, 12, 21] {
+            XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: hour), .home)
+        }
+        XCTAssertEqual(GameAudioPolicy.track(.hospital, settings: settings, hour: 23), .hospital)
+        XCTAssertEqual(GameAudioPolicy.track(.sleep, settings: settings, hour: 23), .sleep)
+        settings.nightQuiet = false
+        XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: 23), .home)
+        XCTAssertEqual(GameAudioPolicy.musicVolume(settings: settings, hour: 23, ducked: false), 0.35, accuracy: 0.0001)
+        settings.sceneMusic = false
+        for scene in GameMusicTrack.allCases {
+            XCTAssertEqual(GameAudioPolicy.track(scene, settings: settings, hour: 23), .home)
+        }
+    }
+
+    func testCatChannelIsIndependentAndDuckingNeverOverridesVolumeChoice() {
+        var settings = AudioSettings(effectsEnabled: false, catEnabled: true, catVolume: 0.8)
+        XCTAssertEqual(GameAudioPolicy.effectVolume(.purchase, settings: settings), 0)
+        XCTAssertEqual(GameAudioPolicy.effectVolume(.catHappy, settings: settings), 0.8, accuracy: 0.0001)
+        settings.catEnabled = false
+        settings.effectsEnabled = true
+        XCTAssertEqual(GameAudioPolicy.effectVolume(.catCoax, settings: settings), 0)
+        XCTAssertEqual(GameAudioPolicy.effectVolume(.purchase, settings: settings), 0.65, accuracy: 0.0001)
+        settings.musicVolume = 0.2
+        XCTAssertEqual(GameAudioPolicy.musicVolume(settings: settings, hour: 12, ducked: true), 0.1, accuracy: 0.0001)
+        settings.musicVolume = 0
+        XCTAssertEqual(GameAudioPolicy.musicVolume(settings: settings, hour: 23, ducked: true), 0)
+    }
+
+    func testRewardsPreemptLowPriorityEffectsButNavigationCannotInterruptACat() {
+        XCTAssertEqual(GameAudioPolicy.simultaneousEffects, 3)
+        XCTAssertEqual(GameAudioPolicy.replacementIndex(for: .claim, active: [.feed, .tap, .catCoax]), 1)
+        XCTAssertNil(GameAudioPolicy.replacementIndex(for: .tap, active: [.catHappy, .feed, .claim]))
+        XCTAssertNil(GameAudioPolicy.replacementIndex(for: .claim, active: [.claim, .levelUp, .workComplete]))
+        XCTAssertNil(GameAudioPolicy.replacementIndex(for: .claim, active: [.tap]))
+        XCTAssertTrue(GameSoundEffect.catPurr.ducksMusic)
+        XCTAssertTrue(GameSoundEffect.claim.successHaptic)
+        XCTAssertTrue(GameSoundEffect.treatDone.lightHaptic)
+        XCTAssertFalse(GameSoundEffect.tap.ducksMusic)
+    }
+
+    func testEveryDeclaredRuntimeCueHasABundledResource() {
+        XCTAssertEqual(GameMusicTrack.allCases.count, 8)
+        XCTAssertEqual(GameSoundEffect.allCases.count, 35)
+        let bundle = Bundle(for: GameAudioController.self)
+        for name in GameMusicTrack.allCases.map(\.fileName) + GameSoundEffect.allCases.map(\.fileName) {
+            XCTAssertNotNil(bundle.url(forResource: name, withExtension: "caf", subdirectory: "Audio"), name)
+        }
+    }
+}
