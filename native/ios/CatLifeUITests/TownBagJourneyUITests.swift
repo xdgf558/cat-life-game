@@ -56,10 +56,16 @@ extension RoomHomeUITests {
     func testTownPlotsKeepTheirLayoutAndFuturePlacesDoNotUnlockGameplay() throws {
         continueAfterFailure = false
         let app = launchFreshHome()
+        // English has the widest availability badges and landmark names.
+        tapAnimationControl("settingsButton", in: app)
+        scrollCareerPage("settingsScroll", to: "languageOption_en", in: app)
+        tapAnimationControl("languageOption_en", in: app)
+        assertSettingsLanguageSelection("en", in: app)
         tapAnimationControl("tabTown", in: app)
         waitForElement("townMapScroll", in: app)
         let row = ["townPlot_street", "townHospitalMarker", "townPlot_cafe"]
         let frames = row.map { element($0, in: app).frame }
+        attachScreenshot(app, named: "Town — cartoon buildings retain the twelve-place map")
         tapAnimationControl("townLayer_neighbors", in: app)
         for (index, id) in row.enumerated() {
             XCTAssertTrue(element(id, in: app).exists)

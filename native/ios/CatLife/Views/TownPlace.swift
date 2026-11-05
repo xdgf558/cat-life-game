@@ -34,6 +34,21 @@ enum TownPlace: String, CaseIterable, Identifiable {
         }
     }
     var descriptionKey: String { isEmpty ? "town.description.empty" : "town.description.\(rawValue)" }
+    var asset: String {
+        switch self {
+        case .street: "town-street-cartoon"
+        case .hospital: "town-hospital-cartoon"
+        case .cafe: "town-cafe-cartoon"
+        case .work: "icon-work"
+        case .plaza: "town-plaza-cartoon"
+        case .shop: "icon-shop"
+        case .home: "icon-home"
+        case .board: "town-board-cartoon"
+        case .market: "town-market-cartoon"
+        case .adoption: "icon-town"
+        case .lot1, .lot2: "town-lot-cartoon"
+        }
+    }
     var symbol: String {
         switch self {
         case .street: "house.fill"

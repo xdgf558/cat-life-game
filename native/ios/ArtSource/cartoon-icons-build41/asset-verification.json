@@ -1,0 +1,182 @@
+[
+  {
+    "asset": "job-flyer-cartoon",
+    "path": "CatLife/Assets.xcassets/job-flyer-cartoon.imageset/job-flyer-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "675d69644337545e602468ea728eb09d5f303d7bcbd441b6082aa1c7bb3d8434",
+    "bytes": 1457260
+  },
+  {
+    "asset": "job-store-cartoon",
+    "path": "CatLife/Assets.xcassets/job-store-cartoon.imageset/job-store-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "dab9675c7ed39536c591c4a22af9793b84e2d31818aa3440fd676f6f3b0fa24d",
+    "bytes": 1445831
+  },
+  {
+    "asset": "job-petshop-cartoon",
+    "path": "CatLife/Assets.xcassets/job-petshop-cartoon.imageset/job-petshop-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "cc4e8fd382ac0b224d0ea8328b6e07bbce17246f9abba3468484cc7414e29d60",
+    "bytes": 1643952
+  },
+  {
+    "asset": "job-it-cartoon",
+    "path": "CatLife/Assets.xcassets/job-it-cartoon.imageset/job-it-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "90ecf353f8a333643678d2aaffc47947e80ae91f19fce2107151bcfb3b345f19",
+    "bytes": 1486352
+  },
+  {
+    "asset": "job-cafe-cartoon",
+    "path": "CatLife/Assets.xcassets/job-cafe-cartoon.imageset/job-cafe-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "dbd622329ce77c88a2280c670b79d989a1a3ce18804278eeb16bc0d88fa1f614",
+    "bytes": 1417796
+  },
+  {
+    "asset": "town-street-cartoon",
+    "path": "CatLife/Assets.xcassets/town-street-cartoon.imageset/town-street-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "9ab115b5ef254a443e8a257286d59afc1b6fc39dc2c2758d606cbcbcb12fd3eb",
+    "bytes": 1831992
+  },
+  {
+    "asset": "town-hospital-cartoon",
+    "path": "CatLife/Assets.xcassets/town-hospital-cartoon.imageset/town-hospital-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "410ec45ad6d6d93c3164ade98a3994350381ec27fd9df715565a97a1457cdba3",
+    "bytes": 1926355
+  },
+  {
+    "asset": "town-cafe-cartoon",
+    "path": "CatLife/Assets.xcassets/town-cafe-cartoon.imageset/town-cafe-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "d2317a496d61c65b4469b55ce49bc6e54cf9aa5b0727d170b344118b447630c8",
+    "bytes": 1783463
+  },
+  {
+    "asset": "town-plaza-cartoon",
+    "path": "CatLife/Assets.xcassets/town-plaza-cartoon.imageset/town-plaza-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "188a8a9d7d895c0bae6be9e61e8ea922cec2d3020692f6258b221dd5a57c989e",
+    "bytes": 1630291
+  },
+  {
+    "asset": "town-board-cartoon",
+    "path": "CatLife/Assets.xcassets/town-board-cartoon.imageset/town-board-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "538da848d9ef695a60e4856a5fc7922f8fed76008893029a4ef3d51549d63f24",
+    "bytes": 1696232
+  },
+  {
+    "asset": "town-market-cartoon",
+    "path": "CatLife/Assets.xcassets/town-market-cartoon.imageset/town-market-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "6c6528c4d607ce25960dfd17a7ad449bdf63f0712e876cd6edfb84c973f8320d",
+    "bytes": 1790623
+  },
+  {
+    "asset": "town-lot-cartoon",
+    "path": "CatLife/Assets.xcassets/town-lot-cartoon.imageset/town-lot-cartoon.png",
+    "pixels": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "alphaRange": [
+      0,
+      255
+    ],
+    "sha256": "d5f11eb99a58e75bc4802a7644c486e077446d4cd0780ad70ec1cf2b3308602e",
+    "bytes": 1327046
+  }
+]

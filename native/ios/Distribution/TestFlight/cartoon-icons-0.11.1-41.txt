@@ -1,0 +1,12 @@
+打工养猫日记 0.11.1（41）· 卡通职业与猫町图标
+
+本次主要更新打工与猫町的卡通图标。
+
+打工：查看发传单、便利店、宠物店、IT 和猫咖的职业形象；尝试职业翻页、筛选和详情，检查锁定职业的插画与锁标是否清楚。开始工作后确认倒计时、职业选择和工作结算正常。
+猫町：查看新建筑与地点插画，点选地块后进入医院、打工、商店、小家或领养中心。邻居街、猫咖、中央广场、留言板、交换集市和空地仍为后续开放预览。
+显示：检查打工与猫町底栏入口、小屏布局、简体中文、繁体中文和英语下的名称及角标，留意图片裁切、遮挡或模糊。
+存档：直接覆盖更新，确认角色、猫咪、金币、背包、任务和家具布置保留。本次不调整工作收益、解锁等级、房间或猫咪大小。
+遇到问题请反馈操作步骤、设备型号、系统版本及截图。
+
+English
+Please test the new cartoon job portraits and town landmark artwork. Check career paging, filters, locked previews, the active countdown and work summary. Select and enter existing town destinations; future social locations remain previews only. Look for clipping, overlapping badges or unreadable labels on small screens and in all three languages. Update in place and confirm your progress and room arrangement remain intact.

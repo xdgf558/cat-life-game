@@ -71,9 +71,14 @@ struct WorkResultView: View {
                         if !result.newlyUnlockedJobIDs.isEmpty {
                             Text(GameStrings.text("career.newJobs")).font(.subheadline.weight(.bold))
                             ForEach(result.newlyUnlockedJobIDs, id: \.self) { id in
-                                Label(WorkJobPresentation.name(id), systemImage: WorkJobPresentation.symbol(id))
-                                    .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
-                                    .accessibilityIdentifier("careerUnlocked_\(id)")
+                                Label {
+                                    Text(WorkJobPresentation.name(id))
+                                } icon: {
+                                    GameIcon(asset: WorkJobPresentation.asset(id),
+                                             symbol: WorkJobPresentation.symbol(id), size: 22, tint: RoomTheme.darkMint)
+                                }
+                                .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
+                                .accessibilityIdentifier("careerUnlocked_\(id)")
                             }
                         }
                         if let cat = store.cat {

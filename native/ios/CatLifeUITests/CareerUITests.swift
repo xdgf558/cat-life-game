@@ -371,7 +371,8 @@ extension RoomHomeUITests {
             for (id, name) in zip(ids, language.names) {
                 let identifier = "careerJobName_\(id)"
                 revealCareerDirectoryJob(id, in: app)
-                waitForLabel(identifier, name, in: app)
+                // SwiftUI exposes the card's name together with its reward and unlock text.
+                waitForLabel(identifier, name, in: app, contains: true)
                 XCTAssertTrue(element(identifier, in: app).isHittable)
             }
             enterCareerSearch(language.names[0], in: app)
@@ -411,6 +412,10 @@ extension RoomHomeUITests {
             tapAnimationControl("tabHome", in: app)
             waitForObservedValue("goldCount", "260", in: app)
             waitForObservedValue("foodCount", "3", in: app)
+            tapAnimationControl("tabTown", in: app)
+            waitForElement("townMapScroll", in: app)
+            attachScreenshot(app, named: "Town — cartoon map labels and badges in \(language.code)")
+            tapAnimationControl("tabHome", in: app)
             assertKnownHomeViewportBaseline(in: app)
         }
     }

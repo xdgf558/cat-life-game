@@ -67,6 +67,8 @@ extension GameStrings {
         "audio.scene.town": "貓町",
         "audio.scene.hospital": "寵物醫院",
         "audio.scene.shop": "商店",
+        "releases.41.title": "卡通職業與繽紛貓町",
+        "releases.41.body": "五種職業換上卡通人物，貓町地點改用溫暖的小鎮插畫，並同步更新標題、底欄和詳情中的圖示。未解鎖職業保留形象與鎖定標記，地點開放狀態清晰可見。保留現有玩法與存檔進度。",
         "releases.40.title": "溫暖貓町與貼心照料",
         "releases.40.body": "重做寵物醫院、任務和貓町地圖：健康診斷與治療結果更清晰，任務可直接領取獎勵，地圖地點統一展示。新增診所插畫、場景音樂與獨立貓咪聲音設定，支援夜間安靜和觸感開關。保留已有存檔與遊戲進度。",
         "town.yourCatsCount": "%d 隻貓咪",
