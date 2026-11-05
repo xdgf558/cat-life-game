@@ -4,6 +4,8 @@ import CatGameCore
 @MainActor
 struct SaveManagementView: View {
     @Bindable var store: GameStore
+    var recoveryOnly = false
+    var onRecovered: (() -> Void)?
     @State private var isWorking = false
     @State private var isImportingFile = false
     @State private var isExportingFile = false
@@ -11,6 +13,7 @@ struct SaveManagementView: View {
     @State private var exportURL: URL?
     @State private var exportDate: Date?
     @State private var recovery: NativeSaveArchive?
+    @State private var recoveryUnavailable = true
     @State private var preview: ImportPreview?
     @State private var statusKey: String?
     @State private var isError = false
@@ -22,21 +25,22 @@ struct SaveManagementView: View {
     }
 
     private var busy: Bool { isWorking || store.saveTransferInProgress || store.isBusy }
+    private var titleKey: String { recoveryOnly ? "saveTransfer.failureEntry" : "saveTransfer.title" }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                GamePageHeading(title: GameStrings.text("saveTransfer.title"),
+                GamePageHeading(title: GameStrings.text(titleKey),
                                 subtitle: GameStrings.text("saveTransfer.subtitle"),
                                 symbol: "externaldrive.fill", tint: RoomTheme.mint,
                                 background: RoomTheme.chipBg)
-                if let snapshot = store.snapshot {
+                if !recoveryOnly, let snapshot = store.snapshot {
                     summary(snapshot, title: "saveTransfer.current", time: snapshot.meta.lastSyncAt,
                             timeTitle: "saveTransfer.progressTime")
                         .accessibilityIdentifier("saveCurrentSummary")
                 }
                 transferActions
-                recoveryCard
+                if !recoveryOnly { recoveryCard }
                 if let statusKey {
                     Label(GameStrings.text(statusKey),
                           systemImage: isError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
@@ -50,7 +54,7 @@ struct SaveManagementView: View {
                         .font(.system(size: 13, weight: .bold))
                         .accessibilityIdentifier("saveTransferProgress")
                 }
-                Text(GameStrings.text("saveTransfer.scope"))
+                Text(GameStrings.text(recoveryOnly ? "saveTransfer.failureScope" : "saveTransfer.scope"))
                     .font(.system(size: 12)).foregroundStyle(RoomTheme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -60,9 +64,9 @@ struct SaveManagementView: View {
         .background(RoomTheme.cream.ignoresSafeArea())
         .toolbarBackground(RoomTheme.cream, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
-        .navigationTitle(GameStrings.text("saveTransfer.title"))
+        .navigationTitle(GameStrings.text(titleKey))
         .accessibilityIdentifier("saveManagementScroll")
-        .task { await refreshRecovery() }
+        .task { if !recoveryOnly { await refreshRecovery() } }
         .fileImporter(isPresented: $isImportingFile, allowedContentTypes: [.json]) { result in
             switch result {
             case .success(let url): readImport(url)
@@ -82,37 +86,42 @@ struct SaveManagementView: View {
 
     private var transferActions: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(GameStrings.text("saveTransfer.backupTitle"))
-                .font(.system(size: 17, weight: .heavy))
-            Text(GameStrings.text("saveTransfer.backupHint"))
-                .font(.system(size: 13)).foregroundStyle(RoomTheme.secondary)
-            Button { prepareExport() } label: {
-                Label(GameStrings.text("saveTransfer.prepareExport"), systemImage: "square.and.arrow.up")
-                    .font(.system(size: 15, weight: .bold)).frame(maxWidth: .infinity)
-            }
-            .buttonStyle(MintButtonStyle()).disabled(busy)
-            .accessibilityIdentifier("saveExportButton")
-            if let exportURL, let exportDate {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text(GameStrings.format("saveTransfer.preparedAt", dateText(exportDate)))
-                        .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                        .accessibilityIdentifier("saveExportPrepared")
-                    Button { isExportingFile = true } label: {
-                        Label(GameStrings.text("saveTransfer.saveToFiles"), systemImage: "folder")
-                            .font(.system(size: 14, weight: .bold))
-                    }
-                    .buttonStyle(SoftButtonStyle()).disabled(busy)
-                    .accessibilityIdentifier("saveExportFilesButton")
-                    ShareLink(item: exportURL) {
-                        Label(GameStrings.text("saveTransfer.share"), systemImage: "square.and.arrow.up")
-                            .font(.system(size: 14, weight: .bold))
-                    }
-                    .buttonStyle(SoftButtonStyle()).disabled(busy)
-                    .accessibilityIdentifier("saveExportShareButton")
+            if recoveryOnly {
+                Text(GameStrings.text(store.needsNewerVersion ? "saveTransfer.failureNewerIntro" : "saveTransfer.failureIntro"))
+                    .font(.system(size: 14)).foregroundStyle(RoomTheme.secondary)
+            } else {
+                Text(GameStrings.text("saveTransfer.backupTitle"))
+                    .font(.system(size: 17, weight: .heavy))
+                Text(GameStrings.text("saveTransfer.backupHint"))
+                    .font(.system(size: 13)).foregroundStyle(RoomTheme.secondary)
+                Button { prepareExport() } label: {
+                    Label(GameStrings.text("saveTransfer.prepareExport"), systemImage: "square.and.arrow.up")
+                        .font(.system(size: 15, weight: .bold)).frame(maxWidth: .infinity)
                 }
-                .padding(12).background(RoomTheme.chipBg, in: RoundedRectangle(cornerRadius: 16))
+                .buttonStyle(MintButtonStyle()).disabled(busy)
+                .accessibilityIdentifier("saveExportButton")
+                if let exportURL, let exportDate {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(GameStrings.format("saveTransfer.preparedAt", dateText(exportDate)))
+                            .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+                            .accessibilityIdentifier("saveExportPrepared")
+                        Button { isExportingFile = true } label: {
+                            Label(GameStrings.text("saveTransfer.saveToFiles"), systemImage: "folder")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .buttonStyle(SoftButtonStyle()).disabled(busy)
+                        .accessibilityIdentifier("saveExportFilesButton")
+                        ShareLink(item: exportURL) {
+                            Label(GameStrings.text("saveTransfer.share"), systemImage: "square.and.arrow.up")
+                                .font(.system(size: 14, weight: .bold))
+                        }
+                        .buttonStyle(SoftButtonStyle()).disabled(busy)
+                        .accessibilityIdentifier("saveExportShareButton")
+                    }
+                    .padding(12).background(RoomTheme.chipBg, in: RoundedRectangle(cornerRadius: 16))
+                }
+                Divider().padding(.vertical, 4)
             }
-            Divider().padding(.vertical, 4)
             Button { isImportingFile = true } label: {
                 Label(GameStrings.text("saveTransfer.chooseFile"), systemImage: "square.and.arrow.down")
                     .font(.system(size: 15, weight: .bold))
@@ -130,13 +139,16 @@ struct SaveManagementView: View {
             Label(GameStrings.text("saveTransfer.recoveryTitle"), systemImage: "arrow.uturn.backward.circle.fill")
                 .font(.system(size: 17, weight: .heavy))
                 .accessibilityIdentifier("saveRecoveryCard")
-            Text(GameStrings.text(recovery == nil ? "saveTransfer.noRecovery" : "saveTransfer.recoveryHint"))
+            Text(GameStrings.text(recoveryUnavailable ? "saveTransfer.unknownRecovery"
+                                  : (recovery == nil ? "saveTransfer.noRecovery" : "saveTransfer.recoveryHint")))
                 .font(.system(size: 13)).foregroundStyle(RoomTheme.secondary)
             if let recovery {
                 Text(GameStrings.format("saveTransfer.recoverySummary",
                                         recovery.snapshot.player.level, recovery.snapshot.cats.count))
                     .font(.system(size: 13, weight: .bold))
-                Button { preview = ImportPreview(archive: recovery, isRecovery: true) } label: {
+                Text(dateText(recovery.snapshot.meta.lastSyncAt))
+                    .font(.system(size: 12)).foregroundStyle(RoomTheme.secondary)
+                Button { previewRecovery() } label: {
                     Text(GameStrings.text("saveTransfer.previewRecovery"))
                         .font(.system(size: 14, weight: .bold))
                 }
@@ -189,10 +201,16 @@ struct SaveManagementView: View {
                     Label(GameStrings.text("saveTransfer.replaceWarning"), systemImage: "exclamationmark.triangle.fill")
                         .font(.system(size: 14, weight: .bold)).foregroundStyle(RoomTheme.coral)
                         .fixedSize(horizontal: false, vertical: true)
-                    Text(GameStrings.text("saveTransfer.recoveryPromise"))
+                    Text(GameStrings.text(recoveryOnly ? "saveTransfer.failurePromise" : "saveTransfer.recoveryPromise"))
                         .font(.system(size: 13)).foregroundStyle(RoomTheme.secondary)
+                        .accessibilityIdentifier(recoveryOnly ? "saveFailureRawPreservationNotice" : "saveRecoveryPromise")
+                    if !recoveryOnly {
+                        recoveryReplacementWarning(includeSummary: !candidate.isRecovery
+                            || recovery?.snapshot != candidate.archive.snapshot)
+                    }
                     Button { confirm(candidate) } label: {
-                        Text(GameStrings.text(candidate.isRecovery ? "saveTransfer.confirmRecovery" : "saveTransfer.confirmImport"))
+                        Text(GameStrings.text(recoveryOnly ? "saveTransfer.failureConfirm"
+                                              : (candidate.isRecovery ? "saveTransfer.confirmRecovery" : "saveTransfer.confirmImport")))
                             .font(.system(size: 16, weight: .heavy)).frame(maxWidth: .infinity)
                     }
                     .buttonStyle(MintButtonStyle()).disabled(busy)
@@ -220,6 +238,33 @@ struct SaveManagementView: View {
         .interactiveDismissDisabled(isWorking)
     }
 
+    @ViewBuilder private func recoveryReplacementWarning(includeSummary: Bool) -> some View {
+        if let recovery {
+            VStack(alignment: .leading, spacing: 10) {
+                Label(GameStrings.text("saveTransfer.replaceRecovery"), systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 13, weight: .bold)).foregroundStyle(RoomTheme.coral)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("saveRecoveryReplacementWarning")
+                if includeSummary {
+                    Text(GameStrings.format("saveTransfer.recoverySummary",
+                                            recovery.snapshot.player.level, recovery.snapshot.cats.count))
+                        .font(.system(size: 14, weight: .bold))
+                        .accessibilityIdentifier("saveExistingRecoverySummary")
+                    Text(GameStrings.format("saveTransfer.timestamp", GameStrings.text("saveTransfer.progressTime"),
+                                            dateText(recovery.snapshot.meta.lastSyncAt)))
+                        .font(.system(size: 12)).foregroundStyle(RoomTheme.secondary)
+                        .accessibilityIdentifier("saveExistingRecoveryTime")
+                }
+            }
+            .padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard()
+        } else if recoveryUnavailable {
+            Label(GameStrings.text("saveTransfer.unknownRecovery"), systemImage: "exclamationmark.triangle.fill")
+                .font(.system(size: 13, weight: .bold)).foregroundStyle(RoomTheme.coral)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("saveRecoveryReplacementWarning")
+        }
+    }
+
     private func prepareExport() {
         guard !busy else { return }
         isWorking = true
@@ -245,6 +290,7 @@ struct SaveManagementView: View {
             defer { isWorking = false }
             do {
                 let archive = try await Task.detached { try SaveArchiveFiles.read(url) }.value
+                if !recoveryOnly { await refreshRecovery() }
                 preview = ImportPreview(archive: archive, isRecovery: false)
             } catch { report(error) }
         }
@@ -257,20 +303,48 @@ struct SaveManagementView: View {
         Task {
             defer { isWorking = false }
             do {
-                try await store.importSaveArchive(candidate.archive, isRecovery: candidate.isRecovery)
+                if recoveryOnly {
+                    try await store.restoreSaveArchiveAfterLoadFailure(candidate.archive)
+                } else {
+                    try await store.importSaveArchive(candidate.archive, isRecovery: candidate.isRecovery)
+                }
                 preview = nil
                 exportDocument = nil
                 exportURL = nil
                 exportDate = nil
-                setStatus(candidate.isRecovery ? "saveTransfer.restored" : "saveTransfer.imported")
-                await refreshRecovery()
-            } catch { report(error) }
+                if recoveryOnly {
+                    setStatus("saveTransfer.failureRestored")
+                    onRecovered?()
+                } else {
+                    setStatus(candidate.isRecovery ? "saveTransfer.restored" : "saveTransfer.imported")
+                    await refreshRecovery()
+                }
+            } catch {
+                // The undo point can be replaced before the final primary write fails.
+                if !recoveryOnly { await refreshRecovery() }
+                report(error)
+            }
         }
     }
 
     private func refreshRecovery() async {
-        do { recovery = try await store.importRecoveryPreview() }
-        catch { report(error) }
+        recoveryUnavailable = true
+        recovery = nil
+        do {
+            recovery = try await store.importRecoveryPreview()
+            recoveryUnavailable = false
+        } catch { report(error) }
+    }
+
+    private func previewRecovery() {
+        guard !busy else { return }
+        isWorking = true
+        statusKey = nil
+        Task {
+            defer { isWorking = false }
+            await refreshRecovery()
+            if let recovery { preview = ImportPreview(archive: recovery, isRecovery: true) }
+        }
     }
 
     private func dateText(_ date: Date) -> String {
@@ -288,7 +362,8 @@ struct SaveManagementView: View {
 
     private func report(_ error: Error) {
         if (error as? CocoaError)?.code == .userCancelled { return }
-        statusKey = SaveTransferError.messageKey(for: error)
+        statusKey = recoveryOnly && (error as? SaveTransferError) == .writeFailed
+            ? "saveTransfer.failureWriteFailed" : SaveTransferError.messageKey(for: error)
         isError = true
     }
 }

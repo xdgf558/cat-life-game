@@ -156,7 +156,7 @@ extension RoomHomeUITests {
         waitForLabel("welcomeEnterButton", "进入小家", in: app, file: file, line: line)
         waitForElement("welcomeHero", in: app, file: file, line: line)
         waitForElement("welcomeNotice", in: app, file: file, line: line)
-        waitForObservedValue("welcomeVersion", "0.10.1 (39)", in: app, file: file, line: line)
+        waitForObservedValue("welcomeVersion", "0.13.1 (47)", in: app, file: file, line: line)
         waitForObservedValue("welcomeProgress", "100%", in: app, file: file, line: line)
         // This may be a real offline-work or recovery notice, so assert that
         // it is readable without replacing it with a fixed ready message.

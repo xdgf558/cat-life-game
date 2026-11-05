@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor
 struct WelcomeView: View {
     @Bindable var store: GameStore
+    @State private var isShowingSaveRecovery = false
     #if DEBUG
     var releaseTestLoad: (() -> Void)?
     #endif
@@ -52,6 +53,23 @@ struct WelcomeView: View {
         .background(LinearGradient(colors: [RoomTheme.wood.opacity(0.58), RoomTheme.cream, RoomTheme.cream],
                                    startPoint: .top, endPoint: .bottom).ignoresSafeArea())
         .accessibilityIdentifier("welcomeScreen")
+        .sheet(isPresented: $isShowingSaveRecovery) {
+            NavigationStack {
+                SaveManagementView(store: store, recoveryOnly: true,
+                                   onRecovered: { isShowingSaveRecovery = false })
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(GameStrings.text("common.cancel")) { isShowingSaveRecovery = false }
+                                .disabled(store.saveTransferInProgress || store.isBusy)
+                                .accessibilityIdentifier("saveRecoveryDismissButton")
+                        }
+                    }
+            }
+            .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
+            .environment(\.locale, Locale(identifier: store.language.rawValue))
+            .interactiveDismissDisabled(store.saveTransferInProgress || store.isBusy)
+        }
     }
 
     private var journey: some View {
@@ -105,7 +123,15 @@ struct WelcomeView: View {
                         .font(.headline).frame(maxWidth: .infinity, minHeight: 26)
                 }
                 .buttonStyle(MintButtonStyle())
+                .disabled(store.isLoading || store.isBusy || store.saveTransferInProgress)
                 .accessibilityIdentifier("welcomeRetryButton")
+                Button { isShowingSaveRecovery = true } label: {
+                    Label(GameStrings.text("saveTransfer.failureEntry"), systemImage: "square.and.arrow.down")
+                        .font(.system(size: 15, weight: .bold)).frame(maxWidth: .infinity)
+                }
+                .buttonStyle(SoftButtonStyle())
+                .disabled(store.isLoading || store.isBusy || store.saveTransferInProgress)
+                .accessibilityIdentifier("welcomeRestoreBackupButton")
             } else {
                 Button { store.enterHome() } label: {
                     HStack(spacing: 12) {

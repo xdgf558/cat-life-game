@@ -5,6 +5,8 @@ import CatGameCore
 /// Fixture parsing and fault injection do not exist in Release builds.
 struct GameStoreFixtures {
     var initialSnapshot: GameSnapshot?
+    private var futureLoadFailure = false
+    private var damagedLoadFailure = false
     var failRestExitOnce = false
     var failWorkCompletionOnce = false
     private var failTaskClaimOnce = false
@@ -27,6 +29,9 @@ struct GameStoreFixtures {
         failCatSelectionOnce = reset && arguments.contains("--cat-companion-save-failure-once")
         failTreatmentOnce = reset && arguments.contains("--hospital-save-failure-once")
         guard reset else { return }
+        futureLoadFailure = arguments.contains("--save-load-future-fixture")
+        damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
+        if futureLoadFailure || damagedLoadFailure { return }
         if arguments.contains("--hospital-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
@@ -128,6 +133,19 @@ struct GameStoreFixtures {
             _ = GameEngine.startSleep(&value, now: started)
             initialSnapshot = value
         }
+    }
+
+    func seedLoadFailureFiles(in directory: URL) throws {
+        guard futureLoadFailure || damagedLoadFailure else { return }
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let primary = futureLoadFailure
+            ? "{\"schemaVersion\":\(GameSnapshot.currentSchemaVersion + 1)}"
+            : "UITest damaged primary"
+        let backup = futureLoadFailure
+            ? "{\"schemaVersion\":\(GameSnapshot.currentSchemaVersion + 1),\"fixtureBackup\":true}"
+            : "UITest damaged backup"
+        try Data(primary.utf8).write(to: directory.appendingPathComponent("cat-life-native-v1.json"), options: .atomic)
+        try Data(backup.utf8).write(to: directory.appendingPathComponent("cat-life-native-v1.backup.json"), options: .atomic)
     }
 
     func checkStorageProbe() throws {

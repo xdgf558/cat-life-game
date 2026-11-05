@@ -33,6 +33,7 @@ enum SaveTransferError: Error, Equatable, Sendable {
 /// Only repositories that can preserve a durable recovery point accept replacement.
 protocol GameSaveTransferRepository: GameSaveRepository {
     func importSnapshot(_ state: GameSnapshot) async throws
+    func restoreSnapshotAfterLoadFailure(_ state: GameSnapshot) async throws
     func loadImportRecovery() async throws -> GameSnapshot?
 }
 

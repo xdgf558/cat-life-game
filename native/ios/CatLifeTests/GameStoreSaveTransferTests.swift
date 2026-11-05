@@ -170,6 +170,94 @@ final class GameStoreSaveTransferTests: XCTestCase {
     }
 
     @MainActor
+    func testStartupRecoveryWaitsForDurableWriteAndKeepsExplicitWelcomeEntry() async throws {
+        let repository = TransferTestRepository(seed())
+        await repository.setLoadFailure(.unsupportedSchemaVersion(GameSnapshot.currentSchemaVersion + 1))
+        let store = makeStore(repository)
+        await store.load()
+        XCTAssertTrue(store.loadFailed && store.needsNewerVersion)
+        XCTAssertNil(store.snapshot)
+        let generation = store.saveSceneGeneration
+        var incoming = seed()
+        incoming.player.gold = 621
+        incoming.settings.language = .english
+        let preview = try archive(incoming)
+        await repository.holdImports(true)
+        let restore = Task { try await store.restoreSaveArchiveAfterLoadFailure(preview) }
+        try await eventually { await repository.startupRestoreEntered }
+        XCTAssertNil(store.snapshot)
+        XCTAssertTrue(store.isLoading && store.isBusy && store.saveTransferInProgress)
+        store.enterHome()
+        await store.load()
+        XCTAssertFalse(store.hasEnteredHome)
+        XCTAssertTrue(store.loadFailed && store.needsNewerVersion)
+        XCTAssertEqual(store.saveSceneGeneration, generation)
+        await repository.holdImports(false)
+        try await restore.value
+        XCTAssertEqual(store.snapshot?.player.gold, 621)
+        XCTAssertEqual(store.language, .english)
+        XCTAssertFalse(store.loadFailed || store.needsNewerVersion || store.isBusy || store.isLoading)
+        XCTAssertFalse(store.saveTransferInProgress || store.hasEnteredHome)
+        XCTAssertEqual(store.startupProgress, 1)
+        XCTAssertEqual(store.startupPhase, "welcome.ready")
+        XCTAssertNotEqual(store.saveSceneGeneration, generation)
+        XCTAssertNotNil(store.startupNotice)
+        let undo = try await store.importRecoveryPreview()
+        XCTAssertNil(undo, "Startup repair must not mislabel unreadable bytes as a usable undo point.")
+        store.enterHome()
+        XCTAssertTrue(store.hasEnteredHome)
+        let renamed = await store.setHomeName("Recovered")
+        XCTAssertTrue(renamed, "A repaired timeline must accept subsequent normal saves.")
+    }
+
+    @MainActor
+    func testFailedStartupRecoveryRetainsFailureFlagsAndNeedsExplicitRetry() async throws {
+        let repository = TransferTestRepository(seed())
+        await repository.setLoadFailure(.unreadableSave)
+        await repository.setImportFailure(true)
+        let store = makeStore(repository)
+        await store.load()
+        let original = await repository.saved
+        let generation = store.saveSceneGeneration
+        let preview = try archive(seed())
+        do {
+            try await store.restoreSaveArchiveAfterLoadFailure(preview)
+            XCTFail("Storage failure must be reported.")
+        } catch { XCTAssertEqual(error as? SaveTransferError, .writeFailed) }
+        XCTAssertTrue(store.loadFailed)
+        XCTAssertFalse(store.needsNewerVersion || store.isLoading || store.isBusy || store.saveTransferInProgress)
+        XCTAssertNil(store.snapshot)
+        XCTAssertEqual(store.saveSceneGeneration, generation)
+        XCTAssertEqual(store.saveRetry.failures, 0)
+        store.setForeground(true)
+        await Task.yield()
+        let attempts = await repository.startupRestoreCount
+        XCTAssertEqual(attempts, 1)
+        let durable = await repository.saved
+        XCTAssertEqual(durable, original)
+        await repository.setImportFailure(false)
+        try await store.restoreSaveArchiveAfterLoadFailure(preview)
+        XCTAssertFalse(store.loadFailed)
+        XCTAssertNotNil(store.snapshot)
+        XCTAssertEqual(store.startupNotice, GameStrings.text("saveTransfer.failureRestored"))
+        store.setForeground(false)
+    }
+
+    @MainActor
+    func testStartupRecoveryCannotBypassNormalImportOrAnInitialLoad() async throws {
+        let repository = TransferTestRepository(seed())
+        let store = makeStore(repository)
+        let preview = try archive(seed())
+        do { try await store.restoreSaveArchiveAfterLoadFailure(preview); XCTFail("Load must finish first.") }
+        catch { XCTAssertEqual(error as? SaveTransferError, .busy) }
+        await store.load()
+        do { try await store.restoreSaveArchiveAfterLoadFailure(preview); XCTFail("Normal play uses ordinary import.") }
+        catch { XCTAssertEqual(error as? SaveTransferError, .busy) }
+        let attempts = await repository.startupRestoreCount
+        XCTAssertEqual(attempts, 0)
+    }
+
+    @MainActor
     private func eventually(_ condition: () async -> Bool) async throws {
         let deadline = Date().addingTimeInterval(3)
         while !(await condition()) {
@@ -187,11 +275,18 @@ private actor TransferTestRepository: GameSaveTransferRepository {
     private var recovery: GameSnapshot?
     private var saveFails = false
     private var importFails = false
+    private var loadFailure: SaveRepositoryError?
     private var held = false
     private(set) var importEntered = false
+    private(set) var startupRestoreEntered = false
+    private(set) var startupRestoreCount = 0
 
     init(_ state: GameSnapshot) { saved = state }
-    func loadOrCreate(now: Date) -> GameSnapshot { saved }
+    func loadOrCreate(now: Date) throws -> GameSnapshot {
+        if let loadFailure { throw loadFailure }
+        return saved
+    }
+    func setLoadFailure(_ failure: SaveRepositoryError?) { loadFailure = failure }
     func setSaveFailure(_ fails: Bool) { saveFails = fails }
     func setImportFailure(_ fails: Bool) { importFails = fails }
     func holdImports(_ hold: Bool) { held = hold }
@@ -208,5 +303,13 @@ private actor TransferTestRepository: GameSaveTransferRepository {
         saved = state
     }
     func loadImportRecovery() -> GameSnapshot? { recovery }
+    func restoreSnapshotAfterLoadFailure(_ state: GameSnapshot) async throws {
+        startupRestoreEntered = true
+        startupRestoreCount += 1
+        while held { try await Task.sleep(for: .milliseconds(10)) }
+        if importFails { throw Failure.storage }
+        saved = state
+        loadFailure = nil
+    }
     private enum Failure: Error { case storage }
 }

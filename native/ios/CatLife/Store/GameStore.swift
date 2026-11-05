@@ -132,6 +132,8 @@ final class GameStore {
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)
         if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
             try? FileManager.default.removeItem(at: saveDirectory)
+            do { try fixtures.seedLoadFailureFiles(in: saveDirectory) }
+            catch { assertionFailure("Could not prepare isolated load-failure fixture: \(error)") }
         }
         #else
         let reminderDefaults = UserDefaults.standard
@@ -495,12 +497,29 @@ final class GameStore {
 
     func importSaveArchive(_ archive: NativeSaveArchive, isRecovery: Bool = false) async throws {
         guard !isBusy, !isDecorating, snapshot != nil else { throw SaveTransferError.busy }
+        try await replaceSaveArchive(archive, isRecovery: isRecovery, afterLoadFailure: false)
+    }
+
+    func restoreSaveArchiveAfterLoadFailure(_ archive: NativeSaveArchive) async throws {
+        guard !isBusy, !isLoading, !loadingInProgress, loadFailed,
+              snapshot == nil, !hasEnteredHome else { throw SaveTransferError.busy }
+        try await replaceSaveArchive(archive, isRecovery: true, afterLoadFailure: true)
+    }
+
+    private func replaceSaveArchive(_ archive: NativeSaveArchive, isRecovery: Bool,
+                                    afterLoadFailure: Bool) async throws {
         guard let repository = repository as? any GameSaveTransferRepository else { throw SaveTransferError.writeFailed }
         // Import replaces a timeline. It must not replay physical events or completion
         // callbacks from the room that is about to be replaced.
         isBusy = true
         saveTransferInProgress = true
-        defer { saveTransferInProgress = false; isBusy = false; drainPendingSynchronization() }
+        if afterLoadFailure { isLoading = true }
+        defer {
+            if afterLoadFailure { isLoading = false; syncAudio() }
+            saveTransferInProgress = false
+            isBusy = false
+            drainPendingSynchronization()
+        }
         let importDate = Date()
         var candidate = archive.snapshot
         for cat in candidate.cats {
@@ -510,11 +529,13 @@ final class GameStore {
         }
         _ = GameEngine.synchronize(&candidate, now: importDate)
         do {
-            try await repository.importSnapshot(candidate)
+            if afterLoadFailure { try await repository.restoreSnapshotAfterLoadFailure(candidate) }
+            else { try await repository.importSnapshot(candidate) }
         } catch {
             // Import failure is not a failed autosave: the current timeline remains
             // usable and must never be retried later without a fresh confirmation.
-            showNotice(GameStrings.text("saveTransfer.writeFailed"))
+            // The recovery sheet reports startup failures; don't replay them after a successful retry.
+            if !afterLoadFailure { showNotice(GameStrings.text("saveTransfer.writeFailed")) }
             throw SaveTransferError.writeFailed
         }
         restTransitions.removeAll()
@@ -540,7 +561,17 @@ final class GameStore {
         saveSceneGeneration = UUID()
         GameLocalization.shared.language = candidate.settings.language
             ?? GameLanguage.preferred(in: Locale.preferredLanguages)
-        showNotice(GameStrings.text(isRecovery ? "saveTransfer.restored" : "saveTransfer.imported"))
+        if afterLoadFailure {
+            startupProgress = 2.0 / 3
+            startupPhase = "welcome.preparingRoom"
+            await RoomScene.preloadWelcomeResources()
+            startupProgress = 1
+            startupPhase = "welcome.ready"
+            needsNewerVersion = false
+            loadFailed = false
+        }
+        showNotice(GameStrings.text(afterLoadFailure ? "saveTransfer.failureRestored"
+            : (isRecovery ? "saveTransfer.restored" : "saveTransfer.imported")))
     }
 
     func showFurnitureNotice(_ key: String) { showNotice(GameStrings.text(key)) }

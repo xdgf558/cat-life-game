@@ -192,4 +192,37 @@ struct NativeSaveTransferTests {
             final = loaded
         }
     }
+
+    #if os(macOS)
+    @Test func failedFinalImportWritePreservesCurrentGameAndReplacesOlderUndoPoint() async throws {
+        let folder = try directory()
+        let repository = FileSaveRepository(directory: folder)
+        defer {
+            try? FileManager.default.setAttributes([.immutable: false], ofItemAtPath: repository.saveURL.path)
+            try? FileManager.default.removeItem(at: folder)
+        }
+        var current = try await repository.loadOrCreate(now: now)
+        current.player.gold = 350
+        try await repository.save(current, now: now)
+        let primary = try Data(contentsOf: repository.saveURL)
+        let backup = try Data(contentsOf: repository.backupURL)
+        var oldUndo = current
+        oldUndo.player.gold = 120
+        let oldUndoData = try NativeSaveCodec.encoder().encode(oldUndo)
+        try oldUndoData.write(to: repository.importRecoveryURL)
+        var incoming = current
+        incoming.player.gold = 900
+        try FileManager.default.setAttributes([.immutable: true], ofItemAtPath: repository.saveURL.path)
+
+        await #expect(throws: (any Error).self) { try await repository.importSnapshot(incoming) }
+        #expect(try Data(contentsOf: repository.saveURL) == primary)
+        #expect(try Data(contentsOf: repository.backupURL) == backup)
+        // Preparing the undo point succeeds before the final primary rename fails.
+        // It now preserves the current game, not the older import's undo history.
+        #expect(try Data(contentsOf: repository.importRecoveryURL) == primary)
+        #expect(try Data(contentsOf: repository.importRecoveryURL) != oldUndoData)
+        #expect(try await repository.loadImportRecovery() == current)
+        #expect(try await repository.loadOrCreate(now: now) == current)
+    }
+    #endif
 }

@@ -86,6 +86,116 @@ extension RoomHomeUITests {
         let app = launchFreshHome()
         let gold = try XCTUnwrap(element("goldCount", in: app).value as? String)
         let food = try XCTUnwrap(element("foodCount", in: app).value as? String)
+        let filename = try exportNativeBackupToFiles(in: app)
+
+        chooseNativeBackup(named: filename, in: app)
+        waitForElement("saveImportPreview", in: app)
+        attachScreenshot(app, named: "Save management — real exported file preview before replacement")
+        tapSavePreviewControl("saveCancelImportButton", in: app)
+        XCTAssertFalse(element("saveRecoveryButton", in: app).exists,
+                       "Preview cancellation must not replace progress or create a recovery point.")
+        chooseNativeBackup(named: filename, in: app)
+        waitForElement("saveImportPreview", in: app)
+        tapSavePreviewControl("saveConfirmImportButton", in: app)
+        scrollCareerPage("saveManagementScroll", to: "saveTransferStatus", in: app)
+        waitForLabel("saveTransferStatus", "备份已导入", in: app, contains: true)
+        // A subsequent file import would replace the single recovery point.
+        // The confirmation must disclose that point before any write occurs.
+        chooseNativeBackup(named: filename, in: app)
+        waitForElement("saveRecoveryReplacementWarning", in: app)
+        waitForLabel("saveExistingRecoverySummary", "等级 1 · 1 只猫咪", in: app, contains: true)
+        waitForElement("saveExistingRecoveryTime", in: app)
+        attachScreenshot(app, named: "Save management — existing recovery point replacement disclosed")
+        tapSavePreviewControl("saveCancelImportButton", in: app)
+        scrollCareerPage("saveManagementScroll", to: "saveRecoveryButton", in: app)
+        tapAnimationControl("saveRecoveryButton", in: app)
+        waitForElement("saveImportPreview", in: app)
+        waitForLabel("saveConfirmImportButton", "恢复这份进度", in: app, contains: true)
+        attachScreenshot(app, named: "Save management — pre-import recovery point confirmation")
+        tapSavePreviewControl("saveCancelImportButton", in: app)
+        tapAnimationControl("settingsBackButton", in: app)
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", gold, in: app)
+        waitForObservedValue("foodCount", food, in: app)
+    }
+
+    @MainActor
+    func testWelcomeFailedSaveOffersImportOnlyAndCancelPreservesFailure() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        for fixture in ["--save-load-damaged-fixture", "--save-load-future-fixture"] {
+            app.launchArguments = arguments(reset: true) + [fixture]
+            app.launch()
+            waitForElement("welcomeLoadError", in: app)
+            tapWelcomeRestoreButton(in: app)
+            waitForElement("saveImportButton", in: app)
+            XCTAssertFalse(element("saveExportButton", in: app).exists)
+            XCTAssertFalse(element("saveRecoveryButton", in: app).exists)
+            XCTAssertFalse(element("saveCurrentSummary", in: app).exists)
+            attachScreenshot(app, named: "Welcome save recovery — import-only " + fixture)
+            tapAnimationControl("saveRecoveryDismissButton", in: app)
+            waitForElement("welcomeLoadError", in: app)
+            XCTAssertFalse(element("welcomeEnterButton", in: app).exists)
+            app.terminate()
+            app.launchArguments = arguments(reset: false)
+            app.launch()
+            waitForElement("welcomeLoadError", in: app)
+            XCTAssertFalse(element("welcomeEnterButton", in: app).exists,
+                           "Cancelling recovery must not reset or replace the damaged/newer save.")
+            app.terminate()
+        }
+    }
+
+    @MainActor
+    func testWelcomeRestoresARealFilesBackupAfterDamagedSave() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        let gold = try XCTUnwrap(element("goldCount", in: app).value as? String)
+        let food = try XCTUnwrap(element("foodCount", in: app).value as? String)
+        let filename = try exportNativeBackupToFiles(in: app)
+        app.terminate()
+        app.launchArguments = arguments(reset: true) + ["--save-load-damaged-fixture"]
+        app.launch()
+        waitForElement("welcomeLoadError", in: app)
+        tapWelcomeRestoreButton(in: app)
+        chooseNativeBackup(named: filename, in: app)
+        waitForElement("saveFailureRawPreservationNotice", in: app)
+        XCTAssertFalse(element("saveExistingRecoverySummary", in: app).exists)
+        attachScreenshot(app, named: "Welcome save recovery — raw preservation explained before confirmation")
+        tapSavePreviewControl("saveCancelImportButton", in: app)
+        tapAnimationControl("saveRecoveryDismissButton", in: app)
+        waitForElement("welcomeLoadError", in: app)
+
+        tapWelcomeRestoreButton(in: app)
+        chooseNativeBackup(named: filename, in: app)
+        tapSavePreviewControl("saveConfirmImportButton", in: app)
+        let entry = element("welcomeEnterButton", in: app)
+        let ready = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true"), object: entry)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 45), .completed, app.debugDescription)
+        XCTAssertFalse(element("welcomeLoadError", in: app).exists)
+        XCTAssertFalse(element("feedButton", in: app).exists,
+                       "Successful recovery must still wait for the player's Enter action.")
+        attachScreenshot(app, named: "Welcome save recovery — recovered and waiting to enter home")
+        tapAnimationControl("welcomeEnterButton", in: app)
+        waitForObservedValue("goldCount", gold, in: app)
+        waitForObservedValue("foodCount", food, in: app)
+        relaunchPreservingSave(app)
+        waitForObservedValue("goldCount", gold, in: app)
+        waitForObservedValue("foodCount", food, in: app)
+    }
+
+    @MainActor
+    private func tapWelcomeRestoreButton(in app: XCUIApplication) {
+        waitForElement("welcomeRestoreBackupButton", in: app)
+        if !element("welcomeRestoreBackupButton", in: app).isHittable {
+            app.scrollViews.firstMatch.swipeUp()
+        }
+        tapAnimationControl("welcomeRestoreBackupButton", in: app)
+    }
+
+    @MainActor
+    private func exportNativeBackupToFiles(in app: XCUIApplication) throws -> String {
         var filename = "CatLife-QA-" + String(UUID().uuidString.prefix(8))
         tapAnimationControl("settingsButton", in: app)
         tapSettingsRootControl("settingsSaveManagementRow", in: app)
@@ -161,28 +271,7 @@ extension RoomHomeUITests {
         }
         XCTAssertEqual(savedResult, .completed, app.debugDescription)
         scrollCareerPage("saveManagementScroll", to: "saveTransferStatus", in: app)
-
-        chooseNativeBackup(named: filename, in: app)
-        waitForElement("saveImportPreview", in: app)
-        attachScreenshot(app, named: "Save management — real exported file preview before replacement")
-        tapSavePreviewControl("saveCancelImportButton", in: app)
-        XCTAssertFalse(element("saveRecoveryButton", in: app).exists,
-                       "Preview cancellation must not replace progress or create a recovery point.")
-        chooseNativeBackup(named: filename, in: app)
-        waitForElement("saveImportPreview", in: app)
-        tapSavePreviewControl("saveConfirmImportButton", in: app)
-        scrollCareerPage("saveManagementScroll", to: "saveTransferStatus", in: app)
-        waitForLabel("saveTransferStatus", "备份已导入", in: app, contains: true)
-        scrollCareerPage("saveManagementScroll", to: "saveRecoveryButton", in: app)
-        tapAnimationControl("saveRecoveryButton", in: app)
-        waitForElement("saveImportPreview", in: app)
-        waitForLabel("saveConfirmImportButton", "恢复这份进度", in: app, contains: true)
-        attachScreenshot(app, named: "Save management — pre-import recovery point confirmation")
-        tapSavePreviewControl("saveCancelImportButton", in: app)
-        tapAnimationControl("settingsBackButton", in: app)
-        tapAnimationControl("tabHome", in: app)
-        waitForObservedValue("goldCount", gold, in: app)
-        waitForObservedValue("foodCount", food, in: app)
+        return filename
     }
 
     @MainActor

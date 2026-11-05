@@ -129,6 +129,48 @@ public actor FileSaveRepository {
         return try decode(Data(contentsOf: importRecoveryURL))
     }
 
+    /// The welcome-page recovery is explicit: preserve unreadable/newer files
+    /// before replacing them, without weakening ordinary import's valid-save guard.
+    public func restoreSnapshotAfterLoadFailure(_ state: GameSnapshot) async throws {
+        guard state.schemaVersion == GameSnapshot.currentSchemaVersion else {
+            throw SaveRepositoryError.unsupportedSchemaVersion(state.schemaVersion)
+        }
+        guard state.isValid else { throw SaveRepositoryError.invalidSnapshot }
+        let candidate = try encode(state)
+        _ = try decode(candidate)
+        try ensureDirectory()
+        // Read both first. Permission/I/O failures are not missing or corrupt data.
+        let primary = try existingData(at: saveURL)
+        let backup = try existingData(at: backupURL)
+        var preserved = Set<URL>()
+        if let primary { preserved.insert(try preserveRecoveryData(primary)) }
+        if let backup { preserved.insert(try preserveRecoveryData(backup)) }
+        if let backup {
+            let backupIsUsable: Bool
+            do { _ = try decode(backup); backupIsUsable = true }
+            catch { backupIsUsable = false }
+            // A future checkpoint would reject the next normal save. Its exact
+            // bytes already exist in recovery evidence before this removal.
+            if !backupIsUsable { try FileManager.default.removeItem(at: backupURL) }
+        }
+        // Never stage the candidate as an automatic backup: a failed primary
+        // write must not silently import that candidate on the next launch.
+        try candidate.write(to: saveURL, options: .atomic)
+        lastLoadDisposition = .loaded
+        cleanUpRecoveryFiles(preserving: preserved)
+    }
+
+    private func existingData(at url: URL) throws -> Data? {
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
+            guard attributes[.type] as? FileAttributeType == .typeRegular else {
+                throw CocoaError(.fileReadUnknown)
+            }
+            return try Data(contentsOf: url)
+        }
+        catch let error as CocoaError where error.code == .fileReadNoSuchFile { return nil }
+    }
+
     private func ensureDirectory() throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
@@ -165,28 +207,38 @@ public actor FileSaveRepository {
         } catch {
             throw SaveRepositoryError.unreadableSave
         }
-        if let corruptData {
-            // Retrying a failed restore must not produce unlimited identical evidence.
-            let alreadyPreserved = try recoveryFiles().first { url in
-                (try? Data(contentsOf: url)) == corruptData
-            }
-            if let alreadyPreserved {
-                try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: alreadyPreserved.path)
-            } else {
-                let recoveryURL = directory.appendingPathComponent("unreadable-save-\(UUID().uuidString).json")
-                try corruptData.write(to: recoveryURL, options: .atomic)
-            }
-        }
+        var preserved = Set<URL>()
+        if let corruptData { preserved.insert(try preserveRecoveryData(corruptData)) }
         try backupData.write(to: saveURL, options: .atomic)
         lastLoadDisposition = .recoveredBackup
+        cleanUpRecoveryFiles(preserving: preserved)
+        return recovered
+    }
+
+    private func preserveRecoveryData(_ data: Data) throws -> URL {
+        // Retrying a failed restore must not produce unlimited identical evidence.
+        if let existing = try recoveryFiles().first(where: { (try? Data(contentsOf: $0)) == data }) {
+            try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: existing.path)
+            return existing
+        }
+        let url = directory.appendingPathComponent("unreadable-save-\(UUID().uuidString).json")
+        try data.write(to: url, options: .atomic)
+        return url
+    }
+
+    private func cleanUpRecoveryFiles(preserving protected: Set<URL>) {
         // Cleanup cannot turn a successfully restored save into a load failure.
-        // Keep the three newest recovery files, and never touch unrelated documents.
+        // Keep this recovery's originals plus recent evidence, up to three files.
         if let files = try? recoveryFiles() {
-            for url in files.dropFirst(Self.maximumRecoveryFiles) {
-                try? FileManager.default.removeItem(at: url)
+            // Directory enumeration can resolve a symlinked save directory;
+            // match the unique evidence filename rather than URL representation.
+            let protectedNames = Set(protected.map(\.lastPathComponent))
+            var remaining = max(0, Self.maximumRecoveryFiles - protectedNames.count)
+            for url in files where !protectedNames.contains(url.lastPathComponent) {
+                if remaining > 0 { remaining -= 1 }
+                else { try? FileManager.default.removeItem(at: url) }
             }
         }
-        return recovered
     }
 
     private func recoveryFiles() throws -> [URL] {
