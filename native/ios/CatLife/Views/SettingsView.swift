@@ -18,7 +18,7 @@ struct SettingsView: View {
     @State private var audioSaveGeneration = 0
     @FocusState private var nameFieldFocused: Bool
 
-    private enum Destination: Hashable { case homeName, updates, audio }
+    private enum Destination: Hashable { case homeName, updates, audio, saves }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -60,6 +60,12 @@ struct SettingsView: View {
                         }
                         .accessibilityIdentifier("settingsHomeNameRow")
                         Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
+                        NavigationLink(value: Destination.saves) {
+                            settingRow(symbol: "externaldrive.fill", title: "saveTransfer.title",
+                                       value: GameStrings.text("saveTransfer.subtitle"), tint: RoomTheme.mint)
+                        }
+                        .accessibilityIdentifier("settingsSaveManagementRow")
+                        Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
                         NavigationLink(value: Destination.updates) {
                             settingRow(symbol: "clock.arrow.circlepath", title: "settings.updates",
                                        value: AppVersion.current.display, tint: RoomTheme.gold)
@@ -99,6 +105,7 @@ struct SettingsView: View {
                     case .homeName: homeNamePage
                     case .updates: updatesPage
                     case .audio: audioPage
+                    case .saves: SaveManagementView(store: store)
                     }
                 }
                 .navigationBarTitleDisplayMode(.inline)
@@ -123,6 +130,15 @@ struct SettingsView: View {
         .tint(RoomTheme.darkMint)
         .preferredColorScheme(.light)
         .environment(\.locale, Locale(identifier: store.language.rawValue))
+        .onChange(of: store.saveSceneGeneration) { _, _ in
+            // A restored save owns its preferences. Invalidate edits and deferred
+            // completions from the settings page's previous timeline.
+            audioSaveGeneration += 1
+            hasUnsubmittedAudioChanges = false
+            isSavingAudio = false
+            audioDraft = store.audioSettings
+            hasLoadedAudioDraft = true
+        }
         #if DEBUG
         .overlay(alignment: .topLeading) { AudioDiagnosticsView(store: store) }
         #endif

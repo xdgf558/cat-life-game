@@ -22,12 +22,14 @@ public actor FileSaveRepository {
     public nonisolated let directory: URL
     public nonisolated let saveURL: URL
     public nonisolated let backupURL: URL
+    public nonisolated let importRecoveryURL: URL
     public private(set) var lastLoadDisposition: SaveLoadDisposition = .loaded
 
     public init(directory: URL) {
         self.directory = directory
         saveURL = directory.appendingPathComponent("cat-life-native-v1.json")
         backupURL = directory.appendingPathComponent("cat-life-native-v1.backup.json")
+        importRecoveryURL = directory.appendingPathComponent("cat-life-before-import.json")
     }
 
     public func loadOrCreate(now: Date = Date()) async throws -> GameSnapshot {
@@ -37,18 +39,18 @@ public actor FileSaveRepository {
             // A read-permission/I/O failure propagates instead of silently replacing a file.
             let primaryData = try Data(contentsOf: saveURL)
             do {
-                let state = try decode(primaryData)
+                let state = try decode(primaryData, now: now)
                 lastLoadDisposition = .loaded
                 return state
             } catch SaveRepositoryError.unsupportedSchemaVersion(let version) {
                 // Never downgrade a future native save by restoring an older backup.
                 throw SaveRepositoryError.unsupportedSchemaVersion(version)
             } catch {
-                return try recoverBackup(preserving: primaryData)
+                return try recoverBackup(preserving: primaryData, now: now)
             }
         }
         if manager.fileExists(atPath: backupURL.path) {
-            return try recoverBackup(preserving: nil)
+            return try recoverBackup(preserving: nil, now: now)
         }
         guard now.timeIntervalSince1970.isFinite else { throw SaveRepositoryError.invalidSnapshot }
         let fresh = GameSnapshot.fresh(now: now)
@@ -101,6 +103,32 @@ public actor FileSaveRepository {
         try candidate.write(to: saveURL, options: .atomic)
     }
 
+
+    /// Explicit replacement keeps a separate, durable undo point. Unlike the
+    /// rolling automatic checkpoint, ordinary saves never overwrite this file.
+    public func importSnapshot(_ state: GameSnapshot) async throws {
+        guard state.schemaVersion == GameSnapshot.currentSchemaVersion else {
+            throw SaveRepositoryError.unsupportedSchemaVersion(state.schemaVersion)
+        }
+        guard state.isValid else { throw SaveRepositoryError.invalidSnapshot }
+        let candidate = try encode(state)
+        _ = try decode(candidate)
+        try ensureDirectory()
+        // A missing, unreadable or corrupt current save is never silently replaced.
+        let previous = try Data(contentsOf: saveURL)
+        _ = try decode(previous)
+        guard previous != candidate else { return }
+        try previous.write(to: importRecoveryURL, options: .atomic)
+        // Last throwing operation: an error cannot report failure after committing.
+        // The regular checkpoint retains its normal previous-progress semantics.
+        try candidate.write(to: saveURL, options: .atomic)
+    }
+
+    public func loadImportRecovery() async throws -> GameSnapshot? {
+        guard FileManager.default.fileExists(atPath: importRecoveryURL.path) else { return nil }
+        return try decode(Data(contentsOf: importRecoveryURL))
+    }
+
     private func ensureDirectory() throws {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     }
@@ -124,14 +152,14 @@ public actor FileSaveRepository {
         return now.timeIntervalSince(checkpointAt) >= Self.backupInterval
     }
 
-    private func recoverBackup(preserving corruptData: Data?) throws -> GameSnapshot {
+    private func recoverBackup(preserving corruptData: Data?, now: Date) throws -> GameSnapshot {
         guard FileManager.default.fileExists(atPath: backupURL.path) else {
             throw SaveRepositoryError.unreadableSave
         }
         let backupData = try Data(contentsOf: backupURL)
         let recovered: GameSnapshot
         do {
-            recovered = try decode(backupData)
+            recovered = try decode(backupData, now: now)
         } catch SaveRepositoryError.unsupportedSchemaVersion(let version) {
             throw SaveRepositoryError.unsupportedSchemaVersion(version)
         } catch {
@@ -178,41 +206,10 @@ public actor FileSaveRepository {
     }
 
     private func encode(_ snapshot: GameSnapshot) throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
-        encoder.dateEncodingStrategy = .custom { date, encoder in
-            var container = encoder.singleValueContainer()
-            try container.encode(Self.dateString(date))
-        }
-        return try encoder.encode(snapshot)
+        try NativeSaveCodec.encoder().encode(snapshot)
     }
 
-    private func decode(_ data: Data) throws -> GameSnapshot {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .custom { decoder in
-            let container = try decoder.singleValueContainer()
-            let string = try container.decode(String.self)
-            guard let date = Self.parseDate(string) else {
-                throw DecodingError.dataCorruptedError(in: container, debugDescription: "Invalid ISO-8601 date")
-            }
-            return date
-        }
-        let snapshot = try decoder.decode(GameSnapshot.self, from: data)
-        guard snapshot.isValid else { throw SaveRepositoryError.invalidSnapshot }
-        return snapshot
-    }
-
-    private static func dateString(_ date: Date) -> String {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.string(from: date)
-    }
-
-    private static func parseDate(_ string: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        if let date = formatter.date(from: string) { return date }
-        formatter.formatOptions = [.withInternetDateTime]
-        return formatter.date(from: string)
+    private func decode(_ data: Data, now: Date = Date()) throws -> GameSnapshot {
+        try NativeSaveCodec.decodeSnapshot(data, now: now)
     }
 }

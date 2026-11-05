@@ -182,6 +182,7 @@ struct RoomHomeView: View {
                           isActive: scenePhase == .active && homeVisible && !moreVisible && store.inspectedCatID == nil,
                           reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
                           arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
+                .id(store.saveSceneGeneration)
                 .ignoresSafeArea(.container, edges: .top)
             RoomHomeHUD(store: store, catNeedPresentation: catNeedPresentation)
             if store.isDecorating {

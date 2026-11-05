@@ -1,0 +1,68 @@
+import SwiftUI
+import UniformTypeIdentifiers
+import CatGameCore
+
+struct SaveArchiveDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    let data: Data
+
+    init(data: Data) { self.data = data }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else {
+            throw SaveTransferError.invalidFile
+        }
+        _ = try NativeSaveTransfer.decode(data)
+        self.data = data
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
+
+enum SaveArchiveFiles {
+    /// Read outside the main actor, with the same cap as the archive decoder.
+    static func read(_ url: URL) throws -> NativeSaveArchive {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer { if scoped { url.stopAccessingSecurityScopedResource() } }
+        // File providers may need to materialize or coordinate the selected item.
+        // Keep both the security scope and the bounded read inside that access.
+        let coordinator = NSFileCoordinator(filePresenter: nil)
+        var coordinationError: NSError?
+        var result: Result<NativeSaveArchive, Error>?
+        coordinator.coordinate(readingItemAt: url, options: .withoutChanges, error: &coordinationError) { coordinatedURL in
+            result = Result { try readCoordinatedFile(coordinatedURL) }
+        }
+        if let coordinationError { throw coordinationError }
+        guard let result else { throw SaveTransferError.readFailed }
+        return try result.get()
+    }
+
+    private static func readCoordinatedFile(_ url: URL) throws -> NativeSaveArchive {
+        let handle = try FileHandle(forReadingFrom: url)
+        defer { try? handle.close() }
+        var data = Data()
+        while data.count <= NativeSaveTransfer.maximumFileSize {
+            let limit = min(65_536, NativeSaveTransfer.maximumFileSize + 1 - data.count)
+            guard let chunk = try handle.read(upToCount: limit), !chunk.isEmpty else { break }
+            data.append(chunk)
+        }
+        guard data.count <= NativeSaveTransfer.maximumFileSize else {
+            throw SaveTransferError.fileTooLarge
+        }
+        return try NativeSaveTransfer.decode(data)
+    }
+
+    static func prepareShareFile(_ data: Data) throws -> URL {
+        do {
+            let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+                .appendingPathComponent("SaveExports", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            // A single replaceable export avoids collecting a copy after every share.
+            let url = directory.appendingPathComponent("CatLife-Backup.json")
+            try data.write(to: url, options: .atomic)
+            return url
+        } catch { throw SaveTransferError.writeFailed }
+    }
+}

@@ -26,6 +26,8 @@ final class GameStore {
     private(set) var startupProgress: Double = 0
     private(set) var startupPhase = "welcome.loadingSave"
     private(set) var isBusy = false
+    private(set) var saveTransferInProgress = false
+    private(set) var saveSceneGeneration = UUID()
     private(set) var loadFailed = false
     private(set) var needsNewerVersion = false
     // Welcome presentation belongs to this process, not the durable game save.
@@ -199,7 +201,7 @@ final class GameStore {
 
     @discardableResult
     func updateAudioSettings(_ settings: AudioSettings) async -> Bool {
-        guard snapshot != nil, !isDecorating else { return false }
+        guard snapshot != nil, !isDecorating, !saveTransferInProgress else { return false }
         guard audioSaveRequest != nil || audioSettings != settings else { return true }
         return await withCheckedContinuation { completion in
             // Resolve superseded callers without letting an older in-flight
@@ -461,6 +463,84 @@ final class GameStore {
     func retrySaving() {
         // Explicit retry does not wait for the automatic backoff.
         synchronize(userInitiated: true)
+    }
+
+    func exportSaveArchive() async throws -> Data {
+        guard !isBusy, !isDecorating, var context = saveContext() else { throw SaveTransferError.busy }
+        isBusy = true
+        saveTransferInProgress = true
+        defer { saveTransferInProgress = false; isBusy = false; drainPendingSynchronization() }
+        let exportedAt = Date()
+        _ = GameEngine.synchronize(&context.candidate, now: exportedAt)
+        do {
+            if context.candidate != context.original { try await commit(context) }
+        } catch {
+            recordSaveFailure(userInitiated: true)
+            throw SaveTransferError.writeFailed
+        }
+        let saved = context.candidate
+        return try await Task.detached(priority: .userInitiated) {
+            try NativeSaveTransfer.encode(snapshot: saved, exportedAt: exportedAt)
+        }.value
+    }
+
+    func importRecoveryPreview() async throws -> NativeSaveArchive? {
+        guard let repository = repository as? any GameSaveTransferRepository else { throw SaveTransferError.readFailed }
+        guard let recovery = try await repository.loadImportRecovery() else { return nil }
+        return try await Task.detached(priority: .userInitiated) {
+            try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: recovery,
+                exportedAt: recovery.meta.lastSyncAt))
+        }.value
+    }
+
+    func importSaveArchive(_ archive: NativeSaveArchive, isRecovery: Bool = false) async throws {
+        guard !isBusy, !isDecorating, snapshot != nil else { throw SaveTransferError.busy }
+        guard let repository = repository as? any GameSaveTransferRepository else { throw SaveTransferError.writeFailed }
+        // Import replaces a timeline. It must not replay physical events or completion
+        // callbacks from the room that is about to be replaced.
+        isBusy = true
+        saveTransferInProgress = true
+        defer { saveTransferInProgress = false; isBusy = false; drainPendingSynchronization() }
+        let importDate = Date()
+        var candidate = archive.snapshot
+        for cat in candidate.cats {
+            if let rest = cat.activeRest {
+                _ = GameEngine.endCatRest(&candidate, catID: cat.id, sessionID: rest.id, now: importDate)
+            }
+        }
+        _ = GameEngine.synchronize(&candidate, now: importDate)
+        do {
+            try await repository.importSnapshot(candidate)
+        } catch {
+            // Import failure is not a failed autosave: the current timeline remains
+            // usable and must never be retried later without a fresh confirmation.
+            showNotice(GameStrings.text("saveTransfer.writeFailed"))
+            throw SaveTransferError.writeFailed
+        }
+        restTransitions.removeAll()
+        audioSaveRequest?.completion?.resume(returning: false)
+        audioSaveRequest = nil
+        pendingAudioSettings = nil
+        audioSettingsSaveFailed = false
+        restingFurnitureID = nil
+        presentedRestSessionID = nil
+        feedback = nil
+        pendingWorkResultID = nil
+        inspectedCatID = nil
+        hospitalCatID = nil
+        isInspectingHealth = false
+        adoptionCatID = nil
+        isPresentingAdoptionConfirmation = false
+        adoptionReminders.clearPending()
+        clearSaveFailure()
+        now = importDate
+        lastSyncCheck = importDate
+        silentProgressThrough = nil
+        snapshot = candidate
+        saveSceneGeneration = UUID()
+        GameLocalization.shared.language = candidate.settings.language
+            ?? GameLanguage.preferred(in: Locale.preferredLanguages)
+        showNotice(GameStrings.text(isRecovery ? "saveTransfer.restored" : "saveTransfer.imported"))
     }
 
     func showFurnitureNotice(_ key: String) { showNotice(GameStrings.text(key)) }
