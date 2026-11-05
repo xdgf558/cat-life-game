@@ -8,7 +8,9 @@ struct RoomSceneHost: View {
     let isActive: Bool
     let reducedMotion: Bool
     @State private var scene = RoomScene(size: CGSize(width: 390, height: 480))
+    @State private var arrangementFrame: CGRect?
     let catNeedPresentation: CatNeedPresentation
+    var arrangementBottomInset: CGFloat = 0
     #if DEBUG
     @State private var animationPhase = "idle"
     @State private var navigationStatus = ""
@@ -70,6 +72,7 @@ struct RoomSceneHost: View {
                     presentation.canvasOrigin = geometry.frame(in: .global).origin
                     scene.onCatNeedAnchorChanged = { [weak presentation] point in presentation?.anchor = point }
                     scene.onCatVisualFrameChanged = { [weak presentation] frame in presentation?.localCatFrame = frame }
+                    scene.onArrangementFrameChanged = { arrangementFrame = $0 }
                     scene.onSound = { store.playSceneSound($0) }
                     scene.onBowlTapped = { store.feed() }
                     scene.onBowlMoved = { store.moveBowl(to: $0) }
@@ -86,6 +89,7 @@ struct RoomSceneHost: View {
                     if !active {
                         catNeedPresentation.anchor = nil
                         catNeedPresentation.localCatFrame = nil
+                        arrangementFrame = nil
                         scene.cancelPlacementPreview()
                     }
                 }
@@ -93,6 +97,8 @@ struct RoomSceneHost: View {
                     scene.setPresentationActive(false)
                     scene.onCatNeedAnchorChanged = nil
                     scene.onCatVisualFrameChanged = nil
+                    scene.onArrangementFrameChanged = nil
+                    arrangementFrame = nil
                     catNeedPresentation.anchor = nil
                     catNeedPresentation.localCatFrame = nil
                     scene.cancelPlacementPreview()
@@ -113,10 +119,29 @@ struct RoomSceneHost: View {
                 // Keep only the active SwiftUI surface in the accessibility tree.
                 if isActive { accessibleRoom }
             }
+            #if DEBUG
+            .overlay {
+                if furnitureTesting, isActive {
+                    // Keep the test-only pinch target behind buttons in the accessibility hit order.
+                    Color.clear
+                        .frame(width: geometry.size.width * 0.7, height: geometry.size.height * 0.5)
+                        .accessibilityElement()
+                        .accessibilityLabel("Room pinch surface")
+                        .accessibilityIdentifier("roomPinchSurface")
+                        .allowsHitTesting(false)
+                }
+            }
+            #endif
             .overlay {
                 CatNeedBubble(store: store, presentation: catNeedPresentation,
                               canvasSize: geometry.size, isActive: isActive,
                               canAct: { scene.canShowCatNeed })
+            }
+            .overlay {
+                if isActive, store.isDecorating, !store.isResolvingLayout, let arrangementFrame {
+                    RoomArrangementOverlay(store: store, selectedFrame: arrangementFrame,
+                                           canvasSize: geometry.size, bottomInset: arrangementBottomInset)
+                }
             }
             .overlay(alignment: .topLeading) {
                 if isActive, (store.snapshot?.home.roomLevel ?? 1) > 1, !store.isDecorating {
@@ -132,19 +157,6 @@ struct RoomSceneHost: View {
                     .padding(.leading, 12).padding(.top, 240)
                 }
             }
-            #if DEBUG
-            .overlay {
-                if furnitureTesting, isActive {
-                    // The UI journey hides the care HUD/tray before using this pinch surface.
-                    Color.clear
-                        .frame(width: geometry.size.width * 0.7, height: geometry.size.height * 0.5)
-                        .accessibilityElement()
-                        .accessibilityLabel("Room pinch surface")
-                        .accessibilityIdentifier("roomPinchSurface")
-                        .allowsHitTesting(false)
-                }
-            }
-            #endif
         }
     }
 

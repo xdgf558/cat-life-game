@@ -10,11 +10,14 @@ extension RoomHomeUITests {
         let room = element("roomScene", in: app).frame
         openTownCollection(in: app)
         waitForObservedValue("catCount", "9", in: app)
+        waitForObservedValue("catCollectionProgress", "1/3", in: app)
         assertCatPage([1, 2, 3, 4], page: "1/3", in: app)
         XCTAssertFalse(element("catProfileSatiety", in: app).exists)
         attachScreenshot(app, named: "Cats — compact first page with four individual cards")
+        scrollCareerPage("catCollectionScroll", to: "catPageNext", in: app)
         tapAnimationControl("catPageNext", in: app)
         assertCatPage([5, 6, 7, 8], page: "2/3", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catProfile_cat_006", in: app)
         tapAnimationControl("catProfile_cat_006", in: app)
         waitForObservedValue("catProfileScroll", "cat_006", in: app)
         waitForObservedValue("catProfileName", "猫咪6", in: app)
@@ -35,9 +38,18 @@ extension RoomHomeUITests {
         assertCatPage([5, 6, 7, 8], page: "2/3", in: app)
         waitForLabel("catProfile_cat_006", "团子🐾", in: app)
         waitForLabel("catProfile_cat_005", "猫咪5", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catPageNext", in: app)
         tapAnimationControl("catPageNext", in: app)
         assertCatPage([9], page: "3/3", in: app)
         XCTAssertFalse(element("catPageNext", in: app).isEnabled)
+        scrollCareerPage("catCollectionScroll", to: "catFilter_unowned", in: app)
+        tapAnimationControl("catFilter_unowned", in: app)
+        waitForElement("catCollectionEmpty", in: app)
+        XCTAssertFalse(element("catPageSummary", in: app).exists)
+        tapAnimationControl("catFilter_owned", in: app)
+        assertCatPage([1, 2, 3, 4], page: "1/3", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catFilter_all", in: app)
+        tapAnimationControl("catFilter_all", in: app)
         tapAnimationControl("closeSheetButton", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("homeCatName", "小橘", in: app)
@@ -47,6 +59,7 @@ extension RoomHomeUITests {
         relaunchPreservingSave(app)
         openTownCollection(in: app)
         assertCatPage([1, 2, 3, 4], page: "1/3", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catPageNext", in: app)
         tapAnimationControl("catPageNext", in: app)
         waitForLabel("catProfile_cat_006", "团子🐾", in: app)
         tapAnimationControl("closeSheetButton", in: app)
@@ -153,13 +166,14 @@ extension RoomHomeUITests {
     @MainActor
     private func assertCatPage(_ indices: [Int], page: String, in app: XCUIApplication) {
         waitForObservedValue("catPageSummary", page, in: app)
-        let viewport = unobscuredScrollViewport(element("catCollectionScroll", in: app), in: app)
         for index in 1...9 {
             let card = element(String(format: "catProfile_cat_%03d", index), in: app)
             XCTAssertEqual(card.exists, indices.contains(index))
             if indices.contains(index) {
+                scrollCareerPage("catCollectionScroll", to: String(format: "catProfile_cat_%03d", index), in: app)
+                let viewport = unobscuredScrollViewport(element("catCollectionScroll", in: app), in: app)
                 XCTAssertTrue(card.isHittable)
-                XCTAssertTrue(viewport.contains(card.frame), "Four cards must fit the compact root.")
+                XCTAssertTrue(viewport.contains(card.frame), "Every card on the four-item page must be fully reachable.")
             }
         }
     }

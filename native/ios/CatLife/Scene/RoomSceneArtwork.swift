@@ -15,6 +15,7 @@ final class RoomSceneArtwork {
     let selection = SKShapeNode(ellipseOf: CGSize(width: 105, height: 52))
     let thought = SKNode()
     private(set) var furnitureNodes: [String: SKSpriteNode] = [:]
+    private var furnitureScales: [String: CGFloat] = [:]
 
     func install(in scene: SKScene) {
         self.scene = scene
@@ -57,20 +58,23 @@ final class RoomSceneArtwork {
     }
 
     func synchronizeFurniture(items ownedFurniture: [FurnitureItem], placements renderedFurniture: [FurniturePlacement],
-                              keeping newPlacementID: String?, transform artworkTransform: RoomArtworkTransform) {
+                              keeping newPlacementID: String?, transform artworkTransform: RoomArtworkTransform,
+                              animateOrientation: Bool = false) {
         let visible = Set(renderedFurniture.map(\.itemID))
         for id in Array(furnitureNodes.keys) where !visible.contains(id) && id != newPlacementID {
             furnitureNodes.removeValue(forKey: id)?.removeFromParent()
+            furnitureScales.removeValue(forKey: id)
         }
         for placement in renderedFurniture {
             guard let item = ownedFurniture.first(where: { $0.id == placement.itemID }) else { continue }
-            let node = furnitureNode(for: item, transform: artworkTransform)
+            let node = furnitureNode(for: item, transform: artworkTransform, animateOrientation: animateOrientation)
             node.position = artworkTransform.point(placement.position)
             node.alpha = 1
         }
     }
 
-    func furnitureNode(for item: FurnitureItem, transform artworkTransform: RoomArtworkTransform) -> SKSpriteNode {
+    func furnitureNode(for item: FurnitureItem, transform artworkTransform: RoomArtworkTransform,
+                       animateOrientation: Bool = false) -> SKSpriteNode {
         let texture = RoomFurnitureArt.texture(for: item.kind)
         let node: SKSpriteNode
         if let existing = furnitureNodes[item.id] { node = existing }
@@ -85,7 +89,27 @@ final class RoomSceneArtwork {
         let ratio = texture.size().height / max(1, texture.size().width)
         node.size = CGSize(width: width, height: width * ratio)
         node.anchorPoint = CGPoint(x: 0.5, y: spec.anchorY)
+        let scale: CGFloat = item.orientation == .mirrored ? -1 : 1
+        if furnitureScales[item.id] != scale {
+            node.removeAction(forKey: "orientation")
+            if animateOrientation, furnitureScales[item.id] != nil {
+                let action = SKAction.scaleX(to: scale, duration: 0.28)
+                action.timingMode = .easeOut
+                node.run(action, withKey: "orientation")
+            } else { node.xScale = scale }
+            furnitureScales[item.id] = scale
+        } else if !animateOrientation {
+            node.removeAction(forKey: "orientation")
+            node.xScale = scale
+        }
         return node
+    }
+
+    func finishOrientationAnimations() {
+        for (id, node) in furnitureNodes {
+            node.removeAction(forKey: "orientation")
+            node.xScale = furnitureScales[id] ?? 1
+        }
     }
 
     func updateFurnitureLayers(items ownedFurniture: [FurnitureItem], cat: CatActor, activeRest: RoomFurnitureRest?) {
@@ -105,6 +129,7 @@ final class RoomSceneArtwork {
             if visit.item.kind == .catBed, cat.stepPhase == .supported {
                 let fraction: CGFloat = 0.22
                 restFront.isHidden = false
+                restFront.xScale = node.xScale
                 restFront.size = CGSize(width: node.size.width, height: node.size.height * fraction)
                 restFront.position = CGPoint(x: node.position.x,
                                              y: node.position.y + node.size.height * (fraction / 2 - node.anchorPoint.y))

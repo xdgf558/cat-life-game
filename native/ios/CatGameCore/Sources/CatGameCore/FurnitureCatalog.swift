@@ -2,16 +2,36 @@ import Foundation
 
 public enum FurnitureKind: String, Codable, CaseIterable, Hashable, Sendable {
     case cabinet, catTree, catBed, wallFlower, wallCat, plant, floorCushion, flowerStool
+
+    public var supportsMirroring: Bool { self != .wallFlower && self != .wallCat }
+}
+
+public enum FurnitureOrientation: String, Codable, CaseIterable, Hashable, Sendable {
+    case normal, mirrored
 }
 
 /// Ownership is independent of placement: putting an item away never deletes it.
 public struct FurnitureItem: Codable, Equatable, Hashable, Identifiable, Sendable {
     public var id: String
     public var kind: FurnitureKind
+    public var orientation: FurnitureOrientation
 
-    public init(id: String, kind: FurnitureKind) {
+    public init(id: String, kind: FurnitureKind, orientation: FurnitureOrientation = .normal) {
         self.id = id
         self.kind = kind
+        self.orientation = orientation
+    }
+
+    private enum CodingKeys: String, CodingKey { case id, kind, orientation }
+
+    public init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        id = try values.decode(String.self, forKey: .id)
+        kind = try values.decode(FurnitureKind.self, forKey: .kind)
+        // Absent legacy orientation keeps the artwork; explicit malformed values are not reset.
+        orientation = values.contains(.orientation)
+            ? try values.decode(FurnitureOrientation.self, forKey: .orientation) : .normal
+        guard orientation == .normal || kind.supportsMirroring else { throw SaveRepositoryError.invalidSnapshot }
     }
 }
 
@@ -76,7 +96,7 @@ public enum FurnitureCatalog {
         .init(itemID: "wallCat", position: .init(x: 0.77, y: 0.31)),
         .init(itemID: "plantLarge", position: .init(x: 0.32, y: 0.445)),
         .init(itemID: "plantSmall", position: .init(x: 0.88, y: 0.68)),
-        .init(itemID: "floorCushion", position: .init(x: 0.12, y: 0.7)),
+        .init(itemID: "floorCushion", position: .init(x: 0.22, y: 0.7)),
         .init(itemID: "flowerStool", position: .init(x: 0.25, y: 0.78))
     ]
 }

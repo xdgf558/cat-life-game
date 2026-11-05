@@ -5,9 +5,14 @@ import CoreGraphics
 /// scene; this type only knows a floor polygon, solid objects and the cat's feet.
 /// Coordinates can use either orientation as long as every input uses the same one.
 public struct RoomNavigation: Sendable {
+    public enum FloorFootprintShape: Equatable, Sendable {
+        case rectangle, clippedCorners
+    }
+
     public let floor: [CGPoint]
     public let obstacles: [CGRect]
     public let footprint: CGSize
+    public let floorFootprintShape: FloorFootprintShape
     public let cellSize: CGFloat
     public private(set) var walkablePoints: [CGPoint] = []
 
@@ -23,10 +28,11 @@ public struct RoomNavigation: Sendable {
     /// to recover an invalid position. A deferred route builds its own grid only
     /// when the exact endpoints cannot be connected by a safe straight segment.
     public init(floor: [CGPoint], obstacles: [CGRect], footprint: CGSize, cellSize: CGFloat = 8,
-                precomputeGrid: Bool = true) {
+                precomputeGrid: Bool = true, floorFootprintShape: FloorFootprintShape = .rectangle) {
         self.floor = floor
         self.obstacles = obstacles.map(\.standardized)
         self.footprint = footprint
+        self.floorFootprintShape = floorFootprintShape
         let finiteFloor = floor.count >= 3 && floor.allSatisfy(Self.finite)
         let finiteObjects = obstacles.allSatisfy {
             !$0.isNull && !$0.isInfinite && $0.origin.x.isFinite && $0.origin.y.isFinite
@@ -72,11 +78,10 @@ public struct RoomNavigation: Sendable {
             let inflated = obstacle.insetBy(dx: -halfWidth, dy: -halfHeight)
             if Self.segment(start, end, intersects: inflated) { return false }
         }
-        let swept = Self.convexHull(Self.corners(at: start, halfWidth: halfWidth, halfHeight: halfHeight)
-                                   + Self.corners(at: end, halfWidth: halfWidth, halfHeight: halfHeight))
+        let swept = Self.convexHull(floorVertices(at: start) + floorVertices(at: end))
         guard swept.allSatisfy(pointIsOnFloor) else { return false }
-        // Four safe corners alone are insufficient: a narrow concave wall can
-        // enter the rectangle between them. No floor boundary may cross its interior.
+        // Safe vertices alone are insufficient: a narrow concave wall can
+        // enter between them. No floor boundary may cross the swept interior.
         for index in floor.indices {
             if Self.segmentEntersInterior(floor[index], floor[(index + 1) % floor.count], of: swept) {
                 return false
@@ -93,7 +98,8 @@ public struct RoomNavigation: Sendable {
         if segmentIsWalkable(from: start, to: end) { return [start, end] }
         if grid.isEmpty {
             let navigator = RoomNavigation(floor: floor, obstacles: obstacles,
-                                           footprint: footprint, cellSize: cellSize)
+                                           footprint: footprint, cellSize: cellSize,
+                                           floorFootprintShape: floorFootprintShape)
             return navigator.route(from: start, to: end)
         }
         let starts = connectors(for: start, limit: 12), ends = connectors(for: end, limit: 12)
@@ -212,9 +218,20 @@ public struct RoomNavigation: Sendable {
     private static func cross(_ a: CGPoint, _ b: CGPoint, _ c: CGPoint) -> CGFloat {
         (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)
     }
-    private static func corners(at p: CGPoint, halfWidth: CGFloat, halfHeight: CGFloat) -> [CGPoint] {
-        [CGPoint(x: p.x - halfWidth, y: p.y - halfHeight), CGPoint(x: p.x + halfWidth, y: p.y - halfHeight),
-         CGPoint(x: p.x + halfWidth, y: p.y + halfHeight), CGPoint(x: p.x - halfWidth, y: p.y + halfHeight)]
+    private func floorVertices(at p: CGPoint) -> [CGPoint] {
+        let a = footprint.width / 2, b = footprint.height / 2
+        switch floorFootprintShape {
+        case .rectangle:
+            return [CGPoint(x: p.x - a, y: p.y - b), CGPoint(x: p.x + a, y: p.y - b),
+                    CGPoint(x: p.x + a, y: p.y + b), CGPoint(x: p.x - a, y: p.y + b)]
+        case .clippedCorners:
+            // This octagon contains the same-bounds ellipse and retains every
+            // axis extreme. Obstacle collisions still use the full rectangle.
+            return [CGPoint(x: p.x - a, y: p.y - b / 2), CGPoint(x: p.x - a / 2, y: p.y - b),
+                    CGPoint(x: p.x + a / 2, y: p.y - b), CGPoint(x: p.x + a, y: p.y - b / 2),
+                    CGPoint(x: p.x + a, y: p.y + b / 2), CGPoint(x: p.x + a / 2, y: p.y + b),
+                    CGPoint(x: p.x - a / 2, y: p.y + b), CGPoint(x: p.x - a, y: p.y + b / 2)]
+        }
     }
     private static func convexHull(_ points: [CGPoint]) -> [CGPoint] {
         let sorted = points.sorted { $0.x == $1.x ? $0.y < $1.y : $0.x < $1.x }

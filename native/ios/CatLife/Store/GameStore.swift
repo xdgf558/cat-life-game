@@ -35,7 +35,11 @@ final class GameStore {
     var activeSheet: HomeSheet? {
         didSet {
             syncAudio()
-            if oldValue != activeSheet { playNavigationSound() }
+            if oldValue != activeSheet {
+                catCollectionFilter = nil
+                adoptionCatID = nil
+                playNavigationSound()
+            }
         }
     }
     var isShowingSettings = false {
@@ -44,6 +48,10 @@ final class GameStore {
     var inventoryCategory: InventoryCategory = .supplies
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
+    var catCollectionFilter: CatCollectionView.Filter?
+    var adoptionCatID: String?
+    var isPresentingAdoptionConfirmation = false
+    let adoptionReminders: GameAdoptionReminderCenter
     var hospitalCatID: String?
     var isInspectingHealth = false { didSet { syncAudio() } }
     private(set) var now = Date()
@@ -56,6 +64,7 @@ final class GameStore {
     private(set) var isResolvingLayout = false
     private(set) var draftBowlPosition: NormalizedPoint?
     private(set) var draftFurniture: [FurniturePlacement]?
+    private(set) var draftFurnitureOrientations: [String: FurnitureOrientation]?
     private(set) var selectedFurnitureID: String?
     private(set) var placingFurnitureID: String?
     private(set) var restingFurnitureID: String?
@@ -113,19 +122,27 @@ final class GameStore {
         #if DEBUG
         let arguments = ProcessInfo.processInfo.arguments
         let testing = arguments.contains("--ui-testing")
+        let reminderDefaults = testing ? UserDefaults(suiteName: "com.stationcat.catlife.ui-testing")! : .standard
+        if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
+            reminderDefaults.removeObject(forKey: GameAdoptionReminderCenter.presentedIDsKey)
+        }
         let saveDirectory = directory ?? base.appendingPathComponent(testing ? "CatLife-UITests" : "CatLife", isDirectory: true)
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)
         if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
             try? FileManager.default.removeItem(at: saveDirectory)
         }
         #else
+        let reminderDefaults = UserDefaults.standard
         let saveDirectory = directory ?? base.appendingPathComponent("CatLife", isDirectory: true)
         #endif
         repository = FileSaveRepository(directory: saveDirectory)
+        adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults)
     }
 
-    init(repository: any GameSaveRepository) {
+    init(repository: any GameSaveRepository, reminderDefaults: UserDefaults? = nil) {
         self.repository = repository
+        adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults
+            ?? UserDefaults(suiteName: "com.stationcat.catlife.tests.\(UUID().uuidString)")!)
     }
 
     var cat: CatState? { snapshot?.activeCat }
@@ -238,6 +255,13 @@ final class GameStore {
         guard var value = snapshot else { return nil }
         if let draftBowlPosition { value.home.bowlPosition = draftBowlPosition }
         if let draftFurniture { value.home.furniture = draftFurniture }
+        if let draftFurnitureOrientations {
+            for index in value.inventory.furniture.indices {
+                if let orientation = draftFurnitureOrientations[value.inventory.furniture[index].id] {
+                    value.inventory.furniture[index].orientation = orientation
+                }
+            }
+        }
         return value
     }
 
@@ -260,7 +284,7 @@ final class GameStore {
     var selectedFurniture: FurnitureItem? {
         guard let id = selectedFurnitureID,
               placingFurnitureID == id || sceneSnapshot?.home.furniture.contains(where: { $0.itemID == id }) == true else { return nil }
-        return snapshot?.inventory.furniture.first { $0.id == id }
+        return sceneSnapshot?.inventory.furniture.first { $0.id == id }
     }
 
     var selectedFurnitureName: String {
@@ -270,6 +294,27 @@ final class GameStore {
     var canStoreSelectedFurniture: Bool {
         isDecorating && selectedFurniture != nil && placingFurnitureID == nil
             && !isBusy && !isSavingLayout && !isResolvingLayout
+    }
+
+    var canFlipSelectedFurniture: Bool {
+        canStoreSelectedFurniture && selectedFurniture?.kind.supportsMirroring == true
+    }
+
+    var hasUnsavedLayoutChanges: Bool {
+        guard isDecorating, let snapshot else { return false }
+        return draftBowlPosition != snapshot.home.bowlPosition || draftFurniture != snapshot.home.furniture
+            || (draftFurnitureOrientations ?? [:]).contains { id, direction in
+                snapshot.inventory.furniture.first(where: { $0.id == id })?.orientation != direction
+            }
+    }
+
+    func openCatCollection(filter: CatCollectionView.Filter = .all, adoptionID: String? = nil) {
+        guard !isDecorating else { return }
+        isShowingSettings = false
+        inspectedCatID = nil
+        activeSheet = .town
+        catCollectionFilter = filter
+        adoptionCatID = adoptionID
     }
 
     var catStatus: String {
@@ -366,6 +411,7 @@ final class GameStore {
         clearSaveFailure()
         let canPlayProgress = silentProgressThrough == nil && foreground && hasEnteredHome && !isLoading
             && context.foregroundEpoch == foregroundEpoch
+        refreshAdoptionReminders()
         if canPlayProgress, let sound = GameProgressFeedback.sound(from: context.original, to: context.candidate) {
             audio.play(sound)
         }
@@ -383,6 +429,12 @@ final class GameStore {
               context.foregroundEpoch == foregroundEpoch,
               context.candidate.meta.lastSyncAt >= through else { return }
         silentProgressThrough = nil
+    }
+
+    private func refreshAdoptionReminders() {
+        guard foreground, hasEnteredHome, !isLoading, let snapshot else { return }
+        // Eligibility uses durable state, independently of silent catch-up audio.
+        adoptionReminders.consider(snapshot)
     }
 
     private func clearSaveFailure() {
@@ -416,6 +468,7 @@ final class GameStore {
     func enterHome() {
         guard snapshot != nil, !isLoading, !loadFailed, !hasEnteredHome else { return }
         hasEnteredHome = true
+        refreshAdoptionReminders()
         syncAudio()
         audio.play(.enter, userInitiated: true)
         notices.enterHome()
@@ -494,6 +547,7 @@ final class GameStore {
 
     func setForeground(_ active: Bool) {
         if foreground != active { foregroundEpoch &+= 1 }
+        if !active { adoptionReminders.clearPending() }
         foreground = active
         syncAudio()
         now = Date()
@@ -576,6 +630,7 @@ final class GameStore {
         guard !isDecorating else { return }
         draftBowlPosition = snapshot.home.bowlPosition
         draftFurniture = snapshot.home.furniture
+        draftFurnitureOrientations = [:]
         selectedFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
@@ -769,6 +824,11 @@ final class GameStore {
         showNotice(GameStrings.text("layout.stored"))
     }
 
+    func flipSelectedFurniture() {
+        guard canFlipSelectedFurniture, let item = selectedFurniture else { return }
+        draftFurnitureOrientations?[item.id] = item.orientation == .normal ? .mirrored : .normal
+    }
+
     func placeFurniture(id: String) {
         guard !isBusy, !isSavingLayout, !isResolvingLayout,
               storedFurniture.contains(where: { $0.id == id }) else { return }
@@ -799,13 +859,15 @@ final class GameStore {
     }
 
     func cancelDecorating() {
-        guard !isSavingLayout else { return }
+        guard isDecorating, !isSavingLayout else { return }
         clearLayoutDraft()
+        showNotice(GameStrings.text("layout.restored"))
     }
 
     private func clearLayoutDraft() {
         draftBowlPosition = nil
         draftFurniture = nil
+        draftFurnitureOrientations = nil
         selectedFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
@@ -814,9 +876,10 @@ final class GameStore {
 
     func finishDecorating() {
         guard isDecorating, !isResolvingLayout, placingFurnitureID == nil,
-              let point = draftBowlPosition, let furniture = draftFurniture else { return }
+              let point = draftBowlPosition, let furniture = draftFurniture,
+              let orientations = draftFurnitureOrientations else { return }
         perform(finishesLayout: true) {
-            GameEngine.setRoomLayout(&$0, bowlPosition: point, furniture: furniture, now: $1)
+            GameEngine.setRoomLayout(&$0, bowlPosition: point, furniture: furniture, orientations: orientations, now: $1)
         }
     }
 
@@ -842,8 +905,10 @@ final class GameStore {
     }
 
     @discardableResult
-    func adoptCat(catID: String) async -> Bool {
-        await performPersistedAction { GameEngine.adoptCat(&$0, catID: catID, now: $1) }
+    func adoptCat(catID: String, playsSound: Bool = true, showsSuccessNotice: Bool = true) async -> Bool {
+        await performPersistedAction(playsSound: playsSound, showsSuccessNotice: showsSuccessNotice) {
+            GameEngine.adoptCat(&$0, catID: catID, now: $1)
+        }
     }
 
     @discardableResult
@@ -943,6 +1008,7 @@ final class GameStore {
         guard hasSaveFailure || needsSave else {
             acknowledgeTransitions(context.transitions)
             finishSilentCatchUp(context)
+            refreshAdoptionReminders()
             return
         }
         isBusy = true
@@ -959,6 +1025,7 @@ final class GameStore {
                     acknowledgeTransitions(context.transitions)
                     clearSaveFailure()
                     finishSilentCatchUp(context)
+                    refreshAdoptionReminders()
                 }
             } catch { recordSaveFailure(userInitiated: userInitiated) }
             isBusy = false

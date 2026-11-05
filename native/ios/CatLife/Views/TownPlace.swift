@@ -28,7 +28,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         switch self {
         case .hospital: "hospital.title"
         case .shop: "tab.shop"
-        case .adoption: "town.place.adoption"
+        case .adoption: "town.title"
         case .lot1, .lot2: "town.place.empty"
         default: "town.place.\(rawValue)"
         }
@@ -45,7 +45,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .home: "icon-home"
         case .board: "town-board-cartoon"
         case .market: "town-market-cartoon"
-        case .adoption: "icon-town"
+        case .adoption: ""
         case .lot1, .lot2: "town-lot-cartoon"
         }
     }
@@ -60,7 +60,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .home: "house.fill"
         case .board: "pin.fill"
         case .market: "arrow.left.arrow.right.square.fill"
-        case .adoption: "pawprint.fill"
+        case .adoption: "book.closed.fill"
         case .lot1, .lot2: "leaf.fill"
         }
     }

@@ -6,16 +6,16 @@ import CatGameCore
 final class CatCompanionSceneTests: XCTestCase {
 #if DEBUG
     @MainActor
-    func testColdCowCompanionKeepsInitialLayoutAndRejectsPreviousCatsFeedback() async throws {
+    func testColdCompanionsKeepInitialLayoutAndRejectPreviousCatsFeedback() async throws {
         // Level 1 exercises identity initialization without an expansion rebuild
         // hiding the phase regression; level 2 is the normal adoption flow.
-        for roomLevel in [1, 2] {
+        for (catID, roomLevel) in [(CatCatalog.cowCatID, 1), (CatCatalog.cowCatID, 2), (CatCatalog.blueCatID, 3)] {
             var snapshot = GameSnapshot.fresh()
-            snapshot.player.level = 2
+            snapshot.player.level = 4
             snapshot.player.gold = 1_000
-            snapshot.home.roomLevel = 2
-            XCTAssertTrue(GameEngine.adoptCat(&snapshot, catID: CatCatalog.cowCatID).succeeded)
-            XCTAssertTrue(GameEngine.selectCompanion(&snapshot, catID: CatCatalog.cowCatID).succeeded)
+            snapshot.home.roomLevel = 3
+            XCTAssertTrue(GameEngine.adoptCat(&snapshot, catID: catID).succeeded)
+            XCTAssertTrue(GameEngine.selectCompanion(&snapshot, catID: catID).succeeded)
             snapshot.home.roomLevel = roomLevel
 
             let scene = RoomScene(size: CGSize(width: 375, height: 436))
@@ -37,7 +37,7 @@ final class CatCompanionSceneTests: XCTestCase {
             XCTAssertEqual(scene.presentationPhase, "idle")
             XCTAssertFalse(scene.diagnostics.carePlanning)
             XCTAssertEqual(scene.diagnostics.carePlanCompletions, 0)
-            scene.playFeedback(kind: .feed, catID: CatCatalog.cowCatID)
+            scene.playFeedback(kind: .feed, catID: catID)
             XCTAssertEqual(scene.presentationPhase, "feeding")
             XCTAssertTrue(scene.diagnostics.carePlanning)
             try await eventually { scene.diagnostics.carePlanCompletions == 1 }
@@ -53,8 +53,8 @@ final class CatCompanionSceneTests: XCTestCase {
             XCTAssertFalse(cat.isPerforming)
             XCTAssertFalse(scene.diagnostics.carePlanning)
             XCTAssertEqual(scene.diagnostics.bowlPlanCompletions, bowlCompletions)
-            scene.playFeedback(kind: .feed, catID: CatCatalog.cowCatID)
-            scene.playFeedback(kind: .play, catID: CatCatalog.cowCatID)
+            scene.playFeedback(kind: .feed, catID: catID)
+            scene.playFeedback(kind: .play, catID: catID)
             await Task.yield()
             XCTAssertEqual(scene.presentationPhase, "idle")
             XCTAssertFalse(cat.isPerforming)

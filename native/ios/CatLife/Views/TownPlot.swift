@@ -5,9 +5,12 @@ struct TownPlot: View {
     let selected: Bool
     let inLayer: Bool
     let sickCount: Int
+    var availableAdoption = false
     let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulse = false
+
+    private var canAdopt: Bool { place == .adoption && availableAdoption }
 
     private var needsAttention: Bool { place == .hospital && sickCount > 0 }
 
@@ -36,11 +39,11 @@ struct TownPlot: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                if place.isFuture || needsAttention {
-                    Text(place.isFuture ? GameStrings.text("town.comingSoon") : GameStrings.format("town.sickCount", sickCount))
+                if place.isFuture || needsAttention || canAdopt {
+                    Text(canAdopt ? GameStrings.text("cat.adoptionAvailable") : (place.isFuture ? GameStrings.text("town.comingSoon") : GameStrings.format("town.sickCount", sickCount)))
                         .font(.system(size: 10, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(.white).padding(.horizontal, 7).frame(height: 22)
-                        .background(place.isFuture ? RoomTheme.lilac : RoomTheme.coral, in: Capsule())
+                        .background(canAdopt ? RoomTheme.mint : (place.isFuture ? RoomTheme.lilac : RoomTheme.coral), in: Capsule())
                         .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                         .background {
                             if needsAttention, !reduceMotion {
@@ -62,7 +65,7 @@ struct TownPlot: View {
         }
         .buttonStyle(.plain).accessibilityIdentifier(place.accessibilityIdentifier)
         .accessibilityLabel(GameStrings.text(place.titleKey))
-        .accessibilityValue(needsAttention ? GameStrings.format("town.sickCount", sickCount) : GameStrings.text(place.statusKey(sickCount: sickCount)))
+        .accessibilityValue(canAdopt ? GameStrings.text("cat.adoptionAvailable") : needsAttention ? GameStrings.format("town.sickCount", sickCount) : GameStrings.text(place.statusKey(sickCount: sickCount)))
         .accessibilityAddTraits(selected ? .isSelected : [])
         .onChange(of: needsAttention && !reduceMotion, initial: true) { _, animate in
             if animate {

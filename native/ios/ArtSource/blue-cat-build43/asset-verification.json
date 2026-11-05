@@ -1,0 +1,39 @@
+{
+  "analysis": "Read-only Pillow analysis of source RGBA pixels; PNG bytes not changed.",
+  "componentMethod": "8-connected alpha >=128; components >=1000 pixels count as bodies.",
+  "assets": [
+    {"clip": "avatar", "path": "CatLife/Assets.xcassets/cat-blue-avatar.imageset/cat-blue-avatar.png", "sizeBytes": 2020775, "dimensions": [1254, 1254], "mode": "RGBA", "sha256": "197200ef32b5d81dfbdd20f0a24419fdca5fec7df0cb12105aa5872fe2227f06", "fullyTransparentPixels": 582090, "bodyCount": 1, "outsideBodyPixels": 5},
+    {"clip": "eating", "path": "CatLife/Assets.xcassets/cat-blue-eating.imageset/cat-blue-eating.png", "sizeBytes": 1500318, "dimensions": [1086, 1448], "mode": "RGBA", "sha256": "92e45ef7be02a9da7919623b28a568a7fbf6bf1cc9d98d10c7239969f319293c", "fullyTransparentPixels": 830921, "bodyCount": 1, "outsideBodyPixels": 4},
+    {"clip": "expressions", "path": "CatLife/Assets.xcassets/cat-blue-expressions.imageset/cat-blue-expressions.png", "sizeBytes": 1885716, "dimensions": [1774, 887], "mode": "RGBA", "sha256": "343adaeabf21180b72e08aa35709e44c8f826a1c10f61f08dd9389a6a5ad5aad", "fullyTransparentPixels": 653065, "bodyCount": 8, "outsideBodyPixels": 17, "referenceHeight": 442},
+    {"clip": "idle", "path": "CatLife/Assets.xcassets/cat-blue-idle.imageset/cat-blue-idle.png", "sizeBytes": 1656528, "dimensions": [1086, 1448], "mode": "RGBA", "sha256": "1c62a837ad256ef5894d5aee0564c3b4ab5df937428bbeaee3b68e4e61a084bb", "fullyTransparentPixels": 775225, "bodyCount": 1, "outsideBodyPixels": 3},
+    {"clip": "meal", "path": "CatLife/Assets.xcassets/cat-blue-meal.imageset/cat-blue-meal.png", "sizeBytes": 1234029, "dimensions": [1774, 887], "mode": "RGBA", "sha256": "1ec0b8debbf892b7697262a17c1b0575b16107047710f85bc96e5794e1c43e22", "fullyTransparentPixels": 972231, "bodyCount": 8, "outsideBodyPixels": 11, "referenceHeight": 294},
+    {"clip": "play", "path": "CatLife/Assets.xcassets/cat-blue-play.imageset/cat-blue-play.png", "sizeBytes": 1149167, "dimensions": [1774, 887], "mode": "RGBA", "sha256": "68afb9c52490ba53107b449a3b2930fb92a1da554463453b452ebbae423180c9", "fullyTransparentPixels": 1038149, "bodyCount": 8, "outsideBodyPixels": 0, "referenceHeight": 284},
+    {"clip": "rest", "path": "CatLife/Assets.xcassets/cat-blue-rest.imageset/cat-blue-rest.png", "sizeBytes": 1200215, "dimensions": [887, 1774], "mode": "RGBA", "sha256": "ab5bd6cdc6f80a28cb001156f4d95bcfe97d2e4057614932634b87a563f571ee", "fullyTransparentPixels": 1002169, "bodyCount": 8, "outsideBodyPixels": 0, "referenceHeight": 334},
+    {"clip": "rise", "path": "CatLife/Assets.xcassets/cat-blue-rise.imageset/cat-blue-rise.png", "sizeBytes": 1743562, "dimensions": [1774, 887], "mode": "RGBA", "sha256": "e2b3bd628f88addeeb4f27932e3c2d94c381f1bcceb7b7ccbf271bba2d04b820", "fullyTransparentPixels": 747076, "bodyCount": 8, "outsideBodyPixels": 2, "referenceHeight": 381},
+    {"clip": "step", "path": "CatLife/Assets.xcassets/cat-blue-step.imageset/cat-blue-step.png", "sizeBytes": 1504171, "dimensions": [1774, 887], "mode": "RGBA", "sha256": "adb5c966bc468dc8d766f6c5d20581a9cfe92a1bf4346119d28bfcb5b2d688e7", "fullyTransparentPixels": 891521, "bodyCount": 8, "outsideBodyPixels": 0, "referenceHeight": 334},
+    {"clip": "walk", "path": "CatLife/Assets.xcassets/cat-blue-walk.imageset/cat-blue-walk.png", "sizeBytes": 1796836, "dimensions": [1774, 887], "mode": "RGBA", "sha256": "7f8c682d8923c9ac5115a6f9063ff1c202adf084e77c6ea37ce6936861a50132", "fullyTransparentPixels": 692802, "bodyCount": 8, "outsideBodyPixels": 10, "referenceHeight": 349}
+  ],
+  "registration": {
+    "restRowCuts": [0, 0.285, 0.515, 0.725, 1],
+    "stepLandmarkMethod": "Independent blue-sheet measurement. Top-left cell coordinates. Mean x of alpha >=180 pixels in each selected paw region's last 3 occupied rows; y is final occupied row.",
+    "stepLandmarks": [
+      {"frame": 0, "frontPaw": {"searchRegionXYXY": [220, 370, 310, 439], "point": [262.461538, 427], "lastThreeRowsPixelCount": 78}, "rearPaw": {"searchRegionXYXY": [45, 365, 125, 435], "point": [88.275362, 418], "lastThreeRowsPixelCount": 69}},
+      {"frame": 1, "frontPaw": {"searchRegionXYXY": [340, 300, 425, 385], "point": [390.5, 364], "lastThreeRowsPixelCount": 48}, "rearPaw": {"searchRegionXYXY": [65, 365, 145, 435], "point": [109.103448, 420], "lastThreeRowsPixelCount": 58}},
+      {"frame": 2, "frontPaw": {"searchRegionXYXY": [285, 335, 365, 395], "point": [316.672897, 385], "lastThreeRowsPixelCount": 107}, "rearPaw": {"searchRegionXYXY": [70, 375, 145, 435], "point": [107.454545, 419], "lastThreeRowsPixelCount": 77}},
+      {"frame": 3, "frontPaw": {"searchRegionXYXY": [285, 320, 355, 390], "point": [319.233766, 377], "lastThreeRowsPixelCount": 77}, "rearPaw": {"searchRegionXYXY": [70, 370, 155, 435], "point": [120.5, 417], "lastThreeRowsPixelCount": 52}},
+      {"frame": 4, "frontPaw": {"searchRegionXYXY": [220, 320, 310, 395], "point": [273.362319, 381], "lastThreeRowsPixelCount": 69}, "rearPaw": {"searchRegionXYXY": [60, 300, 145, 390], "point": [100.689189, 374], "lastThreeRowsPixelCount": 74}},
+      {"frame": 5, "frontPaw": {"searchRegionXYXY": [285, 330, 365, 410], "point": [322.60241, 396], "lastThreeRowsPixelCount": 83}, "rearPaw": {"searchRegionXYXY": [60, 280, 140, 350], "point": [95.085366, 333], "lastThreeRowsPixelCount": 82}},
+      {"frame": 6, "frontPaw": {"searchRegionXYXY": [250, 330, 335, 410], "point": [284.104167, 395], "lastThreeRowsPixelCount": 96}, "rearPaw": {"searchRegionXYXY": [60, 280, 140, 350], "point": [106.048193, 336], "lastThreeRowsPixelCount": 83}},
+      {"frame": 7, "frontPaw": {"searchRegionXYXY": [225, 325, 310, 410], "point": [275.965909, 391], "lastThreeRowsPixelCount": 88}, "rearPaw": {"searchRegionXYXY": [55, 310, 135, 395], "point": [97.75, 377], "lastThreeRowsPixelCount": 56}}
+    ],
+    "stepFrame1SupportingForepaw": {"searchRegionXYXY": [245, 375, 325, 437], "point": [290.207547, 427], "lastThreeRowsPixelCount": 106},
+    "stepGroundY": [427, 427, 419, 417, 381, 333, 336, 391],
+    "stepGroundYSelection": "Frames0/4/7 front paw; frame1 still-supporting forepaw; frames2/3/5/6 rear paw.",
+    "mealLeftScanInsetPixels": 0,
+    "mealReferenceHeight": 294,
+    "mealLandmarkMethod": "Largest pink component within local ROI x280..<385/y300..<365, alpha>=180 and R>1.14G/R>1.1B. Contact x is mean of component pixels in final 3 occupied rows; y is final row. Verified against the visible lower lip/tongue.",
+    "mealContactPoints": {"frame2": {"landmark": "lower lip", "sourceLocal": [337.611111, 340], "componentPixels": 106, "componentBounds": [333, 330, 346, 340], "lastThreeRowsPixelCount": 18, "groundCenter": 240.815247, "groundY": 379, "offsetPerCatWidth": [0.359527, 0.144857]}, "frame3": {"landmark": "tongue", "sourceLocal": [314.06383, 346], "componentPixels": 204, "componentBounds": [305, 331, 326, 346], "lastThreeRowsPixelCount": 47, "groundCenter": 241.637378, "groundY": 379, "offsetPerCatWidth": [0.269013, 0.122571]}}
+  },
+  "runtimeValidation": "All three appearances decode in App tests. Blue feeding and bed/cushion climb/contact/exit UI flows passed on small and large simulators; see QA/catalog-furniture-build43-summary.md. Original PNG bytes unchanged.",
+  "rawEvidence": "Detailed pixel-component scans remain outside Git; this file retains final hashes, dimensions, alpha/body counts and the runtime registration measurements."
+}

@@ -5,6 +5,25 @@ import CatGameCore
 
 final class GameStoreCatNameTests: XCTestCase {
     @MainActor
+    func testBlueCatDefaultNameLocalizesButChosenAndLegacyNamesRemainLiteral() {
+        let oldLanguage = GameLocalization.shared.language
+        defer { GameLocalization.shared.language = oldLanguage }
+        let blue = CatState(id: CatCatalog.blueCatID, name: "蓝影", now: Date(), appearance: .blue)
+        var renamed = blue
+        renamed.customName = "Blue🐾"
+        var legacy = blue
+        legacy.name = "旧名字"
+        let names: [(GameLanguage, String)] = [(.simplifiedChinese, "蓝影"),
+                                              (.traditionalChinese, "藍影"), (.english, "Bluebell")]
+        for (language, expected) in names {
+            GameLocalization.shared.language = language
+            XCTAssertEqual(GameStrings.catName(blue), expected)
+            XCTAssertEqual(GameStrings.catName(renamed), "Blue🐾")
+            XCTAssertEqual(GameStrings.catName(legacy), "旧名字")
+        }
+    }
+
+    @MainActor
     func testFailedCatRenameKeepsBothCatsWorkAndRestUntilExplicitRetry() async throws {
         let repository = CatNameSaveRepository(seed())
         let store = GameStore(repository: repository)

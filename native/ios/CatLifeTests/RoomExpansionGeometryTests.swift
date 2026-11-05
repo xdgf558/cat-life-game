@@ -76,6 +76,46 @@ final class RoomExpansionGeometryTests: XCTestCase {
         }
     }
 
+    func testRoundedBedPlacementReachesTheWindowFloorWhileKeepingItsSizeAndSafeRest() throws {
+        let bed = FurnitureItem(id: "catBed", kind: .catBed)
+        let placements = FurnitureCatalog.defaultPlacements.filter { $0.itemID == bed.id }
+        for viewport in [CGSize(width: 375, height: 436), CGSize(width: 402, height: 776)] {
+            let world = makeWorld(viewport: viewport, scale: 1.5, items: [bed], placements: placements)
+            let start = CGPoint(x: world.transform.sceneSize.width * 0.43,
+                                y: world.transform.sceneSize.height * 0.18)
+            let destination = world.transform.point(.init(x: 270.0 / 1024, y: 740.0 / 1536))
+            let placement = world.placementNavigator(for: bed.id, catAt: start)
+            let oldRectangle = RoomNavigation(floor: placement.floor, obstacles: placement.obstacles,
+                footprint: placement.footprint, precomputeGrid: false)
+            XCTAssertEqual(placement.floorFootprintShape, .clippedCorners)
+            XCTAssertFalse(oldRectangle.isWalkable(destination))
+            XCTAssertTrue(placement.isWalkable(destination))
+            XCTAssertEqual(placement.nearestWalkable(to: destination), destination,
+                           "The live drag preview must reach the requested floor point, not stop at a rectangular corner.")
+            XCTAssertFalse(placement.isWalkable(world.transform.point(.init(x: 270.0 / 1024, y: 732.0 / 1536))))
+            let resolved = try XCTUnwrap(world.resolve(id: bed.id, near: destination, catAt: start, placement: placement))
+            XCTAssertEqual(resolved.center.x, destination.x, accuracy: 0.0001)
+            XCTAssertEqual(resolved.center.y, destination.y, accuracy: 0.0001)
+            let moved = world.replacing(bed.id, with: resolved.center)
+            XCTAssertEqual(moved.roomFloor.polygon, world.roomFloor.polygon)
+            XCTAssertEqual(moved.footprint(bed), world.footprint(bed))
+            XCTAssertEqual(resolved.navigation.floorFootprintShape, .rectangle)
+            XCTAssertNotNil(moved.restVisit(to: bed.id, from: start))
+        }
+    }
+
+    func testOtherFurnitureBowlAndCatKeepRectangularFloorClearance() {
+        let viewport = CGSize(width: 375, height: 436)
+        let world = makeWorld(viewport: viewport, scale: 1.5)
+        let cat = CGPoint(x: viewport.width * 1.5 * 0.43, y: viewport.height * 1.5 * 0.18)
+        for item in world.items where item.kind != .catBed {
+            XCTAssertEqual(world.placementNavigator(for: item.id, catAt: cat).floorFootprintShape, .rectangle)
+        }
+        XCTAssertEqual(world.placementNavigator(for: nil, catAt: cat).floorFootprintShape, .rectangle)
+        XCTAssertEqual(world.roomFloor.navigator(bowlAt: world.bowlPosition, precomputeGrid: false).floorFootprintShape,
+                       .rectangle)
+    }
+
     func testPurchasedCushionKeepsStepHeightAndSafeEntryExitAtEveryLevel() throws {
         let cushion = FurnitureItem(id: "shop-cushion-instance", kind: .floorCushion)
         let placement = FurniturePlacement(itemID: cushion.id, position: .init(x: 0.30, y: 0.65))
@@ -88,6 +128,7 @@ final class RoomExpansionGeometryTests: XCTestCase {
                 let visit = try XCTUnwrap(world.restVisit(to: cushion.id, from: start), "\(viewport), level \(level)")
                 XCTAssertEqual(world.footprint(cushion), base.footprint(cushion))
                 XCTAssertEqual(visit.elevation, base.catWidth * 0.14)
+                XCTAssertEqual(visit.entryContactProgress, 0.14)
                 XCTAssertTrue(visit.target.contains(visit.plan.restPoint))
                 XCTAssertEqual(visit.plan.exit, Array(visit.plan.entry.reversed()))
                 for route in [visit.plan.entry, visit.plan.exit] {
@@ -96,6 +137,123 @@ final class RoomExpansionGeometryTests: XCTestCase {
                     })
                 }
                 let approach = world.roomFloor.navigator(bowlAt: world.bowlPosition)
+                XCTAssertTrue(zip(visit.plan.approach, visit.plan.approach.dropFirst()).allSatisfy {
+                    approach.segmentIsWalkable(from: $0.0, to: $0.1)
+                })
+            }
+        }
+    }
+
+    func testTallViewportBedKeepsReachableRimAndSafeEntryAtEveryRoomSize() throws {
+        // The full-height Pro room previously rejected every bed before trying
+        // a route: its .14 contact required a 35.08pt step, above the 30.95pt cap.
+        for viewport in [CGSize(width: 375, height: 569), CGSize(width: 402, height: 776)] {
+            for level in [1, 3] {
+                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
+                for orientation in FurnitureOrientation.allCases {
+                    var items = FurnitureCatalog.defaultItems
+                    let bedIndex = try XCTUnwrap(items.firstIndex { $0.id == "catBed" })
+                    items[bedIndex].orientation = orientation
+                    let world = makeWorld(viewport: viewport, scale: scale, items: items)
+                    let start = CGPoint(x: viewport.width * scale * 0.43, y: viewport.height * scale * 0.18)
+                    let visit = try XCTUnwrap(world.restVisit(to: "catBed", from: start),
+                                             "\(viewport), level \(level), \(orientation)")
+                    let center = try XCTUnwrap(world.center("catBed"))
+                    let spec = RoomFurnitureSpec.forItem(items[bedIndex])
+                    let bedHeight = spec.width * world.transform.visualScale * 917 / 1391
+                    let rimY = center.y + bedHeight * (0.17 - spec.anchorY)
+                    let visualRestY = center.y + visit.target.height * 0.16 + world.catWidth * 0.06
+                    let contactAnchorY = visit.plan.stage.y
+                        + (visit.plan.restPoint.y - visit.plan.stage.y) * visit.entryContactProgress
+                    XCTAssertEqual(contactAnchorY + visit.elevation, rimY, accuracy: 0.0001)
+                    XCTAssertEqual(visit.plan.restPoint.y + visit.elevation, visualRestY, accuracy: 0.0001)
+                    XCTAssertGreaterThan(visit.elevation, 0)
+                    XCTAssertLessThanOrEqual(visit.elevation, world.catWidth * 0.55)
+                    XCTAssertLessThanOrEqual(visit.entryContactProgress, 0.40)
+                    if viewport.height == 569 {
+                        XCTAssertEqual(visit.entryContactProgress, 0.14, "Existing safe climbs must not change.")
+                        XCTAssertEqual(visit.elevation, 27.439878224633443, accuracy: 0.0001)
+                    } else {
+                        XCTAssertEqual(world.catWidth, 56.28, accuracy: 0.0001)
+                        XCTAssertEqual(world.footprint(items[bedIndex]).height, 72.75, accuracy: 0.0001)
+                        XCTAssertEqual(visit.entryContactProgress, 0.27383629025948686, accuracy: 0.0001)
+                    }
+                    let keys = CatFurnitureStepTimeline.ascending(elevation: visit.elevation,
+                                                                 contactProgress: visit.entryContactProgress)
+                    let contacts = keys.filter { $0.phase == .frontPaws }
+                    XCTAssertEqual(contacts.count, 2)
+                    XCTAssertTrue(contacts.allSatisfy {
+                        $0.travel == visit.entryContactProgress && $0.progress == visit.entryContactProgress
+                            && $0.elevation == 0
+                    })
+                    XCTAssertEqual(visit.plan.exit, Array(visit.plan.entry.reversed()))
+                    for route in [visit.plan.entry, visit.plan.exit] {
+                        XCTAssertTrue(zip(route, route.dropFirst()).allSatisfy {
+                            visit.navigation.segmentIsWalkable(from: $0.0, to: $0.1)
+                        })
+                    }
+                    let approach = world.roomFloor.navigator(bowlAt: world.bowlPosition, precomputeGrid: false)
+                    XCTAssertTrue(zip(visit.plan.approach, visit.plan.approach.dropFirst()).allSatisfy {
+                        approach.segmentIsWalkable(from: $0.0, to: $0.1)
+                    })
+                    let descent = CatFurnitureStepTimeline.descending(elevation: visit.elevation)
+                    XCTAssertEqual(descent.first?.elevation, visit.elevation)
+                    XCTAssertEqual(descent.last?.elevation, 0)
+                    XCTAssertEqual(descent.last?.travel, 1)
+                }
+            }
+        }
+    }
+
+    func testTallViewportBedCanMoveWithoutShrinkingItOrRelaxingClimbLimits() throws {
+        let viewport = CGSize(width: 402, height: 776)
+        let initial = makeWorld(viewport: viewport, scale: 1.5)
+        let start = CGPoint(x: 603 * 0.43, y: 1164 * 0.18)
+        let bed = try XCTUnwrap(initial.item("catBed"))
+        let center = try XCTUnwrap(initial.center(bed.id))
+        let placement = initial.placementNavigator(for: bed.id, catAt: start)
+        let destination = CGPoint(x: center.x + 35, y: center.y + 15)
+        let resolved = try XCTUnwrap(initial.resolve(id: bed.id, near: destination, catAt: start, placement: placement))
+        let moved = initial.replacing(bed.id, with: resolved.center)
+        XCTAssertGreaterThan(hypot(resolved.center.x - center.x, resolved.center.y - center.y), 10)
+        XCTAssertEqual(moved.footprint(bed), initial.footprint(bed))
+        XCTAssertNotNil(moved.restVisit(to: bed.id, from: start))
+
+        // With no other furniture present, an extreme bed/cat size mismatch
+        // must still fail the physical reach limit rather than fake a climb.
+        let impossible = RoomFurnitureWorld(transform: initial.transform, catWidth: 5,
+            bowlSize: initial.bowlSize, bowlPosition: initial.bowlPosition,
+            items: [bed], placements: initial.placements.filter { $0.itemID == bed.id })
+        XCTAssertNil(impossible.restVisit(to: bed.id, from: start))
+    }
+
+    func testStarterCushionFitsFullHeightRoomWithoutTouchingBedOrFlowerStool() throws {
+        for viewport in [CGSize(width: 375, height: 569), CGSize(width: 402, height: 776)] {
+            for level in [1, 3] {
+                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
+                let world = makeWorld(viewport: viewport, scale: scale)
+                let start = CGPoint(x: viewport.width * scale * 0.43, y: viewport.height * scale * 0.18)
+                let cushion = try XCTUnwrap(world.item("floorCushion"))
+                let center = try XCTUnwrap(world.center(cushion.id))
+                let rectangle = world.rectangle(cushion, at: center)
+                let placement = world.placementNavigator(for: cushion.id, catAt: start)
+                XCTAssertTrue(placement.isWalkable(center), "\(viewport), level \(level)")
+                for neighborID in ["catBed", "flowerStool"] {
+                    let neighbor = try XCTUnwrap(world.item(neighborID))
+                    let neighborCenter = try XCTUnwrap(world.center(neighborID))
+                    XCTAssertFalse(rectangle.intersects(world.rectangle(neighbor, at: neighborCenter)))
+                }
+                let visit = try XCTUnwrap(world.restVisit(to: cushion.id, from: start),
+                                         "\(viewport), level \(level)")
+                XCTAssertEqual(visit.elevation, world.catWidth * 0.14)
+                XCTAssertEqual(visit.entryContactProgress, 0.14)
+                XCTAssertEqual(visit.plan.exit, Array(visit.plan.entry.reversed()))
+                for route in [visit.plan.entry, visit.plan.exit] {
+                    XCTAssertTrue(zip(route, route.dropFirst()).allSatisfy {
+                        visit.navigation.segmentIsWalkable(from: $0.0, to: $0.1)
+                    })
+                }
+                let approach = world.roomFloor.navigator(bowlAt: world.bowlPosition, precomputeGrid: false)
                 XCTAssertTrue(zip(visit.plan.approach, visit.plan.approach.dropFirst()).allSatisfy {
                     approach.segmentIsWalkable(from: $0.0, to: $0.1)
                 })

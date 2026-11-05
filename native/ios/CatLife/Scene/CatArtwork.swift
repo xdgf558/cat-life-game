@@ -6,6 +6,7 @@ enum CatArtwork {
         switch appearance {
         case .orange: return baseName
         case .cow: return baseName.replacingOccurrences(of: "cat-", with: "cat-cow-")
+        case .blue: return baseName.replacingOccurrences(of: "cat-", with: "cat-blue-")
         }
     }
 }

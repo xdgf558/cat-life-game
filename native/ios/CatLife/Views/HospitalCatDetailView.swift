@@ -43,7 +43,6 @@ struct HospitalCatDetailView: View {
         .background(RoomTheme.cream)
         .navigationTitle(GameStrings.text("hospital.healthDetails")).navigationBarTitleDisplayMode(.inline)
         .toolbar(onBack == nil ? .visible : .hidden, for: .navigationBar)
-        .sensoryFeedback(.success, trigger: showsRecovery) { _, value in value }
         .onAppear {
             isVisible = true
             if onBack == nil { store.isInspectingHealth = true }

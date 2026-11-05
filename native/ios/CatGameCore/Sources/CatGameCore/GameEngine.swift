@@ -426,21 +426,34 @@ public enum GameEngine {
     public static func setRoomLayout(_ state: inout GameSnapshot,
                                      bowlPosition: NormalizedPoint,
                                      furniture: [FurniturePlacement],
+                                     orientations: [String: FurnitureOrientation] = [:],
                                      now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
         guard GameSnapshot.isUnitPosition(bowlPosition) else { return failure(.roomInvalidPosition) }
-        guard GameSnapshot.validFurniture(owned: state.inventory.furniture, placements: furniture) else {
+        guard Set(orientations.keys).isSubset(of: Set(state.inventory.furniture.map(\.id))) else {
+            return failure(.roomInvalidFurnitureLayout)
+        }
+        let owned = state.inventory.furniture.map { item in
+            var updated = item
+            updated.orientation = orientations[item.id] ?? item.orientation
+            return updated
+        }
+        guard GameSnapshot.validFurniture(owned: owned, placements: furniture) else {
             return failure(.roomInvalidFurnitureLayout)
         }
         guard HomeCatalog.allowsLayout(furniture, replacing: state.home.furniture, roomLevel: state.home.roomLevel)
         else { return failure(.roomCapacityReached, amount: HomeCatalog.level(state.home.roomLevel)?.capacity ?? 0) }
-        if bowlPosition != state.home.bowlPosition || furniture != state.home.furniture {
+        let turnedPlacedItem = zip(owned, state.inventory.furniture).contains { updated, previous in
+            updated.orientation != previous.orientation && state.home.furniture.contains { $0.itemID == updated.id }
+        }
+        if bowlPosition != state.home.bowlPosition || furniture != state.home.furniture || turnedPlacedItem {
             // Geometry changes can affect an exit route as well as the occupied item.
             finishAllCatRests(&state, now: effectiveTime(state, now: now))
         }
         state.home.bowlPosition = bowlPosition
         state.home.furniture = furniture
+        state.inventory.furniture = owned
         return ActionOutcome(success: .layoutSaved)
     }
 
@@ -655,7 +668,8 @@ extension GameSnapshot {
     static func validFurniture(owned: [FurnitureItem], placements: [FurniturePlacement]) -> Bool {
         let ownedIDs = Set(owned.map(\.id))
         guard ownedIDs.count == owned.count,
-              owned.allSatisfy({ !$0.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }),
+              owned.allSatisfy({ !$0.id.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                  && ($0.orientation == .normal || $0.kind.supportsMirroring) }),
               Set(placements.map(\.itemID)).count == placements.count else { return false }
         return placements.allSatisfy { ownedIDs.contains($0.itemID) && isUnitPosition($0.position) }
     }
