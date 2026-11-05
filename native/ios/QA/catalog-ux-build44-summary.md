@@ -40,3 +40,9 @@ The user-supplied handoff ZIP SHA256 is `91b473eb7283c7623e099a6bdcd4195268b94f9
 ## Delivery boundaries
 
 At the user’s request, PR #12 replaces PR #11 and keeps PR #10 as its base dependency; the replacement includes both 0.12.0 and 0.12.1 commits. No branch history is rewritten, no PR is merged and no TestFlight distribution is performed. Physical-device touch/haptics and extreme accessibility text sizes still need acceptance. The unchanged Core suite's previous 286-test result is not represented as a new run.
+
+## Release handoff — 2026-11-05
+
+After user approval, PRs #7–#10 and #12 were merged into main. Source commit `45be278c592696ccd12afdbb0c680181a239b28c` has the exact reviewed/tested source tree of `24373f2`. A fresh `CatLife-0.12.1-44-main.xcarchive` was built and passed version, signature, dSYM, privacy and Release fixture-isolation checks; binary SHA256 `f2767fd9876026d6acca113408f3409fb21c31fe1d5e4c29e58665ad12671f6e`. The earlier archives remain separate.
+
+Xcode export/upload finished successfully at 09:48 GMT+8, reporting the package has begun Apple processing. Processing completion and test availability were not confirmed; browser verification was deferred because Chrome reported concurrent user interaction. No groups, invitations or Beta Review submission were changed. Test notes and the release record are in `Distribution/TestFlight/`. The same-tree App/UI test results above were reused, not counted as new runs; no physical-device install or acceptance was performed.

@@ -1,0 +1,14 @@
+打工养猫日记 0.12.1（44）· 猫咪图鉴、领养与家具布置
+
+请重点体验以下内容：
+- 猫咪图鉴：检查收集进度、全部/已领养/未领养筛选和分页。查看蓝猫「蓝影」的条件说明；满足打工等级4、房间3级、600金币后领养，确认只扣费一次。
+- 领养流程：检查费用确认、成功页、带回房间、独立猫名和照料状态；重新打开游戏后仍应保留。
+- 领养提醒：升级后金币不够、后来攒够时应提醒；后台返回或离线打工升级后也能补齐未展示的提醒，已展示过的不应重复。
+- 家具布置：选中地面家具后尝试左右转向、收纳、重新摆放、保存和取消；扩建后检查猫窝向上移动及猫咪上下窝。墙饰和食盆不能转向时会给出说明。
+- 任务与健康：检查奖励只领取一次；照料与休息、就诊治疗、声音和震动设置正常。关闭震动后领奖及治疗不应震动。
+- 更新与显示：直接覆盖更新，确认原有猫咪、金币、道具、任务和布局保留；检查小屏与三种语言下是否有遮挡或文字截断。
+
+遇到问题请通过 TestFlight 反馈操作步骤、手机型号、系统版本及截图。存档保存在设备本地，请覆盖更新，避免先卸载。
+
+English
+Please test the cat collection filters, progress, paging and blue-cat adoption requirements (player level4, room level3,600coins). Check confirmation, one-time charging, the success screen, companion selection and persistence after relaunch. Unseen adoption reminders should return after earning enough gold, offline work settlement or returning from the background; shown reminders should not repeat. Test furniture flipping, storage, placement, save/cancel, and moving the cat bed upward in an expanded room. Check task rewards, cat care/treatment, haptic settings, small-screen layouts and all three languages. Update in place and confirm existing progress is preserved. Send reproduction steps, device/iOS details and screenshots through TestFlight.
