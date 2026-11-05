@@ -39,6 +39,8 @@ extension GameStrings {
         "task.achievement_clean10.detail": "累计为猫咪清洁 10 次，可以照顾不同的猫咪。",
         "task.achievement_clean30.title": "健康守护者",
         "task.achievement_clean30.detail": "累计为猫咪清洁 30 次，可以照顾不同的猫咪。",
+        "releases.39.title": "存档兼容修复",
+        "releases.39.body": "修复历史任务调整后可能无法打开存档的问题，保留有效的奖励领取记录和已有游戏进度。修复切换设置页面时偶发中断猫咪进食动作的问题。",
         "releases.38.title": "猫咪健康与医院",
         "releases.38.body": "新增猫咪健康详情与宠物医院，可查看和治疗感冒、肠胃不适及皮肤问题。喂食、清洁和休息可降低生病风险，离线健康变化有上限。增加首次清洁、每日清洁与等级解锁的照料成就，保留已有存档与奖励领取记录。",
         "tasks.title": "小家任务",

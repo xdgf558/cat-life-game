@@ -39,6 +39,8 @@ extension GameStrings {
         "task.achievement_clean10.detail": "累計為貓咪清潔 10 次，可以照顧不同的貓咪。",
         "task.achievement_clean30.title": "健康守護者",
         "task.achievement_clean30.detail": "累計為貓咪清潔 30 次，可以照顧不同的貓咪。",
+        "releases.39.title": "存檔相容性修復",
+        "releases.39.body": "修復歷史任務調整後可能無法開啟存檔的問題，保留有效的獎勵領取紀錄和既有遊戲進度。修復切換設定頁面時偶爾中斷貓咪進食動作的問題。",
         "releases.38.title": "貓咪健康與醫院",
         "releases.38.body": "新增貓咪健康詳情與寵物醫院，可查看及治療感冒、腸胃不適與皮膚問題。餵食、清潔和休息可降低生病風險，離線健康變化有上限。增加首次清潔、每日清潔及等級解鎖的照料成就，保留已有存檔與獎勵領取紀錄。",
         "tasks.title": "小家任務",

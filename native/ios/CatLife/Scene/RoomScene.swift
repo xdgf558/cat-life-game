@@ -185,9 +185,10 @@ final class RoomScene: SKScene {
 
     override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
-        // SpriteKit calls this even when size is assigned the same value.
-        // Reappearing over a sheet must not cancel an active meal or its queue.
-        guard oldSize != size else { return }
+        // SwiftUI/SpriteKit can report the same canvas with floating-point noise;
+        // reappearing over a sheet must not cancel an active meal or its queue.
+        guard abs(oldSize.width - size.width) > 0.001
+            || abs(oldSize.height - size.height) > 0.001 else { return }
 #if DEBUG
         diagnostics.recordPresentationEvent("resize \(oldSize) -> \(size), active=\(presentationActive)")
 #endif

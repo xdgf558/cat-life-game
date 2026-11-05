@@ -143,6 +143,43 @@ final class RoomLayoutPublicationTests: XCTestCase {
     }
 
     @MainActor
+    func testSubpointSizeNoisePreservesMealAcrossPresentationPauseAndResume() async throws {
+        let viewport = CGSize(width: 375, height: 603)
+        let snapshot = GameSnapshot.fresh()
+        let scene = RoomScene(size: viewport)
+        defer { scene.setPresentationActive(false) }
+        scene.apply(snapshot: snapshot, editing: false)
+        try await eventually { !scene.diagnostics.bowlPlanning }
+        let cat = try XCTUnwrap(scene.childNode(withName: "cat") as? CatActor)
+        scene.playFeedback(kind: .feed)
+        try await eventually { !scene.diagnostics.carePlanning }
+        XCTAssertTrue(cat.isPerforming)
+        XCTAssertNotNil(cat.action(forKey: "activity"))
+        let completedLayouts = scene.diagnostics.bowlPlanCompletions
+        let completedCarePlans = scene.diagnostics.carePlanCompletions
+        let bowlPosition = scene.bowl.position
+
+        // No SKView is advancing the meal: the same live action must survive
+        // the real size noise observed when opening and leaving Settings.
+        for active in [true, false, true] {
+            scene.setPresentationActive(active)
+            for size in [CGSize(width: 375.0000000000001, height: 603),
+                         CGSize(width: 375, height: 603.0000000000001), viewport] {
+                scene.size = size
+                scene.apply(snapshot: snapshot, editing: false)
+                XCTAssertEqual(scene.presentationPhase, "feeding")
+                XCTAssertTrue(cat.isPerforming)
+                XCTAssertNotNil(cat.action(forKey: "activity"))
+                XCTAssertFalse(scene.diagnostics.bowlPlanning)
+                XCTAssertFalse(scene.diagnostics.carePlanning)
+                XCTAssertEqual(scene.diagnostics.bowlPlanCompletions, completedLayouts)
+                XCTAssertEqual(scene.diagnostics.carePlanCompletions, completedCarePlans)
+                XCTAssertEqual(scene.bowl.position, bowlPosition)
+            }
+        }
+    }
+
+    @MainActor
     func testConsecutiveResizesMapFromLastVisibleWorldRatherThanUnpublishedSize() async throws {
         let first = RoomScene(size: CGSize(width: 375, height: 436))
         let direct = RoomScene(size: CGSize(width: 375, height: 436))

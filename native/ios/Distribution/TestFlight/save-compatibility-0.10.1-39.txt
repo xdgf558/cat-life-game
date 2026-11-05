@@ -1,0 +1,24 @@
+0.10.1（39）— TestFlight 测试内容
+本版将 PR #6 已合并的存档兼容修复打包交付，沿用 0.10.0 的任务、健康与医院玩法。上传与 Apple 处理状态以本目录 README.txt 为准；测试组和审核由用户手动安排。
+
+简体中文
+本版修复历史任务调整后，部分存档可能无法打开的问题，保留有效的奖励领取记录和已有游戏进度；同时修复切换设置页面时偶发中断猫咪进食动作的问题。
+
+请重点体验：
+• 已安装旧版的玩家请直接更新，进入游戏后检查金币、角色与猫咪名字、背包、房间布局和任务进度是否保留。
+• 领取任务奖励、关闭再打开游戏，确认奖励不会重复领取，已领取任务仍保持隐藏。
+• 检查欢迎页能正常完成加载，设置中的版本显示为 0.10.1（39），更新内容只显示最近三次。
+• 猫咪吃饭时打开设置，再返回房间，确认能继续吃完；继续体验清洁、玩耍及宠物医院，检查操作、金币变化和保存恢复是否正常。
+
+无需注册或登录。存档保存在当前设备，请直接覆盖更新，不要先卸载。如遇问题，请通过 TestFlight 反馈，附上操作步骤、设备型号、iOS 版本及截图或录屏。
+
+English
+This update fixes an issue where changes to retired goals could prevent a saved game from opening. Valid reward claims and existing game progress are preserved. It also fixes cats occasionally stopping their meal when switching to and from Settings.
+
+Please focus on:
+• Update an existing installation and check that coins, player and cat names, inventory, furniture layout and goal progress are preserved.
+• Claim a goal reward, then close and reopen the app. Rewards must not be claimable twice, and claimed goals should stay hidden.
+• Check that the welcome screen finishes loading, Settings displays version 0.10.1 (39), and only the latest three updates are shown.
+• Open Settings while your cat is eating, then return home and check that the meal finishes. Continue trying cleaning, playing and the pet hospital. Check actions, coin changes and progress after reopening the app.
+
+No account or sign-in is required. Progress is stored on this device; update in place instead of uninstalling first. Please send feedback through TestFlight with steps, device model, iOS version and screenshots or a recording.
