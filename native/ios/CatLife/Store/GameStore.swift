@@ -486,6 +486,20 @@ final class GameStore {
         }.value
     }
 
+    func preservedNewerSaves() async throws -> [PreservedNewerSave] {
+        guard let repository = repository as? any GamePreservedSaveRepository else { throw SaveTransferError.readFailed }
+        return try await repository.preservedNewerSaves()
+    }
+
+    func exportPreservedNewerSave(id: String) async throws -> Data {
+        guard !isBusy, !isDecorating, !saveTransferInProgress else { throw SaveTransferError.busy }
+        guard let repository = repository as? any GamePreservedSaveRepository else { throw SaveTransferError.readFailed }
+        isBusy = true
+        saveTransferInProgress = true
+        defer { saveTransferInProgress = false; isBusy = false; drainPendingSynchronization() }
+        return try await repository.exportPreservedNewerSave(id: id, exportedAt: Date())
+    }
+
     func importRecoveryPreview() async throws -> NativeSaveArchive? {
         guard let repository = repository as? any GameSaveTransferRepository else { throw SaveTransferError.readFailed }
         guard let recovery = try await repository.loadImportRecovery() else { return nil }
@@ -531,6 +545,8 @@ final class GameStore {
         do {
             if afterLoadFailure { try await repository.restoreSnapshotAfterLoadFailure(candidate) }
             else { try await repository.importSnapshot(candidate) }
+        } catch SaveRepositoryError.currentSaveReadable {
+            throw SaveTransferError.currentSaveReadable
         } catch {
             // Import failure is not a failed autosave: the current timeline remains
             // usable and must never be retried later without a fresh confirmation.

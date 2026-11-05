@@ -141,6 +141,9 @@ extension RoomHomeUITests {
                 waitForElement("welcomeUpdateButton", in: app)
             } else {
                 XCTAssertFalse(element("welcomeUpdateButton", in: app).exists)
+                waitForElement("welcomeRetryButton", in: app)
+                tapAnimationControl("welcomeRetryButton", in: app)
+                waitForElement("welcomeLoadError", in: app)
             }
             attachScreenshot(app, named: "Welcome design W1 — failure " + fixture)
             tapWelcomeRestoreButton(in: app)
@@ -203,6 +206,53 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", gold, in: app)
         waitForObservedValue("foodCount", food, in: app)
         relaunchPreservingSave(app)
+        waitForObservedValue("goldCount", gold, in: app)
+        waitForObservedValue("foodCount", food, in: app)
+    }
+
+    @MainActor
+    func testFutureOriginalCanBeExportedThroughFilesAfterStartupRecovery() throws {
+        continueAfterFailure = false
+        let app = launchFreshHome()
+        let gold = try XCTUnwrap(element("goldCount", in: app).value as? String)
+        let food = try XCTUnwrap(element("foodCount", in: app).value as? String)
+        let backup = try exportNativeBackupToFiles(in: app)
+        app.terminate()
+        app.launchArguments = arguments(reset: true) + ["--save-load-future-fixture"]
+        app.launch()
+        waitForElement("welcomeLoadError", in: app)
+        tapWelcomeRestoreButton(in: app)
+        chooseNativeBackup(named: backup, in: app)
+        waitForElement("saveFailureRawPreservationNotice", in: app)
+        acknowledgeSaveReplacement(in: app)
+        tapSavePreviewControl("saveConfirmImportButton", in: app)
+        let entry = element("welcomeEnterButton", in: app)
+        let ready = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == true AND enabled == true"), object: entry)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 45), .completed, app.debugDescription)
+        XCTAssertFalse(element("feedButton", in: app).exists)
+        tapAnimationControl("welcomeEnterButton", in: app)
+        waitForObservedValue("goldCount", gold, in: app)
+        waitForObservedValue("foodCount", food, in: app)
+        tapAnimationControl("settingsButton", in: app)
+        tapSettingsRootControl("settingsSaveManagementRow", in: app)
+        scrollSaveManagement(to: "savePreservedTitle", in: app)
+        let exportButtons = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "savePreservedExportButton_"))
+        XCTAssertEqual(exportButtons.count, 2, "Keep both newer primary and automatic backup reachable.")
+        let exportID = exportButtons.firstMatch.identifier
+        scrollSaveManagement(to: exportID, in: app)
+        attachScreenshot(app, named: "Save management — newer originals retained with export actions")
+        tapAnimationControl(exportID, in: app)
+        let original = try savePresentedBackupToFiles(in: app,
+            statusIdentifier: "savePreservedExportStatus", defaultFilename: "CatLife-Preserved")
+        chooseNativeBackup(named: original, in: app)
+        waitForLabel("saveImportErrorTitle", "这份备份来自更新的版本", in: app, contains: true)
+        waitForLabel("saveImportErrorSafety", "当前进度未更改", in: app, contains: true)
+        XCTAssertFalse(element("saveConfirmImportButton", in: app).exists)
+        attachScreenshot(app, named: "Save management — exported newer original remains version-gated")
+        tapSavePreviewControl("saveErrorCloseButton", in: app)
+        tapAnimationControl("settingsBackButton", in: app)
+        tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", gold, in: app)
         waitForObservedValue("foodCount", food, in: app)
     }
@@ -303,7 +353,6 @@ extension RoomHomeUITests {
 
     @MainActor
     private func exportNativeBackupToFiles(in app: XCUIApplication) throws -> String {
-        var filename = "CatLife-QA-" + String(UUID().uuidString.prefix(8))
         tapAnimationControl("settingsButton", in: app)
         tapSettingsRootControl("settingsSaveManagementRow", in: app)
         scrollSaveManagement(to: "saveExportButton", in: app)
@@ -311,6 +360,14 @@ extension RoomHomeUITests {
         waitForElement("saveExportPrepared", in: app)
         scrollSaveManagement(to: "saveExportFilesButton", in: app)
         tapAnimationControl("saveExportFilesButton", in: app)
+        return try savePresentedBackupToFiles(in: app)
+    }
+
+    @MainActor
+    private func savePresentedBackupToFiles(in app: XCUIApplication,
+                                            statusIdentifier: String = "saveTransferStatus",
+                                            defaultFilename: String = "CatLife-Backup") throws -> String {
+        var filename = "CatLife-QA-" + String(UUID().uuidString.prefix(8))
         let save = app.buttons.matching(NSPredicate(
             format: "identifier == %@ OR label IN %@", "DOCPicker.actionButton",
             ["保存", "儲存", "Save"])).firstMatch
@@ -327,12 +384,12 @@ extension RoomHomeUITests {
         } else {
             // Some system layouts omit the name editor and use our supplied
             // default. This isolated simulator's file is owned by this QA flow.
-            filename = "CatLife-Backup"
+            filename = defaultFilename
         }
         XCTAssertTrue(save.isEnabled && save.isHittable, app.debugDescription)
         attachScreenshot(app, named: "Save management — saving an owned QA backup through Files")
         save.tap()
-        let exportStatus = element("saveTransferStatus", in: app)
+        let exportStatus = element(statusIdentifier, in: app)
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let replacePredicate = NSPredicate(format: "label IN %@", ["替换", "取代", "Replace"])
         let systemReplace = springboard.buttons.matching(replacePredicate).firstMatch
@@ -378,7 +435,7 @@ extension RoomHomeUITests {
             add(hierarchy)
         }
         XCTAssertEqual(savedResult, .completed, app.debugDescription)
-        scrollSaveManagement(to: "saveTransferStatus", in: app)
+        scrollSaveManagement(to: statusIdentifier, in: app)
         return filename
     }
 

@@ -9,6 +9,7 @@ struct WelcomeView: View {
     @State private var isRecoveryWorking = false
     @State private var isRetryingSaveRead = false
     @State private var didRecoverSave = false
+    @State private var retryAfterRecoveryDismiss = false
     #if DEBUG
     var releaseTestLoad: (() -> Void)?
     #endif
@@ -65,13 +66,22 @@ struct WelcomeView: View {
         .background(LinearGradient(colors: [RoomTheme.wood.opacity(0.58), RoomTheme.cream, RoomTheme.cream],
                                    startPoint: .top, endPoint: .bottom).ignoresSafeArea())
         .accessibilityIdentifier("welcomeScreen")
-        .sheet(isPresented: $isShowingSaveRecovery) {
+        .sheet(isPresented: $isShowingSaveRecovery, onDismiss: {
+            if retryAfterRecoveryDismiss {
+                retryAfterRecoveryDismiss = false
+                retrySaveRead()
+            }
+        }) {
             NavigationStack {
                 SaveManagementView(store: store, recoveryOnly: true,
                                    onRecovered: {
                                        didRecoverSave = true
                                        isShowingSaveRecovery = false
-                                   }, onWorkingChange: { isRecoveryWorking = $0 })
+                                   }, onWorkingChange: { isRecoveryWorking = $0 },
+                                   onRetryLoad: {
+                                       retryAfterRecoveryDismiss = true
+                                       isShowingSaveRecovery = false
+                                   })
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {

@@ -5,6 +5,8 @@ public enum SaveRepositoryError: Error, Equatable, Sendable {
     case invalidSnapshot
     /// Neither the primary nor a validated backup can be loaded. Nothing is reset.
     case unreadableSave
+    /// A transient load failure has cleared; retry loading instead of replacing progress.
+    case currentSaveReadable
 }
 
 public enum SaveLoadDisposition: Sendable {
@@ -34,6 +36,8 @@ public actor FileSaveRepository {
 
     public func loadOrCreate(now: Date = Date()) async throws -> GameSnapshot {
         try ensureDirectory()
+        // An inaccessible historical diagnostic must not block a valid primary.
+        try? PreservedNewerSaveFiles(directory: directory).promoteLegacyFiles()
         let manager = FileManager.default
         if manager.fileExists(atPath: saveURL.path) {
             // A read-permission/I/O failure propagates instead of silently replacing a file.
@@ -142,6 +146,13 @@ public actor FileSaveRepository {
         // Read both first. Permission/I/O failures are not missing or corrupt data.
         let primary = try existingData(at: saveURL)
         let backup = try existingData(at: backupURL)
+        if let primary, (try? decode(primary)) != nil {
+            throw SaveRepositoryError.currentSaveReadable
+        }
+        if primary == nil, let backup, (try? decode(backup)) != nil {
+            throw SaveRepositoryError.currentSaveReadable
+        }
+        try PreservedNewerSaveFiles(directory: directory).promoteLegacyFiles()
         var preserved = Set<URL>()
         if let primary { preserved.insert(try preserveRecoveryData(primary)) }
         if let backup { preserved.insert(try preserveRecoveryData(backup)) }
@@ -216,6 +227,9 @@ public actor FileSaveRepository {
     }
 
     private func preserveRecoveryData(_ data: Data) throws -> URL {
+        if let schema = try? NativeSaveTransfer.rawSnapshotSchema(data), schema > GameSnapshot.currentSchemaVersion {
+            return try PreservedNewerSaveFiles(directory: directory).preserve(data)
+        }
         // Retrying a failed restore must not produce unlimited identical evidence.
         if let existing = try recoveryFiles().first(where: { (try? Data(contentsOf: $0)) == data }) {
             try FileManager.default.setAttributes([.modificationDate: Date()], ofItemAtPath: existing.path)
@@ -229,10 +243,13 @@ public actor FileSaveRepository {
     private func cleanUpRecoveryFiles(preserving protected: Set<URL>) {
         // Cleanup cannot turn a successfully restored save into a load failure.
         // Keep this recovery's originals plus recent evidence, up to three files.
+        do { try PreservedNewerSaveFiles(directory: directory).promoteLegacyFiles() }
+        catch { return }
         if let files = try? recoveryFiles() {
             // Directory enumeration can resolve a symlinked save directory;
             // match the unique evidence filename rather than URL representation.
             let protectedNames = Set(protected.map(\.lastPathComponent))
+                .intersection(files.map(\.lastPathComponent))
             var remaining = max(0, Self.maximumRecoveryFiles - protectedNames.count)
             for url in files where !protectedNames.contains(url.lastPathComponent) {
                 if remaining > 0 { remaining -= 1 }
@@ -242,15 +259,14 @@ public actor FileSaveRepository {
     }
 
     private func recoveryFiles() throws -> [URL] {
-        let files = try FileManager.default.contentsOfDirectory(at: directory,
-            includingPropertiesForKeys: [.contentModificationDateKey, .isRegularFileKey])
+        let files = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
         return files.compactMap { url -> (URL, Date)? in
             let name = url.lastPathComponent
             guard name.hasPrefix("unreadable-save-"), name.hasSuffix(".json"),
                   UUID(uuidString: String(name.dropFirst("unreadable-save-".count).dropLast(5))) != nil,
-                  let values = try? url.resourceValues(forKeys: [.contentModificationDateKey, .isRegularFileKey]),
-                  values.isRegularFile == true else { return nil }
-            return (url, values.contentModificationDate ?? .distantPast)
+                  let attributes = try? FileManager.default.attributesOfItem(atPath: url.path),
+                  attributes[.type] as? FileAttributeType == .typeRegular else { return nil }
+            return (url, attributes[.modificationDate] as? Date ?? .distantPast)
         }.sorted {
             if $0.1 == $1.1 { return $0.0.lastPathComponent < $1.0.lastPathComponent }
             return $0.1 > $1.1

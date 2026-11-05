@@ -2,7 +2,7 @@ import Foundation
 import CatGameCore
 
 enum SaveTransferError: Error, Equatable, Sendable {
-    case busy, invalidFile, fileTooLarge, unsupportedVersion, readFailed, writeFailed
+    case busy, invalidFile, fileTooLarge, unsupportedVersion, readFailed, writeFailed, currentSaveReadable
 
     static func reason(for error: Error) -> SaveTransferError {
         let reason: SaveTransferError
@@ -17,6 +17,7 @@ enum SaveTransferError: Error, Equatable, Sendable {
             switch error {
             case .unsupportedSchemaVersion: reason = .unsupportedVersion
             case .invalidSnapshot, .unreadableSave: reason = .invalidFile
+            case .currentSaveReadable: reason = .currentSaveReadable
             }
         } else { reason = .readFailed }
         return reason
@@ -30,6 +31,7 @@ enum SaveTransferError: Error, Equatable, Sendable {
         case .unsupportedVersion: return "saveTransfer.unsupportedVersion"
         case .readFailed: return "saveTransfer.readFailed"
         case .writeFailed: return "saveTransfer.writeFailed"
+        case .currentSaveReadable: return "saveTransfer.currentSaveReadable"
         }
     }
 }
@@ -42,3 +44,10 @@ protocol GameSaveTransferRepository: GameSaveRepository {
 }
 
 extension FileSaveRepository: GameSaveTransferRepository {}
+
+protocol GamePreservedSaveRepository: GameSaveRepository {
+    func preservedNewerSaves() async throws -> [PreservedNewerSave]
+    func exportPreservedNewerSave(id: String, exportedAt: Date) async throws -> Data
+}
+
+extension FileSaveRepository: GamePreservedSaveRepository {}

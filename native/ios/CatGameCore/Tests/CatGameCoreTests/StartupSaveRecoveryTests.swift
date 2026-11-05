@@ -12,9 +12,9 @@ struct StartupSaveRecoveryTests {
         return url
     }
 
-    private func evidence(in directory: URL) throws -> [Data] {
+    private func evidence(in directory: URL, prefix: String = "unreadable-save-") throws -> [Data] {
         try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
-            .filter { $0.lastPathComponent.hasPrefix("unreadable-save-") }
+            .filter { $0.lastPathComponent.hasPrefix(prefix) }
             .map { try Data(contentsOf: $0) }
     }
 
@@ -54,8 +54,8 @@ struct StartupSaveRecoveryTests {
         }
         var replacement = GameSnapshot.fresh(now: now)
         try await repository.restoreSnapshotAfterLoadFailure(replacement)
-        #expect(try evidence(in: folder).contains(primary))
-        #expect(try evidence(in: folder).contains(backup))
+        #expect(try evidence(in: folder, prefix: "newer-save-").contains(primary))
+        #expect(try evidence(in: folder, prefix: "newer-save-").contains(backup))
         try await repository.checkWritable()
         replacement.player.gold = 888
         try await repository.save(replacement, now: now)
@@ -75,8 +75,8 @@ struct StartupSaveRecoveryTests {
         try backup.write(to: repository.backupURL)
         try await repository.restoreSnapshotAfterLoadFailure(.fresh(now: now))
         #expect(try Data(contentsOf: repository.backupURL) == backup)
-        #expect(try evidence(in: folder).contains(primary))
-        #expect(try evidence(in: folder).contains(backup))
+        #expect(try evidence(in: folder, prefix: "newer-save-").contains(primary))
+        #expect(try evidence(in: folder, prefix: "newer-save-").contains(backup))
         try await repository.checkWritable()
     }
 
@@ -180,7 +180,7 @@ struct StartupSaveRecoveryTests {
         }
         #expect(try Data(contentsOf: repository.saveURL) == primary)
         #expect(try evidence(in: folder).contains(primary))
-        #expect(try evidence(in: folder).contains(backup))
+        #expect(try evidence(in: folder, prefix: "newer-save-").contains(backup))
         #expect(!FileManager.default.fileExists(atPath: repository.backupURL.path))
         await #expect(throws: SaveRepositoryError.unreadableSave) { try await repository.loadOrCreate(now: now) }
     }

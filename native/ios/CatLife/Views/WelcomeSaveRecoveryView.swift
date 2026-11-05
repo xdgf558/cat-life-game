@@ -84,18 +84,12 @@ struct WelcomeSaveRecoveryView: View {
                     .disabled(working)
                     .accessibilityIdentifier("welcomeUpdateButton")
             }
-            Button(action: onRetry) {
-                Label(GameStrings.text("saveTransfer.welcomeRetry"), systemImage: "arrow.clockwise")
-                    .font(.headline).frame(maxWidth: .infinity, minHeight: 28)
-            }
-            .buttonStyle(SoftButtonStyle()).disabled(working)
-            .accessibilityIdentifier("welcomeRetryButton")
-
             if store.needsNewerVersion {
-                restoreButton.buttonStyle(SoftButtonStyle())
+                retryButton.buttonStyle(SoftButtonStyle())
             } else {
-                restoreButton.buttonStyle(MintButtonStyle())
+                retryButton.buttonStyle(MintButtonStyle())
             }
+            restoreButton.buttonStyle(SoftButtonStyle())
             Text(GameStrings.text("saveTransfer.failureScope"))
                 .font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.secondary)
                 .multilineTextAlignment(.center).frame(maxWidth: .infinity)
@@ -103,6 +97,15 @@ struct WelcomeSaveRecoveryView: View {
         }
         .padding(18).frame(maxWidth: .infinity, alignment: .leading)
         .gameCard(cornerRadius: 30)
+    }
+
+    private var retryButton: some View {
+        Button(action: onRetry) {
+            Label(GameStrings.text("saveTransfer.welcomeRetry"), systemImage: "arrow.clockwise")
+                .font(.headline).frame(maxWidth: .infinity, minHeight: 28)
+        }
+        .disabled(working)
+        .accessibilityIdentifier("welcomeRetryButton")
     }
 
     private var restoreButton: some View {

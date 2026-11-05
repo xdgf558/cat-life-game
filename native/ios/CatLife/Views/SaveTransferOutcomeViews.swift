@@ -85,6 +85,7 @@ struct SaveTransferErrorView: View {
         case .unsupportedVersion: "saveTransfer.error.versionTitle"
         case .readFailed: "saveTransfer.error.readTitle"
         case .writeFailed: "saveTransfer.error.writeTitle"
+        case .currentSaveReadable: "saveTransfer.error.readableTitle"
         }
     }
 
@@ -109,9 +110,12 @@ struct SaveTransferErrorView: View {
                     .accessibilityIdentifier("saveImportErrorSafety")
                 if reason == .unsupportedVersion { SaveTransferUpdateButton() }
                 Button(action: chooseAgain) {
-                    Text(GameStrings.text(retryExport ? "saveTransfer.retryExport" : "saveTransfer.chooseAgain")).font(.headline).frame(maxWidth: .infinity)
+                    Text(GameStrings.text(reason == .currentSaveReadable ? "saveTransfer.retryRead"
+                                          : (retryExport ? "saveTransfer.retryExport" : "saveTransfer.chooseAgain")))
+                        .font(.headline).frame(maxWidth: .infinity)
                 }
-                .buttonStyle(MintButtonStyle()).accessibilityIdentifier("saveErrorChooseAgainButton")
+                .buttonStyle(MintButtonStyle())
+                .accessibilityIdentifier(reason == .currentSaveReadable ? "saveErrorRetryReadButton" : "saveErrorChooseAgainButton")
                 Button(action: close) { Text(GameStrings.text("common.close")).font(.subheadline.weight(.heavy)) }
                     .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("saveErrorCloseButton")
             }

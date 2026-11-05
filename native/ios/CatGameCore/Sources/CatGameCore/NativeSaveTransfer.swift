@@ -60,6 +60,33 @@ public enum NativeSaveTransfer {
         return data
     }
 
+    /// Preserve unknown fields and number precision when exporting a newer save.
+    static func encodePreservedSnapshot(_ snapshotData: Data, exportedAt: Date) throws -> Data {
+        guard snapshotData.count <= maximumFileSize else { throw NativeSaveTransferError.fileTooLarge }
+        _ = try rawSnapshotSchema(snapshotData)
+        guard exportedAt.timeIntervalSince1970.isFinite else { throw NativeSaveTransferError.invalidArchive }
+        let encodedDate = try NativeSaveCodec.encoder().encode(exportedAt)
+        guard (try? NativeSaveCodec.decoder().decode(Date.self, from: encodedDate)) != nil else {
+            throw NativeSaveTransferError.invalidArchive
+        }
+        var data = Data("{\"format\":\"\(identifier)\",\"formatVersion\":\(currentFormatVersion),\"exportedAt\":".utf8)
+        data.append(encodedDate)
+        data.append(Data(",\"snapshot\":".utf8))
+        data.append(snapshotData)
+        data.append(Data("}".utf8))
+        guard data.count <= maximumFileSize else { throw NativeSaveTransferError.fileTooLarge }
+        return data
+    }
+
+    static func rawSnapshotSchema(_ data: Data) throws -> Int {
+        struct Header: Decodable { let schemaVersion: Int }
+        guard String(data: data, encoding: .utf8) != nil,
+              let header = try? JSONDecoder().decode(Header.self, from: data), header.schemaVersion > 0 else {
+            throw NativeSaveTransferError.invalidArchive
+        }
+        return header.schemaVersion
+    }
+
     public static func decode(_ data: Data, now: Date = Date()) throws -> NativeSaveArchive {
         guard data.count <= maximumFileSize else { throw NativeSaveTransferError.fileTooLarge }
         guard now.timeIntervalSince1970.isFinite else { throw NativeSaveTransferError.invalidArchive }

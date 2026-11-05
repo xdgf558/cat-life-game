@@ -5,7 +5,7 @@ import CatGameCore
 
 final class GameStoreSaveTransferTests: XCTestCase {
     @MainActor
-    private func makeStore(_ repository: TransferTestRepository) -> GameStore {
+    private func makeStore(_ repository: any GameSaveRepository) -> GameStore {
         let suite = "CatLife-save-transfer-test-\(UUID())"
         addTeardownBlock { UserDefaults(suiteName: suite)?.removePersistentDomain(forName: suite) }
         return GameStore(repository: repository, reminderDefaults: UserDefaults(suiteName: suite)!)
@@ -258,6 +258,91 @@ final class GameStoreSaveTransferTests: XCTestCase {
     }
 
     @MainActor
+    func testStartupRecoveryStopsWhenCurrentSaveBecomesReadableAndRetryLoadsIt() async throws {
+        var original = seed()
+        original.player.gold = 843
+        let repository = TransferTestRepository(original)
+        await repository.setLoadFailure(.unreadableSave)
+        let store = makeStore(repository)
+        await store.load()
+        let generation = store.saveSceneGeneration
+        await repository.setLoadFailure(nil)
+        await repository.setStartupRestoreFailure(.currentSaveReadable)
+        do {
+            try await store.restoreSaveArchiveAfterLoadFailure(archive(seed()))
+            XCTFail("A readable current save must be loaded, never replaced with an older backup.")
+        } catch {
+            XCTAssertEqual(error as? SaveTransferError, .currentSaveReadable)
+            XCTAssertEqual(SaveTransferError.reason(for: error), .currentSaveReadable)
+        }
+        XCTAssertTrue(store.loadFailed)
+        XCTAssertNil(store.snapshot)
+        XCTAssertFalse(store.isBusy || store.isLoading || store.saveTransferInProgress || store.hasEnteredHome)
+        XCTAssertEqual(store.saveSceneGeneration, generation)
+        XCTAssertEqual(store.saveRetry.failures, 0)
+        XCTAssertFalse(store.showSaveError)
+        XCTAssertFalse(store.toast?.contains(GameStrings.text("saveTransfer.writeFailed")) == true)
+        let durable = await repository.saved
+        XCTAssertEqual(durable, original)
+        let recovery = try await store.importRecoveryPreview()
+        XCTAssertNil(recovery)
+
+        await store.load()
+        XCTAssertEqual(store.snapshot?.player.gold, 843)
+        XCTAssertFalse(store.loadFailed || store.needsNewerVersion || store.isBusy || store.isLoading)
+        XCTAssertFalse(store.hasEnteredHome, "Retry still requires the player's explicit welcome entry.")
+    }
+
+    @MainActor
+    func testPreservedFutureSaveExportsWithoutRewritingProgressEvenWhenCurrentSaveCannotBeWritten() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CatLife-PreservedStoreTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let repository = FileSaveRepository(directory: directory)
+        let futureSchema = GameSnapshot.currentSchemaVersion + 1
+        let raw = Data("{\"schemaVersion\":\(futureSchema),\"futureOnlyData\":{\"name\":\"未来小家🐾\",\"value\":9007199254740993}}".utf8)
+        try raw.write(to: repository.saveURL)
+        let store = makeStore(repository)
+        await store.load()
+        XCTAssertTrue(store.loadFailed && store.needsNewerVersion)
+        try await store.restoreSaveArchiveAfterLoadFailure(archive(seed()))
+        let preserved = try await store.preservedNewerSaves()
+        XCTAssertEqual(preserved.count, 1)
+        let record = try XCTUnwrap(preserved.first)
+        XCTAssertEqual(record.schemaVersion, futureSchema)
+        XCTAssertEqual(record.byteCount, raw.count)
+        let retainedURL = directory.appendingPathComponent(record.id)
+        XCTAssertEqual(try Data(contentsOf: retainedURL), raw)
+        let snapshot = try XCTUnwrap(store.snapshot)
+        let generation = store.saveSceneGeneration
+
+        // An isolated directory at the primary path makes the next save fail;
+        // exporting the retained original must not depend on fixing that write.
+        try FileManager.default.removeItem(at: repository.saveURL)
+        try FileManager.default.createDirectory(at: repository.saveURL, withIntermediateDirectories: false)
+        var changedAudio = store.audioSettings
+        changedAudio.musicVolume = 0.73
+        let audioSaved = await store.updateAudioSettings(changedAudio)
+        XCTAssertFalse(audioSaved)
+        XCTAssertTrue(store.hasSaveFailure)
+        let data = try await store.exportPreservedNewerSave(id: record.id)
+        XCTAssertNotNil(data.range(of: raw), "The archive must retain every unknown field and exact numeric bytes.")
+        XCTAssertThrowsError(try NativeSaveTransfer.decode(data)) { error in
+            XCTAssertEqual(error as? SaveRepositoryError, .unsupportedSchemaVersion(futureSchema))
+            XCTAssertEqual(SaveTransferError.reason(for: error), .unsupportedVersion)
+        }
+        XCTAssertEqual(try Data(contentsOf: retainedURL), raw)
+        XCTAssertEqual(store.snapshot, snapshot)
+        XCTAssertEqual(store.saveSceneGeneration, generation)
+        XCTAssertTrue(store.hasSaveFailure)
+        XCTAssertNotNil(store.pendingAudioSettings)
+        XCTAssertFalse(store.isBusy || store.isLoading || store.saveTransferInProgress)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: repository.importRecoveryURL.path))
+        XCTAssertTrue(try repository.saveURL.resourceValues(forKeys: [.isDirectoryKey]).isDirectory == true)
+    }
+
+    @MainActor
     private func eventually(_ condition: () async -> Bool) async throws {
         let deadline = Date().addingTimeInterval(3)
         while !(await condition()) {
@@ -276,6 +361,7 @@ private actor TransferTestRepository: GameSaveTransferRepository {
     private var saveFails = false
     private var importFails = false
     private var loadFailure: SaveRepositoryError?
+    private var startupRestoreFailure: SaveRepositoryError?
     private var held = false
     private(set) var importEntered = false
     private(set) var startupRestoreEntered = false
@@ -287,6 +373,7 @@ private actor TransferTestRepository: GameSaveTransferRepository {
         return saved
     }
     func setLoadFailure(_ failure: SaveRepositoryError?) { loadFailure = failure }
+    func setStartupRestoreFailure(_ failure: SaveRepositoryError?) { startupRestoreFailure = failure }
     func setSaveFailure(_ fails: Bool) { saveFails = fails }
     func setImportFailure(_ fails: Bool) { importFails = fails }
     func holdImports(_ hold: Bool) { held = hold }
@@ -308,6 +395,7 @@ private actor TransferTestRepository: GameSaveTransferRepository {
         startupRestoreCount += 1
         while held { try await Task.sleep(for: .milliseconds(10)) }
         if importFails { throw Failure.storage }
+        if let startupRestoreFailure { throw startupRestoreFailure }
         saved = state
         loadFailure = nil
     }

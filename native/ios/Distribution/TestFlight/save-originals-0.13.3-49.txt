@@ -1,0 +1,20 @@
+打工养猫日记 0.13.3（49）· 存档原件保护与安全重试
+状态：PR #14 复审准备内容，尚未上传 TestFlight，未安装真实设备。
+
+简体中文 · 测试内容
+本版包含新的 App 图标、存档管理界面和安全恢复流程，请重点体验：
+1. 在设置→存档管理制作备份并保存到“文件”；选择备份后核对进度对照，勾选确认后才能导入，取消时进度应保持不变。
+2. 如果遇到真实的加载失败，请先使用“重试读取”。当原存档已经恢复可读时，备份恢复应停止并引导重试，不应覆盖现有进度。
+3. 若曾用旧备份替换较新版本的存档，进入存档管理查看“保留的较新版本存档”，导出后应能在“文件”中找到。当前版本不能读取的原件会明确提示先更新；更新到兼容版本后需要手动导入，不会自动恢复。
+4. 核对导入前恢复点的摘要和替换提醒；恢复后重启，检查人物名、猫咪、金币、背包及家具布置。先保存自己仍需保留的进度，不要为测试故意破坏真实存档。
+5. 检查简体中文、繁体中文、英语以及不同字号下的按钮、提示与文件选择返回路径。
+仅支持本游戏 iOS 原生备份。请反馈设备、系统版本、复现步骤及提示原文，无需发送个人存档。
+
+English · What to Test
+This build includes the new app icon, redesigned save management and safer recovery.
+1. Prepare a backup in Settings → Save Management and save it to Files. Review the comparison before importing; replacement requires acknowledgement, and cancellation must leave progress unchanged.
+2. If a genuine loading failure occurs, try reading the save again first. Recovery must stop and offer retry if the current save becomes readable, rather than replacing it.
+3. If you previously replaced a newer-version save with an older backup, find the preserved original in Save Management and export it to Files. Unsupported originals should request an update. After updating to a compatible version, import the file manually; updating alone does not restore that progress.
+4. Check the pre-import recovery point and its replacement warning. Restart after importing and verify names, cats, coins, inventory and furniture. Export progress you want to keep first; do not deliberately damage your real save.
+5. Check Simplified Chinese, Traditional Chinese, English, larger text sizes and navigation through file pickers.
+Only this game's native iOS backups are supported. Report your device, OS version, steps and displayed message; you do not need to share your personal save.

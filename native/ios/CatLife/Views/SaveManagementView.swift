@@ -8,11 +8,15 @@ struct SaveManagementView: View {
     var onRecovered: (() -> Void)?
     var onWorkingChange: ((Bool) -> Void)?
     var onReturnHome: (() -> Void)?
+    var onRetryLoad: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     @State private var isWorking = false
     @State private var isRestoring = false
     @State private var isImportingFile = false
     @State private var isExportingFile = false
+    @State private var presentedExportDocument: SaveArchiveDocument?
+    @State private var presentedExportFilename = "CatLife-Backup"
+    @State private var presentedExportCompletion: ((Result<URL, Error>?) -> Void)?
     @State private var exportDocument: SaveArchiveDocument?
     @State private var exportURL: URL?
     @State private var exportDate: Date?
@@ -23,6 +27,7 @@ struct SaveManagementView: View {
     @State private var acknowledged = false
     @State private var isShowingModal = false
     @State private var chooseAfterDismiss = false
+    @State private var retryReadAfterDismiss = false
     @State private var issue: SaveTransferError?
     @State private var retryExport = false
     @State private var didRestore = false
@@ -55,8 +60,9 @@ struct SaveManagementView: View {
             case .failure(let error): retryExport = false; report(error)
             }
         }
-        .fileExporter(isPresented: $isExportingFile, document: exportDocument,
-                      contentType: .json, defaultFilename: "CatLife-Backup") { result in
+        .fileExporter(isPresented: $isExportingFile, document: presentedExportDocument,
+                      contentType: .json, defaultFilename: presentedExportFilename) { result in
+            if let presentedExportCompletion { presentedExportCompletion(result); return }
             switch result {
             case .success: setStatus("saveTransfer.exported")
             case .failure(let error):
@@ -68,7 +74,10 @@ struct SaveManagementView: View {
             if !presented && !isWorking && statusKey == nil { setStatus("saveTransfer.unchanged") }
         }
         .onChange(of: isExportingFile) { _, presented in
-            if !presented && statusKey == nil { setStatus("saveTransfer.unchanged") }
+            if !presented {
+                if let presentedExportCompletion { presentedExportCompletion(nil) }
+                else if statusKey == nil { setStatus("saveTransfer.unchanged") }
+            }
         }
         .sheet(isPresented: $isShowingModal, onDismiss: modalDismissed) {
             modal
@@ -90,7 +99,11 @@ struct SaveManagementView: View {
                     exportCard
                 }
                 importCard
-                if !recoveryOnly { recoveryCard }
+                if !recoveryOnly {
+                    recoveryCard
+                    PreservedNewerSavesView(store: store, busy: busy, onWorkingChange: setWorking,
+                                           presentExport: presentPreservedExport)
+                }
                 if let statusKey {
                     Label(GameStrings.text(statusKey), systemImage: "checkmark.shield.fill")
                         .font(.subheadline.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
@@ -197,7 +210,13 @@ struct SaveManagementView: View {
     }
 
     @ViewBuilder private func exportButtons(_ url: URL) -> some View {
-        Button { statusKey = nil; isExportingFile = true } label: {
+        Button {
+            statusKey = nil
+            presentedExportDocument = exportDocument
+            presentedExportFilename = "CatLife-Backup"
+            presentedExportCompletion = nil
+            isExportingFile = true
+        } label: {
             Label(GameStrings.text("saveTransfer.saveToFiles"), systemImage: "folder.fill")
                 .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity)
         }
@@ -279,7 +298,11 @@ struct SaveManagementView: View {
             SaveTransferWorkingView(recoveryOnly: recoveryOnly).background(RoomTheme.cream.ignoresSafeArea())
         } else if let issue {
             SaveTransferErrorView(reason: issue, recoveryOnly: recoveryOnly, retryExport: retryExport,
-                chooseAgain: { chooseAfterDismiss = true; isShowingModal = false },
+                chooseAgain: {
+                    if issue == .currentSaveReadable { retryReadAfterDismiss = true }
+                    else { chooseAfterDismiss = true }
+                    isShowingModal = false
+                },
                 close: { cancelPreview() })
         } else if didRestore, let snapshot = store.snapshot {
             SaveTransferSuccessView(snapshot: snapshot, recovery: recovery, recoveryUnavailable: recoveryUnavailable,
@@ -404,6 +427,14 @@ struct SaveManagementView: View {
         }
     }
 
+    private func presentPreservedExport(_ document: SaveArchiveDocument, filename: String,
+                                       completion: @escaping (Result<URL, Error>?) -> Void) {
+        presentedExportDocument = document
+        presentedExportFilename = filename
+        presentedExportCompletion = completion
+        isExportingFile = true
+    }
+
     private func readImport(_ url: URL) {
         retryExport = false
         setWorking(true); statusKey = nil
@@ -480,7 +511,10 @@ struct SaveManagementView: View {
     private func modalDismissed() {
         if !didRestore && preview != nil && statusKey == nil { setStatus("saveTransfer.unchanged") }
         preview = nil; issue = nil; acknowledged = false; didRestore = false
-        if chooseAfterDismiss {
+        if retryReadAfterDismiss {
+            retryReadAfterDismiss = false
+            onRetryLoad?()
+        } else if chooseAfterDismiss {
             chooseAfterDismiss = false; statusKey = nil
             if retryExport { prepareExport() } else { isImportingFile = true }
         }
