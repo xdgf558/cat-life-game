@@ -28,7 +28,8 @@ struct TownView: View {
                 }).id(store.adoptionCatID ?? "collection")
             } else { map }
         }
-        .saveRecoveryAlert(store: store, isActive: store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation)
+        .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
+                           && store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation)
     }
 
     private var map: some View {

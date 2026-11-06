@@ -56,6 +56,7 @@ final class GameStore {
     var isPresentingAdoptionConfirmation = false
     var isShowingNeighbors = false
     let adoptionReminders: GameAdoptionReminderCenter
+    let onboarding: GameOnboardingCenter
     var hospitalCatID: String?
     var isInspectingHealth = false { didSet { syncAudio() } }
     private(set) var now = Date()
@@ -129,6 +130,7 @@ final class GameStore {
         let reminderDefaults = testing ? UserDefaults(suiteName: "com.stationcat.catlife.ui-testing")! : .standard
         if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
             reminderDefaults.removeObject(forKey: GameAdoptionReminderCenter.presentedIDsKey)
+            reminderDefaults.removeObject(forKey: GameOnboardingCenter.progressKey)
         }
         let saveDirectory = directory ?? base.appendingPathComponent(testing ? "CatLife-UITests" : "CatLife", isDirectory: true)
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)
@@ -143,12 +145,14 @@ final class GameStore {
         #endif
         repository = FileSaveRepository(directory: saveDirectory)
         adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults)
+        onboarding = GameOnboardingCenter(defaults: reminderDefaults)
     }
 
     init(repository: any GameSaveRepository, reminderDefaults: UserDefaults? = nil) {
         self.repository = repository
-        adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults
-            ?? UserDefaults(suiteName: "com.stationcat.catlife.tests.\(UUID().uuidString)")!)
+        let defaults = reminderDefaults ?? UserDefaults(suiteName: "com.stationcat.catlife.tests.\(UUID().uuidString)")!
+        adoptionReminders = GameAdoptionReminderCenter(defaults: defaults)
+        onboarding = GameOnboardingCenter(defaults: defaults)
     }
 
     var cat: CatState? { snapshot?.activeCat }
@@ -580,6 +584,7 @@ final class GameStore {
         lastSyncCheck = importDate
         silentProgressThrough = nil
         snapshot = candidate
+        onboarding.didImport(snapshot: candidate)
         saveSceneGeneration = UUID()
         GameLocalization.shared.language = candidate.settings.language
             ?? GameLanguage.preferred(in: Locale.preferredLanguages)
@@ -601,6 +606,7 @@ final class GameStore {
     func enterHome() {
         guard snapshot != nil, !isLoading, !loadFailed, !hasEnteredHome else { return }
         hasEnteredHome = true
+        onboarding.show()
         refreshAdoptionReminders()
         syncAudio()
         audio.play(.enter, userInitiated: true)
@@ -644,6 +650,13 @@ final class GameStore {
         }
         // A successful read remains usable even if reconciliation cannot write.
         snapshot = loaded
+        onboarding.prepare(snapshot: loaded, disposition: loadDisposition)
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-testing"),
+           ProcessInfo.processInfo.arguments.contains("--skip-onboarding") {
+            onboarding.finish()
+        }
+        #endif
         GameLocalization.shared.language = loaded.settings.language
             ?? GameLanguage.preferred(in: Locale.preferredLanguages)
         startupProgress = 1.0 / 3

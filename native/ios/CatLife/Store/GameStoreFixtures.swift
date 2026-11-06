@@ -32,7 +32,9 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--uitesting-siamese-owned") || arguments.contains("--uitesting-silver-owned") {
+        if arguments.contains("--onboarding-existing-save") {
+            initialSnapshot = GameSnapshot.fresh(now: now)
+        } else if arguments.contains("--uitesting-siamese-owned") || arguments.contains("--uitesting-silver-owned") {
             var value = GameSnapshot.fresh(now: now)
             let appearance: CatAppearance = arguments.contains("--uitesting-siamese-owned") ? .siamese : .silver
             let offer = CatCatalog.adoptionOffers.first { $0.appearance == appearance }!

@@ -499,7 +499,7 @@ extension RoomHomeUITests {
     }
 
     func arguments(reset: Bool) -> [String] {
-        var values = ["--ui-testing", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
+        var values = ["--ui-testing", "--skip-onboarding", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         if reset { values.append("--reset-ui-test-save") }
         return values
     }
