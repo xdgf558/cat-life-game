@@ -7,6 +7,7 @@ struct InventoryView: View {
     @Bindable var store: GameStore
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var selection: Selection = .supply(.food)
+    @State private var showsGifts = false
 
     private enum Selection: Equatable {
         case supply(Supply), furniture(String), equipment(String)
@@ -38,6 +39,7 @@ struct InventoryView: View {
                     GamePageHeading(title: GameStrings.text("tab.inventory"),
                         subtitle: GameStrings.text("bag.subtitle"), asset: "icon-inventory", symbol: "backpack.fill",
                         tint: RoomTheme.gold, background: RoomTheme.gold.opacity(0.18))
+                    CommunityGiftEntry(store: store) { showsGifts = true }
                     sectionHeading("inventory.supplies", identifier: "inventorySuppliesTab") {
                         store.inventoryCategory = .supplies
                         selection = .supply(.food)
@@ -78,6 +80,9 @@ struct InventoryView: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .background(RoomTheme.cream)
+            .navigationDestination(isPresented: $showsGifts) {
+                CommunityGiftView(store: store, onClose: { showsGifts = false })
+            }
             .accessibilityIdentifier("destinationScroll")
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 selectedItemBar.padding(.horizontal, 12).padding(.top, 8).padding(.bottom, 12)

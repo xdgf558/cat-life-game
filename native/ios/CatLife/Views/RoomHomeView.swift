@@ -93,13 +93,6 @@ struct RoomHomeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .top) {
                     if store.hasSaveFailure && homeVisible && !moreVisible { SaveStatusBanner(store: store) }
-                    else if !store.hasSaveFailure, !moreVisible, store.inspectedCatID == nil,
-                            !store.isPresentingAdoptionConfirmation, !store.isDecorating,
-                            (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
-                            let offer = store.adoptionReminders.pendingOffer {
-                        AdoptionAvailableBanner(store: store, offer: offer)
-                            .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)
-                    }
                     else if !store.hasSaveFailure, let toast = store.toast, !toast.isEmpty, !moreVisible {
                         Text(toast).font(.system(size: 13, weight: .bold)).lineLimit(6)
                             .multilineTextAlignment(.center).accessibilityLabel(toast)
@@ -109,6 +102,13 @@ struct RoomHomeView: View {
                             .accessibilityIdentifier(homeVisible ? "actionToast" : "sheetToast")
                             .accessibilityAddTraits(.updatesFrequently)
                             .allowsHitTesting(false)
+                    }
+                    else if !store.hasSaveFailure, !moreVisible, store.inspectedCatID == nil,
+                            !store.isPresentingAdoptionConfirmation, !store.isDecorating,
+                            (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
+                            let offer = store.adoptionReminders.pendingOffer {
+                        AdoptionAvailableBanner(store: store, offer: offer)
+                            .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)
                     }
                 }
                 Group {

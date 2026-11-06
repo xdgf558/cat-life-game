@@ -168,6 +168,36 @@ final class GameStoreAdoptionReminderTests: XCTestCase {
     }
 
     @MainActor
+    func testOpeningAdoptionReminderLeavesNeighborPageEvenWithinTheSameTownTab() async throws {
+        var seed = upgradeSeed()
+        seed.home.roomLevel = 2
+        seed.player.gold = 299
+        seed.community.relationships["neighbor_mira"]?.friendship = 19
+        let store = GameStore(repository: AdoptionReminderSaveRepository(seed), reminderDefaults: try isolatedDefaults())
+        await makeLive(store)
+        defer { store.setForeground(false) }
+        try await eventually { !store.isBusy }
+        XCTAssertNil(store.adoptionReminders.pendingOffer)
+        store.openNeighbors()
+        XCTAssertEqual(store.activeSheet, .town)
+        XCTAssertTrue(store.isShowingNeighbors)
+
+        let visited = await store.visitNeighbor(id: "neighbor_mira")
+        XCTAssertTrue(visited)
+        XCTAssertEqual(store.adoptionReminders.pendingOffer?.id, CatCatalog.cowCatID)
+        let saved = store.snapshot
+        store.adoptionReminders.markPresented(CatCatalog.cowCatID)
+        store.adoptionReminders.dismiss(CatCatalog.cowCatID)
+        store.openCatCollection(filter: .unowned, adoptionID: CatCatalog.cowCatID)
+
+        XCTAssertEqual(store.activeSheet, .town)
+        XCTAssertFalse(store.isShowingNeighbors)
+        XCTAssertEqual(store.catCollectionFilter, .unowned)
+        XCTAssertEqual(store.adoptionCatID, CatCatalog.cowCatID)
+        XCTAssertEqual(store.snapshot, saved)
+    }
+
+    @MainActor
     private func makeLive(_ store: GameStore) async {
         await store.load()
         store.enterHome()

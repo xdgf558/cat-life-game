@@ -40,6 +40,7 @@ final class GameStore {
             if oldValue != activeSheet {
                 catCollectionFilter = nil
                 adoptionCatID = nil
+                isShowingNeighbors = false
                 playNavigationSound()
             }
         }
@@ -53,6 +54,7 @@ final class GameStore {
     var catCollectionFilter: CatCollectionView.Filter?
     var adoptionCatID: String?
     var isPresentingAdoptionConfirmation = false
+    var isShowingNeighbors = false
     let adoptionReminders: GameAdoptionReminderCenter
     var hospitalCatID: String?
     var isInspectingHealth = false { didSet { syncAudio() } }
@@ -317,6 +319,7 @@ final class GameStore {
         isShowingSettings = false
         inspectedCatID = nil
         activeSheet = .town
+        isShowingNeighbors = false
         catCollectionFilter = filter
         adoptionCatID = adoptionID
     }
@@ -570,6 +573,7 @@ final class GameStore {
         isInspectingHealth = false
         adoptionCatID = nil
         isPresentingAdoptionConfirmation = false
+        isShowingNeighbors = false
         adoptionReminders.clearPending()
         clearSaveFailure()
         now = importDate
@@ -1026,6 +1030,49 @@ final class GameStore {
         inspectedCatID = nil
         isShowingSettings = false
         activeSheet = .hospital
+    }
+
+    func openNeighbors() {
+        guard !isBusy, !isDecorating, snapshot != nil else { return }
+        inspectedCatID = nil
+        isShowingSettings = false
+        activeSheet = .town
+        catCollectionFilter = nil
+        adoptionCatID = nil
+        isShowingNeighbors = true
+    }
+
+    func visitNeighbor(id: String) async -> Bool {
+        await performNeighborAction(id: id) { GameEngine.visitNeighbor(&$0, neighborID: id, now: $1) }
+    }
+
+    func giveNeighborGift(neighborID: String, giftID: String) async -> Bool {
+        await performNeighborAction(id: neighborID) {
+            GameEngine.giveNeighborGift(&$0, neighborID: neighborID, giftID: giftID, now: $1)
+        }
+    }
+
+    func buyCommunityGift(id: String) async -> Bool {
+        await performPersistedAction { GameEngine.buyCommunityGift(&$0, giftID: id, quantity: 1, now: $1) }
+    }
+
+    private func performNeighborAction(id: String,
+        _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
+        let previousStage = snapshot?.community.relationship(for: id).stage.level ?? 1
+        var result: ActionOutcome?
+        let succeeded = await performPersistedAction(showsSuccessNotice: false) {
+            let outcome = action(&$0, $1)
+            result = outcome
+            return outcome
+        }
+        guard succeeded, let result else { return false }
+        var notice = message(for: result)
+        if let stage = snapshot?.community.relationship(for: id).stage, stage.level > previousStage {
+            notice += "\n" + GameStrings.format("community.stageReached", GameStrings.text(stage.nameKey))
+        }
+        // A durable action still reports success if the player has left its detail page.
+        showNotice(notice)
+        return true
     }
 
     @discardableResult

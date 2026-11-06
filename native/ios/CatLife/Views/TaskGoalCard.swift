@@ -107,13 +107,13 @@ enum TaskCardPresentation {
         GameTaskCatalog.isClaimed(task, in: snapshot) ? task.target : min(task.target, GameTaskCatalog.progress(for: task, in: snapshot))
     }
     static func symbol(_ destination: GameTaskDestination) -> String {
-        switch destination { case .work: "briefcase.fill"; case .care: "cat.fill"; case .furnitureShop: "storefront.fill"; case .upgrade: "house.fill" }
+        switch destination { case .work: "briefcase.fill"; case .care: "cat.fill"; case .furnitureShop: "storefront.fill"; case .upgrade: "house.fill"; case .neighbors: "person.2.fill" }
     }
     static func tint(_ destination: GameTaskDestination) -> Color {
-        switch destination { case .work: RoomTheme.gold; case .care: RoomTheme.mint; case .furnitureShop: RoomTheme.coral; case .upgrade: RoomTheme.secondary }
+        switch destination { case .work: RoomTheme.gold; case .care: RoomTheme.mint; case .furnitureShop: RoomTheme.coral; case .upgrade: RoomTheme.secondary; case .neighbors: RoomTheme.lilac }
     }
     static func background(_ destination: GameTaskDestination) -> Color {
-        switch destination { case .work: RoomTheme.gold.opacity(0.2); case .care: RoomTheme.paleMint; case .furnitureShop: RoomTheme.paleCoral; case .upgrade: RoomTheme.track }
+        switch destination { case .work: RoomTheme.gold.opacity(0.2); case .care: RoomTheme.paleMint; case .furnitureShop: RoomTheme.paleCoral; case .upgrade: RoomTheme.track; case .neighbors: RoomTheme.lilac.opacity(0.15) }
     }
 }
 

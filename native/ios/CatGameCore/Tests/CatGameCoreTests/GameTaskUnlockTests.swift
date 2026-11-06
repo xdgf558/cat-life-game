@@ -19,6 +19,9 @@ struct GameTaskUnlockTests {
         state.tasks.dailyPlayCount = 2
         state.tasks.dailyCleanCount = 1
         state.tasks.totalCleanCount = 30
+        state.community.relationships["neighbor_mira"] = .init(friendship: 40,
+            visitedToday: true, giftsGivenToday: 1, totalVisitCount: 10, totalGiftCount: 10,
+            rewardedStageLevels: [2, 3])
         return state
     }
 
@@ -33,10 +36,10 @@ struct GameTaskUnlockTests {
             ("achievement_work50", 6, 50, 280, 50), ("achievement_intimacy100", 6, 100, 180, 35),
             ("achievement_work100", 10, 100, 500, 80), ("achievement_furniture5", 10, 5, 180, 35)
         ]
-        #expect(GameTaskCatalog.all.count == 25 && Set(GameTaskCatalog.all.map(\.id)).count == 25)
+        #expect(GameTaskCatalog.all.count == 29 && Set(GameTaskCatalog.all.map(\.id)).count == 29)
         #expect(GameTaskCatalog.all.filter { $0.category == .tutorial }.count == 4)
-        #expect(GameTaskCatalog.all.filter { $0.category == .daily }.count == 8)
-        #expect(GameTaskCatalog.all.filter { $0.category == .achievement }.count == 13)
+        #expect(GameTaskCatalog.all.filter { $0.category == .daily }.count == 10)
+        #expect(GameTaskCatalog.all.filter { $0.category == .achievement }.count == 15)
         for (id, level, target, gold, exp) in expected {
             let definition = try task(id)
             #expect(definition.requiredLevel == level && definition.target == target)
@@ -77,15 +80,15 @@ struct GameTaskUnlockTests {
 
     @Test func remainingTasksIncludeIncompleteTasksAndExcludeBothLockedAndClaimedTasks() {
         var state = GameSnapshot.fresh(now: now)
-        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).map(\.id) == ["daily_work", "daily_feed", "daily_play", "daily_clean"])
+        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).map(\.id) == ["daily_work", "daily_feed", "daily_play", "daily_clean", "daily_visit"])
         #expect(GameTaskCatalog.remainingTasks(in: state, category: .achievement).map(\.id) ==
             ["achievement_work10", "achievement_intimacy50", "achievement_room2"])
         _ = GameEngine.feed(&state, catID: state.activeCatID, now: now)
         _ = GameEngine.claimTask(&state, id: "daily_feed", expectedDayKey: state.tasks.dailyDayKey, now: now)
-        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).map(\.id) == ["daily_work", "daily_play", "daily_clean"])
+        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).map(\.id) == ["daily_work", "daily_play", "daily_clean", "daily_visit"])
         state.player.level = 2
-        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).map(\.id) == ["daily_work", "daily_play", "daily_work2", "daily_clean"])
-        #expect(GameTaskCatalog.remainingTasks(in: state, category: .achievement).count == 6)
+        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).map(\.id) == ["daily_work", "daily_play", "daily_work2", "daily_clean", "daily_visit", "daily_gift"])
+        #expect(GameTaskCatalog.remainingTasks(in: state, category: .achievement).count == 7)
     }
 
     @Test func claimingEveryVisibleTaskRemovesOnlyThatTaskUntilEachCategoryIsEmpty() {
@@ -197,7 +200,7 @@ struct GameTaskUnlockTests {
         #expect(state.tasks.dailyDayKey != oldDay && state.tasks.dailyClaimedTaskIDs.isEmpty)
         #expect(state.tasks.dailyWorkCount == 0 && state.tasks.dailyFeedCount == 0 && state.tasks.dailyPlayCount == 0 && state.tasks.dailyCleanCount == 0)
         #expect(state.tasks.claimedTaskIDs == permanent && state.tasks.furniturePurchaseCount == 5 && state.tasks.totalFeedCount == 2 && state.tasks.totalCleanCount == 30)
-        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).count == 8)
+        #expect(GameTaskCatalog.remainingTasks(in: state, category: .daily).count == 10)
         #expect(GameEngine.claimTask(&state, id: "daily_work3", expectedDayKey: oldDay,
                                     now: now.addingTimeInterval(86_400)).failure == .taskDayChanged)
     }

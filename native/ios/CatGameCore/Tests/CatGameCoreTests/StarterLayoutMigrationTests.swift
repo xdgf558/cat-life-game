@@ -48,7 +48,7 @@ struct StarterLayoutMigrationTests {
                 expected.home.furniture[cushion].position.x = 0.22
                 let loaded = try reload(original, schema: version)
                 #expect(loaded == expected)
-                #expect(loaded.isValid && loaded.schemaVersion == 6)
+                #expect(loaded.isValid && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
                 #expect(loaded.home.furniture.map(\.itemID) == original.home.furniture.map(\.itemID))
                 #expect(try reload(loaded, schema: 6) == loaded)
             }

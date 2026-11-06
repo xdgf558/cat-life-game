@@ -32,7 +32,32 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--hospital-fixture") {
+        if arguments.contains("--uitesting-siamese-owned") || arguments.contains("--uitesting-silver-owned") {
+            var value = GameSnapshot.fresh(now: now)
+            let appearance: CatAppearance = arguments.contains("--uitesting-siamese-owned") ? .siamese : .silver
+            let offer = CatCatalog.adoptionOffers.first { $0.appearance == appearance }!
+            value.player.level = 8
+            value.player.gold = 5000
+            value.home.roomLevel = 3
+            value.inventory.food = 3
+            value.inventory.litter = 2
+            value.inventory.toys = 6
+            value.cats.append(CatState(id: offer.id, name: offer.name, satiety: 70,
+                cleanliness: 80, mood: 80, energy: 85, health: 100, now: now, appearance: appearance))
+            value.activeCatID = offer.id
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
+        } else if arguments.contains("--community-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.player.level = 8
+            value.player.gold = 5000
+            value.home.roomLevel = 3
+            value.inventory.toys = 6
+            value.inventory.gifts = ["flower": 2, "drink": 1]
+            value.community.relationships["neighbor_mira"] = NeighborRelationship(friendship: 18)
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
+        } else if arguments.contains("--hospital-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
             value.player.gold = arguments.contains("--hospital-low-gold") ? 10 : 1000
@@ -54,6 +79,9 @@ struct GameStoreFixtures {
                 value.tasks.dailyPlayCount = 2
                 value.tasks.dailyCleanCount = 1
                 value.tasks.totalCleanCount = 30
+                value.community.relationships["neighbor_mira"] = NeighborRelationship(
+                    friendship: 40, visitedToday: true, giftsGivenToday: 1,
+                    totalVisitCount: 10, totalGiftCount: 10, rewardedStageLevels: [2, 3])
             } else {
                 value.player.exp = 99
                 _ = GameEngine.feed(&value, catID: value.activeCatID, now: now)

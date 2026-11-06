@@ -6,11 +6,12 @@ public enum GameTaskCategory: String, Codable, CaseIterable, Identifiable, Senda
 }
 
 public enum GameTaskDestination: String, Sendable {
-    case work, care, furnitureShop, upgrade
+    case work, care, furnitureShop, upgrade, neighbors
 }
 
 enum GameTaskMetric: Sendable {
     case totalWork, totalFeed, furniturePurchases, dailyWork, dailyFeed, dailyPlay, totalClean, dailyClean, intimacy, roomLevel
+    case dailyVisit, dailyGift, totalVisit, friendship
 }
 
 public struct GameTaskDefinition: Identifiable, Sendable {
@@ -89,7 +90,15 @@ public enum GameTaskCatalog {
         .init(id: "achievement_clean10", category: .achievement, target: 10, goldReward: 100, expReward: 20,
               destination: .care, metric: .totalClean, requiredLevel: 2),
         .init(id: "achievement_clean30", category: .achievement, target: 30, goldReward: 180, expReward: 35,
-              destination: .care, metric: .totalClean, requiredLevel: 6)
+              destination: .care, metric: .totalClean, requiredLevel: 6),
+        .init(id: "daily_visit", category: .daily, target: 1, goldReward: 10, expReward: 3,
+              destination: .neighbors, metric: .dailyVisit),
+        .init(id: "daily_gift", category: .daily, target: 1, goldReward: 10, expReward: 3,
+              destination: .neighbors, metric: .dailyGift, requiredLevel: 2),
+        .init(id: "achievement_visit10", category: .achievement, target: 10, goldReward: 80, expReward: 15,
+              destination: .neighbors, metric: .totalVisit, requiredLevel: 2),
+        .init(id: "achievement_friend40", category: .achievement, target: 40, goldReward: 100, expReward: 20,
+              destination: .neighbors, metric: .friendship, requiredLevel: 4)
     ]
 
     public static func task(id: String) -> GameTaskDefinition? { all.first { $0.id == id } }
@@ -106,6 +115,10 @@ public enum GameTaskCatalog {
         case .dailyClean: state.tasks.dailyCleanCount
         case .intimacy: state.cats.map(\.intimacy).max() ?? 0
         case .roomLevel: state.home.roomLevel
+        case .dailyVisit: state.community.dailyVisitCount
+        case .dailyGift: state.community.dailyGiftCount
+        case .totalVisit: state.community.totalVisitCount
+        case .friendship: state.community.highestFriendship
         }
     }
 
