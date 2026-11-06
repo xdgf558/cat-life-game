@@ -65,6 +65,8 @@ enum GameActionNotice {
                 return GameStrings.text("action.workStarted")
             case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
             case .taskClaimed: return GameStrings.format("tasks.claimedNotice", outcome.amount)
+            case .neighborVisited, .neighborGifted: return GameStrings.format(success.rawValue, outcome.amount)
+            case .neighborChatted, .communityGiftPurchased: return GameStrings.text(success.rawValue)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
@@ -74,7 +76,8 @@ enum GameActionNotice {
              .sleepWorkActive, .workSleeping, .restInvalidFurniture,
              .workJobMissing, .workLevelRequired, .workProgressLimit,
              .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,
-             .catAdoptionMissing, .catAlreadyOwned, .hospitalHealthy:
+             .catAdoptionMissing, .catAlreadyOwned, .hospitalHealthy,
+             .neighborMissing, .communityGiftMissing, .communityGiftRequired, .communityGiftLimit:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:

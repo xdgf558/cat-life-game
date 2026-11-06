@@ -10,7 +10,7 @@ extension RoomHomeUITests {
         let room = element("roomScene", in: app).frame
         openTownCollection(in: app)
         waitForObservedValue("catCount", "9", in: app)
-        waitForObservedValue("catCollectionProgress", "1/3", in: app)
+        waitForObservedValue("catCollectionProgress", "1/5", in: app)
         assertCatPage([1, 2, 3, 4], page: "1/3", in: app)
         XCTAssertFalse(element("catProfileSatiety", in: app).exists)
         attachScreenshot(app, named: "Cats — compact first page with four individual cards")

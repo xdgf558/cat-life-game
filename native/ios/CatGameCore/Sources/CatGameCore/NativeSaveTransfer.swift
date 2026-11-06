@@ -4,6 +4,7 @@ public enum NativeSaveTransferError: Error, Equatable, Sendable {
     case invalidArchive
     case unsupportedArchiveVersion(Int)
     case fileTooLarge
+    case futureProgress
 }
 
 /// A validated, immutable preview; selecting a file never mutates the game.
@@ -16,6 +17,15 @@ public enum NativeSaveTransfer {
     public static let maximumFileSize = 5 * 1024 * 1024
     private static let identifier = "com.stationcat.catlife.native.save"
     private static let currentFormatVersion = 1
+
+    /// Check again when confirming: the device clock may have changed after preview.
+    /// Export remains available so a clock error never traps the original progress.
+    public static func validateImportTime(_ archive: NativeSaveArchive, now: Date = Date()) throws {
+        guard now.timeIntervalSince1970.isFinite else { throw NativeSaveTransferError.invalidArchive }
+        guard archive.snapshot.meta.lastSyncAt.timeIntervalSince(now) <= 24 * 60 * 60 else {
+            throw NativeSaveTransferError.futureProgress
+        }
+    }
 
     private struct Envelope: Codable {
         let format: String

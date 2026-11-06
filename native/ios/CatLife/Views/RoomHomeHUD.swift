@@ -41,6 +41,9 @@ struct RoomHomeHUD: View {
                 RoomCatStatusCard(store: store, presentation: catNeedPresentation)
             }
         }
+        .onChange(of: store.onboarding.isPresented) { _, presented in
+            if !presented && store.onboarding.step == .care { controlsHidden = false }
+        }
     }
 
     private var header: some View {
@@ -64,7 +67,13 @@ struct RoomHomeHUD: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HomeNamePlaque(name: store.homeDisplayName, height: 62)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("homeNamePlaque")
-                    if !controlsHidden { HomeTaskEntry(store: store) }
+                    if store.onboarding.isActive && store.activeSheet == nil && !store.isShowingSettings {
+                        GuideResumeBar(store: store)
+                            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                            .lineLimit(1).minimumScaleFactor(0.7).frame(height: 44)
+                    } else if !controlsHidden {
+                        HomeTaskEntry(store: store)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

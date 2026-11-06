@@ -22,6 +22,9 @@ struct RoomHomeView: View {
     private var catSheetVisible: Binding<Bool> {
         Binding(get: { store.inspectedCatID != nil }, set: { if !$0 { store.inspectedCatID = nil } })
     }
+    private var onboardingSheetVisible: Binding<Bool> {
+        Binding(get: { store.onboarding.isPresented }, set: { store.onboarding.isPresented = $0 })
+    }
 
     var body: some View {
         Group {
@@ -58,7 +61,23 @@ struct RoomHomeView: View {
         .sheet(isPresented: catSheetVisible) {
             CatCollectionView(store: store, initialCatID: store.inspectedCatID)
         }
-        .saveRecoveryAlert(store: store, isActive: store.inspectedCatID == nil && store.activeSheet != .town
+        .sheet(isPresented: onboardingSheetVisible) {
+            OnboardingGuideView(store: store, onExplore: { step in
+                moreVisible = false
+                store.exploreOnboarding(step)
+            })
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if store.hasSaveFailure { SaveStatusBanner(store: store) }
+            }
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(store.isBusy || store.saveTransferInProgress)
+            .saveRecoveryAlert(store: store)
+        }
+        .onChange(of: store.onboarding.isPresented) { _, presented in
+            if presented { moreVisible = false }
+        }
+        .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
+                          && store.inspectedCatID == nil && store.activeSheet != .town
                           && store.activeSheet != .player && !store.isPresentingAdoptionConfirmation)
     }
 
@@ -93,13 +112,6 @@ struct RoomHomeView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .overlay(alignment: .top) {
                     if store.hasSaveFailure && homeVisible && !moreVisible { SaveStatusBanner(store: store) }
-                    else if !store.hasSaveFailure, !moreVisible, store.inspectedCatID == nil,
-                            !store.isPresentingAdoptionConfirmation, !store.isDecorating,
-                            (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
-                            let offer = store.adoptionReminders.pendingOffer {
-                        AdoptionAvailableBanner(store: store, offer: offer)
-                            .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)
-                    }
                     else if !store.hasSaveFailure, let toast = store.toast, !toast.isEmpty, !moreVisible {
                         Text(toast).font(.system(size: 13, weight: .bold)).lineLimit(6)
                             .multilineTextAlignment(.center).accessibilityLabel(toast)
@@ -110,6 +122,18 @@ struct RoomHomeView: View {
                             .accessibilityAddTraits(.updatesFrequently)
                             .allowsHitTesting(false)
                     }
+                    else if !store.hasSaveFailure, !store.onboarding.isPresented,
+                            !moreVisible, store.inspectedCatID == nil,
+                            !store.isPresentingAdoptionConfirmation, !store.isDecorating,
+                            (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
+                            let offer = store.adoptionReminders.pendingOffer {
+                        AdoptionAvailableBanner(store: store, offer: offer)
+                            .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)
+                    }
+                }
+                if store.onboarding.isActive && !homeVisible && !moreVisible && !store.isDecorating {
+                    GuideResumeBar(store: store)
+                        .padding(.horizontal, 14).padding(.vertical, 6).background(RoomTheme.cream)
                 }
                 Group {
                     if store.isDecorating {
@@ -184,7 +208,8 @@ struct RoomHomeView: View {
     private func room(_ snapshot: GameSnapshot) -> some View {
         ZStack(alignment: .top) {
             RoomSceneHost(store: store,
-                          isActive: scenePhase == .active && homeVisible && !moreVisible && store.inspectedCatID == nil,
+                          isActive: scenePhase == .active && homeVisible && !moreVisible
+                              && store.inspectedCatID == nil && !store.onboarding.isPresented,
                           reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
                           arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
                 .id(store.saveSceneGeneration)

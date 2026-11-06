@@ -1,0 +1,27 @@
+打工养猫日记 0.14.0（52）— 新手指引与邻里拜访
+状态：本地候选归档，等待 PR 审查；尚未上传或分发。
+
+简体中文测试内容
+本版开放猫町的“邻居街”，新增四位小镇邻居、日常拜访、聊天、赠礼和好感度成长；同时增加暹罗猫“可可”与银渐层“霜糖”，并修复备份导入和导出体验。
+
+新增五步新手指引：新玩家进入小家后自动开启，可跳过、继续查看，并在“设置 → 新手指引”重看；已在玩的存档不会自动弹出。
+
+请重点体验：
+1. 在猫町进入邻居街，拜访不同邻居，查看对话、喜好和关系阶段；同一天重复聊天不应重复增加拜访好感。
+2. 从商店或背包进入礼物页，购买并赠送礼物，检查金币、库存、每日赠礼次数和阶段奖励；重启后应保留进度。
+3. 完成邻里每日任务与成就，领取后对应卡片应隐藏，任务快捷入口应到达正确页面。
+4. 达到条件后领养可可或霜糖，切换为陪伴猫，观察喂食、玩耍、上下猫窝和坐垫的动作及位置。
+5. 从旧版升级后检查原有猫咪、名字、金币、家具布局和任务记录。尝试导出并预览备份；明显来自未来时间的备份应提示无法导入。
+6. 新玩家依次体验五步指引，点击“前往看看”应只打开对应页面，不自动消耗资源；退出后可继续，完成或跳过后重启不应反复出现。老玩家可从设置主动重看。
+7. 检查小屏幕、简体中文、繁体中文、English 和大字体下的排版及按钮操作。
+
+如遇异常，请通过 TestFlight 反馈，并附上设备型号、系统版本、操作步骤及截图。恢复备份会替换当前进度，请先导出当前进度留存。
+
+English — What to Test
+Visit the new Neighborhood in Cat Town, meet four local characters, chat, give gifts, and grow friendships. This update also adds Cocoa the Siamese and Frost the silver-shaded cat, plus save-transfer improvements.
+
+New players receive a five-step beginner guide after entering home. Check skip, resume, page shortcuts, and replay from Settings. Shortcuts must not spend resources or claim rewards; completing or skipping the guide should persist after relaunch. Existing players should not see it automatically.
+
+Please check daily visit and gift limits, gift purchases and inventory, one-time friendship rewards, task shortcuts and claimed-card hiding, and persistence after relaunch. Adopt the new cats when eligible and check feeding, playing, and climbing onto/off beds and cushions. Verify existing progress after upgrading, backup export/import previews, and the warning for backups dated far in the future. Please also try all three languages and larger text sizes.
+
+Report issues through TestFlight with your device model, iOS version, steps, and screenshots. Export your current progress before testing a restore, which replaces the active save.

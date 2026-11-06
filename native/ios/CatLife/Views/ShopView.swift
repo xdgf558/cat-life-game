@@ -4,6 +4,7 @@ import CatGameCore
 @MainActor
 struct ShopView: View {
     @Bindable var store: GameStore
+    @State private var showsGifts = false
 
     var body: some View {
         ScrollView {
@@ -20,6 +21,7 @@ struct ShopView: View {
                         .accessibilityLabel(GameStrings.text("resource.gold"))
                         .accessibilityIdentifier("shopGoldCount").accessibilityValue("\(store.snapshot?.player.gold ?? 0)")
                 }
+                CommunityGiftEntry(store: store) { showsGifts = true }
                 if let featured = ShopListing.list(.furniture).last { featuredCard(featured) }
                 HStack(spacing: 4) {
                     ForEach(ShopCategory.allCases, id: \.self) { option in
@@ -44,6 +46,9 @@ struct ShopView: View {
         .background(RoomTheme.cream)
         .accessibilityIdentifier("destinationScroll")
         .navigationDestination(for: ShopListing.self) { product in ShopDetailView(product: product, store: store) }
+        .navigationDestination(isPresented: $showsGifts) {
+            CommunityGiftView(store: store, onClose: { showsGifts = false })
+        }
     }
 
     private func featuredCard(_ product: ShopListing) -> some View {

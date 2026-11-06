@@ -17,6 +17,7 @@ extension GameStore {
             shopCategory = .furniture
             activeSheet = .shop
         case .upgrade: openHomeUpgrade()
+        case .neighbors: openNeighbors()
         }
     }
 }

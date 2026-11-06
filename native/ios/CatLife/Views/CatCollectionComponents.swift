@@ -9,6 +9,8 @@ enum CatCollectionPalette {
         case .orange: RoomTheme.gold
         case .cow: RoomTheme.ink
         case .blue: Color(red: 0.37, green: 0.50, blue: 0.62)
+        case .siamese: Color(red: 0.47, green: 0.31, blue: 0.23)
+        case .silver: Color(red: 0.43, green: 0.52, blue: 0.48)
         }
     }
     static func background(_ appearance: CatAppearance) -> Color {
@@ -16,6 +18,8 @@ enum CatCollectionPalette {
         case .orange: RoomTheme.gold.opacity(0.20)
         case .cow: RoomTheme.track
         case .blue: Color(red: 0.86, green: 0.90, blue: 0.94)
+        case .siamese: Color(red: 0.95, green: 0.89, blue: 0.81)
+        case .silver: Color(red: 0.90, green: 0.94, blue: 0.92)
         }
     }
 }

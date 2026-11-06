@@ -18,7 +18,9 @@ struct TownView: View {
 
     var body: some View {
         Group {
-            if let filter = store.catCollectionFilter {
+            if store.isShowingNeighbors {
+                CommunityView(store: store) { store.isShowingNeighbors = false }
+            } else if let filter = store.catCollectionFilter {
                 CatCollectionView(store: store, initialFilter: filter, embedded: true,
                                   initialAdoptionID: store.adoptionCatID, onClose: {
                     store.catCollectionFilter = nil
@@ -26,7 +28,8 @@ struct TownView: View {
                 }).id(store.adoptionCatID ?? "collection")
             } else { map }
         }
-        .saveRecoveryAlert(store: store, isActive: store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation)
+        .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
+                           && store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation)
     }
 
     private var map: some View {
@@ -231,6 +234,9 @@ struct TownView: View {
 
     private func enterPlace() {
         switch selectedPlace {
+        case .street:
+            store.playNavigationSound()
+            store.isShowingNeighbors = true
         case .hospital: store.openHospital()
         case .adoption: openCollection(filter: availableOffer == nil ? .owned : .unowned)
         case .home, .work, .shop:

@@ -101,7 +101,7 @@ final class GameStoreCatAdoptionTests: XCTestCase {
         let roundTrip = try JSONDecoder().decode(GameSnapshot.self, from: JSONEncoder().encode(durable))
         let reopened = GameStore(repository: CatAdoptionSaveRepository(roundTrip))
         await reopened.load()
-        XCTAssertEqual(reopened.snapshot?.schemaVersion, 6)
+        XCTAssertEqual(reopened.snapshot?.schemaVersion, GameSnapshot.currentSchemaVersion)
         XCTAssertEqual(reopened.snapshot?.cats, durable.cats)
         XCTAssertEqual(reopened.cat?.id, CatCatalog.blueCatID)
         XCTAssertEqual(reopened.cat?.customName, "蓝莓🐾")

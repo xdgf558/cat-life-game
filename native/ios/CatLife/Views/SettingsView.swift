@@ -63,6 +63,13 @@ struct SettingsView: View {
                         }
                         .accessibilityIdentifier("settingsHomeNameRow")
                         Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
+                        Button { store.replayOnboarding() } label: {
+                            settingRow(symbol: "sparkles", title: "settings.onboarding",
+                                       value: GameStrings.text("onboarding.settingsHint"), tint: RoomTheme.mint)
+                        }
+                        .disabled(store.isBusy || store.saveTransferInProgress)
+                        .accessibilityIdentifier("settingsOnboardingRow")
+                        Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
                         NavigationLink(value: Destination.updates) {
                             settingRow(symbol: "clock.arrow.circlepath", title: "settings.updates",
                                        value: AppVersion.current.display, tint: RoomTheme.gold)

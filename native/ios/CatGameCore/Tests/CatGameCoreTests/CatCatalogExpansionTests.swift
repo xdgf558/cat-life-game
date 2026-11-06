@@ -26,7 +26,7 @@ struct CatCatalogExpansionTests {
         let offer = try #require(CatCatalog.adoptionOffer(catID: CatCatalog.blueCatID))
         #expect(offer.id == "cat_003" && offer.name == "蓝影" && offer.appearance == .blue)
         #expect(offer.price == 600 && offer.requiredPlayerLevel == 4 && offer.requiredRoomLevel == 3)
-        #expect(CatAppearance.allCases == [.orange, .cow, .blue])
+        #expect(CatAppearance.allCases == [.orange, .cow, .blue, .siamese, .silver])
         #expect(Set(CatCatalog.adoptionOffers.map(\.id)).count == CatCatalog.adoptionOffers.count)
         for (level, room, gold, failure, amount) in [
             (3, 3, 2_000, ActionFailure.catPlayerLevelRequired, 4),
@@ -107,7 +107,7 @@ struct CatCatalogExpansionTests {
             var object = try json(original)
             object["schemaVersion"] = version
             var loaded = try decode(object)
-            #expect(loaded == original && loaded.schemaVersion == 6 && loaded.isValid)
+            #expect(loaded == original && loaded.schemaVersion == GameSnapshot.currentSchemaVersion && loaded.isValid)
             #expect(loaded.cats.map(\.appearance) == [.orange, .cow])
             #expect(GameEngine.claimTask(&loaded, id: "tutorial_furniture", now: now).failure == .taskAlreadyClaimed)
             #expect(GameEngine.claimTask(&loaded, id: "daily_clean", expectedDayKey: loaded.tasks.dailyDayKey,
@@ -132,7 +132,7 @@ struct CatCatalogExpansionTests {
         try await repository.save(state, now: now)
         let saved = try Data(contentsOf: repository.saveURL)
         let object = try #require(JSONSerialization.jsonObject(with: saved) as? [String: Any])
-        #expect(object["schemaVersion"] as? Int == 6)
+        #expect(object["schemaVersion"] as? Int == GameSnapshot.currentSchemaVersion)
         #expect(try await FileSaveRepository(directory: folder).loadOrCreate(now: now) == state)
         var stale = state
         stale.schemaVersion = 5

@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 6
+    public static let currentSchemaVersion = 7
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -13,11 +13,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var meta: SaveMetadata
     public var settings: GameSettings
     public var tasks: GameTaskState
+    public var community: CommunityState
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
                 meta: SaveMetadata, settings: GameSettings = GameSettings(), activeCatID: String? = nil,
-                tasks: GameTaskState? = nil) {
+                tasks: GameTaskState? = nil, community: CommunityState = CommunityState()) {
         self.schemaVersion = schemaVersion
         self.player = player
         self.cats = cats
@@ -27,10 +28,11 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.meta = meta
         self.settings = settings
         self.tasks = tasks ?? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
+        self.community = community
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community
     }
 
     public init(from decoder: Decoder) throws {
@@ -50,7 +52,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         // Selection is a display preference; a stale ID must not roll back cats or purchases.
         let selected = try? values.decode(String.self, forKey: .activeCatID)
         activeCatID = selected.flatMap { id in decodedCats.first { $0.id == id }?.id } ?? decodedCats.first?.id ?? ""
-        inventory = try values.decode(InventoryState.self, forKey: .inventory)
+        inventory = try InventoryState(from: values.superDecoder(forKey: .inventory), schemaVersion: version)
         home = try values.decode(HomeState.self, forKey: .home)
         // The original starter cushion is cropped off the full-height room.
         // Only migrate the complete untouched starter layout; a moved, stored
@@ -73,6 +75,11 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
             ? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
             : try GameTaskState(from: values.superDecoder(forKey: .tasks), schemaVersion: version)
         tasks.restoreFurniturePurchaseHistory(from: inventory.furniture)
+        community = version < 7 && !values.contains(.community)
+            ? CommunityState() : try values.decode(CommunityState.self, forKey: .community)
+        guard community.isValid, inventory.validGifts,
+              tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0)
+        else { throw SaveRepositoryError.invalidSnapshot }
     }
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {
@@ -276,18 +283,32 @@ public struct InventoryState: Codable, Equatable, Sendable {
     public var toys: Int
     /// Every owned instance, including furniture currently placed in the room.
     public var furniture: [FurnitureItem]
+    public var gifts: [String: Int]
 
     public init(food: Int = 3, litter: Int = 2, toys: Int = 0,
-                furniture: [FurnitureItem] = FurnitureCatalog.defaultItems) {
+                furniture: [FurnitureItem] = FurnitureCatalog.defaultItems, gifts: [String: Int] = [:]) {
         self.food = food
         self.litter = litter
         self.toys = toys
         self.furniture = furniture
+        self.gifts = gifts
     }
 
-    private enum CodingKeys: String, CodingKey { case food, litter, toys, furniture }
+    public func giftCount(_ giftID: String) -> Int { gifts[giftID, default: 0] }
+
+    var validGifts: Bool {
+        gifts.count <= 64 && gifts.allSatisfy {
+            !$0.key.isEmpty && $0.key.utf8.count <= 80 && (0...GameSnapshot.maximumStock).contains($0.value)
+        }
+    }
+
+    private enum CodingKeys: String, CodingKey { case food, litter, toys, furniture, gifts }
 
     public init(from decoder: Decoder) throws {
+        try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
+    }
+
+    init(from decoder: Decoder, schemaVersion: Int) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         food = try values.decode(Int.self, forKey: .food)
         litter = try values.decode(Int.self, forKey: .litter)
@@ -297,6 +318,9 @@ public struct InventoryState: Codable, Equatable, Sendable {
         furniture = values.contains(.furniture)
             ? try values.decode([FurnitureItem].self, forKey: .furniture)
             : FurnitureCatalog.defaultItems
+        gifts = schemaVersion < 7 && !values.contains(.gifts)
+            ? [:] : try values.decode([String: Int].self, forKey: .gifts)
+        guard validGifts else { throw SaveRepositoryError.invalidSnapshot }
     }
 }
 

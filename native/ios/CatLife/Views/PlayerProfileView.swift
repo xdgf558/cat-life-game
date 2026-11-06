@@ -49,7 +49,7 @@ struct PlayerProfileView: View {
             }
 
         }
-        .saveRecoveryAlert(store: store, isActive: !isShowingAttributes)
+        .saveRecoveryAlert(store: store, isActive: !isShowingAttributes && !store.onboarding.isPresented)
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink)
         .environment(\.locale, Locale(identifier: store.language.rawValue))
         .sheet(isPresented: $isShowingAttributes) { attributesSheet }

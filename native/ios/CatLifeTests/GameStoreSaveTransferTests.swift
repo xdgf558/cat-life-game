@@ -170,6 +170,78 @@ final class GameStoreSaveTransferTests: XCTestCase {
     }
 
     @MainActor
+    func testExportStillProducesBackupAfterSaveFailureWithoutClaimingLocalSaveSuccess() async throws {
+        let repository = TransferTestRepository(seed())
+        let store = makeStore(repository)
+        await store.load()
+        store.enterHome()
+        await repository.setSaveFailure(true)
+        let attemptedName = "Draft home"
+        XCTAssertNotNil(HomeNameRules.normalized(attemptedName))
+        let attemptsBefore = await repository.saveAttemptCount
+        let renamed = await store.setHomeName(attemptedName)
+        XCTAssertFalse(renamed)
+        let attemptsAfter = await repository.saveAttemptCount
+        XCTAssertGreaterThan(attemptsAfter, attemptsBefore, "Exercise a real failed write, not name validation.")
+        XCTAssertTrue(store.hasSaveFailure)
+        store.showSaveError = false
+        let original = try XCTUnwrap(store.snapshot)
+        let failures = store.saveRetry.failures
+        let data = try await store.exportSaveArchive()
+        let exported = try NativeSaveTransfer.decode(data)
+        let serializedOriginal = try archive(original).snapshot
+        XCTAssertEqual(exported.snapshot.home.name, original.home.name)
+        XCTAssertEqual(exported.snapshot.player, serializedOriginal.player)
+        XCTAssertEqual(exported.snapshot.inventory, original.inventory)
+        XCTAssertEqual(exported.snapshot.tasks, original.tasks)
+        XCTAssertGreaterThanOrEqual(exported.snapshot.meta.lastSyncAt, serializedOriginal.meta.lastSyncAt)
+        XCTAssertEqual(store.snapshot, original)
+        XCTAssertTrue(store.hasSaveFailure)
+        XCTAssertGreaterThanOrEqual(store.saveRetry.failures, failures)
+        XCTAssertFalse(store.showSaveError, "The visible backup warning must not be covered by another save alert.")
+        XCTAssertFalse(store.isBusy || store.saveTransferInProgress)
+        let durable = await repository.saved
+        XCTAssertEqual(durable, original)
+        let recovery = try await store.importRecoveryPreview()
+        XCTAssertNil(recovery)
+        store.setForeground(false)
+    }
+
+    @MainActor
+    func testConfirmationRejectsFutureProgressBeforeNormalOrStartupReplacement() async throws {
+        let future = Date().addingTimeInterval(2 * 86_400)
+        let incoming = try archive(GameSnapshot.fresh(now: future))
+        for startup in [false, true] {
+            let repository = TransferTestRepository(seed())
+            if startup { await repository.setLoadFailure(.unreadableSave) }
+            let store = makeStore(repository)
+            await store.load()
+            let before = store.snapshot
+            let generation = store.saveSceneGeneration
+            let durable = await repository.saved
+            do {
+                if startup { try await store.restoreSaveArchiveAfterLoadFailure(incoming) }
+                else { try await store.importSaveArchive(incoming) }
+                XCTFail("A stale preview must never bypass the time check at confirmation.")
+            } catch {
+                XCTAssertEqual(SaveTransferError.reason(for: error), .futureProgress)
+                XCTAssertEqual(SaveTransferError.messageKey(for: error), "saveTransfer.futureProgress")
+            }
+            XCTAssertEqual(store.snapshot, before)
+            XCTAssertEqual(store.saveSceneGeneration, generation)
+            XCTAssertEqual(store.loadFailed, startup)
+            XCTAssertFalse(store.isBusy || store.isLoading || store.saveTransferInProgress)
+            let imported = await repository.importEntered
+            let restored = await repository.startupRestoreEntered
+            let after = await repository.saved
+            XCTAssertFalse(imported || restored)
+            XCTAssertEqual(after, durable)
+            let recovery = try await store.importRecoveryPreview()
+            XCTAssertNil(recovery)
+        }
+    }
+
+    @MainActor
     func testStartupRecoveryWaitsForDurableWriteAndKeepsExplicitWelcomeEntry() async throws {
         let repository = TransferTestRepository(seed())
         await repository.setLoadFailure(.unsupportedSchemaVersion(GameSnapshot.currentSchemaVersion + 1))
@@ -366,6 +438,7 @@ private actor TransferTestRepository: GameSaveTransferRepository {
     private(set) var importEntered = false
     private(set) var startupRestoreEntered = false
     private(set) var startupRestoreCount = 0
+    private(set) var saveAttemptCount = 0
 
     init(_ state: GameSnapshot) { saved = state }
     func loadOrCreate(now: Date) throws -> GameSnapshot {
@@ -379,6 +452,7 @@ private actor TransferTestRepository: GameSaveTransferRepository {
     func holdImports(_ hold: Bool) { held = hold }
     func checkWritable() throws { if saveFails { throw Failure.storage } }
     func save(_ state: GameSnapshot) throws {
+        saveAttemptCount += 1
         if saveFails { throw Failure.storage }
         saved = state
     }

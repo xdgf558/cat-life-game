@@ -141,6 +141,26 @@ enum CatAtlasRegistration {
                          CGPoint(x: 100.689, y: 374), CGPoint(x: 95.085, y: 333),
                          CGPoint(x: 106.048, y: 336), CGPoint(x: 97.75, y: 377)]
                 baselines = [427, 427, 419, 417, 381, 333, 336, 391]
+            case .siamese:
+                front = [CGPoint(x: 260.025, y: 429), CGPoint(x: 388.823, y: 364),
+                         CGPoint(x: 318.574, y: 387), CGPoint(x: 321.198, y: 377),
+                         CGPoint(x: 273.129, y: 383), CGPoint(x: 320.722, y: 397),
+                         CGPoint(x: 283.268, y: 397), CGPoint(x: 278.069, y: 394)]
+                rear = [CGPoint(x: 88.203, y: 419), CGPoint(x: 107.758, y: 420),
+                        CGPoint(x: 107.136, y: 420), CGPoint(x: 118.398, y: 419),
+                        CGPoint(x: 99.467, y: 376), CGPoint(x: 93.421, y: 334),
+                        CGPoint(x: 102.908, y: 339), CGPoint(x: 98.203, y: 379)]
+                baselines = [429, 428, 420, 419, 383, 334, 339, 394]
+            case .silver:
+                front = [CGPoint(x: 262.446, y: 427), CGPoint(x: 390.472, y: 367),
+                         CGPoint(x: 317.653, y: 386), CGPoint(x: 319.512, y: 378),
+                         CGPoint(x: 273.351, y: 382), CGPoint(x: 321.851, y: 398),
+                         CGPoint(x: 281.91, y: 398), CGPoint(x: 275.237, y: 393)]
+                rear = [CGPoint(x: 89.772, y: 418), CGPoint(x: 110.179, y: 420),
+                        CGPoint(x: 106.448, y: 421), CGPoint(x: 121.341, y: 418),
+                        CGPoint(x: 100.316, y: 374), CGPoint(x: 93.282, y: 335),
+                        CGPoint(x: 104.29, y: 338), CGPoint(x: 97.088, y: 379)]
+                baselines = [427, 428, 421, 418, 382, 335, 338, 393]
             }
             let bodyOffset = frames[0].groundCenter - frames[0].bounds.midX
             return frames.enumerated().map { index, frame in
