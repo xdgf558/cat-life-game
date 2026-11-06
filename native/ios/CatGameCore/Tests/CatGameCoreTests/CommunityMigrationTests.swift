@@ -13,6 +13,30 @@ struct CommunityMigrationTests {
         try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
+    @Test func schema7NeighborRosterRequiresReviewedMigration() throws {
+        // Freeze the v7 ledger independently of the catalog and fresh-save defaults.
+        let schema7IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
+        #expect(GameSnapshot.currentSchemaVersion == 7,
+                "Review v7 migration before updating this schema guard; keep the v7 ledger below.")
+        #expect(CommunityCatalog.neighbors.map(\.id).sorted() == schema7IDs,
+                "Changing neighbors requires a schema/migration review, not just a new catalog entry.")
+        let recordedRelationship: [String: Any] = [
+            "friendship": 28, "visitedToday": true, "giftsGivenToday": 1,
+            "totalVisitCount": 3, "totalGiftCount": 2, "rewardedStageLevels": [2]
+        ]
+        var saved = try object(GameSnapshot.fresh(now: now))
+        saved["schemaVersion"] = 7
+        saved["community"] = ["relationships": Dictionary(uniqueKeysWithValues:
+            schema7IDs.map { ($0, recordedRelationship) })]
+        let loaded = try decode(saved)
+        #expect(loaded.isValid)
+        for id in schema7IDs {
+            #expect(loaded.community.relationships[id] == NeighborRelationship(
+                friendship: 28, visitedToday: true, giftsGivenToday: 1,
+                totalVisitCount: 3, totalGiftCount: 2, rewardedStageLevels: [2]))
+        }
+    }
+
     @Test func preCommunitySavesGainEmptyRelationshipsWithoutChangingExistingProgress() throws {
         var expected = GameSnapshot.fresh(now: now)
         expected.player.gold = 876
