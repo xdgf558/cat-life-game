@@ -34,6 +34,26 @@ struct NativeSaveTransferTests {
         #expect(archive.exportedAt == now)
     }
 
+    @Test func importTimeRejectsMoreThanOneDayAheadButDoesNotBlockExport() throws {
+        let ahead = now.addingTimeInterval(86_401)
+        let state = GameSnapshot.fresh(now: ahead)
+        let data = try NativeSaveTransfer.encode(snapshot: state, exportedAt: now)
+        let archive = try NativeSaveTransfer.decode(data, now: now)
+        #expect(archive.snapshot == state, "Preserve the complete progress for exporting after a clock correction.")
+        #expect(throws: NativeSaveTransferError.futureProgress) {
+            try NativeSaveTransfer.validateImportTime(archive, now: now)
+        }
+        try NativeSaveTransfer.validateImportTime(archive, now: now.addingTimeInterval(1))
+        try NativeSaveTransfer.validateImportTime(archive, now: ahead)
+        #expect(throws: NativeSaveTransferError.invalidArchive) {
+            try NativeSaveTransfer.validateImportTime(archive, now: Date(timeIntervalSince1970: .infinity))
+        }
+        // A preview accepted before a device-clock correction needs a fresh check at commit.
+        #expect(throws: NativeSaveTransferError.futureProgress) {
+            try NativeSaveTransfer.validateImportTime(archive, now: now.addingTimeInterval(-60))
+        }
+    }
+
     @Test func rejectsForeignMalformedOversizedAndFutureArchivesBeforeBusinessDecoding() throws {
         #expect(throws: NativeSaveTransferError.invalidArchive) {
             try NativeSaveTransfer.decode(Data("not JSON".utf8), now: now)

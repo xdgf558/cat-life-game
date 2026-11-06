@@ -477,8 +477,9 @@ final class GameStore {
         do {
             if context.candidate != context.original { try await commit(context) }
         } catch {
-            recordSaveFailure(userInitiated: true)
-            throw SaveTransferError.writeFailed
+            // The validated in-memory timeline can still be rescued to another
+            // file provider. Keep the autosave failure and its retry state visible.
+            recordSaveFailure(showAlert: false, userInitiated: true)
         }
         let saved = context.candidate
         return try await Task.detached(priority: .userInitiated) {
@@ -523,6 +524,8 @@ final class GameStore {
     private func replaceSaveArchive(_ archive: NativeSaveArchive, isRecovery: Bool,
                                     afterLoadFailure: Bool) async throws {
         guard let repository = repository as? any GameSaveTransferRepository else { throw SaveTransferError.writeFailed }
+        let importDate = Date()
+        try NativeSaveTransfer.validateImportTime(archive, now: importDate)
         // Import replaces a timeline. It must not replay physical events or completion
         // callbacks from the room that is about to be replaced.
         isBusy = true
@@ -534,7 +537,6 @@ final class GameStore {
             isBusy = false
             drainPendingSynchronization()
         }
-        let importDate = Date()
         var candidate = archive.snapshot
         for cat in candidate.cats {
             if let rest = cat.activeRest {

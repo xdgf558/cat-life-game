@@ -1,5 +1,11 @@
 extension GameStrings {
     static let chinese: [String: String] = [
+        "saveTransfer.futureProgress": "这份备份的进度时间比设备当前时间超前超过 24 小时。请先核对设备日期，或选择其他备份；当前进度未更改。",
+        "saveTransfer.error.futureTitle": "备份时间明显超前",
+        "saveTransfer.exportMemoryHint": "本机保存仍未恢复；可以先将当前有效进度导出为备份。",
+        "saveTransfer.shareUnavailable": "暂时无法准备分享文件，仍可使用“存储到文件”导出备份。",
+        "releases.50.title": "备份导出与时间校验",
+        "releases.50.body": "本机保存失败时仍可导出当前有效进度；导入前检查明显超前的进度时间；换新设备导入时不再误报进度倒退。",
         "saveTransfer.preservedTitle": "保留的较新版本存档",
         "saveTransfer.preservedHint": "这些原件独立保留，不会被自动清理。可导出后，在支持该存档格式的新版游戏中导入；更新游戏不会自动恢复这些进度。",
         "saveTransfer.preservedSchema": "存档格式 %d",

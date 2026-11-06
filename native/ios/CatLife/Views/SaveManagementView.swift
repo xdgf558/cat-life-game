@@ -190,10 +190,19 @@ struct SaveManagementView: View {
     private var exportCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             cardHeading("saveTransfer.prepareExport", subtitle: "saveTransfer.backupHint", symbol: "shippingbox", tint: RoomTheme.darkMint)
-            if let exportURL, let exportDate {
-                SaveTransferPostcard(filename: exportURL.lastPathComponent, byteCount: exportSize,
+            if exportDocument != nil, let exportDate {
+                SaveTransferPostcard(filename: "CatLife-Backup.json", byteCount: exportSize,
                     subtitle: GameStrings.format("saveTransfer.preparedAt", dateText(exportDate)), prepared: true)
                     .accessibilityIdentifier("saveExportPrepared")
+                if store.hasSaveFailure {
+                    Text(GameStrings.text("saveTransfer.exportMemoryHint"))
+                        .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.coralDeep)
+                        .accessibilityIdentifier("saveExportMemoryHint")
+                }
+                if exportURL == nil {
+                    Text(GameStrings.text("saveTransfer.shareUnavailable"))
+                        .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                }
                 ViewThatFits(in: .horizontal) {
                     HStack(spacing: 10) { exportButtons(exportURL) }
                     VStack(spacing: 10) { exportButtons(exportURL) }
@@ -209,7 +218,7 @@ struct SaveManagementView: View {
         .padding(16).gameCard(cornerRadius: 28)
     }
 
-    @ViewBuilder private func exportButtons(_ url: URL) -> some View {
+    @ViewBuilder private func exportButtons(_ url: URL?) -> some View {
         Button {
             statusKey = nil
             presentedExportDocument = exportDocument
@@ -221,11 +230,13 @@ struct SaveManagementView: View {
                 .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity)
         }
         .buttonStyle(MintButtonStyle()).disabled(busy).accessibilityIdentifier("saveExportFilesButton")
-        ShareLink(item: url) {
-            Label(GameStrings.text("saveTransfer.share"), systemImage: "square.and.arrow.up")
-                .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity)
+        if let url {
+            ShareLink(item: url) {
+                Label(GameStrings.text("saveTransfer.share"), systemImage: "square.and.arrow.up")
+                    .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity)
+            }
+            .buttonStyle(SaveTransferOutlineButtonStyle()).disabled(busy).accessibilityIdentifier("saveExportShareButton")
         }
-        .buttonStyle(SaveTransferOutlineButtonStyle()).disabled(busy).accessibilityIdentifier("saveExportShareButton")
     }
 
     private var importCard: some View {
@@ -419,7 +430,9 @@ struct SaveManagementView: View {
             do {
                 let data = try await store.exportSaveArchive()
                 let prepared = try await Task.detached {
-                    (try SaveArchiveFiles.prepareShareFile(data), try NativeSaveTransfer.decode(data).exportedAt)
+                    // FileExporter can write the in-memory document to another provider
+                    // even when local storage cannot create a ShareLink attachment.
+                    (try? SaveArchiveFiles.prepareShareFile(data), try NativeSaveTransfer.decode(data).exportedAt)
                 }.value
                 exportDocument = SaveArchiveDocument(data: data)
                 exportURL = prepared.0; exportDate = prepared.1; exportSize = data.count
@@ -463,6 +476,8 @@ struct SaveManagementView: View {
     }
 
     private func showPreview(_ candidate: ImportPreview) {
+        do { try NativeSaveTransfer.validateImportTime(candidate.archive) }
+        catch { report(error); return }
         preview = candidate; acknowledged = false; issue = nil; didRestore = false; retryExport = false
         isShowingModal = true
     }

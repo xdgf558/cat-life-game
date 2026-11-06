@@ -1,5 +1,11 @@
 extension GameStrings {
     static let english: [String: String] = [
+        "saveTransfer.futureProgress": "This backup has progress more than 24 hours ahead of your device clock. Check the device date or choose another backup. Your current progress has not changed.",
+        "saveTransfer.error.futureTitle": "Backup time is too far ahead",
+        "saveTransfer.exportMemoryHint": "Local saving is still unavailable. You can export a backup of your current valid progress.",
+        "saveTransfer.shareUnavailable": "A sharing file could not be prepared. You can still export with Save to Files.",
+        "releases.50.title": "Backup export and time checks",
+        "releases.50.body": "Export current valid progress even when local saving fails. Imports check for progress far ahead of the device clock, and a fresh device no longer incorrectly warns that a backup is older.",
         "saveTransfer.preservedTitle": "Preserved newer-version saves",
         "saveTransfer.preservedHint": "These originals are kept separately and are never cleared automatically. Export one, then import it in an updated game that supports its save format. Updating alone does not restore this progress.",
         "saveTransfer.preservedSchema": "Save format %d",

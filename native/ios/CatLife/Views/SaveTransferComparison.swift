@@ -7,7 +7,21 @@ enum SaveTransferComparison {
     }
 
     static func isEarlier(current: GameSnapshot, incoming: GameSnapshot) -> Bool {
-        incoming.player.level < current.player.level || incoming.meta.lastSyncAt < current.meta.lastSyncAt
+        guard !isInitialProgress(current) else { return false }
+        return incoming.player.level < current.player.level || incoming.meta.lastSyncAt < current.meta.lastSyncAt
+    }
+
+    private static func isInitialProgress(_ current: GameSnapshot) -> Bool {
+        var initial = GameSnapshot.fresh(now: current.meta.createdAt)
+        guard GameEngine.synchronize(&initial, now: current.meta.lastSyncAt).succeeded,
+              current.cats.count == 1 else { return false }
+        // Choosing a language, portrait or name on a new device is not gameplay progress.
+        initial.settings = current.settings
+        initial.player.profile.name = current.player.profile.name
+        initial.player.profile.avatarID = current.player.profile.avatarID
+        initial.home.name = current.home.name
+        initial.cats[0].customName = current.cats[0].customName
+        return initial == current
     }
 }
 

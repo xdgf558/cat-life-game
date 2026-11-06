@@ -27,4 +27,35 @@ final class SaveTransferPresentationTests: XCTestCase {
         incoming.meta.lastSyncAt = current.meta.lastSyncAt.addingTimeInterval(60)
         XCTAssertFalse(SaveTransferComparison.isEarlier(current: current, incoming: incoming))
     }
+
+    func testNewDeviceWithOnlyPreferencesDoesNotWarnThatAnOlderBackupIsARegression() {
+        let now = Date(timeIntervalSince1970: 1_793_800_000)
+        var current = GameSnapshot.fresh(now: now)
+        var incoming = GameSnapshot.fresh(now: now.addingTimeInterval(-86_400))
+        incoming.player.level = 4
+        incoming.player.completedWorkCount = 20
+        XCTAssertFalse(SaveTransferComparison.isEarlier(current: current, incoming: incoming))
+        current.settings.language = .english
+        current.player.profile.name = "New device"
+        current.player.profile.avatarID = PlayerCatalog.avatars.last?.id
+        current.home.name = "New home"
+        current.cats[0].customName = "Milo"
+        _ = GameEngine.synchronize(&current, now: now.addingTimeInterval(60))
+        _ = GameEngine.synchronize(&current, now: now.addingTimeInterval(120))
+        XCTAssertFalse(SaveTransferComparison.isEarlier(current: current, incoming: incoming))
+    }
+
+    func testLevelOneGameWithRealCareOrRoomChangesStillWarnsBeforeEarlierImport() {
+        let now = Date(timeIntervalSince1970: 1_793_800_000)
+        let incoming = GameSnapshot.fresh(now: now.addingTimeInterval(-86_400))
+        var current = GameSnapshot.fresh(now: now)
+        XCTAssertTrue(GameEngine.feed(&current, catID: current.activeCatID, now: now).succeeded)
+        XCTAssertTrue(SaveTransferComparison.isEarlier(current: current, incoming: incoming))
+        current = .fresh(now: now)
+        current.home.bowlPosition.x += 0.02
+        XCTAssertTrue(SaveTransferComparison.isEarlier(current: current, incoming: incoming))
+        current = .fresh(now: now)
+        current.player.profile.equipped[.head] = PlayerCatalog.starterEquipmentIDs.first
+        XCTAssertTrue(SaveTransferComparison.isEarlier(current: current, incoming: incoming))
+    }
 }
