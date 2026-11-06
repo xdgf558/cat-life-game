@@ -108,10 +108,11 @@ struct CatAdoptionView: View {
         }
         .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(.white, lineWidth: 3))
         .overlay(alignment: .topLeading) {
-            if offer.appearance == .blue {
+            if CatCollectionPalette.isNewCompanion(offer.appearance) {
                 Text(GameStrings.text("cat.adoptionNewFriend")).font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
                     .padding(.horizontal, 9).padding(.vertical, 5).background(RoomTheme.coral, in: Capsule())
                     .overlay(Capsule().strokeBorder(.white, lineWidth: 2)).padding(15)
+                    .accessibilityIdentifier("catAdoptionNewFriend")
             }
         }
     }

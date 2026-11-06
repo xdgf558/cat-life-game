@@ -22,9 +22,6 @@ struct RoomHomeView: View {
     private var catSheetVisible: Binding<Bool> {
         Binding(get: { store.inspectedCatID != nil }, set: { if !$0 { store.inspectedCatID = nil } })
     }
-    private var onboardingSheetVisible: Binding<Bool> {
-        Binding(get: { store.onboarding.isPresented }, set: { store.onboarding.isPresented = $0 })
-    }
 
     var body: some View {
         Group {
@@ -61,24 +58,16 @@ struct RoomHomeView: View {
         .sheet(isPresented: catSheetVisible) {
             CatCollectionView(store: store, initialCatID: store.inspectedCatID)
         }
-        .sheet(isPresented: onboardingSheetVisible) {
-            OnboardingGuideView(store: store, onExplore: { step in
+        .onChange(of: store.onboarding.isPresented, initial: true) { _, presented in
+            if presented {
                 moreVisible = false
-                store.exploreOnboarding(step)
-            })
-            .safeAreaInset(edge: .top, spacing: 0) {
-                if store.hasSaveFailure { SaveStatusBanner(store: store) }
+                store.activeSheet = nil
+                store.isShowingSettings = false
             }
-            .presentationDetents([.large]).presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(store.isBusy || store.saveTransferInProgress)
-            .saveRecoveryAlert(store: store)
-        }
-        .onChange(of: store.onboarding.isPresented) { _, presented in
-            if presented { moreVisible = false }
         }
         .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
                           && store.inspectedCatID == nil && store.activeSheet != .town
-                          && store.activeSheet != .player && !store.isPresentingAdoptionConfirmation)
+                          && store.activeSheet != .player && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
     }
 
     private func shell(_ snapshot: GameSnapshot) -> some View {
@@ -123,6 +112,7 @@ struct RoomHomeView: View {
                             .allowsHitTesting(false)
                     }
                     else if !store.hasSaveFailure, !store.onboarding.isPresented,
+                            !store.isShowingNeighbors,
                             !moreVisible, store.inspectedCatID == nil,
                             !store.isPresentingAdoptionConfirmation, !store.isDecorating,
                             (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
@@ -153,6 +143,18 @@ struct RoomHomeView: View {
                 }
                 .frame(height: 64)
                 .background(RoomTheme.paper.ignoresSafeArea(edges: .bottom))
+            }
+        }
+        .overlayPreferenceValue(OnboardingTargetKey.self) { targets in
+            if store.onboarding.isPresented {
+                GeometryReader { geometry in
+                    OnboardingSpotlight(store: store,
+                        target: store.onboarding.step.flatMap { targets[$0] }.map { geometry[$0] },
+                        size: geometry.size, onExplore: { step in
+                            moreVisible = false
+                            store.exploreOnboarding(step)
+                        })
+                }
             }
         }
         .onChange(of: store.isDecorating) { _, editing in

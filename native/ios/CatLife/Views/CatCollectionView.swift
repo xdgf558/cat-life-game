@@ -122,7 +122,7 @@ struct CatCollectionView: View {
                             }
                         }
                         .padding(.top, 4).id("collectionCards")
-                        pagination
+                        if pageCount > 1 { pagination }
                     }
                     Text(GameStrings.text("catDirectory.pageHint")).font(.system(size: 11, weight: .bold))
                         .foregroundStyle(RoomTheme.secondary).multilineTextAlignment(.center)
@@ -146,17 +146,20 @@ struct CatCollectionView: View {
                 VStack(alignment: .leading, spacing: 6) { collectedTitle; ownedCount }.frame(maxWidth: .infinity, alignment: .leading)
             }
             CatCollectionSegments(appearances: appearances).accessibilityIdentifier("catCollectionProgress")
-            HStack(alignment: .top, spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8),
+                                    count: min(CatAppearance.allCases.count, dynamicTypeSize.isAccessibilitySize ? 2 : 5)), spacing: 12) {
                 ForEach(CatAppearance.allCases, id: \.self) { appearance in
                     VStack(spacing: 8) {
-                        CatCollectionPortrait(appearance: appearance, size: 52, faded: !appearances.contains(appearance),
+                        CatCollectionPortrait(appearance: appearance, size: 44, faded: !appearances.contains(appearance),
                                               badge: appearances.contains(appearance) ? "checkmark" : nil)
                         Text(GameStrings.text("hospital.coat.\(appearance.rawValue)"))
-                            .font(.system(size: 12, weight: .heavy)).multilineTextAlignment(.center)
+                            .font(.caption.weight(.heavy)).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                             .foregroundStyle(appearances.contains(appearance) ? RoomTheme.ink : RoomTheme.secondary.opacity(0.7))
                     }
                     .frame(maxWidth: .infinity)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("catCollectionCoat_\(appearance.rawValue)")
                 }
             }
         }.padding(16).gameCard(cornerRadius: 28)
@@ -170,11 +173,11 @@ struct CatCollectionView: View {
             title[number].font = .system(size: 22, weight: .heavy)
             title[number].foregroundColor = RoomTheme.darkMint
         }
-        return Text(title).fixedSize()
+        return Text(title).fixedSize(horizontal: false, vertical: true)
     }
     private var ownedCount: some View {
         Text(GameStrings.format("catDirectory.count", cats.count)).font(.system(size: 12, weight: .bold))
-            .foregroundStyle(RoomTheme.secondary).fixedSize()
+            .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
             .accessibilityIdentifier("catCount").accessibilityValue("\(cats.count)")
     }
     private var filters: some View {
@@ -231,7 +234,10 @@ struct CatCollectionView: View {
             }
             .padding(14).padding(.top, 3).frame(maxWidth: .infinity, minHeight: 206)
             .gameCard(cornerRadius: 24)
-            .overlay(alignment: .top) { if active { ribbon("catDirectory.inRoom", tint: RoomTheme.mint) } }
+            .overlay(alignment: .top) {
+                if active { ribbon("catDirectory.inRoom", tint: RoomTheme.mint) }
+                else if CatCollectionPalette.isNewCompanion(cat.appearance) { ribbon("cat.adoptionNewFriend", tint: RoomTheme.coral) }
+            }
         }
         .buttonStyle(.plain).accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: GameStrings.catName(cat)))
@@ -267,8 +273,11 @@ struct CatCollectionView: View {
             .shadow(color: available ? RoomTheme.mint.opacity(!reduceMotion && glowing ? 0.22 : 0.05) : RoomTheme.ink.opacity(0.08),
                     radius: available && !reduceMotion && glowing ? 8 : 0, y: 4)
             .overlay(alignment: .top) {
-                if available { ribbon("cat.adoptionAvailable", tint: RoomTheme.mint) }
-                else if offer.appearance == .blue { ribbon("cat.adoptionNewFriend", tint: RoomTheme.coral) }
+                if CatCollectionPalette.isNewCompanion(offer.appearance) {
+                    ribbon("cat.adoptionNewFriend", tint: RoomTheme.coral)
+                        .accessibilityIdentifier("catNewCompanion_\(offer.id)")
+                }
+                else if available { ribbon("cat.adoptionAvailable", tint: RoomTheme.mint) }
             }
         }
         .buttonStyle(.plain).accessibilityElement(children: .combine)
@@ -303,13 +312,13 @@ struct CatCollectionView: View {
             Button { page = max(0, currentPage - 1) } label: {
                 Label(GameStrings.text("catDirectory.previous"), systemImage: "chevron.left")
                     .font(.footnote.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
-            }.buttonStyle(.plain).disabled(currentPage == 0).opacity(currentPage == 0 ? 0.4 : 1).accessibilityIdentifier("catPagePrevious")
+            }.buttonStyle(SoftButtonStyle()).disabled(currentPage == 0).opacity(currentPage == 0 ? 0.4 : 1).accessibilityIdentifier("catPagePrevious")
             Text(GameStrings.format("catDirectory.page", currentPage + 1, pageCount)).font(.footnote.monospacedDigit()).fixedSize()
                 .accessibilityIdentifier("catPageSummary").accessibilityValue("\(currentPage + 1)/\(pageCount)")
             Button { page = min(pageCount - 1, currentPage + 1) } label: {
                 HStack(spacing: 5) { Text(GameStrings.text("catDirectory.next")); Image(systemName: "chevron.right") }
                     .font(.footnote.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
-            }.buttonStyle(.plain).disabled(currentPage == pageCount - 1).opacity(currentPage == pageCount - 1 ? 0.4 : 1)
+            }.buttonStyle(SoftButtonStyle()).disabled(currentPage == pageCount - 1).opacity(currentPage == pageCount - 1 ? 0.4 : 1)
                 .accessibilityIdentifier("catPageNext")
         }.foregroundStyle(RoomTheme.darkMint)
     }

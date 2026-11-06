@@ -12,11 +12,11 @@ struct GameBottomBar: View {
             tab("tab.home", english: "Home", symbol: "house.fill", id: "tabHome",
                 selected: store.activeSheet == nil && !store.isShowingSettings && !moreVisible) { select(nil) }
             tab("tab.work", english: "Work", symbol: "briefcase.fill", asset: "icon-work", id: "tabWork",
-                selected: store.activeSheet == .work && !store.isShowingSettings && !moreVisible) { select(.work) }
+                selected: store.activeSheet == .work && !store.isShowingSettings && !moreVisible) { select(.work) }.onboardingTarget(.work)
             tab("tab.shop", english: "Shop", symbol: "storefront.fill", id: "tabShop",
-                selected: store.activeSheet == .shop && !store.isShowingSettings && !moreVisible) { select(.shop) }
+                selected: (store.activeSheet == .shop || (store.isShowingCommunityGiftShop && store.activeSheet != .inventory)) && !store.isShowingSettings && !moreVisible) { select(.shop) }.onboardingTarget(.supplies)
             tab("tab.town", english: "Cats", symbol: "pawprint.fill", asset: "icon-town", id: "tabTown",
-                selected: [.town, .hospital].contains(store.activeSheet) && !store.isShowingSettings && !moreVisible) { select(.town) }
+                selected: [.town, .hospital].contains(store.activeSheet) && !store.isShowingCommunityGiftShop && !store.isShowingSettings && !moreVisible) { select(.town) }.onboardingTarget(.town)
             tab("tab.more", english: "More", symbol: "ellipsis.circle.fill", id: "tabMore",
                 selected: moreVisible || store.isShowingSettings || [.inventory, .player, .upgrade, .tasks].contains(store.activeSheet)) {
                 store.playFeedback(moreVisible ? .back : .sheet)

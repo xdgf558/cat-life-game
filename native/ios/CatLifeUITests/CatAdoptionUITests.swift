@@ -142,7 +142,8 @@ extension RoomHomeUITests {
         waitForObservedValue("catCollectionProgress", "3/5", in: app)
         tapAnimationControl("catFilter_unowned", in: app)
         waitForObservedValue("catFilter_unowned", "2", in: app)
-        waitForObservedValue("catPageSummary", "1/1", in: app)
+        XCTAssertFalse(element("catPageSummary", in: app).exists,
+                       "A single page must not show redundant pagination.")
         waitForElement("catAdoption_cat_004", in: app)
         waitForElement("catAdoption_cat_005", in: app)
         XCTAssertFalse(element("catCollectionEmpty", in: app).exists)
@@ -150,7 +151,8 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Cat collection — later friends stay visible after blue adoption")
         tapAnimationControl("catFilter_owned", in: app)
         waitForObservedValue("catCount", "3", in: app)
-        waitForObservedValue("catPageSummary", "1/1", in: app)
+        XCTAssertFalse(element("catPageSummary", in: app).exists,
+                       "A single page must not show redundant pagination.")
         scrollCareerPage("catCollectionScroll", to: "catProfile_cat_003", in: app)
         waitForLabel("catProfile_cat_003", "蓝莓", in: app)
         tapAnimationControl("closeSheetButton", in: app)

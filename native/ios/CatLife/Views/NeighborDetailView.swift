@@ -6,11 +6,19 @@ struct NeighborDetailView: View {
     @Bindable var store: GameStore
     let neighborID: String
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var dialogueKey: String?
     @State private var isWorking = false
     @State private var failed = false
     @State private var choosingGift = false
     @State private var rewardsExpanded = false
+    @State private var isVisible = false
+    @State private var pendingStage: NeighborActionReceipt?
+    @State private var stageReceipt: NeighborActionReceipt?
+    @State private var gain: Int?
+    @State private var gainFloated = false
+    @State private var gainTask: Task<Void, Never>?
 
     private var neighbor: NeighborDefinition? { CommunityCatalog.neighbor(id: neighborID) }
     private var relationship: NeighborRelationship {
@@ -19,176 +27,248 @@ struct NeighborDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                Button { dismiss() } label: {
-                    Label(GameStrings.text("community.title"), systemImage: "chevron.left")
-                        .font(.subheadline.weight(.heavy))
-                }
-                .buttonStyle(SoftButtonStyle()).accessibilityIdentifier("neighborBackButton")
+            VStack(alignment: .leading, spacing: 14) {
                 if let neighbor {
                     profile(neighbor)
-                    friendship
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(GameStrings.text("community.favoriteGifts")).font(.headline.weight(.heavy))
-                        Text(neighbor.favoriteGiftIDs.compactMap(CommunityCatalog.gift)
-                            .map { GameStrings.text($0.nameKey) }.joined(separator: " · "))
-                            .font(.subheadline.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Text(GameStrings.format("community.giftPreferenceHint", CommunityCatalog.favoriteGiftFriendship,
-                                                CommunityCatalog.ordinaryGiftFriendship))
-                            .font(.caption).foregroundStyle(RoomTheme.secondary)
-                    }.padding(16).frame(maxWidth: .infinity, alignment: .leading).gameCard()
-                    dialogue
-                    actions
-                    DisclosureGroup(isExpanded: $rewardsExpanded) {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(GameStrings.text("community.stageRewardHint")).font(.caption)
-                                .foregroundStyle(RoomTheme.secondary)
-                            ForEach(CommunityCatalog.stages.filter { $0.level > 1 }) { stage in
-                                rewardRow(stage)
-                            }
-                        }.padding(.top, 12)
-                    } label: {
-                        Label(GameStrings.text("community.stageRewards"), systemImage: "gift.fill")
-                            .font(.headline.weight(.heavy))
-                    }
-                    .padding(16).gameCard().accessibilityIdentifier("neighborRewardsDisclosure")
-                } else {
-                    Text(GameStrings.text("community.neighborMissing")).font(.body)
-                }
-            }
-            .padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+                    friendship(neighbor)
+                } else { Text(GameStrings.text("community.neighborMissing")) }
+            }.padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
         }
         .scrollBounceBehavior(.basedOnSize).background(RoomTheme.cream)
         .accessibilityIdentifier("neighborDetail_\(neighborID)")
-        .navigationDestination(isPresented: $choosingGift) {
-            CommunityGiftView(store: store, neighborID: neighborID, onGift: { giftID in
+        .safeAreaInset(edge: .top, spacing: 0) {
+            CommunityHeader(title: GameStrings.format("community.neighborHome", GameStrings.text(neighbor?.nameKey ?? "community.title")),
+                            backTitle: "community.title", gold: store.snapshot?.player.gold ?? 0,
+                            symbol: "house.fill", backID: "neighborBackButton") { dismiss() }
+        }
+        .safeAreaInset(edge: .bottom, spacing: 0) { if neighbor != nil { actions } }
+        .accessibilityHidden(stageReceipt != nil)
+        .overlay {
+            if let stageReceipt, let neighbor {
+                CommunityStageSuccessView(neighbor: neighbor, receipt: stageReceipt) { self.stageReceipt = nil }
+            }
+        }
+        .sheet(isPresented: $choosingGift, onDismiss: {
+            if isVisible { stageReceipt = pendingStage }
+            pendingStage = nil
+        }) {
+            CommunityGiftView(store: store, neighborID: neighborID, onGift: { giftID, receipt in
+                guard isVisible else { return }
                 dialogueKey = neighbor?.giftDialogueKey(giftID: giftID)
                 failed = false
-            })
-            .toolbar(.hidden, for: .navigationBar)
+                showGain(receipt.friendshipGained)
+                if receipt.stageReached != nil { pendingStage = receipt }
+            }, onClose: { choosingGift = false })
+            .safeAreaInset(edge: .top, spacing: 0) { if store.hasSaveFailure { SaveStatusBanner(store: store) } }
+            .saveRecoveryAlert(store: store)
+            .presentationDetents([.large]).presentationDragIndicator(.visible)
+        }
+        .onChange(of: choosingGift) { _, presented in store.isPresentingCommunityGift = presented }
+        .onAppear { isVisible = true }
+        .onDisappear {
+            isVisible = false
+            store.isPresentingCommunityGift = false
+            pendingStage = nil; stageReceipt = nil
+            gainTask?.cancel()
         }
     }
 
     private func profile(_ neighbor: NeighborDefinition) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .center, spacing: 14) {
-                Image(neighbor.portraitAssetName).resizable().scaledToFit().frame(width: 100, height: 128)
-                    .background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 24))
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(GameStrings.text(neighbor.nameKey)).font(.title.weight(.heavy))
-                        .accessibilityAddTraits(.isHeader)
-                    Text(GameStrings.text(neighbor.descriptionKey)).font(.subheadline.weight(.bold))
-                        .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 12) { CommunityPortrait(neighbor: neighbor, size: 96); biography(neighbor) }
+            } else {
+                HStack(alignment: .center, spacing: 14) { CommunityPortrait(neighbor: neighbor, size: 96); biography(neighbor) }
+            }
+            Label(GameStrings.text(dialogueKey ?? "community.dialogueHint"), systemImage: "text.bubble.fill")
+                .font(.subheadline.weight(.bold)).foregroundStyle(dialogueKey == nil ? RoomTheme.secondary : RoomTheme.ink)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 20))
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(.white, lineWidth: 2))
+                .overlay(alignment: .topLeading) {
+                    Image(systemName: "triangle.fill").font(.system(size: 17)).foregroundStyle(RoomTheme.paper)
+                        .offset(x: 28, y: -12).accessibilityHidden(true)
+                }
+                .id(dialogueKey).transition(.opacity.combined(with: .scale(scale: 0.97)))
+                .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: dialogueKey)
+                .accessibilityIdentifier("neighborDialogue")
+            VStack(alignment: .leading, spacing: 6) {
+                Label(GameStrings.text(neighbor.homeKey), systemImage: "house.fill")
+                Label(GameStrings.text(neighbor.catsKey), systemImage: "pawprint.fill")
+            }.font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(16).frame(maxWidth: .infinity, alignment: .leading)
+        .background(LinearGradient(colors: [CommunityPalette.background(neighbor), RoomTheme.paper],
+                                   startPoint: .topLeading, endPoint: .bottomTrailing), in: RoundedRectangle(cornerRadius: 28))
+        .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(.white, lineWidth: 3))
+    }
+
+    private func biography(_ neighbor: NeighborDefinition) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            Text(GameStrings.text(neighbor.nameKey)).font(.title2.weight(.heavy)).accessibilityAddTraits(.isHeader)
+            CommunityStagePill(neighbor: neighbor, stage: relationship.stage)
+            Text(GameStrings.text(neighbor.descriptionKey)).font(.subheadline.weight(.bold))
+                .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func friendship(_ neighbor: NeighborDefinition) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(alignment: .firstTextBaseline) {
+                Label(GameStrings.text("community.friendshipTitle"), systemImage: "heart.fill")
+                    .font(.headline.weight(.heavy)).foregroundStyle(RoomTheme.friendshipDeep)
+                Spacer(minLength: 8)
+                Text("\(relationship.friendship) / 100").font(.subheadline.weight(.heavy)).monospacedDigit()
+                    .accessibilityLabel(GameStrings.format("community.friendshipValue", relationship.friendship))
+                    .accessibilityIdentifier("neighborFriendshipValue").accessibilityValue("\(relationship.friendship)")
+            }
+            .overlay(alignment: .topTrailing) {
+                if let gain {
+                    Label(GameStrings.format("community.ordinaryGain", gain), systemImage: "heart.fill")
+                        .font(.caption.weight(.heavy)).foregroundStyle(.white)
+                        .padding(.horizontal, 10).padding(.vertical, 6).background(RoomTheme.friendship, in: Capsule())
+                        .offset(y: reduceMotion ? -28 : gainFloated ? -42 : -20)
+                        .opacity(reduceMotion ? 1 : gainFloated ? 0 : 1).allowsHitTesting(false)
+                        .accessibilityHidden(true)
                 }
             }
-            Divider()
-            Label(GameStrings.text(neighbor.homeKey), systemImage: "house.fill")
-            Label(GameStrings.text(neighbor.catsKey), systemImage: "pawprint.fill")
-        }
-        .font(.subheadline).fixedSize(horizontal: false, vertical: true)
-        .padding(16).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 28)
-    }
-
-    private var friendship: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            ViewThatFits(in: .horizontal) {
-                HStack { stageTitle; Spacer(minLength: 8); friendshipValue }
-                VStack(alignment: .leading, spacing: 6) { stageTitle; friendshipValue }
-            }
-            ProgressView(value: Double(relationship.friendship), total: 100).tint(RoomTheme.mint)
-                .accessibilityHidden(true)
+            CommunityFriendshipTrack(friendship: relationship.friendship)
             if let next = relationship.nextStage {
-                Text(GameStrings.format("community.nextStage", GameStrings.text(next.nameKey),
-                                        next.minimumPoints - relationship.friendship))
+                Text(GameStrings.format("community.nextStage", GameStrings.text(next.nameKey), next.minimumPoints - relationship.friendship))
                     .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
             } else {
-                Text(GameStrings.text("community.closestStage")).font(.caption.weight(.bold))
-                    .foregroundStyle(RoomTheme.darkMint)
+                Text(GameStrings.text("community.closestStage")).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
             }
-        }.padding(16).gameCard()
-    }
-
-    private var stageTitle: some View {
-        Label(GameStrings.text(relationship.stage.nameKey), systemImage: "heart.fill")
-            .font(.headline.weight(.heavy)).foregroundStyle(RoomTheme.darkMint)
-    }
-
-    private var friendshipValue: some View {
-        Text(GameStrings.format("community.friendshipValue", relationship.friendship))
-            .font(.subheadline.weight(.bold)).monospacedDigit()
-            .accessibilityIdentifier("neighborFriendshipValue").accessibilityValue("\(relationship.friendship)")
-    }
-
-    private var dialogue: some View {
-        Label(GameStrings.text(dialogueKey ?? "community.dialogueHint"), systemImage: "quote.bubble.fill")
-            .font(.body.weight(.medium)).fixedSize(horizontal: false, vertical: true)
-            .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-            .background(RoomTheme.paleMint.opacity(0.7), in: RoundedRectangle(cornerRadius: 24))
-            .accessibilityIdentifier("neighborDialogue")
-    }
-
-    private var actions: some View {
-        VStack(spacing: 10) {
-            if failed {
-                Text(GameStrings.text(store.hasSaveFailure ? "save.writeTitle" : "community.actionFailed"))
-                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.coralDeep)
-                    .accessibilityIdentifier("neighborActionFailure")
+            Divider().overlay(RoomTheme.track)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(GameStrings.text("community.favoriteGifts")).font(.subheadline.weight(.heavy))
+                ForEach(neighbor.favoriteGiftIDs.compactMap(CommunityCatalog.gift)) { gift in
+                    HStack(spacing: 6) { CommunityGiftIcon(gift: gift, size: 24); Text(GameStrings.text(gift.nameKey)) }
+                        .font(.caption.weight(.heavy)).foregroundStyle(CommunityPalette.giftTint(gift))
+                }
+                Text(GameStrings.format("community.giftPreferenceShort", CommunityCatalog.favoriteGiftFriendship,
+                                        CommunityCatalog.ordinaryGiftFriendship))
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
             }
-            Button(action: visit) {
-                Label(GameStrings.text(relationship.visitedToday ? "community.chatAction" : "community.visitAction"),
-                      systemImage: "bubble.left.and.bubble.right.fill")
-                    .font(.headline.weight(.heavy)).frame(maxWidth: .infinity)
+            DisclosureGroup(isExpanded: $rewardsExpanded) {
+                VStack(alignment: .leading, spacing: 9) {
+                    ForEach(CommunityCatalog.stages.filter { $0.level > 1 }) { stage in rewardRow(stage) }
+                    Text(GameStrings.text("community.stageRewardHint")).font(.caption2).foregroundStyle(RoomTheme.secondary)
+                }.padding(.top, 12)
+            } label: {
+                Label(GameStrings.text("community.stageRewards") + " · "
+                      + GameStrings.format("community.rewardsCount", relationship.rewardedStageLevels.count,
+                                           CommunityCatalog.stages.filter { $0.level > 1 }.count), systemImage: "gift.fill")
+                    .font(.subheadline.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
             }
-            .buttonStyle(MintButtonStyle()).disabled(isWorking || store.isBusy)
-            .accessibilityIdentifier("neighborVisitButton")
-            Text(relationship.visitedToday ? GameStrings.text("community.visitAlreadyEarned")
-                 : GameStrings.format("community.visitGain", min(CommunityCatalog.visitFriendship, 100 - relationship.friendship)))
-                .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Button { store.playNavigationSound(); choosingGift = true } label: {
-                Label(GameStrings.text("community.chooseGift"), systemImage: "gift.fill")
-                    .font(.headline.weight(.heavy)).frame(maxWidth: .infinity)
-            }
-            .buttonStyle(SoftButtonStyle()).disabled(isWorking || store.isBusy || relationship.remainingGiftsToday == 0)
-            .accessibilityIdentifier("neighborGiftButton")
-            Text(GameStrings.format("community.giftsRemaining", relationship.remainingGiftsToday, CommunityCatalog.dailyGiftLimit))
-                .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                .accessibilityIdentifier("neighborDailyGiftStatus")
-        }
+            .padding(12).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 18))
+            .accessibilityIdentifier("neighborRewardsDisclosure")
+        }.fixedSize(horizontal: false, vertical: true).padding(16).gameCard(cornerRadius: 28)
     }
 
     private func rewardRow(_ stage: FriendshipStage) -> some View {
         let earned = relationship.rewardedStageLevels.contains(stage.level)
-        return VStack(alignment: .leading, spacing: 5) {
-            Label(GameStrings.format("community.rewardStage", GameStrings.text(stage.nameKey), stage.minimumPoints),
-                  systemImage: earned ? "checkmark.circle.fill" : "gift.fill")
-                .font(.subheadline.weight(.bold)).foregroundStyle(earned ? RoomTheme.darkMint : RoomTheme.ink)
-            Text(rewardSummary(stage)).font(.caption).foregroundStyle(RoomTheme.secondary)
-            if earned {
-                Text(GameStrings.text("community.rewardReceived")).font(.caption.weight(.bold))
-                    .foregroundStyle(RoomTheme.darkMint)
-            }
+        return VStack(alignment: .leading, spacing: 7) {
+            HStack {
+                Text(GameStrings.format("community.rewardStage", GameStrings.text(stage.nameKey), stage.minimumPoints))
+                Spacer(minLength: 3)
+                Image(systemName: earned ? "checkmark.circle.fill" : "circle.dashed")
+                    .foregroundStyle(earned ? RoomTheme.mint : RoomTheme.secondary)
+            }.font(.caption.weight(.heavy))
+            CommunityRewardChips(gold: stage.goldReward, food: stage.foodReward,
+                                 litter: stage.litterReward, toys: stage.toyUsesReward)
+            if earned { Text(GameStrings.text("community.rewardReceived")).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.darkMint) }
         }
-        .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+        .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+        .background(earned ? RoomTheme.paleMint.opacity(0.4) : RoomTheme.paper, in: RoundedRectangle(cornerRadius: 16))
         .accessibilityElement(children: .combine)
     }
 
-    private func rewardSummary(_ stage: FriendshipStage) -> String {
-        [("community.rewardGold", stage.goldReward), ("community.rewardFood", stage.foodReward),
-         ("community.rewardLitter", stage.litterReward), ("community.rewardToys", stage.toyUsesReward)]
-            .filter { $0.1 > 0 }.map { GameStrings.format($0.0, $0.1) }.joined(separator: " · ")
+    private var actions: some View {
+        VStack(spacing: 8) {
+            if failed {
+                Text(GameStrings.text(store.hasSaveFailure ? "save.writeTitle" : "community.actionFailed"))
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.coralDeep).accessibilityIdentifier("neighborActionFailure")
+            }
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 10) { visitButton; giftButton }
+            } else { HStack(alignment: .top, spacing: 12) { visitButton; giftButton } }
+        }
+        .padding(16).frame(maxWidth: .infinity).background(RoomTheme.cream)
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .accessibilityElement(children: .contain).accessibilityIdentifier("neighborActionBar")
+    }
+
+    @ViewBuilder private var visitButton: some View {
+        if relationship.visitedToday {
+            Button(action: visit) { visitLabel }.buttonStyle(SoftButtonStyle())
+                .disabled(isWorking || store.isBusy).accessibilityIdentifier("neighborVisitButton")
+        } else {
+            Button(action: visit) { visitLabel }.buttonStyle(MintButtonStyle())
+                .disabled(isWorking || store.isBusy).accessibilityIdentifier("neighborVisitButton")
+        }
+    }
+    private var visitLabel: some View {
+        VStack(spacing: 4) {
+            Label(GameStrings.text(relationship.visitedToday ? "community.chatAction" : "community.visitAction"),
+                  systemImage: relationship.visitedToday ? "bubble.left.fill" : "hand.wave.fill").font(.subheadline.weight(.heavy))
+            Text(relationship.visitedToday ? GameStrings.text("community.visitAlreadyEarnedShort")
+                 : relationship.friendship == 100 ? GameStrings.text("community.closestShort")
+                 : GameStrings.format("community.visitGainShort", min(CommunityCatalog.visitFriendship, 100 - relationship.friendship)))
+                .font(.caption2.weight(.bold))
+        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, minHeight: 44)
+    }
+    @ViewBuilder private var giftButton: some View {
+        if relationship.remainingGiftsToday > 0 {
+            Button { store.playNavigationSound(); choosingGift = true } label: { giftLabel }
+                .buttonStyle(FriendshipButtonStyle()).disabled(isWorking || store.isBusy).accessibilityIdentifier("neighborGiftButton")
+        } else {
+            Button { store.showCommunityGiftLimit() } label: { giftLabel }
+                .buttonStyle(SoftButtonStyle()).disabled(isWorking || store.isBusy).accessibilityIdentifier("neighborGiftButton")
+        }
+    }
+    private var giftLabel: some View {
+        VStack(spacing: 4) {
+            Label(GameStrings.text(relationship.remainingGiftsToday > 0 ? "community.sendGift" : "community.giftedToday"),
+                  systemImage: "gift.fill").font(.subheadline.weight(.heavy))
+            Text(relationship.remainingGiftsToday > 0
+                 ? GameStrings.format("community.giftDailyShort", relationship.giftsGivenToday,
+                                      CommunityCatalog.dailyGiftLimit, CommunityCatalog.favoriteGiftFriendship)
+                 : GameStrings.text("community.giftTomorrow"))
+                .font(.caption2.weight(.bold))
+                .accessibilityIdentifier("neighborDailyGiftStatus")
+        }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, minHeight: 44)
     }
 
     private func visit() {
         guard !isWorking, !store.isBusy, let neighbor else { return }
         isWorking = true; failed = false
+        let generation = store.saveSceneGeneration
         Task {
             defer { isWorking = false }
-            if await store.visitNeighbor(id: neighborID) {
+            if let receipt = await store.visitNeighborWithReceipt(id: neighborID) {
+                guard isVisible, generation == store.saveSceneGeneration else { return }
                 dialogueKey = neighbor.dialogueKey(friendship: relationship.friendship)
+                showGain(receipt.friendshipGained)
+                if receipt.stageReached != nil { stageReceipt = receipt }
             } else { failed = true }
+        }
+    }
+
+    private func showGain(_ amount: Int) {
+        guard amount > 0 else { return }
+        gainTask?.cancel(); gain = amount; gainFloated = false
+        gainTask = Task { @MainActor in
+            if !reduceMotion {
+                try? await Task.sleep(for: .milliseconds(50))
+                guard !Task.isCancelled else { return }
+                withAnimation(.easeOut(duration: 1.4)) { gainFloated = true }
+            }
+            try? await Task.sleep(for: .seconds(1.4))
+            guard !Task.isCancelled else { return }
+            gain = nil
         }
     }
 }

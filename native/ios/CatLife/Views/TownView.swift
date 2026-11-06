@@ -29,7 +29,7 @@ struct TownView: View {
             } else { map }
         }
         .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
-                           && store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation)
+                           && store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
     }
 
     private var map: some View {

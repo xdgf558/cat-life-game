@@ -34,6 +34,10 @@ enum RoomTheme {
     static let track = Color(red: 0.94, green: 0.88, blue: 0.78)
     static let chipBg = Color(red: 0.95, green: 0.89, blue: 0.80)
     static let gold = Color(red: 0.89, green: 0.61, blue: 0.12)
+    static let friendship = Color(red: 232 / 255, green: 112 / 255, blue: 138 / 255)
+    static let friendshipDeep = Color(red: 192 / 255, green: 79 / 255, blue: 104 / 255)
+    static let friendshipPaper = Color(red: 253 / 255, green: 238 / 255, blue: 241 / 255)
+    static let friendshipBorder = Color(red: 245 / 255, green: 195 / 255, blue: 206 / 255)
 }
 
 struct GameIcon: View {

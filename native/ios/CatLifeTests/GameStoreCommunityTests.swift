@@ -13,8 +13,8 @@ final class GameStoreCommunityTests: XCTestCase {
         return GameStore(repository: repository, reminderDefaults: UserDefaults(suiteName: suite)!)
     }
 
-    private func seed(friendship: Int = 19) -> GameSnapshot {
-        var state = GameSnapshot.fresh()
+    private func seed(friendship: Int = 19, now: Date = Date()) -> GameSnapshot {
+        var state = GameSnapshot.fresh(now: now)
         state.settings.language = .simplifiedChinese
         state.settings.audio.musicEnabled = false
         state.settings.audio.effectsEnabled = false
@@ -209,6 +209,91 @@ final class GameStoreCommunityTests: XCTestCase {
         XCTAssertEqual(reopened.snapshot?.tasks.dailyClaimedTaskIDs, archive.snapshot.tasks.dailyClaimedTaskIDs)
         XCTAssertEqual(reopened.snapshot?.inventory, importedInventory)
         XCTAssertEqual(reopened.snapshot?.player.gold, importedGold)
+    }
+
+    @MainActor
+    func testNeighborReceiptExcludesWagesSettledByTheSameSave() async throws {
+        let startedAt = Date().addingTimeInterval(-125)
+        var initial = seed(now: startedAt)
+        XCTAssertTrue(GameEngine.startWork(&initial, now: startedAt).succeeded)
+        let work = try XCTUnwrap(initial.player.activeWork)
+        let repository = CommunityTestRepository(initial)
+        await repository.setWritesFailing(true)
+        let store = makeStore(repository)
+        await store.load()
+        XCTAssertEqual(store.snapshot, initial,
+                       "Fail startup synchronization so the completed job remains pending for the visit.")
+        await repository.setWritesFailing(false)
+
+        let result = await store.visitNeighborWithReceipt(id: mira)
+        let receipt = try XCTUnwrap(result)
+        XCTAssertEqual(receipt.neighborID, mira)
+        XCTAssertEqual(receipt.friendshipGained, 2)
+        XCTAssertEqual(receipt.stageReached?.level, 2)
+        XCTAssertEqual(receipt.goldAwarded, 20, "The relationship receipt must not include wages.")
+        XCTAssertEqual(receipt.foodAwarded, 1)
+        XCTAssertEqual(receipt.litterAwarded, 0)
+        XCTAssertEqual(receipt.toyUsesAwarded, 0)
+        let committed = try XCTUnwrap(store.snapshot)
+        XCTAssertNil(committed.player.activeWork)
+        XCTAssertEqual(committed.player.lastWorkResult?.id, work.id)
+        XCTAssertEqual(committed.player.gold, initial.player.gold + work.goldReward + 20)
+        let saved = await repository.saved
+        XCTAssertEqual(saved, committed)
+    }
+
+    @MainActor
+    func testGiftReceiptIsAbsentOnFailureThenReportsOnlyRewardsThatFit() async throws {
+        let maximumGold = 1_000_000_000
+        let maximumStock = 1_000_000
+        var initial = seed(friendship: 79)
+        initial.player.gold = maximumGold - 7
+        initial.inventory.toys = maximumStock - 2
+        let repository = CommunityTestRepository(initial)
+        let store = makeStore(repository)
+        await store.load()
+        let before = try XCTUnwrap(store.snapshot)
+        await repository.setWritesFailing(true)
+
+        let failed = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower")
+        XCTAssertNil(failed)
+        XCTAssertEqual(store.snapshot, before)
+        XCTAssertTrue(store.hasSaveFailure)
+        await repository.setWritesFailing(false)
+        let result = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower")
+        let receipt = try XCTUnwrap(result)
+        XCTAssertEqual(receipt.friendshipGained, 8)
+        XCTAssertEqual(receipt.stageReached?.level, 5)
+        XCTAssertEqual(receipt.goldAwarded, 7)
+        XCTAssertEqual(receipt.foodAwarded, 0)
+        XCTAssertEqual(receipt.litterAwarded, 0)
+        XCTAssertEqual(receipt.toyUsesAwarded, 2)
+        XCTAssertEqual(store.snapshot?.player.gold, maximumGold)
+        XCTAssertEqual(store.snapshot?.inventory.toys, maximumStock)
+        XCTAssertEqual(store.snapshot?.inventory.giftCount("flower"), 1)
+        let duplicate = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower")
+        XCTAssertNil(duplicate)
+        XCTAssertEqual(store.snapshot?.inventory.giftCount("flower"), 1)
+    }
+
+    @MainActor
+    func testVisitReceiptDoesNotPromiseFullInventoryRewardsOrRepeatStageCelebration() async throws {
+        var initial = seed()
+        initial.inventory.food = 1_000_000
+        let store = makeStore(CommunityTestRepository(initial))
+        await store.load()
+        let result = await store.visitNeighborWithReceipt(id: mira)
+        let receipt = try XCTUnwrap(result)
+        XCTAssertEqual(receipt.stageReached?.level, 2)
+        XCTAssertEqual(receipt.goldAwarded, 20)
+        XCTAssertEqual(receipt.foodAwarded, 0)
+        XCTAssertEqual(store.snapshot?.inventory.food, 1_000_000)
+
+        let repeated = await store.visitNeighborWithReceipt(id: mira)
+        let chat = try XCTUnwrap(repeated)
+        XCTAssertNil(chat.stageReached)
+        XCTAssertEqual(chat.friendshipGained, 0)
+        XCTAssertEqual(chat.goldAwarded + chat.foodAwarded + chat.litterAwarded + chat.toyUsesAwarded, 0)
     }
 
     @MainActor

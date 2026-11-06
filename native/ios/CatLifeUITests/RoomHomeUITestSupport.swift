@@ -142,7 +142,8 @@ extension RoomHomeUITests {
                 contentTop = max(contentTop, min(frame.maxY, viewport.maxY))
             }
         }
-        for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar"] {
+        for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar",
+                           "neighborActionBar", "communityGiftConfirmBar"] {
             let bar = element(identifier, in: app)
             // A presented sheet covers the home bar even while its AX node remains present.
             if bar.exists, bar.isHittable, bar.frame.intersects(viewport), bar.frame.minY > contentTop {
