@@ -55,6 +55,47 @@ final class GameOnboardingCenterTests: XCTestCase {
     }
 
     @MainActor
+    func testPendingStepSurvivesEveryMillisecondBoundaryAndSeededCreationDates() throws {
+        let defaults = try isolatedDefaults()
+        var dates: [Date] = []
+        for millisecond in 0..<1000 {
+            // Both sides of half-millisecond rounding, including the next-second boundary.
+            for microseconds in [0, 499, 501, 999] {
+                dates.append(Date(timeIntervalSince1970: 1_793_600_000
+                    + Double(millisecond) / 1000 + Double(microseconds) / 1_000_000))
+            }
+        }
+        // Fixed seed makes failures reproducible across SDKs; span 2020 through 2099.
+        var seed: UInt64 = 0xCA7_11FE
+        for _ in 0..<2000 {
+            seed = seed &* 6_364_136_223_846_793_005 &+ 1
+            let seconds = 1_577_836_800 + Double(seed % 2_524_608_000)
+            seed = seed &* 6_364_136_223_846_793_005 &+ 1
+            dates.append(Date(timeIntervalSince1970: seconds + Double(seed % 1_000_000) / 1_000_000))
+        }
+
+        for date in dates {
+            let resumedStep = try autoreleasepool {
+                let snapshot = GameSnapshot.fresh(now: date)
+                let first = GameOnboardingCenter(defaults: defaults)
+                first.prepare(snapshot: snapshot, disposition: .created)
+                first.next()
+                first.next()
+                // Exercise the shared production disk/archive codec, not a test date formatter.
+                let data = try NativeSaveTransfer.encode(snapshot: snapshot, exportedAt: date)
+                let reloaded = try NativeSaveTransfer.decode(data, now: date).snapshot
+                let resumed = GameOnboardingCenter(defaults: defaults)
+                resumed.prepare(snapshot: reloaded, disposition: .loaded)
+                return resumed.step
+            }
+            guard resumedStep == .supplies else {
+                XCTFail("Tour did not resume after date round-trip: \(date.timeIntervalSince1970)")
+                return
+            }
+        }
+    }
+
+    @MainActor
     func testRecoveringSameSaveResumesItsTourWithoutResettingTheStep() throws {
         let defaults = try isolatedDefaults()
         let snapshot = GameSnapshot.fresh(now: createdAt)
