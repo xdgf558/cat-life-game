@@ -54,8 +54,11 @@ extension RoomHomeUITests {
         waitForOnboardingClosed(in: app)
         app.terminate()
         app.launchArguments = onboardingArguments(reset: false)
-        enterOnboardingGame(app, expectsGuide: false)
-        XCTAssertFalse(element("onboardingResumeButton", in: app).exists)
+        enterOnboardingGame(app, expectsGuide: true)
+        waitForObservedValue("onboardingStep", "work", in: app)
+        tapGuideControl("onboardingSkipButton", in: app)
+        waitForOnboardingClosed(in: app)
+        XCTAssertTrue(element("onboardingResumeButton", in: app).exists)
         tapAnimationControl("settingsButton", in: app)
         tapSettingsRootControl("settingsOnboardingRow", in: app)
         waitForObservedValue("onboardingStep", "care", in: app)
@@ -126,6 +129,56 @@ extension RoomHomeUITests {
         }
     }
 
+
+    @MainActor
+    func testSpotlightsFollowRealControlsAndSkippingKeepsProgressWithoutSpending() throws {
+        continueAfterFailure = false
+        let app = launchOnboardingGame(reset: true, expectsGuide: true)
+        let steps = [("care", ["playButton", "cleanButton", "feedButton"], "feedButton"),
+                     ("work", ["tabWork"], "startWorkButton"),
+                     ("supplies", ["tabShop"], "shopCategory_supplies"),
+                     ("tasks", ["homeTasksButton"], "tasksScroll"),
+                     ("town", ["tabTown"], "townMapScroll")]
+        for (step, controls, destination) in steps {
+            waitForObservedValue("onboardingStep", step, in: app)
+            waitForElement("onboardingSpotlight", in: app)
+            let spotlight = element("onboardingSpotlight", in: app).frame
+            let card = element("onboardingCard", in: app).frame
+            XCTAssertTrue(app.frame.contains(spotlight), "Outline \(spotlight) must fit screen \(app.frame), including its stroke.")
+            XCTAssertFalse(card.intersects(spotlight), "Guide card must not cover its highlighted controls.")
+            attachScreenshot(app, named: "Spotlight — \(step)")
+            tapGuideControl("onboardingSkipButton", in: app)
+            waitForOnboardingClosed(in: app)
+            waitForElement("onboardingResumeButton", in: app)
+            var touchPoint = CGPoint(x: spotlight.midX, y: spotlight.midY)
+            for id in controls {
+                let target = element(id, in: app)
+                waitForElement(id, in: app)
+                XCTAssertTrue(spotlight.insetBy(dx: -2, dy: -2).contains(target.frame),
+                              "Spotlight must contain the actual \(id) frame, not an estimated position.")
+                if id == "feedButton" { touchPoint = CGPoint(x: target.frame.midX, y: target.frame.midY) }
+            }
+            assertHomeGuideDoesNotOverlapCatStatus(in: app)
+            assertOnboardingDidNotSpend(in: app)
+            tapAnimationControl("onboardingResumeButton", in: app)
+            waitForObservedValue("onboardingStep", step, in: app)
+            XCTAssertTrue(app.buttons["onboardingSpotlight"].isHittable)
+            // A real touch in the hole follows the shortcut, without running the underlying action.
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            origin.withOffset(CGVector(dx: touchPoint.x, dy: touchPoint.y)).tap()
+            waitForOnboardingClosed(in: app)
+            waitForElement(destination, in: app)
+            if step == "work" { XCTAssertFalse(element("workCountdown", in: app).exists) }
+            tapAnimationControl("tabHome", in: app)
+            assertOnboardingDidNotSpend(in: app)
+            tapAnimationControl("onboardingResumeButton", in: app)
+            waitForObservedValue("onboardingStep", step, in: app)
+            tapGuideControl("onboardingNextButton", in: app)
+        }
+        waitForOnboardingClosed(in: app)
+        XCTAssertFalse(element("onboardingResumeButton", in: app).exists)
+    }
+
     private func onboardingArguments(reset: Bool) -> [String] {
         arguments(reset: reset).filter { $0 != "--skip-onboarding" }
     }
@@ -150,7 +203,7 @@ extension RoomHomeUITests {
         }
         let scroll = element("onboardingGuide", in: app)
         let target = element(identifier, in: app)
-        for _ in 0..<18 {
+        for _ in 0..<40 {
             guard scroll.exists, target.exists else { break }
             var viewport = unobscuredScrollViewport(scroll, in: app)
             let header = element("onboardingHeader", in: app)
@@ -166,7 +219,7 @@ extension RoomHomeUITests {
             let bounded = min(viewport.height * 0.55, max(-viewport.height * 0.55, distance))
             let delta = bounded < 0 ? min(-24, bounded) : max(24, bounded)
             let origin = app.coordinate(withNormalizedOffset: .zero)
-            // The 20-point guide padding stays outside its large tappable action buttons.
+            // The guide padding stays outside its large tappable action buttons.
             let start = origin.withOffset(CGVector(dx: viewport.minX + 10, dy: viewport.midY - delta / 2))
             let end = origin.withOffset(CGVector(dx: viewport.minX + 10, dy: viewport.midY + delta / 2))
             start.press(forDuration: 0.05, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.15)
@@ -176,7 +229,7 @@ extension RoomHomeUITests {
         hierarchy.lifetime = .keepAlways
         add(hierarchy)
         attachScreenshot(app, named: "Guide scroll failure — \(identifier)")
-        XCTFail("The guide could not scroll \(identifier) fully into view.")
+        XCTFail("The guide could not scroll \(identifier) fully into view: target \(target.frame), viewport \(scroll.frame), hittable \(target.isHittable).")
     }
 
     @MainActor
@@ -184,6 +237,13 @@ extension RoomHomeUITests {
         waitForElement("onboardingResumeButton", in: app)
         let resume = element("onboardingResumeButton", in: app)
         let catStatus = element("homeCatInfo", in: app)
+        if !resume.isHittable {
+            attachScreenshot(app, named: "Home guide resume is not tappable")
+            let hierarchy = XCTAttachment(string: app.debugDescription)
+            hierarchy.name = "Home guide resume hierarchy"
+            hierarchy.lifetime = .keepAlways
+            add(hierarchy)
+        }
         XCTAssertTrue(resume.isHittable)
         XCTAssertFalse(resume.frame.intersects(catStatus.frame),
                        "Continue guide must not be covered by the cat status card.")

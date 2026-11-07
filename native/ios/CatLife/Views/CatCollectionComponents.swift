@@ -9,8 +9,8 @@ enum CatCollectionPalette {
         case .orange: RoomTheme.gold
         case .cow: RoomTheme.ink
         case .blue: Color(red: 0.37, green: 0.50, blue: 0.62)
-        case .siamese: Color(red: 0.47, green: 0.31, blue: 0.23)
-        case .silver: Color(red: 0.43, green: 0.52, blue: 0.48)
+        case .siamese: Color(red: 107 / 255, green: 74 / 255, blue: 54 / 255)
+        case .silver: Color(red: 140 / 255, green: 152 / 255, blue: 164 / 255)
         }
     }
     static func background(_ appearance: CatAppearance) -> Color {
@@ -18,9 +18,27 @@ enum CatCollectionPalette {
         case .orange: RoomTheme.gold.opacity(0.20)
         case .cow: RoomTheme.track
         case .blue: Color(red: 0.86, green: 0.90, blue: 0.94)
-        case .siamese: Color(red: 0.95, green: 0.89, blue: 0.81)
-        case .silver: Color(red: 0.90, green: 0.94, blue: 0.92)
+        case .siamese: Color(red: 243 / 255, green: 230 / 255, blue: 214 / 255)
+        case .silver: Color(red: 230 / 255, green: 234 / 255, blue: 238 / 255)
         }
+    }
+
+}
+
+enum CatCollectionBadge: Equatable {
+    case available, newCompanion
+
+    var textKey: String { self == .available ? "cat.adoptionAvailable" : "cat.adoptionNewFriend" }
+    var tint: Color { self == .available ? RoomTheme.mint : RoomTheme.coral }
+
+    static func adoption(appearance: CatAppearance, isOwned: Bool, isAvailable: Bool,
+                         version: String = AppVersion.current.version) -> Self? {
+        guard !isOwned else { return nil }
+        if isAvailable { return .available }
+        let releaseSeries = version.split(separator: ".", omittingEmptySubsequences: false).prefix(2)
+        // New-companion promotion ends with the release series that introduced these coats.
+        return releaseSeries == ["0", "14"] && (appearance == .siamese || appearance == .silver)
+            ? .newCompanion : nil
     }
 }
 

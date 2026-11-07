@@ -65,7 +65,10 @@ struct SettingsView: View {
                         Divider().overlay(RoomTheme.wood.opacity(0.3)).padding(.leading, 66)
                         Button { store.replayOnboarding() } label: {
                             settingRow(symbol: "sparkles", title: "settings.onboarding",
-                                       value: GameStrings.text("onboarding.settingsHint"), tint: RoomTheme.mint)
+                                       value: GameStrings.text("onboarding.settingsHint") + " · "
+                                        + (store.onboarding.isActive
+                                           ? GameStrings.format("onboarding.seenStep", store.onboarding.stepIndex + 1)
+                                           : GameStrings.text("onboarding.finished")), tint: RoomTheme.mint)
                         }
                         .disabled(store.isBusy || store.saveTransferInProgress)
                         .accessibilityIdentifier("settingsOnboardingRow")

@@ -13,8 +13,8 @@ final class GameStoreCommunityTests: XCTestCase {
         return GameStore(repository: repository, reminderDefaults: UserDefaults(suiteName: suite)!)
     }
 
-    private func seed(friendship: Int = 19) -> GameSnapshot {
-        var state = GameSnapshot.fresh()
+    private func seed(friendship: Int = 19, now: Date = Date()) -> GameSnapshot {
+        var state = GameSnapshot.fresh(now: now)
         state.settings.language = .simplifiedChinese
         state.settings.audio.musicEnabled = false
         state.settings.audio.effectsEnabled = false
@@ -145,16 +145,24 @@ final class GameStoreCommunityTests: XCTestCase {
         let original = try XCTUnwrap(store.snapshot)
         await repository.holdNextSave()
         defer { Task { await repository.releaseSave() } }
-        let visit = Task { await store.visitNeighbor(id: mira) }
+        var presentationAttempts = 0
+        let visit = Task {
+            await store.visitNeighborWithReceipt(id: mira, presentResult: { _ in
+                presentationAttempts += 1
+                return store.isShowingNeighbors
+            })
+        }
         try await eventually { await repository.isSaveHeld }
         XCTAssertTrue(store.isBusy)
+        XCTAssertEqual(presentationAttempts, 0)
         XCTAssertEqual(store.snapshot, original)
         XCTAssertFalse(store.toast?.contains(GameStrings.format("community.visited", 2)) == true)
         store.activeSheet = .work
         XCTAssertFalse(store.isShowingNeighbors)
         await repository.releaseSave()
-        let succeeded = await visit.value
-        XCTAssertTrue(succeeded)
+        let receipt = await visit.value
+        XCTAssertNotNil(receipt)
+        XCTAssertEqual(presentationAttempts, 1)
         XCTAssertFalse(store.isBusy || store.isShowingNeighbors)
         XCTAssertEqual(store.activeSheet, .work)
         XCTAssertEqual(store.snapshot?.community.relationship(for: mira).friendship, 21)
@@ -209,6 +217,187 @@ final class GameStoreCommunityTests: XCTestCase {
         XCTAssertEqual(reopened.snapshot?.tasks.dailyClaimedTaskIDs, archive.snapshot.tasks.dailyClaimedTaskIDs)
         XCTAssertEqual(reopened.snapshot?.inventory, importedInventory)
         XCTAssertEqual(reopened.snapshot?.player.gold, importedGold)
+    }
+
+    @MainActor
+    func testNeighborReceiptExcludesWagesSettledByTheSameSave() async throws {
+        let startedAt = Date().addingTimeInterval(-125)
+        var initial = seed(now: startedAt)
+        XCTAssertTrue(GameEngine.startWork(&initial, now: startedAt).succeeded)
+        let work = try XCTUnwrap(initial.player.activeWork)
+        let repository = CommunityTestRepository(initial)
+        await repository.setWritesFailing(true)
+        let store = makeStore(repository)
+        await store.load()
+        XCTAssertEqual(store.snapshot, initial,
+                       "Fail startup synchronization so the completed job remains pending for the visit.")
+        await repository.setWritesFailing(false)
+
+        let result = await store.visitNeighborWithReceipt(id: mira)
+        let receipt = try XCTUnwrap(result)
+        XCTAssertEqual(receipt.neighborID, mira)
+        XCTAssertEqual(receipt.friendshipGained, 2)
+        XCTAssertEqual(receipt.stageReached?.level, 2)
+        XCTAssertEqual(receipt.goldAwarded, 20, "The relationship receipt must not include wages.")
+        XCTAssertEqual(receipt.foodAwarded, 1)
+        XCTAssertEqual(receipt.litterAwarded, 0)
+        XCTAssertEqual(receipt.toyUsesAwarded, 0)
+        let committed = try XCTUnwrap(store.snapshot)
+        XCTAssertNil(committed.player.activeWork)
+        XCTAssertEqual(committed.player.lastWorkResult?.id, work.id)
+        XCTAssertEqual(committed.player.gold, initial.player.gold + work.goldReward + 20)
+        let saved = await repository.saved
+        XCTAssertEqual(saved, committed)
+    }
+
+    @MainActor
+    func testGiftReceiptIsAbsentOnFailureThenReportsOnlyRewardsThatFit() async throws {
+        let maximumGold = 1_000_000_000
+        let maximumStock = 1_000_000
+        var initial = seed(friendship: 79)
+        initial.player.gold = maximumGold - 7
+        initial.inventory.toys = maximumStock - 2
+        let repository = CommunityTestRepository(initial)
+        let store = makeStore(repository)
+        await store.load()
+        let before = try XCTUnwrap(store.snapshot)
+        await repository.setWritesFailing(true)
+
+        let failed = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower")
+        XCTAssertNil(failed)
+        XCTAssertEqual(store.snapshot, before)
+        XCTAssertTrue(store.hasSaveFailure)
+        await repository.setWritesFailing(false)
+        let result = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower")
+        let receipt = try XCTUnwrap(result)
+        XCTAssertEqual(receipt.friendshipGained, 8)
+        XCTAssertEqual(receipt.stageReached?.level, 5)
+        XCTAssertEqual(receipt.goldAwarded, 7)
+        XCTAssertEqual(receipt.foodAwarded, 0)
+        XCTAssertEqual(receipt.litterAwarded, 0)
+        XCTAssertEqual(receipt.toyUsesAwarded, 2)
+        XCTAssertEqual(store.snapshot?.player.gold, maximumGold)
+        XCTAssertEqual(store.snapshot?.inventory.toys, maximumStock)
+        XCTAssertEqual(store.snapshot?.inventory.giftCount("flower"), 1)
+        let duplicate = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower")
+        XCTAssertNil(duplicate)
+        XCTAssertEqual(store.snapshot?.inventory.giftCount("flower"), 1)
+    }
+
+    @MainActor
+    func testVisitReceiptDoesNotPromiseFullInventoryRewardsOrRepeatStageCelebration() async throws {
+        var initial = seed()
+        initial.inventory.food = 1_000_000
+        let store = makeStore(CommunityTestRepository(initial))
+        await store.load()
+        let result = await store.visitNeighborWithReceipt(id: mira)
+        let receipt = try XCTUnwrap(result)
+        XCTAssertEqual(receipt.stageReached?.level, 2)
+        XCTAssertEqual(receipt.goldAwarded, 20)
+        XCTAssertEqual(receipt.foodAwarded, 0)
+        XCTAssertEqual(store.snapshot?.inventory.food, 1_000_000)
+
+        let repeated = await store.visitNeighborWithReceipt(id: mira)
+        let chat = try XCTUnwrap(repeated)
+        XCTAssertNil(chat.stageReached)
+        XCTAssertEqual(chat.friendshipGained, 0)
+        XCTAssertEqual(chat.goldAwarded + chat.foodAwarded + chat.litterAwarded + chat.toyUsesAwarded, 0)
+    }
+
+    @MainActor
+    func testVisibleNeighborResultIsPresentedOnlyAfterSavingWithoutDuplicateToast() async throws {
+        let repository = CommunityTestRepository(seed())
+        let store = makeStore(repository)
+        await store.load()
+        store.enterHome()
+        var presentations: [NeighborActionReceipt] = []
+        await repository.holdNextSave()
+        defer { Task { await repository.releaseSave() } }
+        let visit = Task {
+            await store.visitNeighborWithReceipt(id: mira, presentResult: { receipt in
+                XCTAssertEqual(store.snapshot?.community.relationship(for: self.mira).friendship, 21)
+                presentations.append(receipt)
+                return true
+            })
+        }
+        try await eventually { await repository.isSaveHeld }
+        XCTAssertTrue(presentations.isEmpty)
+        XCTAssertFalse(store.toast?.contains(GameStrings.format("community.visited", 2)) == true)
+        await repository.releaseSave()
+        let visitReceipt = await visit.value
+        XCTAssertEqual(presentations, [try XCTUnwrap(visitReceipt)])
+        XCTAssertEqual(presentations.first?.stageReached?.level, 2)
+        XCTAssertFalse(store.toast?.contains(GameStrings.format("community.visited", 2)) == true)
+        XCTAssertFalse(store.toast?.contains(GameStrings.format("community.stageReached", GameStrings.text("community.stage.2"))) == true)
+
+        let giftReceipt = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower", presentResult: { receipt in
+            presentations.append(receipt)
+            return true
+        })
+        XCTAssertNotNil(giftReceipt)
+        XCTAssertEqual(presentations.count, 2)
+        XCTAssertNil(giftReceipt?.stageReached, "No second celebration within the same relationship stage.")
+        XCTAssertFalse(store.toast?.contains(GameStrings.format("community.gifted", 8)) == true)
+    }
+
+    @MainActor
+    func testFailedNeighborSaveNeverInvokesResultPresenter() async throws {
+        let repository = CommunityTestRepository(seed())
+        let store = makeStore(repository)
+        await store.load()
+        let original = store.snapshot
+        await repository.setWritesFailing(true)
+        var presentations = 0
+        let receipt = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower", presentResult: { _ in
+            presentations += 1
+            return true
+        })
+        XCTAssertNil(receipt)
+        XCTAssertEqual(presentations, 0)
+        XCTAssertEqual(store.snapshot, original)
+        XCTAssertTrue(store.hasSaveFailure)
+    }
+
+    @MainActor
+    func testDismissedGiftPresentationFallsBackButImportedTimelineDoesNotReplayIt() async throws {
+        let store = makeStore(CommunityTestRepository(seed()))
+        await store.load()
+        store.enterHome()
+        let result = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower", presentResult: { _ in true })
+        let receipt = try XCTUnwrap(result)
+        XCTAssertFalse(store.toast?.contains(GameStrings.format("community.gifted", 8)) == true)
+        store.showNeighborActionResult(receipt)
+        XCTAssertTrue(store.toast?.contains(GameStrings.format("community.gifted", 8)) == true)
+        XCTAssertTrue(store.toast?.contains(GameStrings.format("community.stageReached", GameStrings.text("community.stage.2"))) == true)
+
+        let archive = try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: seed(friendship: 0)))
+        try await store.importSaveArchive(archive)
+        let importNotice = store.toast
+        XCTAssertNotEqual(receipt.saveSceneGeneration, store.saveSceneGeneration)
+        store.showNeighborActionResult(receipt)
+        XCTAssertEqual(store.toast, importNotice, "A dismissed sheet from the old save must not report success on the imported timeline.")
+    }
+
+    @MainActor
+    func testMaximumFriendshipVisitAndGiftUseCloseFriendNoticesInEveryLanguage() async throws {
+        for language in [GameLanguage.simplifiedChinese, .traditionalChinese, .english] {
+            var initial = seed(friendship: 100)
+            initial.settings.language = language
+            let store = makeStore(CommunityTestRepository(initial))
+            await store.load()
+            store.enterHome()
+            let visit = await store.visitNeighborWithReceipt(id: mira)
+            XCTAssertEqual(visit?.friendshipGained, 0)
+            XCTAssertNil(visit?.stageReached)
+            XCTAssertTrue(store.toast?.contains(GameStrings.text("community.visitClosest")) == true)
+            XCTAssertFalse(store.toast?.contains("+0") == true)
+            let gift = await store.giveNeighborGiftWithReceipt(neighborID: mira, giftID: "flower", presentResult: { _ in false })
+            XCTAssertEqual(gift?.friendshipGained, 0)
+            XCTAssertNil(gift?.stageReached)
+            XCTAssertTrue(store.toast?.contains(GameStrings.text("community.giftClosest")) == true)
+            XCTAssertFalse(store.toast?.contains("+0") == true)
+            XCTAssertEqual(store.snapshot?.inventory.giftCount("flower"), 1)
+        }
     }
 
     @MainActor

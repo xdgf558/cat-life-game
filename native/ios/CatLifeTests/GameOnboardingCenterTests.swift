@@ -144,7 +144,7 @@ final class GameOnboardingCenterTests: XCTestCase {
     }
 
     @MainActor
-    func testSkippingStaysDismissedButSettingsCanExplicitlyRestart() throws {
+    func testFinishingStaysDismissedButSettingsCanExplicitlyRestart() throws {
         let defaults = try isolatedDefaults()
         let snapshot = GameSnapshot.fresh(now: createdAt)
         let center = GameOnboardingCenter(defaults: defaults)
@@ -158,6 +158,31 @@ final class GameOnboardingCenterTests: XCTestCase {
         reloaded.restart(snapshot: snapshot)
         XCTAssertEqual(reloaded.step, .care)
         XCTAssertTrue(reloaded.isPresented)
+    }
+
+    @MainActor
+    func testDismissingGuidePreservesPendingStepAndResumesAfterRelaunch() throws {
+        let defaults = try isolatedDefaults()
+        let snapshot = GameSnapshot.fresh(now: createdAt)
+        let center = GameOnboardingCenter(defaults: defaults)
+        center.prepare(snapshot: snapshot, disposition: .created)
+        center.show()
+        center.next()
+        let progress = try XCTUnwrap(defaults.data(forKey: GameOnboardingCenter.progressKey))
+
+        center.isPresented = false
+        XCTAssertFalse(center.isPresented)
+        XCTAssertEqual(center.step, .work)
+        XCTAssertTrue(center.isActive)
+        XCTAssertEqual(defaults.data(forKey: GameOnboardingCenter.progressKey), progress)
+
+        let resumed = GameOnboardingCenter(defaults: defaults)
+        resumed.prepare(snapshot: snapshot, disposition: .loaded)
+        XCTAssertFalse(resumed.isPresented)
+        resumed.show()
+        XCTAssertTrue(resumed.isPresented)
+        XCTAssertEqual(resumed.step, .work)
+        XCTAssertEqual(resumed.stepIndex, 1)
     }
 
     @MainActor

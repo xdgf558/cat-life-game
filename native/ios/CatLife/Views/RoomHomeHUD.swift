@@ -32,6 +32,7 @@ struct RoomHomeHUD: View {
                             }
                     }
                     .frame(width: 78).disabled(store.isBusy)
+                    .onboardingTarget(.care)
                 }
                 .padding(.horizontal, 14).padding(.bottom, 18)
             }
@@ -42,7 +43,7 @@ struct RoomHomeHUD: View {
             }
         }
         .onChange(of: store.onboarding.isPresented) { _, presented in
-            if !presented && store.onboarding.step == .care { controlsHidden = false }
+            if presented || store.onboarding.step == .care { controlsHidden = false }
         }
     }
 
@@ -67,12 +68,14 @@ struct RoomHomeHUD: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HomeNamePlaque(name: store.homeDisplayName, height: 62)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("homeNamePlaque")
-                    if store.onboarding.isActive && store.activeSheet == nil && !store.isShowingSettings {
+                    if !controlsHidden || store.onboarding.isPresented {
+                        HomeTaskEntry(store: store).onboardingTarget(.tasks)
+                    }
+                    if store.onboarding.isActive && !store.onboarding.isPresented
+                        && store.activeSheet == nil && !store.isShowingSettings {
                         GuideResumeBar(store: store)
                             .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                             .lineLimit(1).minimumScaleFactor(0.7).frame(height: 44)
-                    } else if !controlsHidden {
-                        HomeTaskEntry(store: store)
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
