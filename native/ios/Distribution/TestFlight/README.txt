@@ -1,4 +1,8 @@
-最新上传：0.13.3（49）存档备份、安全恢复与新图标，2026-11-06 07:01（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED；App Store Connect 已看到版本 0.13.3、构建 49，状态为“正在处理”。尚未确认处理完成或开放测试。未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+最新上传：0.14.1（53）邻里、五步新手指引与图鉴 UI/UX 重制，2026-11-07 14:24（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED；App Store Connect 已看到版本 0.14.1、构建 53，状态为“正在处理”。尚未确认处理完成或开放测试。未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+PR #17 已合并，合并提交 cf8710f9728d10deddaf2c951258a5f4494bfff4；本地 main 已同步。完整源码树与已审查的 9610e9fc3237c79431bdbed4e44fd38c63d88096 完全一致，复用包含复审修复的 CatLife-0.14.1-53-review.xcarchive。归档二进制 SHA256：0ea0b0d8f50524c1764ca4719b1bead97019af227bf060114a6fc098197aacc3。未使用同版其他旧候选包。
+上传前再次核对版本、Bundle ID、严格签名、dSYM、隐私清单及 Release 测试入口隔离；不自动修改版本号，未限制为 Internal Only。175 项 App 测试与 7 次大小屏回归为同源码合并前验证，不计作本轮重跑。最初上传因 Xcode 账户授权不可用中止，登录恢复后上传成功。未安装真实设备、未修改玩家存档。目标 App ID 6830428076（打工养猫日记），Bundle ID com.stationcat.catlife.native；测试重点见 testflight-build53-notes-zh-Hans.txt，验证范围及限制见 ../../QA/neighborhood-design-build53-summary.md。
+
+历史上传：0.13.3（49）存档备份、安全恢复与新图标，2026-11-06 07:01（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED；App Store Connect 已看到版本 0.13.3、构建 49，状态为“正在处理”。当次尚未确认处理完成或开放测试。未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
 PR #14 已合并，合并提交 b3658c4873db963c757f5bc513141fd40445b418；本地 main 已同步。源码树与已审查的 502eedb1f268818b768d3ad9a0fd746330af878f 完全一致，复用已验证的 CatLife-0.13.3-49-release-final.xcarchive，未使用同版 release 旧候选。二进制 SHA256：b7c5bf9e8e7ef5f4af435305901905612c6bd11d6ca95f2606ba581d26821105。
 上传前复核版本、Bundle ID、签名、dSYM、隐私清单和 Release 测试入口隔离通过；不自动修改版本号，未限制为 Internal Only。313 项 Core、135 项 App 及大小屏文件流程为同源码合并前验证，不计作本轮重跑。未安装真实设备、未修改玩家存档。目标 App ID 6830428076（打工养猫日记），Bundle ID com.stationcat.catlife.native；测试重点见 save-originals-0.13.3-49.txt，验证范围及限制见 ../../QA/save-originals-build49-summary.md。
 
