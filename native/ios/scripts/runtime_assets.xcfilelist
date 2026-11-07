@@ -264,6 +264,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/icon-work.imageset/icon-work.png
 $(SRCROOT)/CatLife/Assets.xcassets/job-cafe-cartoon.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/job-cafe-cartoon.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/job-cafe-cartoon.imageset/job-cafe-cartoon.png
+$(SRCROOT)/CatLife/Assets.xcassets/job-designer-cartoon.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/job-designer-cartoon.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/job-designer-cartoon.imageset/job-designer-cartoon.png
 $(SRCROOT)/CatLife/Assets.xcassets/job-flyer-cartoon.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/job-flyer-cartoon.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/job-flyer-cartoon.imageset/job-flyer-cartoon.png
@@ -273,6 +276,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/job-it-cartoon.imageset/job-it-cartoon.png
 $(SRCROOT)/CatLife/Assets.xcassets/job-petshop-cartoon.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/job-petshop-cartoon.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/job-petshop-cartoon.imageset/job-petshop-cartoon.png
+$(SRCROOT)/CatLife/Assets.xcassets/job-photographer-cartoon.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/job-photographer-cartoon.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/job-photographer-cartoon.imageset/job-photographer-cartoon.png
 $(SRCROOT)/CatLife/Assets.xcassets/job-store-cartoon.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/job-store-cartoon.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/job-store-cartoon.imageset/job-store-cartoon.png

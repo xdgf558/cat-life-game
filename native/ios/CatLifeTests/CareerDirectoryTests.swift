@@ -4,10 +4,33 @@ import CatGameCore
 @testable import CatLife
 
 final class CareerDirectoryTests: XCTestCase {
+    @MainActor
+    func testHigherTierCareersHaveDistinctArtworkAndSearchableNamesInEveryLanguage() {
+        let previous = GameLocalization.shared.language
+        defer { GameLocalization.shared.language = previous }
+        let expected = ["job_pet_photographer": "job-photographer-cartoon",
+                        "job_pet_brand_designer": "job-designer-cartoon"]
+        for language in GameLanguage.allCases {
+            GameLocalization.shared.language = language
+            for (id, asset) in expected {
+                let name = WorkJobPresentation.name(id)
+                XCTAssertNotEqual(name, "jobs.\(id).name")
+                XCTAssertNotEqual(GameStrings.text("jobs.\(id).detail"), "jobs.\(id).detail")
+                XCTAssertEqual(WorkJobPresentation.asset(id), asset)
+                let matches = CareerDirectory.matching(WorkCatalog.all, level: 20, query: name, filter: .available,
+                                                       locale: Locale(identifier: language.rawValue)) {
+                    WorkJobPresentation.name($0.id)
+                }
+                XCTAssertEqual(matches.map(\.id), [id])
+            }
+        }
+    }
+
     func testLocalizedNameSearchAndUnlockFilterComposeWithoutReorderingJobs() {
         let names = ["job_flyer": "Hand out flyers", "job_store": "Store assistant",
                      "job_petshop": "Pet shop assistant", "job_it_engineer": "IT engineer",
-                     "job_cat_cafe_manager": "Cat café manager"]
+                     "job_cat_cafe_manager": "Cat café manager", "job_pet_photographer": "Pet Photographer",
+                     "job_pet_brand_designer": "Pet Brand Designer"]
         let all = CareerDirectory.matching(WorkCatalog.all, level: 1, query: " \n", filter: .all,
                                           locale: Locale(identifier: "en")) { names[$0.id]! }
         XCTAssertEqual(all, WorkCatalog.all)
@@ -20,6 +43,10 @@ final class CareerDirectoryTests: XCTestCase {
         let cafe = CareerDirectory.matching(WorkCatalog.all, level: 10, query: "cafe",
             filter: .all, locale: Locale(identifier: "en")) { names[$0.id]! }
         XCTAssertEqual(cafe.map(\.id), ["job_cat_cafe_manager"])
+        let highLevel = CareerDirectory.matching(WorkCatalog.all, level: 15, query: "pet",
+            filter: .available, locale: Locale(identifier: "en")) { names[$0.id]! }
+        XCTAssertEqual(highLevel.map(\.id), ["job_petshop", "job_pet_photographer"])
+        XCTAssertEqual(CareerDirectory.pageRange(1, count: WorkCatalog.all.count), 4..<7)
         let localized = CareerDirectory.matching(WorkCatalog.all, level: 1, query: "传单",
             filter: .all, locale: Locale(identifier: "zh-Hans")) { $0.id == "job_flyer" ? "发传单" : "其他职业" }
         XCTAssertEqual(localized.map(\.id), ["job_flyer"])

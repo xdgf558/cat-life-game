@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 8
+    public static let currentSchemaVersion = 9
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -46,6 +46,10 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         player = try values.decode(PlayerState.self, forKey: .player)
         let decodedCats = try values.decode([CatState].self, forKey: .cats)
         guard version < 5 || decodedCats.allSatisfy({ $0.healthState != nil }) else {
+            throw SaveRepositoryError.invalidSnapshot
+        }
+        guard decodedCats.allSatisfy({ ($0.growthState?.isValid ?? (version < 9))
+            && (!$0.isPregnant || $0.growthState?.sex != .male) }) else {
             throw SaveRepositoryError.invalidSnapshot
         }
         cats = decodedCats
@@ -205,6 +209,8 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public var health: Int
     /// nil exists only while loading a pre-health save, until its first synchronization.
     public var healthState: CatHealthState?
+    /// Only pre-growth schemas may omit this until the shared migration boundary.
+    public var growthState: CatGrowthState?
     public var isPregnant: Bool
     public var decayTracker: CatDecayTracker
     public var activeRest: CatRest?
@@ -216,7 +222,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
                 health: Int = 90, isPregnant: Bool = false, now: Date,
                 activeRest: CatRest? = nil, lastRestSessionID: String? = nil,
                 customName: String? = nil, appearance: CatAppearance = .orange,
-                healthState: CatHealthState? = nil) {
+                healthState: CatHealthState? = nil, growthState: CatGrowthState? = nil) {
         self.id = id
         self.name = name
         self.customName = customName
@@ -228,6 +234,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         self.energy = energy
         self.health = health
         self.healthState = healthState ?? CatHealthState(now: now)
+        self.growthState = growthState ?? .adopted(appearance: appearance, now: now)
         self.isPregnant = isPregnant
         self.decayTracker = CatDecayTracker(now: now)
         self.activeRest = activeRest
@@ -236,7 +243,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
 
     private enum CodingKeys: String, CodingKey {
         case id, name, customName, appearance, satiety, cleanliness, mood, intimacy, energy, health
-        case isPregnant, decayTracker, activeRest, lastRestSessionID, healthState
+        case isPregnant, decayTracker, activeRest, lastRestSessionID, healthState, growthState
     }
 
     public init(from decoder: Decoder) throws {
@@ -255,6 +262,8 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         health = try values.decode(Int.self, forKey: .health)
         healthState = values.contains(.healthState)
             ? try values.decode(CatHealthState.self, forKey: .healthState) : nil
+        growthState = values.contains(.growthState)
+            ? try values.decode(CatGrowthState.self, forKey: .growthState) : nil
         isPregnant = try values.decode(Bool.self, forKey: .isPregnant)
         decayTracker = try values.decode(CatDecayTracker.self, forKey: .decayTracker)
         activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)

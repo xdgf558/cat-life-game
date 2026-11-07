@@ -137,16 +137,19 @@ struct PlayerEquipmentTests {
     }
 
     @Test func starterOutfitUsesExactRoundedCostsAndDeadlinesForEveryCareer() throws {
+        let expected = [(102, 9, 4), (153, 13, 7), (204, 17, 10), (510, 26, 10),
+                        (1530, 43, 16), (2295, 56, 20), (3060, 68, 23)]
+        try #require(expected.count == WorkCatalog.all.count)
         for (index, job) in WorkCatalog.all.enumerated() {
             var state = GameSnapshot.fresh(now: now)
-            state.player.level = 10
+            state.player.level = job.unlockLevel
             state.player.stamina = 100
             state.player.mood = 100
             _ = GameEngine.equipStarterSet(&state, now: now)
             let quote = try #require(GameEngine.workQuote(for: state.player, jobID: job.id))
-            #expect(quote.durationSeconds == [102, 153, 204, 510, 1530][index])
-            #expect(quote.staminaCost == [9, 13, 17, 26, 43][index])
-            #expect(quote.moodCost == [4, 7, 10, 10, 16][index])
+            #expect(quote.durationSeconds == expected[index].0)
+            #expect(quote.staminaCost == expected[index].1)
+            #expect(quote.moodCost == expected[index].2)
             #expect(quote.bonuses == EquipmentBonuses(durationReductionPercent: 15,
                 staminaReductionPercent: 15, moodReductionPercent: 20))
             #expect(GameEngine.startWork(&state, jobID: job.id, now: now).succeeded)

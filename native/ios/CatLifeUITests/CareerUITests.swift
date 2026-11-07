@@ -44,7 +44,8 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("careerPagePrevious", in: app).isEnabled)
         tapCareerDirectoryControl("careerPageNext", in: app)
         waitForObservedValue("careerPageIndicator", "2/2", in: app)
-        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_cat_cafe_manager"])
+        XCTAssertEqual(careerDirectoryRowIDs(in: app),
+                       ["job_cat_cafe_manager", "job_pet_brand_designer", "job_pet_photographer"])
         XCTAssertFalse(element("careerPageNext", in: app).isEnabled)
         tapCareerDirectoryControl("careerJobRow_job_cat_cafe_manager", in: app)
         scrollCareerPage("careerDetailScroll", to: "careerSelect_job_cat_cafe_manager", in: app)
@@ -53,11 +54,12 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Work — locked career remains previewable without a charge")
         tapAnimationControl("careerDetailBackButton", in: app)
         waitForObservedValue("careerPageIndicator", "2/2", in: app)
-        XCTAssertEqual(careerDirectoryRowIDs(in: app), ["job_cat_cafe_manager"])
+        XCTAssertEqual(careerDirectoryRowIDs(in: app),
+                       ["job_cat_cafe_manager", "job_pet_brand_designer", "job_pet_photographer"])
 
         tapCareerDirectoryControl("careerFilter_locked", in: app)
         waitForObservedValue("careerFilter_locked", "selected", in: app)
-        waitForObservedValue("careerPageIndicator", "1/1", in: app)
+        waitForObservedValue("careerPageIndicator", "1/2", in: app)
         XCTAssertEqual(careerDirectoryRowIDs(in: app),
                        ["job_cat_cafe_manager", "job_it_engineer", "job_petshop", "job_store"])
         enterCareerSearch("猫", in: app)
@@ -154,7 +156,8 @@ extension RoomHomeUITests {
         waitForObservedValue("selectedCareerName", "job_flyer", in: app)
         tapCareerControl("careerChooseJobButton", in: app)
         for (id, level) in [("job_store", 2), ("job_petshop", 4),
-                            ("job_it_engineer", 6), ("job_cat_cafe_manager", 10)] {
+                            ("job_it_engineer", 6), ("job_cat_cafe_manager", 10),
+                            ("job_pet_photographer", 15), ("job_pet_brand_designer", 20)] {
             openCareerDetailsFromDirectory(id, in: app)
             XCTAssertFalse(element("careerSelect_\(id)", in: app).isEnabled,
                            "A level-one player must not start a locked career.")
@@ -346,14 +349,16 @@ extension RoomHomeUITests {
         app.launchArguments = arguments(reset: true) + ["--career-completion-fixture"]
         launchAndEnterHome(app)
         waitForObservedValue("goldCount", "260", in: app)
-        let ids = ["job_flyer", "job_store", "job_petshop", "job_it_engineer", "job_cat_cafe_manager"]
+        let ids = ["job_flyer", "job_store", "job_petshop", "job_it_engineer", "job_cat_cafe_manager",
+                   "job_pet_photographer", "job_pet_brand_designer"]
         let languages: [(code: String, jobsTitle: String, resultTitle: String, names: [String])] = [
             ("en", "Choose a job", "Work summary",
-             ["Hand out flyers", "Store assistant", "Pet shop assistant", "IT engineer", "Cat cafe manager"]),
+             ["Hand out flyers", "Store assistant", "Pet shop assistant", "IT engineer", "Cat cafe manager",
+              "Pet Photographer", "Pet Brand Designer"]),
             ("zh-Hant", "職業選擇", "工作結算",
-             ["發傳單", "便利商店兼職", "寵物店助理", "IT 工程師", "貓咖管理員"]),
+             ["發傳單", "便利商店兼職", "寵物店助理", "IT 工程師", "貓咖管理員", "寵物攝影師", "寵物品牌設計師"]),
             ("zh-Hans", "职业选择", "工作结算",
-             ["发传单", "便利店兼职", "宠物店助理", "IT 工程师", "猫咖管理员"])
+             ["发传单", "便利店兼职", "宠物店助理", "IT 工程师", "猫咖管理员", "宠物摄影师", "宠物品牌设计师"])
         ]
         var savedResultID: String?
         for language in languages {

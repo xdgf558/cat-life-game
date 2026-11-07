@@ -136,7 +136,8 @@ struct CatNameTests {
         value.inventory.food = 11
         value.settings.language = .traditionalChinese
         value.cats[0].energy = 40
-        value.cats.append(CatState(id: "generated-cat", name: "Mochi", mood: 42, isPregnant: true, now: now))
+        value.cats.append(CatState(id: "generated-cat", name: "Mochi", mood: 42, isPregnant: true, now: now,
+            growthState: .init(recordedSince: now, adoptedAt: now, initialAgeDays: 365, sex: .female)))
         _ = GameEngine.equipStarterSet(&value, now: now)
         _ = GameEngine.startWork(&value, jobID: "job_petshop", now: now)
         _ = GameEngine.startCatRest(&value, catID: "cat_001", furnitureID: "catBed", sessionID: "cat-name-rest", now: now)

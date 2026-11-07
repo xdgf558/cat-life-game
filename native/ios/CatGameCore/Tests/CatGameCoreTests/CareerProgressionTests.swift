@@ -25,14 +25,15 @@ struct CareerProgressionTests {
         return try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
     }
 
-    @Test func careerValuesMatchAllFiveWebJobsAndUseRealCafeMinutes() {
-        #expect(WorkCatalog.all.map(\.id) == ["job_flyer", "job_store", "job_petshop", "job_it_engineer", "job_cat_cafe_manager"])
-        #expect(WorkCatalog.all.map(\.unlockLevel) == [1, 2, 4, 6, 10])
-        #expect(WorkCatalog.all.map(\.durationMinutes) == [2, 3, 4, 10, 30])
-        #expect(WorkCatalog.all.map(\.staminaCost) == [10, 15, 20, 30, 50])
-        #expect(WorkCatalog.all.map(\.moodCost) == [5, 8, 12, 12, 20])
-        #expect(WorkCatalog.all.map(\.goldReward) == [60, 100, 160, 400, 800])
-        #expect(WorkCatalog.all.map(\.expReward) == [22, 35, 52, 100, 200])
+    @Test func careerValuesPreserveFiveWebJobsAndAppendTwoNativeHigherTiers() {
+        #expect(WorkCatalog.all.map(\.id) == ["job_flyer", "job_store", "job_petshop", "job_it_engineer", "job_cat_cafe_manager",
+                                            "job_pet_photographer", "job_pet_brand_designer"])
+        #expect(WorkCatalog.all.map(\.unlockLevel) == [1, 2, 4, 6, 10, 15, 20])
+        #expect(WorkCatalog.all.map(\.durationMinutes) == [2, 3, 4, 10, 30, 45, 60])
+        #expect(WorkCatalog.all.map(\.staminaCost) == [10, 15, 20, 30, 50, 65, 80])
+        #expect(WorkCatalog.all.map(\.moodCost) == [5, 8, 12, 12, 20, 24, 28])
+        #expect(WorkCatalog.all.map(\.goldReward) == [60, 100, 160, 400, 800, 1400, 2000])
+        #expect(WorkCatalog.all.map(\.expReward) == [22, 35, 52, 100, 200, 320, 450])
         #expect(WorkCatalog.requiredExperience(forLevel: 1) == 100)
         #expect(WorkCatalog.requiredExperience(forLevel: 10) == 1000)
     }
@@ -62,6 +63,62 @@ struct CareerProgressionTests {
             let settled = state
             #expect(GameEngine.synchronize(&state, now: work.endsAt).kind == .none)
             #expect(state == settled)
+        }
+    }
+
+    @Test func higherTierEquipmentQuotesSurviveReloadAndPayOnlyOnceOffline() async throws {
+        for (id, seconds, stamina, mood) in [("job_pet_photographer", 2295, 56, 20),
+                                            ("job_pet_brand_designer", 3060, 68, 23)] {
+            let folder = try directory()
+            defer { try? FileManager.default.removeItem(at: folder) }
+            let repository = FileSaveRepository(directory: folder)
+            let job = try #require(WorkCatalog.job(id: id))
+            var state = GameSnapshot.fresh(now: now)
+            state.player.level = job.unlockLevel
+            state.player.stamina = 100
+            state.player.mood = 100
+            #expect(GameEngine.equipStarterSet(&state, now: now).succeeded)
+            let quote = try #require(GameEngine.workQuote(for: state.player, jobID: id))
+            #expect(quote.durationSeconds == seconds && quote.staminaCost == stamina && quote.moodCost == mood)
+            state.player.stamina = stamina - 1
+            let insufficient = state
+            #expect(GameEngine.startWork(&state, jobID: id, now: now).messageKey == "work.staminaRequired")
+            #expect(state == insufficient)
+            state.player.stamina = 100
+            #expect(GameEngine.startWork(&state, jobID: id, now: now).succeeded)
+            let work = try #require(state.player.activeWork)
+            #expect(work.quote == quote && work.endsAt.timeIntervalSince(now) == Double(seconds))
+            #expect(state.player.stamina == 100 - stamina && state.player.mood == 100 - mood)
+            for slot in EquipmentSlot.allCases { _ = GameEngine.unequipSlot(&state, slot: slot, now: now) }
+            #expect(state.player.activeWork == work)
+            try await repository.save(state)
+            let returnDate = work.endsAt.addingTimeInterval(86_400)
+            var loaded = try await FileSaveRepository(directory: folder).loadOrCreate(now: returnDate)
+            #expect(loaded.player.activeWork == work)
+            #expect(GameEngine.synchronize(&loaded, now: returnDate).kind == .workFinished)
+            #expect(loaded.player.gold == 200 + job.goldReward && loaded.player.exp == job.expReward)
+            #expect(loaded.player.completedWorkCount == 1 && loaded.player.lastWorkResult?.id == work.id)
+            try await repository.save(loaded)
+            var reopened = try await FileSaveRepository(directory: folder).loadOrCreate(now: returnDate)
+            #expect(reopened == loaded)
+            #expect(GameEngine.synchronize(&reopened, now: now).kind == .none)
+            #expect(reopened == loaded)
+        }
+    }
+
+    @Test func higherTierUnlocksAppearOnTheExactLevelBoundary() throws {
+        for (level, id) in [(15, "job_pet_photographer"), (20, "job_pet_brand_designer")] {
+            var state = GameSnapshot.fresh(now: now)
+            state.player.level = level - 1
+            state.player.exp = WorkCatalog.requiredExperience(forLevel: level - 1) - 22
+            let locked = state
+            #expect(GameEngine.startWork(&state, jobID: id, now: now).messageKey == "work.levelRequired")
+            #expect(state == locked)
+            #expect(GameEngine.startWork(&state, now: now).succeeded)
+            let end = try #require(state.player.activeWork?.endsAt)
+            #expect(GameEngine.synchronize(&state, now: end).kind == .workFinished)
+            #expect(state.player.level == level && state.player.exp == 0)
+            #expect(state.player.lastWorkResult?.newlyUnlockedJobIDs == [id])
         }
     }
 

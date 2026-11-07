@@ -50,6 +50,7 @@ struct PremiumSupplyTests {
 
     @Test func pregnantCatsNeedTwoUnitsOfTheSelectedFoodWithoutMixingTiers() {
         var state = GameSnapshot.fresh(now: now)
+        state.cats[0].growthState = .init(recordedSince: now, adoptedAt: now, initialAgeDays: 365, sex: .female)
         state.cats[0].isPregnant = true
         state.inventory.premiumFood = 1
         let original = state

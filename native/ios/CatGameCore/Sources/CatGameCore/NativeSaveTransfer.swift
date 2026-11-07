@@ -22,7 +22,10 @@ public enum NativeSaveTransfer {
     /// Export remains available so a clock error never traps the original progress.
     public static func validateImportTime(_ archive: NativeSaveArchive, now: Date = Date()) throws {
         guard now.timeIntervalSince1970.isFinite else { throw NativeSaveTransferError.invalidArchive }
-        guard archive.snapshot.meta.lastSyncAt.timeIntervalSince(now) <= 24 * 60 * 60 else {
+        let growthDates = archive.snapshot.cats.compactMap(\.growthState).flatMap {
+            [$0.recordedSince] + [$0.adoptedAt].compactMap { $0 }
+        }
+        guard ([archive.snapshot.meta.lastSyncAt] + growthDates).allSatisfy({ $0.timeIntervalSince(now) <= 24 * 60 * 60 }) else {
             throw NativeSaveTransferError.futureProgress
         }
     }
@@ -156,6 +159,10 @@ enum NativeSaveCodec {
         // Start protection now, never by retroactively evaluating old neglect.
         for index in snapshot.cats.indices where snapshot.cats[index].healthState == nil {
             snapshot.cats[index].healthState = CatHealthState(now: migrationDate)
+        }
+        for index in snapshot.cats.indices where snapshot.cats[index].growthState == nil {
+            snapshot.cats[index].growthState = .legacy(appearance: snapshot.cats[index].appearance, now: migrationDate,
+                                                     isPregnant: snapshot.cats[index].isPregnant)
         }
         guard snapshot.isValid else { throw SaveRepositoryError.invalidSnapshot }
         return snapshot

@@ -153,6 +153,7 @@ struct GameTaskTests {
 
     @Test func pregnantFeedingCountsOneActionRatherThanTwoFoodUnits() {
         var state = GameSnapshot.fresh(now: now)
+        state.cats[0].growthState = .init(recordedSince: now, adoptedAt: now, initialAgeDays: 365, sex: .female)
         state.cats[0].isPregnant = true
         #expect(GameEngine.feed(&state, catID: "cat_001", now: now).amount == 2)
         #expect(state.tasks.dailyFeedCount == 1 && state.tasks.totalFeedCount == 1)
