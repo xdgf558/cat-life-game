@@ -48,7 +48,8 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         guard version < 5 || decodedCats.allSatisfy({ $0.healthState != nil }) else {
             throw SaveRepositoryError.invalidSnapshot
         }
-        guard decodedCats.allSatisfy({ $0.growthState?.isValid ?? (version < 9) }) else {
+        guard decodedCats.allSatisfy({ ($0.growthState?.isValid ?? (version < 9))
+            && (!$0.isPregnant || $0.growthState?.sex != .male) }) else {
             throw SaveRepositoryError.invalidSnapshot
         }
         cats = decodedCats

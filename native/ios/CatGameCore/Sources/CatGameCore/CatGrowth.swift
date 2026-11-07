@@ -72,6 +72,7 @@ public enum CatGrowthCatalog {
 
 /// Immutable anchors avoid additional save writes as age and companionship advance.
 public struct CatGrowthState: Codable, Equatable, Sendable {
+    static let maximumTrackedDays = 1_000_000_000
     public let recordedSince: Date
     public let adoptedAt: Date?
     public let initialAgeDays: Int
@@ -92,17 +93,18 @@ public struct CatGrowthState: Codable, Equatable, Sendable {
              sex: CatGrowthCatalog.sex(for: appearance))
     }
 
-    public static func legacy(appearance: CatAppearance, now: Date) -> Self {
+    public static func legacy(appearance: CatAppearance, now: Date, isPregnant: Bool = false) -> Self {
         Self(recordedSince: now, adoptedAt: nil,
              initialAgeDays: CatGrowthCatalog.initialAgeDays(for: appearance),
-             sex: CatGrowthCatalog.sex(for: appearance))
+             // Pre-growth saves had pregnancy but no sex; preserve that established state.
+             sex: isPregnant ? .female : CatGrowthCatalog.sex(for: appearance))
     }
 
     /// Pass the snapshot's monotonic lastSyncAt, not the device clock.
     public func ageDays(at date: Date) -> Int {
         let elapsed = days(since: recordedSince, at: date, multiplier: CatGrowthCatalog.ageMultiplier)
-        let initial = min(GameSnapshot.maximumGold, max(0, initialAgeDays))
-        return min(GameSnapshot.maximumGold, initial + elapsed)
+        let initial = min(Self.maximumTrackedDays, max(0, initialAgeDays))
+        return min(Self.maximumTrackedDays, initial + elapsed)
     }
 
     public func stage(at date: Date) -> CatGrowthStage {
@@ -123,6 +125,6 @@ public struct CatGrowthState: Codable, Equatable, Sendable {
     private func days(since start: Date, at date: Date, multiplier: Int = 1) -> Int {
         let elapsed = date.timeIntervalSince(start)
         guard elapsed.isFinite, elapsed > 0 else { return 0 }
-        return Int(min(Double(GameSnapshot.maximumGold), (elapsed / 86_400 * Double(multiplier)).rounded(.down)))
+        return Int(min(Double(Self.maximumTrackedDays), (elapsed / 86_400 * Double(multiplier)).rounded(.down)))
     }
 }

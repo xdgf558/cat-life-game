@@ -212,4 +212,75 @@ struct CatGrowthTests {
             #expect(try Data(contentsOf: repository.saveURL) == bytes)
         }
     }
+
+    @Test func explicitMalePregnancyIsRejectedWithoutOverwritingDurableProgress() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent("CatGrowthPregnancy-\(UUID())")
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let repository = FileSaveRepository(directory: folder)
+        let original = try await repository.loadOrCreate(now: now)
+        let bytes = try Data(contentsOf: repository.saveURL)
+        var invalid = original
+        invalid.cats[0].isPregnant = true
+        #expect(invalid.cats[0].growthState?.sex == .male && !invalid.isValid)
+        let before = invalid
+        #expect(GameEngine.feed(&invalid, catID: invalid.activeCatID, now: now).failure == .gameInvalidState)
+        #expect(invalid == before)
+        // An explicit sex is authoritative even if the surrounding header claims an older schema.
+        for schema in 1...GameSnapshot.currentSchemaVersion {
+            var saved = try object(invalid)
+            saved["schemaVersion"] = schema
+            #expect(throws: SaveRepositoryError.invalidSnapshot) {
+                try NativeSaveCodec.decodeSnapshot(data(saved), now: now)
+            }
+        }
+        await #expect(throws: SaveRepositoryError.invalidSnapshot) { try await repository.save(invalid, now: now) }
+        #expect(throws: NativeSaveTransferError.invalidArchive) { try NativeSaveTransfer.encode(snapshot: invalid, exportedAt: now) }
+        #expect(try Data(contentsOf: repository.saveURL) == bytes)
+        invalid.cats[0].growthState = .legacy(appearance: .orange, now: now)
+        #expect(!invalid.isValid, "A legacy origin is not permission to rewrite an already recorded male sex.")
+    }
+
+    @Test func preGrowthPregnancyMigratesToFemaleWithoutErasingPregnancyOrOtherProgress() throws {
+        var original = GameSnapshot.fresh(now: now)
+        original.player.gold = 654
+        original.cats = CatAppearance.allCases.map { appearance in
+            CatState(id: appearance == .orange ? CatCatalog.initialCatID : "legacy-\(appearance.rawValue)",
+                     name: appearance.rawValue, intimacy: 81, isPregnant: true, now: now, appearance: appearance)
+        }
+        let migrationDate = now.addingTimeInterval(30 * day)
+        for schema in 1...8 {
+            let bytes = try legacyData(original, schema: schema)
+            var loaded = try NativeSaveCodec.decodeSnapshot(bytes, now: migrationDate)
+            var expected = original
+            for index in expected.cats.indices {
+                expected.cats[index].growthState = .legacy(appearance: expected.cats[index].appearance,
+                    now: migrationDate, isPregnant: true)
+            }
+            #expect(loaded == expected && loaded.isValid)
+            #expect(loaded.cats.allSatisfy { $0.isPregnant && $0.growthState?.sex == .female
+                && $0.growthState?.adoptedAt == nil && $0.growthState?.recordedSince == migrationDate })
+            let archive = try NativeSaveTransfer.decode(
+                NativeSaveTransfer.encode(snapshot: loaded, exportedAt: migrationDate), now: migrationDate.addingTimeInterval(day))
+            #expect(archive.snapshot == loaded, "Reloading must keep the migrated sex and original pregnancy.")
+            #expect(GameEngine.feed(&loaded, catID: loaded.activeCatID, now: migrationDate).amount == 2)
+            #expect(loaded.inventory.food == original.inventory.food - 2 && loaded.cats[0].isPregnant)
+
+            var rawDecoded = try NativeSaveCodec.decoder().decode(GameSnapshot.self, from: bytes)
+            #expect(rawDecoded.cats.allSatisfy { $0.growthState == nil })
+            #expect(GameEngine.synchronize(&rawDecoded, now: migrationDate).succeeded)
+            #expect(rawDecoded.cats.allSatisfy { $0.isPregnant && $0.growthState?.sex == .female })
+        }
+    }
+
+    @Test func growthTrackingHasItsOwnUnchangedSaturationLimit() {
+        #expect(CatGrowthState.maximumTrackedDays == 1_000_000_000)
+        let record = CatGrowthState.adopted(appearance: .orange, now: now)
+        let maximum = CatGrowthState.maximumTrackedDays
+        let farFuture = now.addingTimeInterval(Double(maximum + 100) * day)
+        #expect(record.ageDays(at: farFuture) == maximum)
+        #expect(record.companionshipDays(at: farFuture) == maximum)
+        #expect(record.stage(at: farFuture) == .adult)
+        #expect(record.ageDays(at: now.addingTimeInterval(2 * day)) == 110)
+        #expect(record.companionshipDays(at: now.addingTimeInterval(2 * day)) == 2)
+    }
 }

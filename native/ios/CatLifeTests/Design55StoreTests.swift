@@ -220,6 +220,9 @@ final class Design55StoreTests: XCTestCase {
     func testPickerCancelAndWrongFamilyNeverSpendStockAndPregnancyUsesTwoSelectedFood() async throws {
         var initial = seed()
         initial.cats[0].isPregnant = true
+        initial.cats[0].growthState = CatGrowthState(
+            recordedSince: initial.meta.createdAt, adoptedAt: initial.meta.createdAt,
+            initialAgeDays: CatGrowthCatalog.initialAgeDays(for: initial.cats[0].appearance), sex: .female)
         let repository = Design55Repository(initial)
         let store = makeStore(repository)
         await store.load()

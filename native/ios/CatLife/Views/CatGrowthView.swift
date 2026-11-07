@@ -144,7 +144,11 @@ struct CatGrowthView: View {
 @MainActor
 enum CatGrowthPresentation {
     static func age(_ days: Int) -> String {
-        GameStrings.format("catGrowth.monthsAndDays", days / 30, days % 30)
+        let months = days / 30
+        if months >= 12 {
+            return GameStrings.format("catGrowth.yearsAndMonths", months / 12, months % 12)
+        }
+        return GameStrings.format("catGrowth.monthsAndDays", months, days % 30)
     }
     static func nextGrowth(_ growth: CatGrowthState, at date: Date) -> String {
         guard let next = growth.stage(at: date).next else { return GameStrings.text("catGrowth.adultHint") }

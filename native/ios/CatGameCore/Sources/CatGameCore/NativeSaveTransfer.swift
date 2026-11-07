@@ -161,7 +161,8 @@ enum NativeSaveCodec {
             snapshot.cats[index].healthState = CatHealthState(now: migrationDate)
         }
         for index in snapshot.cats.indices where snapshot.cats[index].growthState == nil {
-            snapshot.cats[index].growthState = .legacy(appearance: snapshot.cats[index].appearance, now: migrationDate)
+            snapshot.cats[index].growthState = .legacy(appearance: snapshot.cats[index].appearance, now: migrationDate,
+                                                     isPregnant: snapshot.cats[index].isPregnant)
         }
         guard snapshot.isValid else { throw SaveRepositoryError.invalidSnapshot }
         return snapshot

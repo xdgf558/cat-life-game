@@ -40,6 +40,7 @@ struct GameEngineTests {
 
     @Test func pregnantCatConsumesTwoServings() {
         var state = GameSnapshot.fresh(now: now)
+        state.cats[0].growthState = .init(recordedSince: now, adoptedAt: now, initialAgeDays: 365, sex: .female)
         state.cats[0].isPregnant = true
         let outcome = GameEngine.feed(&state, catID: "cat_001", now: now)
         #expect(outcome.succeeded)
@@ -50,6 +51,7 @@ struct GameEngineTests {
 
     @Test func insufficientFoodDoesNotPartiallyMutatePregnantCat() {
         var state = GameSnapshot.fresh(now: now)
+        state.cats[0].growthState = .init(recordedSince: now, adoptedAt: now, initialAgeDays: 365, sex: .female)
         state.cats[0].isPregnant = true
         state.inventory.food = 1
         let before = state

@@ -30,6 +30,26 @@ final class CatGrowthPresentationTests: XCTestCase {
     }
 
     @MainActor
+    func testAgeSwitchesToYearsAtTwelveGameMonthsInEveryLanguage() {
+        let previous = GameLocalization.shared.language
+        defer { GameLocalization.shared.language = previous }
+        let cases: [(GameLanguage, String, String, String, String)] = [
+            (.simplifiedChinese, "11 个月 29 天", "1 岁 0 个月", "1 岁 11 个月", "5 岁 2 个月"),
+            (.traditionalChinese, "11 個月 29 天", "1 歲 0 個月", "1 歲 11 個月", "5 歲 2 個月"),
+            (.english, "11 months, 29 days", "1 yr, 0 mo", "1 yr, 11 mo", "5 yr, 2 mo")
+        ]
+        for (language, beforeYear, firstYear, beforeSecondYear, olderCat) in cases {
+            GameLocalization.shared.language = language
+            XCTAssertEqual(CatGrowthPresentation.age(359), beforeYear)
+            XCTAssertEqual(CatGrowthPresentation.age(360), firstYear)
+            XCTAssertEqual(CatGrowthPresentation.age(365), firstYear)
+            XCTAssertEqual(CatGrowthPresentation.age(719), beforeSecondYear)
+            XCTAssertEqual(CatGrowthPresentation.age(720), GameStrings.format("catGrowth.yearsAndMonths", 2, 0))
+            XCTAssertEqual(CatGrowthPresentation.age(1_865), olderCat)
+        }
+    }
+
+    @MainActor
     func testStageAndBondMessagesUseTheNextThresholdAndHaveFriendlyFinalStates() {
         let previous = GameLocalization.shared.language
         defer { GameLocalization.shared.language = previous }
