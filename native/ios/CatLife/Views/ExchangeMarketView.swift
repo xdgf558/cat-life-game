@@ -7,11 +7,14 @@ struct ExchangeMarketView: View {
     var initialNeighborID: String? = nil
     let onClose: () -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.scenePhase) private var scenePhase
     @State private var neighborID: String?
     @State private var page = 0
     @State private var selectedID: String?
     @State private var isWorking = false
     @State private var failed = false
+    @State private var isVisible = false
+    @State private var stageReceipt: NeighborActionReceipt?
     private var pageSize: Int { dynamicTypeSize.isAccessibilitySize ? 2 : 4 }
 
     private var offers: [ExchangeOffer] {
@@ -39,12 +42,22 @@ struct ExchangeMarketView: View {
             .accessibilityElement(children: .contain).accessibilityIdentifier("marketHeader")
         }
         .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
+        .accessibilityHidden(stageReceipt != nil)
+        .overlay {
+            if let stageReceipt, let neighbor = CommunityCatalog.neighbor(id: stageReceipt.neighborID) {
+                CommunityStageSuccessView(neighbor: neighbor, receipt: stageReceipt,
+                    completionMessage: GameStrings.format("market.completedWithFriendship", stageReceipt.friendshipGained)) {
+                    self.stageReceipt = nil
+                }
+            }
+        }
         .environment(\.locale, Locale(identifier: store.language.rawValue))
         .toolbar(.hidden, for: .navigationBar).navigationBarBackButtonHidden(true)
         .background(RoomTheme.cream)
-        .onAppear { neighborID = initialNeighborID }
+        .onAppear { isVisible = true; neighborID = initialNeighborID }
+        .onDisappear { isVisible = false; stageReceipt = nil }
         .onChange(of: dynamicTypeSize) { _, _ in page = min(page, pageCount - 1) }
-        .onChange(of: store.saveSceneGeneration) { _, _ in selectedID = nil; failed = false; page = 0 }
+        .onChange(of: store.saveSceneGeneration) { _, _ in selectedID = nil; failed = false; page = 0; stageReceipt = nil }
     }
 
     private var listings: some View {
@@ -147,7 +160,15 @@ struct ExchangeMarketView: View {
         isWorking = true; failed = false
         Task {
             defer { isWorking = false }
-            if await store.exchange(offerID: offer.id) { selectedID = nil }
+            let receipt = await store.exchange(offerID: offer.id, presentResult: { receipt in
+                guard isVisible, scenePhase == .active, store.activeSheet == .town,
+                      store.isShowingMarket || store.isShowingNeighbors,
+                      receipt.saveSceneGeneration == store.saveSceneGeneration,
+                      receipt.stageReached != nil else { return false }
+                stageReceipt = receipt
+                return true
+            })
+            if receipt != nil { selectedID = nil }
             else { failed = true }
         }
     }

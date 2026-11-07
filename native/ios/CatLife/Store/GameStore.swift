@@ -1123,13 +1123,19 @@ final class GameStore {
         } else {
             base = message(for: ActionOutcome(success: receipt.success, amount: receipt.friendshipGained))
         }
+        let rewards = [("community.rewardGold", receipt.goldAwarded), ("community.rewardFood", receipt.foodAwarded),
+                       ("community.rewardLitter", receipt.litterAwarded), ("community.rewardToys", receipt.toyUsesAwarded)]
+            .filter { $0.1 > 0 }.map { GameStrings.format($0.0, $0.1) }.joined(separator: " · ")
         let stageNotice = receipt.stageReached.map {
-            "\n" + GameStrings.format("community.stageReached", GameStrings.text($0.nameKey))
+            "\n" + (rewards.isEmpty ? GameStrings.text("community.relationshipUpgraded") + " · " + GameStrings.text($0.nameKey)
+                    : GameStrings.format("community.stageReached", GameStrings.text($0.nameKey)))
         } ?? ""
-        showNotice(base + stageNotice)
+        let rewardNotice = receipt.stageReached == nil ? "" : "\n" + (rewards.isEmpty
+            ? GameStrings.text("community.rewardAtCapacity") : rewards)
+        showNotice(base + stageNotice + rewardNotice)
     }
 
-    private func performNeighborAction(id: String,
+    func performNeighborAction(id: String, exchanging offer: ExchangeOffer? = nil,
         presentResult: (@MainActor (NeighborActionReceipt) -> Bool)?,
         _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> NeighborActionReceipt? {
         let generation = saveSceneGeneration
@@ -1142,13 +1148,20 @@ final class GameStore {
             if outcome.succeeded, let success = outcome.success {
                 let previous = before.community.relationship(for: id)
                 let current = $0.community.relationship(for: id)
+                let after = $0.inventory
+                func reward(_ kind: SupplyKind) -> Int {
+                    let spent = offer?.inputs.filter { $0.item == .supply(kind) }.reduce(0) { $0 + $1.quantity } ?? 0
+                    let received = offer?.outputs.filter { $0.item == .supply(kind) }.reduce(0) { $0 + $1.quantity } ?? 0
+                    // Remove the trade's net stock change, retaining only the actual stage reward.
+                    return max(0, after.count(kind) - before.inventory.count(kind) + spent - received)
+                }
                 receipt = NeighborActionReceipt(neighborID: id, success: success, saveSceneGeneration: generation,
                     friendshipGained: current.friendship - previous.friendship,
                     stageReached: current.stage.level > previous.stage.level ? current.stage : nil,
                     goldAwarded: max(0, $0.player.gold - before.player.gold),
-                    foodAwarded: max(0, $0.inventory.food - before.inventory.food),
-                    litterAwarded: max(0, $0.inventory.litter - before.inventory.litter),
-                    toyUsesAwarded: max(0, $0.inventory.toys - before.inventory.toys))
+                    foodAwarded: reward(.food),
+                    litterAwarded: reward(.litter),
+                    toyUsesAwarded: reward(.toy))
             }
             return outcome
         }

@@ -28,6 +28,12 @@ extension RoomHomeUITests {
         tapAnimationControl("marketOffer_mira_food", in: app)
         attachScreenshot(app, named: "Market — give and receive before confirming")
         tapAnimationControl("marketConfirmButton", in: app)
+        waitForObservedValue("communityStageSuccess", "neighbor_mira:2", in: app)
+        waitForObservedValue("communityStageRewards", "20:1:0:0", in: app)
+        XCTAssertTrue(element("communityStageCompletionMessage", in: app).label.contains("+2"))
+        attachScreenshot(app, named: "Market — stage reward excludes traded supplies")
+        scrollPage("communityStageSuccessScroll", to: "communityStageSuccessDoneButton", allowDisabled: false, maximumDrags: 6, in: app)
+        tapAnimationControl("communityStageSuccessDoneButton", in: app)
         waitForElement("exchangeMarketScroll", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app) // Two basic servings (including stage reward) plus one premium serving.
@@ -52,6 +58,10 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("marketPage", in: app).exists, "The neighbor entry opens their two offers directly.")
         scrollCareerPage("exchangeMarketScroll", to: "marketOffer_mira_food", in: app)
         XCTAssertTrue(element("marketOffer_mira_food", in: app).exists)
+        tapAnimationControl("marketOffer_mira_food", in: app)
+        tapAnimationControl("marketConfirmButton", in: app)
+        waitForElement("exchangeMarketScroll", in: app)
+        XCTAssertFalse(element("communityStageSuccess", in: app).exists, "The same stage must not be celebrated twice.")
     }
 
     @MainActor

@@ -66,7 +66,10 @@ enum GameActionNotice {
             case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
             case .taskClaimed: return GameStrings.format("tasks.claimedNotice", outcome.amount)
             case .neighborVisited, .neighborGifted: return GameStrings.format(success.rawValue, outcome.amount)
-            case .neighborChatted, .communityGiftPurchased, .exchanged: return GameStrings.text(success.rawValue)
+            case .exchanged:
+                return outcome.amount > 0 ? GameStrings.format("market.completedWithFriendship", outcome.amount)
+                    : GameStrings.text(success.rawValue)
+            case .neighborChatted, .communityGiftPurchased: return GameStrings.text(success.rawValue)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }

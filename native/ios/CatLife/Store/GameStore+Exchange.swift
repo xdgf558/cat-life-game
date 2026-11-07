@@ -13,13 +13,12 @@ extension GameStore {
     }
 
     @discardableResult
-    func exchange(offerID: String) async -> Bool {
-        let generation = saveSceneGeneration
-        // The shared pipeline publishes stock and feedback only after the save succeeds,
-        // including when the player has already left the market.
-        let succeeded = await performPersistedAction {
+    func exchange(offerID: String,
+        presentResult: (@MainActor (NeighborActionReceipt) -> Bool)? = nil) async -> NeighborActionReceipt? {
+        let offer = ExchangeCatalog.offer(id: offerID)
+        return await performNeighborAction(id: offer?.neighborID ?? "", exchanging: offer,
+                                           presentResult: presentResult) {
             GameEngine.exchange(&$0, offerID: offerID, now: $1)
         }
-        return succeeded && generation == saveSceneGeneration
     }
 }

@@ -5,6 +5,7 @@ import CatGameCore
 struct CommunityStageSuccessView: View {
     let neighbor: NeighborDefinition
     let receipt: NeighborActionReceipt
+    var completionMessage: String? = nil
     let close: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var appeared = false
@@ -34,6 +35,10 @@ struct CommunityStageSuccessView: View {
                         .accessibilityAddTraits(.isHeader).accessibilityFocused($titleFocused)
                         .accessibilityIdentifier("communityStageSuccess")
                         .accessibilityValue("\(neighbor.id):\(receipt.stageReached?.level ?? 1)")
+                    if let completionMessage {
+                        Text(completionMessage).font(.subheadline.weight(.bold)).multilineTextAlignment(.center)
+                            .accessibilityIdentifier("communityStageCompletionMessage")
+                    }
                     if hasRewards {
                         CommunityRewardChips(gold: receipt.goldAwarded, food: receipt.foodAwarded,
                                              litter: receipt.litterAwarded, toys: receipt.toyUsesAwarded)
@@ -54,6 +59,7 @@ struct CommunityStageSuccessView: View {
                 .padding(22).frame(maxWidth: .infinity, minHeight: geometry.size.height)
             }
             .scrollBounceBehavior(.basedOnSize)
+            .accessibilityIdentifier("communityStageSuccessScroll")
             .scaleEffect(appeared || reduceMotion ? 1 : 0.95)
         }
         }
