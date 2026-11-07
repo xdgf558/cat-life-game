@@ -106,6 +106,8 @@ extension RoomHomeUITests {
             waitForElement("marketConfirmButton", in: app)
             XCTAssertFalse(element("marketConfirmButton", in: app).label.contains("market."))
             XCTAssertTrue(element("marketConfirmButton", in: app).isHittable)
+            XCTAssertLessThan(element("marketConfirmationBar", in: app).frame.height, app.frame.height * 0.3,
+                              "Fixed actions must leave space to read the trade at the largest text size.")
             attachScreenshot(app, named: "Market — translated confirmation \(language)")
             tapAnimationControl("tabHome", in: app)
             waitForObservedValue("foodCount", "3", in: app)

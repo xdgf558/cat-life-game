@@ -61,7 +61,9 @@ struct ExchangeConfirmationView: View {
                 Button(GameStrings.text("common.cancel"), action: cancel)
                     .font(.subheadline.weight(.bold)).frame(minHeight: 44).disabled(isWorking)
                     .accessibilityIdentifier("marketCancelButton")
-            }.padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 6).background(RoomTheme.cream)
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            .padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 6).background(RoomTheme.cream)
                 .accessibilityElement(children: .contain).accessibilityIdentifier("marketConfirmationBar")
         }
     }
