@@ -287,7 +287,7 @@ struct NeighborDetailView: View {
     }
 
     private func canPresent(_ receipt: NeighborActionReceipt) -> Bool {
-        isVisible && scenePhase == .active && store.isShowingNeighbors && store.activeSheet == .town
+        isVisible && scenePhase == .active && (store.isShowingNeighbors || store.isShowingMarket) && store.activeSheet == .town
             && receipt.saveSceneGeneration == store.saveSceneGeneration
     }
 

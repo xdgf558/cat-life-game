@@ -1057,5 +1057,5 @@ extension GameStrings {
         "action.insufficientGold": "A little work will earn more gold.", "action.insufficientStamina": "Take a little rest to recover stamina.",
         "action.full": "Your cat is already full.", "accessibility.cat": "Cat, tap to view profile",
         "accessibility.decorate": "Arrange the room by selecting and moving furniture or the bowl", "accessibility.food": "Cat food available",
-    ].merging(marketEnglish) { _, new in new }.merging(furniture54English) { _, new in new }.merging(suppliesEnglish) { _, new in new }
+    ].merging(design55English) { _, new in new }.merging(marketDesign55English) { _, new in new }.merging(supplyDesign55English) { _, new in new }.merging(shopDesign55English) { _, new in new }.merging(marketEnglish) { _, new in new }.merging(furniture54English) { _, new in new }.merging(suppliesEnglish) { _, new in new }
 }

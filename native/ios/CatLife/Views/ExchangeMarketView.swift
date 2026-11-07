@@ -8,71 +8,119 @@ struct ExchangeMarketView: View {
     let onClose: () -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var neighborID: String?
     @State private var page = 0
     @State private var selectedID: String?
+    @State private var result: NeighborActionReceipt?
     @State private var isWorking = false
     @State private var failed = false
     @State private var isVisible = false
-    @State private var stageReceipt: NeighborActionReceipt?
+    @State private var initialized = false
+    @State private var visitID: String?
+    @State private var showsGiftShop = false
     private var pageSize: Int { dynamicTypeSize.isAccessibilitySize ? 2 : 4 }
-
     private var offers: [ExchangeOffer] {
         ExchangeCatalog.offers.filter { neighborID == nil || $0.neighborID == neighborID }
     }
     private var pageCount: Int { max(1, (offers.count + pageSize - 1) / pageSize) }
     private var visibleOffers: [ExchangeOffer] { Array(offers.dropFirst(page * pageSize).prefix(pageSize)) }
     private var selectedOffer: ExchangeOffer? { selectedID.flatMap(ExchangeCatalog.offer) }
+    private var confirmationVisible: Binding<Bool> {
+        Binding(get: { selectedOffer != nil }, set: { if !$0 { closeConfirmation() } })
+    }
 
     var body: some View {
-        Group {
-            if let offer = selectedOffer, let snapshot = store.snapshot {
-                ExchangeConfirmationView(offer: offer, snapshot: snapshot, isWorking: isWorking || store.isBusy,
-                                         failed: failed, hasSaveFailure: store.hasSaveFailure,
-                                         confirm: { exchange(offer) }, cancel: { selectedID = nil; failed = false })
-            } else { listings }
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            CommunityHeader(title: GameStrings.text(selectedOffer == nil ? "market.title" : "market.confirmTitle"),
-                            backTitle: selectedOffer == nil ? (initialNeighborID == nil ? "tab.town" : "community.title") : "market.title",
-                            gold: store.snapshot?.player.gold ?? 0, symbol: "arrow.left.arrow.right",
-                            backID: "marketBackButton", disabled: isWorking || store.isBusy) {
-                if selectedOffer != nil { selectedID = nil; failed = false } else { onClose() }
-            }
-            .accessibilityElement(children: .contain).accessibilityIdentifier("marketHeader")
-        }
-        .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
-        .accessibilityHidden(stageReceipt != nil)
-        .overlay {
-            if let stageReceipt, let neighbor = CommunityCatalog.neighbor(id: stageReceipt.neighborID) {
-                CommunityStageSuccessView(neighbor: neighbor, receipt: stageReceipt,
-                    completionMessage: GameStrings.format("market.completedWithFriendship", stageReceipt.friendshipGained)) {
-                    self.stageReceipt = nil
+        listings
+            .safeAreaInset(edge: .top, spacing: 0) { header }
+            .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
+            .environment(\.locale, Locale(identifier: store.language.rawValue))
+            .toolbar(.hidden, for: .navigationBar).navigationBarBackButtonHidden(true)
+            .background(RoomTheme.cream)
+            .sheet(isPresented: confirmationVisible, onDismiss: { store.isPresentingExchange = false }) {
+                if let offer = selectedOffer, let snapshot = store.snapshot {
+                    Group {
+                        if let result {
+                            ExchangeResultView(offer: offer, receipt: result,
+                                friendship: snapshot.community.relationship(for: offer.neighborID).friendship,
+                                continueBrowsing: closeConfirmation, openBag: {
+                                    closeConfirmation(); store.openInventory()
+                                })
+                        } else {
+                            ExchangeConfirmationView(offer: offer, snapshot: snapshot, isWorking: isWorking || store.isBusy,
+                                failed: failed, hasSaveFailure: store.hasSaveFailure,
+                                confirm: { exchange(offer) }, cancel: closeConfirmation)
+                        }
+                    }
+                    .fontDesign(.rounded).foregroundStyle(RoomTheme.ink).tint(RoomTheme.darkMint)
+                    .environment(\.locale, Locale(identifier: store.language.rawValue))
+                    .presentationBackground(RoomTheme.cream).presentationCornerRadius(30)
+                    .presentationDragIndicator(.visible)
+                    .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : [.fraction(0.72), .large])
+                    .interactiveDismissDisabled(isWorking || store.isBusy)
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        if store.hasSaveFailure { SaveStatusBanner(store: store) }
+                    }
+                    .saveRecoveryAlert(store: store)
+                    .onAppear { store.isPresentingExchange = true }
                 }
             }
+            .navigationDestination(isPresented: Binding(get: { visitID != nil }, set: { if !$0 { visitID = nil } })) {
+                if let visitID { NeighborDetailView(store: store, neighborID: visitID) }
+            }
+            .navigationDestination(isPresented: $showsGiftShop) {
+                CommunityGiftView(store: store, onClose: { showsGiftShop = false })
+            }
+            .onAppear {
+                isVisible = true
+                if !initialized { neighborID = initialNeighborID; initialized = true }
+            }
+            .onDisappear { isVisible = false; store.isPresentingExchange = false }
+            .onChange(of: selectedID) { _, id in store.isPresentingExchange = id != nil }
+            .onChange(of: dynamicTypeSize) { _, _ in page = min(page, pageCount - 1) }
+            .onChange(of: store.saveSceneGeneration) { _, _ in
+                selectedID = nil; result = nil; failed = false; page = 0; visitID = nil; showsGiftShop = false
+            }
+    }
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            Button(action: onClose) {
+                Label(GameStrings.text(initialNeighborID == nil ? "tab.town" : "community.title"), systemImage: "chevron.left")
+                    .font(.caption.weight(.heavy)).padding(.horizontal, 12).frame(minHeight: 44).gameCard(cornerRadius: 24)
+            }.buttonStyle(.plain).accessibilityIdentifier("marketBackButton")
+            Label(GameStrings.text("market.shortTitle"), systemImage: "arrow.left.arrow.right.square")
+                .font(.headline.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 13).padding(.vertical, 12)
+                .background {
+                    RoundedRectangle(cornerRadius: 16).fill(RoomTheme.wood)
+                        .shadow(color: TownPalette.woodEdge, radius: 0, y: 4)
+                        .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(TownPalette.woodEdge, lineWidth: 2.5))
+                }.accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            Button { store.openInventory() } label: {
+                Image(systemName: "backpack.fill").font(.title3.weight(.bold)).foregroundStyle(RoomTheme.gold)
+                    .frame(width: 44, height: 44).gameCard(cornerRadius: 24)
+            }.buttonStyle(.plain).accessibilityLabel(GameStrings.text("market.openBag"))
+                .accessibilityIdentifier("marketBagButton")
         }
-        .environment(\.locale, Locale(identifier: store.language.rawValue))
-        .toolbar(.hidden, for: .navigationBar).navigationBarBackButtonHidden(true)
-        .background(RoomTheme.cream)
-        .onAppear { isVisible = true; neighborID = initialNeighborID }
-        .onDisappear { isVisible = false; stageReceipt = nil }
-        .onChange(of: dynamicTypeSize) { _, _ in page = min(page, pageCount - 1) }
-        .onChange(of: store.saveSceneGeneration) { _, _ in selectedID = nil; failed = false; page = 0; stageReceipt = nil }
+        .disabled(isWorking || store.isBusy)
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 16).background(RoomTheme.cream)
+        .accessibilityElement(children: .contain).accessibilityIdentifier("marketHeader")
     }
 
     private var listings: some View {
         ScrollViewReader { proxy in
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: 14) {
                     intro.id("marketTop")
                     filters
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12),
-                                             count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 14) {
+                    LazyVStack(spacing: 14) {
                         ForEach(visibleOffers) { offer in
                             if let snapshot = store.snapshot {
-                                ExchangeOfferCard(offer: offer, snapshot: snapshot,
-                                                  disabled: isWorking || store.isBusy) {
-                                    store.playNavigationSound(); selectedID = offer.id; failed = false
+                                ExchangeOfferCard(offer: offer, snapshot: snapshot, disabled: isWorking || store.isBusy) {
+                                    activate(offer, in: snapshot)
                                 }
                             }
                         }
@@ -82,23 +130,20 @@ struct ExchangeMarketView: View {
             .scrollBounceBehavior(.basedOnSize).accessibilityIdentifier("exchangeMarketScroll")
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 if pageCount > 1 {
-                    HStack(spacing: 16) {
+                    HStack(spacing: 12) {
                         Button { page -= 1; proxy.scrollTo("marketTop", anchor: .top) } label: {
                             Label(GameStrings.text("market.previous"), systemImage: "chevron.left")
-                        }
-                        .buttonStyle(SoftButtonStyle()).disabled(page == 0 || store.isBusy)
-                        .accessibilityIdentifier("marketPreviousPage")
-                        Text(GameStrings.format("market.page", page + 1, pageCount))
-                            .font(.caption.weight(.heavy)).monospacedDigit()
+                        }.buttonStyle(SoftButtonStyle()).disabled(page == 0 || store.isBusy)
+                            .accessibilityIdentifier("marketPreviousPage")
+                        Text(GameStrings.format("market.page", page + 1, pageCount)).font(.caption.weight(.heavy)).monospacedDigit()
                             .accessibilityIdentifier("marketPage").accessibilityValue("\(page + 1)/\(pageCount)")
                         Button { page += 1; proxy.scrollTo("marketTop", anchor: .top) } label: {
                             Label(GameStrings.text("market.next"), systemImage: "chevron.right")
-                        }
-                        .buttonStyle(SoftButtonStyle()).disabled(page + 1 >= pageCount || store.isBusy)
-                        .accessibilityIdentifier("marketNextPage")
+                        }.buttonStyle(SoftButtonStyle()).disabled(page + 1 >= pageCount || store.isBusy)
+                            .accessibilityIdentifier("marketNextPage")
                     }
                     .font(.caption.weight(.heavy)).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                    .padding(12).frame(maxWidth: .infinity).background(RoomTheme.cream)
+                    .padding(12).background(RoomTheme.cream)
                     .accessibilityElement(children: .contain).accessibilityIdentifier("marketPaginationBar")
                 }
             }
@@ -106,53 +151,78 @@ struct ExchangeMarketView: View {
     }
 
     private var intro: some View {
-        Group {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(GameStrings.text("market.subtitle")).font(.headline.weight(.heavy))
-                    dailyHint
-                }
-            } else {
-                HStack(spacing: 12) {
-                    GameIcon(asset: "town-market-cartoon", symbol: "arrow.left.arrow.right", size: 60, tint: RoomTheme.darkMint)
-                        .accessibilityHidden(true)
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(GameStrings.text("market.subtitle")).font(.headline.weight(.heavy))
-                        dailyHint
-                    }
-                }
+        HStack(spacing: 12) {
+            if !dynamicTypeSize.isAccessibilitySize {
+                Image(systemName: "storefront.fill").font(.title2).foregroundStyle(RoomTheme.darkMint)
+                    .frame(width: 40, height: 40).background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 14))
+                    .accessibilityHidden(true)
             }
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 24)
-    }
-
-    private var dailyHint: some View {
-        Text(GameStrings.format("market.dailyHint", ExchangeCatalog.dailyLimit, ExchangeCatalog.friendship))
-            .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(GameStrings.text("market.subtitle")).font(.subheadline.weight(.heavy))
+                Text(GameStrings.format("market.dailyHint", ExchangeCatalog.dailyLimit, ExchangeCatalog.friendship))
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+            }.fixedSize(horizontal: false, vertical: true)
+        }.padding(14).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 24)
     }
 
     private var filters: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                filter(nil, name: GameStrings.text("market.all"))
-                ForEach(CommunityCatalog.neighbors) { neighbor in
-                    filter(neighbor.id, name: GameStrings.text(neighbor.nameKey))
-                }
-            }.padding(.vertical, 4)
-        }.accessibilityIdentifier("marketFilters")
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    filter(nil)
+                    ForEach(CommunityCatalog.neighbors) { neighbor in filter(neighbor) }
+                }.padding(.vertical, 4)
+            }.accessibilityIdentifier("marketFilters")
+            .onChange(of: neighborID, initial: true) { _, id in
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) { proxy.scrollTo(id ?? "all", anchor: .center) }
+            }
+        }
     }
 
-    private func filter(_ id: String?, name: String) -> some View {
-        Button { store.playNavigationSound(); neighborID = id; page = 0 } label: {
-            Text(name).font(.subheadline.weight(.bold)).padding(.horizontal, 17).frame(minHeight: 44)
+    private func filter(_ neighbor: NeighborDefinition?) -> some View {
+        let id = neighbor?.id
+        let remaining = id.map { store.snapshot?.community.exchangeCount(for: $0).remainingToday ?? ExchangeCatalog.dailyLimit }
+        return Button { store.playNavigationSound(); neighborID = id; page = 0 } label: {
+            HStack(spacing: 7) {
+                if let neighbor { CommunityPortrait(neighbor: neighbor, size: 30).clipShape(Circle()) }
+                else { Image(systemName: "square.grid.2x2.fill").font(.caption) }
+                Text(GameStrings.text(neighbor?.nameKey ?? "market.all")).font(.subheadline.weight(.heavy))
+                if let remaining {
+                    Text("\(remaining)/\(ExchangeCatalog.dailyLimit)").font(.caption.weight(.heavy))
+                        .foregroundStyle(remaining > 0 ? RoomTheme.darkMint : RoomTheme.secondary)
+                        .padding(.horizontal, 6).padding(.vertical, 3)
+                        .background(remaining > 0 ? RoomTheme.paleMint : RoomTheme.track, in: Capsule())
+                }
+            }.padding(.horizontal, 12).frame(minHeight: 44)
                 .foregroundStyle(neighborID == id ? .white : RoomTheme.ink)
                 .background(neighborID == id ? RoomTheme.mint : RoomTheme.paper, in: Capsule())
-                .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
+                .overlay(Capsule().strokeBorder(neighborID == id ? RoomTheme.mint : .white, lineWidth: 2))
+        }.buttonStyle(.plain).disabled(store.isBusy).id(id ?? "all")
+            .accessibilityIdentifier("marketFilter_\(id ?? "all")")
+            .accessibilityValue(remaining.map { GameStrings.format("market.remaining", $0, ExchangeCatalog.dailyLimit) } ?? "")
+            .accessibilityAddTraits(neighborID == id ? .isSelected : [])
+    }
+
+    private func activate(_ offer: ExchangeOffer, in snapshot: GameSnapshot) {
+        store.playNavigationSound()
+        switch ExchangeCatalog.eligibility(of: offer, in: snapshot) {
+        case .exchangeStageRequired: visitID = offer.neighborID
+        case .exchangeMaterialsRequired:
+            let missingGift = offer.inputs.contains { stack in
+                if case .gift = stack.item { return stack.item.count(in: snapshot.inventory) < stack.quantity }
+                return false
+            }
+            if missingGift { showsGiftShop = true }
+            else { store.shopCategory = .supplies; store.activeSheet = .shop }
+        case .shopInventoryFull: store.openInventory()
+        case .exchangeDailyLimit, .exchangeMissing: break
+        default: selectedID = offer.id; result = nil; failed = false
         }
-        .buttonStyle(.plain).disabled(store.isBusy)
-        .accessibilityIdentifier("marketFilter_\(id ?? "all")")
-        .accessibilityAddTraits(neighborID == id ? .isSelected : [])
+    }
+
+    private func closeConfirmation() {
+        guard !isWorking else { return }
+        selectedID = nil; result = nil; failed = false; store.isPresentingExchange = false
     }
 
     private func exchange(_ offer: ExchangeOffer) {
@@ -162,96 +232,11 @@ struct ExchangeMarketView: View {
             defer { isWorking = false }
             let receipt = await store.exchange(offerID: offer.id, presentResult: { receipt in
                 guard isVisible, scenePhase == .active, store.activeSheet == .town,
-                      store.isShowingMarket || store.isShowingNeighbors,
-                      receipt.saveSceneGeneration == store.saveSceneGeneration,
-                      receipt.stageReached != nil else { return false }
-                stageReceipt = receipt
+                      selectedID == offer.id, receipt.saveSceneGeneration == store.saveSceneGeneration else { return false }
+                result = receipt
                 return true
             })
-            if receipt != nil { selectedID = nil }
-            else { failed = true }
+            if receipt == nil, selectedID == offer.id { failed = true }
         }
-    }
-}
-
-@MainActor
-private struct ExchangeOfferCard: View {
-    let offer: ExchangeOffer
-    let snapshot: GameSnapshot
-    let disabled: Bool
-    let select: () -> Void
-    private var neighbor: NeighborDefinition? { CommunityCatalog.neighbor(id: offer.neighborID) }
-    private var failure: ActionFailure? { ExchangeCatalog.eligibility(of: offer, in: snapshot) }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let neighbor {
-                HStack(spacing: 7) {
-                    CommunityPortrait(neighbor: neighbor, size: 34)
-                    Text(GameStrings.text(neighbor.nameKey)).font(.caption.weight(.heavy))
-                    Spacer(minLength: 0)
-                }
-            }
-            Text(GameStrings.text(offer.nameKey)).font(.subheadline.weight(.heavy))
-                .fixedSize(horizontal: false, vertical: true)
-            VStack(alignment: .leading, spacing: 6) {
-                Text(GameStrings.text("market.give")).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                ForEach(Array(offer.inputs.enumerated()), id: \.offset) { _, stack in ExchangeItemRow(stack: stack) }
-                Image(systemName: "arrow.down").font(.caption.weight(.bold)).foregroundStyle(RoomTheme.mint)
-                Text(GameStrings.text("market.receive")).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                ForEach(Array(offer.outputs.enumerated()), id: \.offset) { _, stack in ExchangeItemRow(stack: stack) }
-            }.accessibilityElement(children: .combine)
-            Spacer(minLength: 0)
-            Text(ExchangePresentation.status(offer, snapshot: snapshot))
-                .font(.caption2.weight(.bold)).foregroundStyle(failure == nil ? RoomTheme.darkMint : RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("marketStatus_\(offer.id)")
-            Button(GameStrings.text("market.preview"), action: select)
-                .buttonStyle(SoftButtonStyle()).font(.caption.weight(.heavy)).disabled(disabled)
-                .accessibilityIdentifier("marketOffer_\(offer.id)")
-        }
-        .padding(13).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 24)
-        .accessibilityElement(children: .contain)
-    }
-}
-
-struct ExchangeItemRow: View {
-    let stack: ExchangeStack
-    var owned: Int? = nil
-    var body: some View {
-        HStack(spacing: 6) {
-            GameIcon(asset: stack.item.assetName, symbol: stack.item.symbol, size: 27, tint: RoomTheme.gold)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(stack.item == .supply(.toy) ? GameStrings.format("market.toyUses", stack.quantity)
-                     : GameStrings.format("market.itemQuantity", GameStrings.text(stack.item.nameKey), stack.quantity))
-                    .font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
-                if let owned {
-                    Text(GameStrings.format("market.stock", owned)).font(.caption2.weight(.bold))
-                        .foregroundStyle(owned >= stack.quantity ? RoomTheme.secondary : RoomTheme.coralDeep)
-                        .accessibilityIdentifier("marketStock_\(stockID)").accessibilityValue("\(owned)")
-                }
-            }
-        }.accessibilityElement(children: .contain)
-    }
-
-    private var stockID: String {
-        switch stack.item { case .supply(let kind): kind.rawValue; case .gift(let id): id }
-    }
-}
-
-@MainActor
-enum ExchangePresentation {
-    static func status(_ offer: ExchangeOffer, snapshot: GameSnapshot) -> String {
-        if let failure = ExchangeCatalog.eligibility(of: offer, in: snapshot) {
-            if failure == .exchangeStageRequired {
-                let stage = CommunityCatalog.stages.first { $0.level == offer.requiredStage }
-                return GameStrings.format("market.stageRequired", GameStrings.text(stage?.nameKey ?? "community.stage.3"))
-            }
-            if failure == .shopInventoryFull { return GameStrings.text("action.inventoryFull") }
-            return GameStrings.text(failure.rawValue)
-        }
-        let remaining = max(0, ExchangeCatalog.dailyLimit - snapshot.community.exchangeCount(for: offer.neighborID).today)
-        return GameStrings.format("market.remaining", remaining, ExchangeCatalog.dailyLimit)
     }
 }

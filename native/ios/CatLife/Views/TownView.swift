@@ -19,7 +19,9 @@ struct TownView: View {
     var body: some View {
         Group {
             if store.isShowingMarket {
-                ExchangeMarketView(store: store, onClose: { store.isShowingMarket = false })
+                NavigationStack {
+                    ExchangeMarketView(store: store, onClose: { store.isShowingMarket = false })
+                }
             } else if store.isShowingNeighbors {
                 CommunityView(store: store) { store.isShowingNeighbors = false }
             } else if let filter = store.catCollectionFilter {
@@ -31,7 +33,8 @@ struct TownView: View {
             } else { map }
         }
         .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
-                           && store.inspectedCatID == nil && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
+                           && store.inspectedCatID == nil && !store.isPresentingExchange && store.supplyPicker == nil
+                           && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
     }
 
     private var map: some View {
@@ -119,7 +122,8 @@ struct TownView: View {
             ForEach(TownPlace.allCases) { place in
                 TownPlot(place: place, selected: selectedPlace == place,
                          inLayer: layer == .all || place.layer == layer || place.isEmpty,
-                         sickCount: sickCount, availableAdoption: availableOffer != nil) { choose(place) }
+                         sickCount: sickCount, availableAdoption: availableOffer != nil,
+                         availableExchanges: availableExchangeCount) { choose(place) }
             }
         }
         .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 24)
@@ -227,6 +231,11 @@ struct TownView: View {
     private func choose(_ place: TownPlace) {
         store.playFeedback(.pin)
         selectedPlace = place
+    }
+
+    private var availableExchangeCount: Int {
+        guard let snapshot = store.snapshot else { return 0 }
+        return ExchangeCatalog.offers.filter { ExchangeCatalog.eligibility(of: $0, in: snapshot) == nil }.count
     }
 
     private func openCollection(filter: CatCollectionView.Filter = .all) {

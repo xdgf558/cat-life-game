@@ -6,6 +6,13 @@ struct RoomHomeHUD: View {
     let store: GameStore
     let catNeedPresentation: CatNeedPresentation
     @State private var controlsHidden = false
+    private var usesPremiumFoodChoice: Bool {
+        (store.snapshot?.inventory.food ?? 0) < store.foodRequired
+            && (store.snapshot?.inventory.premiumFood ?? 0) >= store.foodRequired
+    }
+    private var displayedFoodCount: Int {
+        usesPremiumFoodChoice ? (store.snapshot?.inventory.premiumFood ?? 0) : store.totalFood
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,17 +24,28 @@ struct RoomHomeHUD: View {
                     VStack(spacing: 12) {
                         careButton("care.play", asset: "icon-play", symbol: "party.popper.fill", id: "playButton", size: 58) { store.play() }
                         careButton("care.clean", asset: "icon-clean", symbol: "sparkles", id: "cleanButton", size: 58) { store.clean() }
+                            .overlay(alignment: .topTrailing) {
+                                if (store.snapshot?.inventory.litter ?? 0) == 0,
+                                   let count = store.snapshot?.inventory.premiumLitter, count > 0 {
+                                    premiumBadge(count: count)
+                                        .accessibilityLabel(GameStrings.text("supply.premiumLitter.name"))
+                                        .accessibilityValue("\(count)").accessibilityIdentifier("litterPremiumCount")
+                                }
+                            }
                         careButton(store.hasFood ? "care.feed" : "care.shopFood", asset: store.hasFood ? "bowl-full" : "", symbol: "basket.fill",
                                    id: "feedButton", size: 76, prominent: true) { store.feed() }
                             .overlay(alignment: .topTrailing) {
-                                Text("\(store.totalFood)")
+                                HStack(spacing: 2) {
+                                    if usesPremiumFoodChoice { Image(systemName: "sparkle").accessibilityHidden(true) }
+                                    Text("\(displayedFoodCount)")
+                                }
                                     .font(.system(size: 13, weight: .heavy)).foregroundStyle(.white)
                                     .padding(.horizontal, 10).frame(height: 27)
                                     .background(RoomTheme.gold, in: Capsule())
                                     .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                                     .offset(x: 3, y: -3).allowsHitTesting(false)
-                                    .accessibilityLabel(GameStrings.text("accessibility.food"))
-                                    .accessibilityValue("\(store.totalFood)")
+                                    .accessibilityLabel(GameStrings.text(usesPremiumFoodChoice ? "supply.premiumFood.name" : "accessibility.food"))
+                                    .accessibilityValue("\(displayedFoodCount)")
                                     .accessibilityIdentifier("foodCount")
                             }
                     }
@@ -45,6 +63,17 @@ struct RoomHomeHUD: View {
         .onChange(of: store.onboarding.isPresented) { _, presented in
             if presented || store.onboarding.step == .care { controlsHidden = false }
         }
+    }
+
+    private func premiumBadge(count: Int) -> some View {
+        HStack(spacing: 2) {
+            Image(systemName: "sparkle").accessibilityHidden(true)
+            Text("\(count)")
+        }
+        .font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
+        .padding(.horizontal, 7).frame(height: 24).background(RoomTheme.gold, in: Capsule())
+        .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
+        .offset(x: 3, y: -3).allowsHitTesting(false)
     }
 
     private var header: some View {
@@ -148,11 +177,11 @@ struct RoomHomeHUD: View {
 @MainActor
 struct RoomArrangementPanel: View {
     let store: GameStore
-    @State private var collapsed = false
+    private var collapsed: Bool { !store.isFurnitureTrayExpanded }
 
     var body: some View {
         VStack(spacing: 8) {
-            Button { collapsed.toggle() } label: {
+            Button { store.isFurnitureTrayExpanded.toggle() } label: {
                 Label(GameStrings.text(collapsed ? "layout.showTray" : "layout.hideTray"),
                       systemImage: collapsed ? "chevron.up" : "chevron.down")
                     .font(.system(size: 12, weight: .bold)).frame(maxWidth: .infinity, minHeight: 44)
@@ -205,9 +234,9 @@ struct RoomArrangementPanel: View {
                         .buttonStyle(.plain).accessibilityIdentifier("layoutStored_\(item.id)")
                         .disabled(store.isBusy || store.isResolvingLayout || store.placingFurnitureID != nil || !store.canPlaceMoreFurniture)
                     }
-                    tool("layout.furnitureBag", symbol: "backpack.fill", id: "furnitureInventoryButton") { store.openFurnitureInventory() }
-                    tool("homeUpgrade.entry", symbol: "house.and.flag.fill", id: "homeUpgradeButton") { store.openHomeUpgrade() }
-                    tool("tab.shop", symbol: "plus.circle.fill", id: "layoutShopButton") { store.activeSheet = .shop }
+                    tool("layout.furnitureBag", asset: "icon-furniture-bag55", symbol: "backpack.fill", id: "furnitureInventoryButton") { store.openFurnitureInventory() }
+                    tool("homeUpgrade.entry", asset: "icon-home-upgrade55", symbol: "house.and.flag.fill", id: "homeUpgradeButton") { store.openHomeUpgrade() }
+                    tool("tab.shop", asset: "icon-decor-shop55", symbol: "plus.circle.fill", id: "layoutShopButton") { store.activeSheet = .shop }
                 }.padding(.vertical, 3)
             }
             }
@@ -254,16 +283,17 @@ struct RoomArrangementPanel: View {
         .accessibilityHint(supportsMirroring ? "" : GameStrings.text("layout.cannotFlipHint"))
     }
 
-    private func tool(_ key: String, symbol: String, id: String, action: @escaping () -> Void) -> some View {
+    private func tool(_ key: String, asset: String, symbol: String, id: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: 5) {
-                Image(systemName: symbol).font(.system(size: 25, weight: .bold))
+                GameIcon(asset: asset, symbol: symbol, size: 40, tint: RoomTheme.darkMint)
                 Text(GameStrings.text(key)).font(.system(size: 10, weight: .bold)).lineLimit(2)
             }
             .foregroundStyle(RoomTheme.darkMint).frame(width: 70, height: 70)
             .background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 18))
         }
         .buttonStyle(.plain).accessibilityIdentifier(id)
+        .accessibilityLabel(GameStrings.text(key))
         .disabled(store.isBusy || store.isResolvingLayout || store.placingFurnitureID != nil)
     }
 }

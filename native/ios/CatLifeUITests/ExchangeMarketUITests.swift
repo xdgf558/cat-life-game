@@ -11,14 +11,20 @@ extension RoomHomeUITests {
         waitForObservedValue("marketPage", "1/2", in: app)
         scrollCareerPage("exchangeMarketScroll", to: "marketOffer_mira_feast", in: app)
         tapAnimationControl("marketOffer_mira_feast", in: app)
-        waitForElement("marketConfirmation", in: app)
-        XCTAssertFalse(element("marketConfirmButton", in: app).isEnabled)
-        attachScreenshot(app, named: "Market — advanced trade shows friendship lock")
-        tapAnimationControl("marketCancelButton", in: app)
+        waitForObservedValue("neighborFriendshipValue", "18", in: app)
+        XCTAssertFalse(element("marketConfirmation", in: app).exists,
+                       "A friendship-locked offer takes the player to that neighbor, without opening an unusable confirmation.")
+        attachScreenshot(app, named: "Market — locked offer opens its neighbor")
+        tapAnimationControl("neighborBackButton", in: app)
 
         scrollCareerPage("exchangeMarketScroll", to: "marketOffer_mira_food", in: app)
         tapAnimationControl("marketOffer_mira_food", in: app)
         waitForObservedValue("marketStock_food", "3", in: app)
+        waitForObservedValue("marketBagAfter_food", "1", in: app)
+        waitForObservedValue("marketStock_premiumFood", "0", in: app)
+        waitForObservedValue("marketBagAfter_premiumFood", "1", in: app)
+        scrollPage("marketConfirmation", to: "marketFriendshipPreview", allowDisabled: false, maximumDrags: 6, in: app)
+        waitForObservedValue("marketFriendshipPreview", "18:20", in: app)
         tapAnimationControl("marketCancelButton", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app)
@@ -30,10 +36,11 @@ extension RoomHomeUITests {
         tapAnimationControl("marketConfirmButton", in: app)
         waitForObservedValue("communityStageSuccess", "neighbor_mira:2", in: app)
         waitForObservedValue("communityStageRewards", "20:1:0:0", in: app)
-        XCTAssertTrue(element("communityStageCompletionMessage", in: app).label.contains("+2"))
+        waitForObservedValue("marketReceived_premiumFood", "1", in: app)
+        waitForObservedValue("marketResultFriendship", "2:20", in: app)
         attachScreenshot(app, named: "Market — stage reward excludes traded supplies")
-        scrollPage("communityStageSuccessScroll", to: "communityStageSuccessDoneButton", allowDisabled: false, maximumDrags: 6, in: app)
-        tapAnimationControl("communityStageSuccessDoneButton", in: app)
+        tapAnimationControl("marketResultContinue", in: app)
+        XCTAssertTrue(element("marketResult", in: app).waitForNonExistence(timeout: 5))
         waitForElement("exchangeMarketScroll", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("foodCount", "3", in: app) // Two basic servings (including stage reward) plus one premium serving.
@@ -60,8 +67,15 @@ extension RoomHomeUITests {
         XCTAssertTrue(element("marketOffer_mira_food", in: app).exists)
         tapAnimationControl("marketOffer_mira_food", in: app)
         tapAnimationControl("marketConfirmButton", in: app)
-        waitForElement("exchangeMarketScroll", in: app)
+        waitForElement("marketResult", in: app)
+        waitForObservedValue("marketResultFriendship", "2:22", in: app)
         XCTAssertFalse(element("communityStageSuccess", in: app).exists, "The same stage must not be celebrated twice.")
+        tapAnimationControl("marketResultContinue", in: app)
+        XCTAssertFalse(element("marketOffer_mira_food", in: app).isEnabled,
+                       "The neighbor's two daily exchanges are exhausted even across the two market entry paths.")
+        tapAnimationControl("marketBagButton", in: app)
+        waitForObservedValue("inventoryPremiumFoodCount", "2", in: app)
+        waitForObservedValue("inventoryFoodCount", "0", in: app)
     }
 
     @MainActor
@@ -102,13 +116,22 @@ extension RoomHomeUITests {
             scrollCareerPage("exchangeMarketScroll", to: "marketFilters", in: app)
             let filters = element("marketFilters", in: app)
             let mira = element("marketFilter_neighbor_mira", in: app)
-            if !filters.frame.contains(mira.frame) {
-                filters.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+            for _ in 0..<8 {
+                let viewport = filters.frame.intersection(app.frame)
+                let target = mira.frame
+                if viewport.contains(target) && mira.isHittable { break }
+                let movingLeft = target.maxX > viewport.maxX
+                let overflow = movingLeft ? target.maxX - viewport.maxX : viewport.minX - target.minX
+                let distance = min(0.6, max(0.1, (overflow + 12) / max(1, viewport.width)))
+                let start: CGFloat = movingLeft ? 0.85 : 0.15
+                filters.coordinate(withNormalizedOffset: CGVector(dx: start, dy: 0.5))
                     .press(forDuration: 0.05,
-                           thenDragTo: filters.coordinate(withNormalizedOffset: CGVector(dx: 0.45, dy: 0.5)),
+                           thenDragTo: filters.coordinate(withNormalizedOffset: CGVector(dx: start + (movingLeft ? -distance : distance), dy: 0.5)),
                            withVelocity: .slow, thenHoldForDuration: 0.15)
             }
-            XCTAssertTrue(filters.frame.contains(mira.frame), "Scroll the horizontal neighbor list before selecting its clipped chip.")
+            XCTAssertTrue(filters.frame.intersection(app.frame).contains(mira.frame),
+                          "Scroll the horizontal neighbor list until the complete avatar/name/count chip is visible.")
+            XCTAssertTrue(mira.isHittable, "The fully visible neighbor filter must also accept a tap.")
             tapAnimationControl("marketFilter_neighbor_mira", in: app)
             XCTAssertFalse(element("marketPage", in: app).exists)
             scrollCareerPage("exchangeMarketScroll", to: "marketOffer_mira_food", in: app)
@@ -119,6 +142,7 @@ extension RoomHomeUITests {
             XCTAssertLessThan(element("marketConfirmationBar", in: app).frame.height, app.frame.height * 0.3,
                               "Fixed actions must leave space to read the trade at the largest text size.")
             attachScreenshot(app, named: "Market — translated confirmation \(language)")
+            tapAnimationControl("marketCancelButton", in: app)
             tapAnimationControl("tabHome", in: app)
             waitForObservedValue("foodCount", "3", in: app)
         }
@@ -136,7 +160,45 @@ extension RoomHomeUITests {
         tapAnimationControl("marketConfirmButton", in: app)
         XCTAssertTrue(app.alerts.firstMatch.waitForExistence(timeout: 8))
         waitForObservedValue("marketStock_food", "3", in: app)
+        XCTAssertFalse(element("marketResult", in: app).exists)
         attachScreenshot(app, named: "Market — failed save keeps original supplies")
+        app.alerts.firstMatch.buttons["完成"].tap()
+        waitForElement("marketFailure", in: app)
+        waitForElement("marketConfirmation", in: app)
+        waitForElement("saveStatusRetryButton", in: app)
+        waitForObservedValue("marketRemaining", "2/2", in: app)
+        tapAnimationControl("marketCancelButton", in: app)
+        waitForElement("exchangeMarketScroll", in: app)
+    }
+
+    @MainActor
+    func testExchangeMissingGiftOpensRestockAndResultCanOpenBag() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--community-fixture"]
+        launchAndEnterHome(app)
+        openExchangeMarket(in: app)
+        tapAnimationControl("marketNextPage", in: app)
+        scrollCareerPage("exchangeMarketScroll", to: "marketOffer_grace_pantry", in: app)
+        tapAnimationControl("marketOffer_grace_pantry", in: app)
+        waitForElement("communityGiftShelf", in: app)
+        waitForObservedValue("communityGiftStock_cat_snack", "0", in: app)
+        scrollCareerPage("communityGiftShelf", to: "buyCommunityGift_cat_snack", in: app)
+        tapAnimationControl("buyCommunityGift_cat_snack", in: app)
+        waitForObservedValue("communityGiftStock_cat_snack", "1", in: app)
+        tapAnimationControl("communityGiftCloseButton", in: app)
+        waitForObservedValue("marketPage", "2/2", in: app)
+        scrollCareerPage("exchangeMarketScroll", to: "marketOffer_grace_pantry", in: app)
+        tapAnimationControl("marketOffer_grace_pantry", in: app)
+        waitForObservedValue("marketStock_cat_snack", "1", in: app)
+        waitForObservedValue("marketBagAfter_cat_snack", "0", in: app)
+        waitForObservedValue("marketBagAfter_food", "5", in: app)
+        tapAnimationControl("marketConfirmButton", in: app)
+        waitForObservedValue("marketReceived_food", "2", in: app)
+        waitForObservedValue("marketResultFriendship", "2:2", in: app)
+        XCTAssertFalse(element("communityStageSuccess", in: app).exists)
+        tapAnimationControl("marketResultBag", in: app)
+        waitForObservedValue("inventoryFoodCount", "5", in: app)
     }
 
     @MainActor

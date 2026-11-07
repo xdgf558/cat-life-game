@@ -6,6 +6,7 @@ struct TownPlot: View {
     let inLayer: Bool
     let sickCount: Int
     var availableAdoption = false
+    var availableExchanges = 0
     let action: () -> Void
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pulse = false
@@ -13,6 +14,12 @@ struct TownPlot: View {
     private var canAdopt: Bool { place == .adoption && availableAdoption }
 
     private var needsAttention: Bool { place == .hospital && sickCount > 0 }
+    private var status: String {
+        if place == .market { return GameStrings.format("market.availableCount", availableExchanges) }
+        if canAdopt { return GameStrings.text("cat.adoptionAvailable") }
+        if needsAttention { return GameStrings.format("town.sickCount", sickCount) }
+        return GameStrings.text(place.isFuture ? "town.comingSoon" : place.statusKey(sickCount: sickCount))
+    }
 
     var body: some View {
         Button(action: action) {
@@ -39,11 +46,12 @@ struct TownPlot: View {
                 }
             }
             .overlay(alignment: .topTrailing) {
-                if place.isFuture || needsAttention || canAdopt {
-                    Text(canAdopt ? GameStrings.text("cat.adoptionAvailable") : (place.isFuture ? GameStrings.text("town.comingSoon") : GameStrings.format("town.sickCount", sickCount)))
+                if place.isFuture || needsAttention || canAdopt || place == .market {
+                    Text(status)
                         .font(.system(size: 10, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
                         .foregroundStyle(.white).padding(.horizontal, 7).frame(height: 22)
-                        .background(canAdopt ? RoomTheme.mint : (place.isFuture ? RoomTheme.lilac : RoomTheme.coral), in: Capsule())
+                        .background(place == .market ? (availableExchanges > 0 ? RoomTheme.mint : RoomTheme.secondary)
+                            : canAdopt ? RoomTheme.mint : (place.isFuture ? RoomTheme.lilac : RoomTheme.coral), in: Capsule())
                         .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                         .background {
                             if needsAttention, !reduceMotion {
@@ -65,7 +73,7 @@ struct TownPlot: View {
         }
         .buttonStyle(.plain).accessibilityIdentifier(place.accessibilityIdentifier)
         .accessibilityLabel(GameStrings.text(place.titleKey))
-        .accessibilityValue(canAdopt ? GameStrings.text("cat.adoptionAvailable") : needsAttention ? GameStrings.format("town.sickCount", sickCount) : GameStrings.text(place.statusKey(sickCount: sickCount)))
+        .accessibilityValue(status)
         .accessibilityAddTraits(selected ? .isSelected : [])
         .onChange(of: needsAttention && !reduceMotion, initial: true) { _, animate in
             if animate {

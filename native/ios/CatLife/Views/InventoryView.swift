@@ -8,6 +8,9 @@ struct InventoryView: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var selection: Selection = .supply(.food)
     @State private var showsGifts = false
+    @State private var page = Page.supplies
+
+    private enum Page: String, CaseIterable { case supplies, furniture, equipment }
 
     private enum Selection: Equatable {
         case supply(Supply), furniture(String), equipment(String)
@@ -22,26 +25,43 @@ struct InventoryView: View {
     }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 22) {
-                    GamePageHeading(title: GameStrings.text("tab.inventory"),
-                        subtitle: GameStrings.text("bag.subtitle"), asset: "icon-inventory", symbol: "backpack.fill",
-                        tint: RoomTheme.gold, background: RoomTheme.gold.opacity(0.18))
-                    CommunityGiftEntry(store: store) { showsGifts = true }
-                    sectionHeading("inventory.supplies", identifier: "inventorySuppliesTab") {
-                        store.inventoryCategory = .supplies
-                        selection = .supply(.food)
-                        proxy.scrollTo("supplies", anchor: .top)
-                    }.id("supplies")
-                    LazyVGrid(columns: columns, spacing: 12) {
-                        ForEach(Supply.allCases, id: \.self) { supply in supplyTile(supply) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                header
+                HStack(spacing: 4) {
+                    ForEach(Page.allCases, id: \.self) { option in
+                        Button {
+                            store.playNavigationSound(); page = option
+                            switch option {
+                            case .supplies:
+                                store.inventoryCategory = .supplies
+                                selection = .supply(store.selectedInventorySupply)
+                            case .furniture:
+                                store.inventoryCategory = .furniture
+                                if let first = store.storedFurniture.first ?? furniture.first { selection = .furniture(first.id) }
+                            case .equipment:
+                                if let first = equipment.first { selection = .equipment(first.id) }
+                            }
+                        } label: {
+                            Text(GameStrings.text(option == .equipment ? "bag.equipment" : "inventory.\(option.rawValue)"))
+                                .font(.subheadline.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.75)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .foregroundStyle(page == option ? RoomTheme.darkMint : RoomTheme.secondary)
+                                .background(page == option ? RoomTheme.paper : .clear, in: Capsule())
+                        }
+                        .buttonStyle(.plain).accessibilityAddTraits(page == option ? .isSelected : [])
+                        .accessibilityIdentifier("inventory\(option.rawValue.prefix(1).uppercased())\(option.rawValue.dropFirst())Tab")
                     }
-                    sectionHeading("inventory.furniture", identifier: "inventoryFurnitureTab") {
-                        store.inventoryCategory = .furniture
-                        if let first = store.storedFurniture.first ?? furniture.first { selection = .furniture(first.id) }
-                        proxy.scrollTo("furniture", anchor: .top)
-                    }.id("furniture")
+                }.padding(4).background(RoomTheme.chipBg, in: Capsule())
+                switch page {
+                case .supplies:
+                    SupplySectionHeading(premium: true)
+                    ForEach([Supply.premiumFood, .premiumLitter], id: \.self) { supplyRow($0) }
+                    SupplySectionHeading(premium: false).padding(.top, 3)
+                    ForEach([Supply.food, .litter, .toy], id: \.self) { supplyRow($0) }
+                    SupplyManualUseHint()
+                    CommunityGiftEntry(store: store) { showsGifts = true }
+                case .furniture:
                     furnitureSummary
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(furniture) { item in furnitureTile(item) }
@@ -51,67 +71,126 @@ struct InventoryView: View {
                             .font(.subheadline).foregroundStyle(RoomTheme.secondary)
                             .accessibilityIdentifier("inventoryFurnitureEmpty")
                     }
-                    sectionHeading("bag.equipment", identifier: "inventoryEquipmentTab") {
-                        if let first = equipment.first { selection = .equipment(first.id) }
-                        proxy.scrollTo("equipment", anchor: .top)
-                    }.id("equipment")
+                case .equipment:
                     LazyVGrid(columns: columns, spacing: 12) {
                         ForEach(equipment) { item in equipmentTile(item) }
                     }
-                    Button { store.activeSheet = .shop } label: {
-                        Label(GameStrings.text("inventory.visitShop"), systemImage: "basket.fill")
-                            .font(.subheadline.weight(.bold))
-                    }
-                    .buttonStyle(SoftButtonStyle()).disabled(store.isBusy)
-                    .accessibilityIdentifier("inventoryShopButton")
                 }
-                .padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+                Button { store.activeSheet = .shop } label: {
+                    Label(GameStrings.text("inventory.visitShop"), systemImage: "basket.fill")
+                        .font(.subheadline.weight(.bold))
+                }
+                .buttonStyle(SoftButtonStyle()).disabled(store.isBusy)
+                .accessibilityIdentifier("inventoryShopButton")
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .background(RoomTheme.cream)
-            .navigationDestination(isPresented: $showsGifts) {
-                CommunityGiftView(store: store, onClose: { showsGifts = false })
-            }
-            .accessibilityIdentifier("destinationScroll")
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+            .padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+        }
+        .scrollBounceBehavior(.basedOnSize).background(RoomTheme.cream)
+        .navigationDestination(isPresented: $showsGifts) {
+            CommunityGiftView(store: store, onClose: { showsGifts = false })
+        }
+        .accessibilityIdentifier("destinationScroll")
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if page != .supplies {
                 selectedItemBar.padding(.horizontal, 12).padding(.top, 8).padding(.bottom, 12)
                     .background(RoomTheme.cream.opacity(0.96))
             }
-            .onAppear {
-                selection = .supply(store.selectedInventorySupply)
-                if store.inventoryCategory == .furniture {
-                    if let first = store.storedFurniture.first ?? furniture.first { selection = .furniture(first.id) }
-                    proxy.scrollTo("furniture", anchor: .top)
+        }
+        .onAppear {
+            selection = .supply(store.selectedInventorySupply)
+            if store.inventoryCategory == .furniture {
+                page = .furniture
+                if let first = store.storedFurniture.first ?? furniture.first { selection = .furniture(first.id) }
+            }
+        }
+        .onChange(of: store.inventoryCategory) { _, category in
+            page = category == .furniture ? .furniture : .supplies
+        }
+    }
+
+    private var header: some View {
+        HStack(spacing: 10) {
+            Label(GameStrings.text(page == .supplies ? "supply.bagTitle" : "tab.inventory"), systemImage: "backpack.fill")
+                .font(.title3.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 16).padding(.vertical, 14)
+                .background(RoomTheme.wood, in: RoundedRectangle(cornerRadius: 20))
+                .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(RoomTheme.secondary.opacity(0.45), lineWidth: 2))
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            Label("\(store.snapshot?.player.gold ?? 0)", systemImage: "dollarsign.circle.fill")
+                .font(.subheadline.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.7)
+                .padding(12).gameCard(cornerRadius: 24)
+                .accessibilityLabel(GameStrings.text("resource.gold"))
+        }
+    }
+
+    private func supplyRow(_ supply: Supply) -> some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 12) {
+                    supplyIdentity(supply)
+                    supplyAction(supply).frame(maxWidth: .infinity)
+                }
+            } else {
+                HStack(spacing: 10) {
+                    supplyIdentity(supply)
+                    supplyAction(supply).fixedSize(horizontal: true, vertical: false)
                 }
             }
         }
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(supply.isPremium ? PremiumSupplyStyle.paper : RoomTheme.paper,
+                    in: RoundedRectangle(cornerRadius: 24))
+        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(supply.isPremium ? PremiumSupplyStyle.border : .white,
+                                                               lineWidth: 2))
+        .overlay { if supply.isPremium { PremiumSupplyShine().clipShape(RoundedRectangle(cornerRadius: 24)) } }
+        .shadow(color: RoomTheme.ink.opacity(0.08), radius: 0, y: 4)
+        .accessibilityElement(children: .contain)
     }
 
-    private func sectionHeading(_ key: String, identifier: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(GameStrings.text(key)).font(.system(size: 17, weight: .heavy, design: .rounded))
-                .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
-        }
-        .buttonStyle(.plain).accessibilityIdentifier(identifier)
-    }
-
-    private func supplyTile(_ supply: Supply) -> some View {
-        tile(name: GameStrings.text(supply.nameKey), asset: supply.asset, symbol: supply.symbol,
-             badge: nil, tint: count(supply) == 0 ? RoomTheme.coral : supply.tint,
-             selected: selection == .supply(supply)) { selection = .supply(supply); store.selectedInventorySupply = supply }
-            .accessibilityIdentifier("inventoryItem_\(supply.rawValue)")
-            .accessibilityElement(children: .contain)
-            .overlay(alignment: .topTrailing) {
-                // Keep the resource values independently readable by VoiceOver and UI tests.
-                Text("\(count(supply))")
-                    .font(.system(size: 12, weight: .heavy, design: .rounded)).foregroundStyle(.white)
-                    .padding(.horizontal, 10).frame(minHeight: 25)
-                    .background(count(supply) == 0 ? RoomTheme.coral : supply.tint, in: Capsule())
-                    .overlay(Capsule().strokeBorder(RoomTheme.paper, lineWidth: 2))
-                    .offset(x: 2, y: -2).allowsHitTesting(false)
-                    .accessibilityLabel(GameStrings.text(supply.countKey)).accessibilityValue("\(count(supply))")
-                    .accessibilityIdentifier(supply.countID)
+    private func supplyIdentity(_ supply: Supply) -> some View {
+        Button { selection = .supply(supply); store.selectedInventorySupply = supply } label: {
+            HStack(spacing: 12) {
+                SupplyArt(kind: supply)
+                VStack(alignment: .leading, spacing: 6) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 6) { supplyName(supply); supplyCount(supply) }
+                        VStack(alignment: .leading, spacing: 4) { supplyName(supply); supplyCount(supply) }
+                    }
+                    SupplyEffectChips(kind: supply)
+                }.frame(maxWidth: .infinity, alignment: .leading)
             }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain).accessibilityIdentifier("inventoryItem_\(supply.rawValue)")
+        .accessibilityElement(children: .contain)
+    }
+
+    private func supplyName(_ supply: Supply) -> some View {
+        Text(GameStrings.text(supply.nameKey)).font(.subheadline.weight(.heavy))
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func supplyCount(_ supply: Supply) -> some View {
+        Text("× \(count(supply))").font(.caption.weight(.heavy))
+            .foregroundStyle(count(supply) > 0 ? RoomTheme.darkMint : RoomTheme.secondary)
+            .padding(.horizontal, 8).padding(.vertical, 3)
+            .background(count(supply) > 0 ? RoomTheme.paleMint : RoomTheme.chipBg, in: Capsule())
+            .accessibilityLabel(GameStrings.text(supply.nameKey)).accessibilityValue("\(count(supply))")
+            .accessibilityIdentifier(supply.countID)
+    }
+
+    private func supplyAction(_ supply: Supply) -> some View {
+        Button {
+            if canUse(supply) { use(supply) }
+            else { store.shopCategory = .supplies; store.activeSheet = .shop }
+        } label: {
+            Label(GameStrings.text(canUse(supply) ? "supply.use" : "inventory.restock"),
+                  systemImage: canUse(supply) ? "hand.tap.fill" : "storefront.fill")
+                .font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+        }
+        .buttonStyle(SupplyUseButtonStyle(available: canUse(supply))).disabled(store.isBusy || store.isDecorating)
+        .accessibilityIdentifier(canUse(supply) ? supply.useID : supply.restockID)
     }
 
     private func furnitureTile(_ item: FurnitureItem) -> some View {
@@ -192,16 +271,7 @@ struct InventoryView: View {
 
     @ViewBuilder private var selectedItemBar: some View {
         switch selection {
-        case .supply(let supply):
-            actionBar(name: GameStrings.text(supply.nameKey), asset: supply.asset, symbol: supply.symbol,
-                      detail: supplyDetail(supply), tint: supply.tint) {
-                Button(GameStrings.text(canUse(supply) ? supply.actionKey : "inventory.restock")) {
-                    if canUse(supply) { use(supply) } else { store.shopCategory = .supplies; store.activeSheet = .shop }
-                }
-                .buttonStyle(MintButtonStyle())
-                .disabled(store.isBusy || store.isDecorating)
-                .accessibilityIdentifier(canUse(supply) ? supply.useID : supply.restockID)
-            }
+        case .supply: EmptyView()
         case .furniture(let id):
             if let item = furniture.first(where: { $0.id == id }) {
                 actionBar(name: GameStrings.furnitureName(item), asset: FurnitureCatalog.metadata(for: item.kind).assetName,
@@ -270,17 +340,9 @@ struct InventoryView: View {
     private func canUse(_ supply: Supply) -> Bool {
         count(supply) >= ((supply == .food || supply == .premiumFood) ? store.foodRequired : 1)
     }
-    private func supplyDetail(_ supply: Supply) -> String {
-        let detail = GameStrings.text(SupplyCatalog.definition(for: supply).detailKey)
-        if supply == .food || supply == .premiumFood {
-            return detail + " · " + GameStrings.format("supply.servingsRequired", store.foodRequired)
-        }
-        return detail
-    }
     private func use(_ supply: Supply) {
         switch supply {
-        case .food, .premiumFood: store.feed(supply: supply)
-        case .litter, .premiumLitter: store.clean(supply: supply)
+        case .food, .premiumFood, .litter, .premiumLitter: store.openSupplyPicker(for: supply)
         case .toy: store.play()
         }
     }

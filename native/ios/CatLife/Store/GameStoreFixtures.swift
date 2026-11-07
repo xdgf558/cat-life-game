@@ -49,6 +49,18 @@ struct GameStoreFixtures {
             value.activeCatID = offer.id
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
             initialSnapshot = value
+        } else if arguments.contains("--premium-only-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.player.level = 8
+            value.player.gold = 5000
+            value.inventory.food = 0
+            value.inventory.litter = 0
+            value.inventory.premiumFood = 2
+            value.inventory.premiumLitter = 2
+            value.cats[0].satiety = 40
+            value.cats[0].cleanliness = 40
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
         } else if arguments.contains("--community-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 8
