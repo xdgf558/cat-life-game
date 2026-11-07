@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 7
+    public static let currentSchemaVersion = 8
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -76,9 +76,9 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
             : try GameTaskState(from: values.superDecoder(forKey: .tasks), schemaVersion: version)
         tasks.restoreFurniturePurchaseHistory(from: inventory.furniture)
         community = version < 7 && !values.contains(.community)
-            ? CommunityState() : try values.decode(CommunityState.self, forKey: .community)
+            ? CommunityState() : try CommunityState(from: values.superDecoder(forKey: .community), schemaVersion: version)
         guard community.isValid, inventory.validGifts,
-              tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0)
+              tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0)
         else { throw SaveRepositoryError.invalidSnapshot }
     }
 
@@ -279,6 +279,8 @@ public struct CatDecayTracker: Codable, Equatable, Sendable {
 public struct InventoryState: Codable, Equatable, Sendable {
     public var food: Int
     public var litter: Int
+    public var premiumFood: Int
+    public var premiumLitter: Int
     /// Remaining play uses. One purchased wand supplies six uses.
     public var toys: Int
     /// Every owned instance, including furniture currently placed in the room.
@@ -286,9 +288,12 @@ public struct InventoryState: Codable, Equatable, Sendable {
     public var gifts: [String: Int]
 
     public init(food: Int = 3, litter: Int = 2, toys: Int = 0,
-                furniture: [FurnitureItem] = FurnitureCatalog.defaultItems, gifts: [String: Int] = [:]) {
+                furniture: [FurnitureItem] = FurnitureCatalog.defaultItems, gifts: [String: Int] = [:],
+                premiumFood: Int = 0, premiumLitter: Int = 0) {
         self.food = food
         self.litter = litter
+        self.premiumFood = premiumFood
+        self.premiumLitter = premiumLitter
         self.toys = toys
         self.furniture = furniture
         self.gifts = gifts
@@ -302,7 +307,7 @@ public struct InventoryState: Codable, Equatable, Sendable {
         }
     }
 
-    private enum CodingKeys: String, CodingKey { case food, litter, toys, furniture, gifts }
+    private enum CodingKeys: String, CodingKey { case food, litter, toys, furniture, gifts, premiumFood, premiumLitter }
 
     public init(from decoder: Decoder) throws {
         try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
@@ -312,6 +317,10 @@ public struct InventoryState: Codable, Equatable, Sendable {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         food = try values.decode(Int.self, forKey: .food)
         litter = try values.decode(Int.self, forKey: .litter)
+        premiumFood = schemaVersion < 8 && !values.contains(.premiumFood)
+            ? 0 : try values.decode(Int.self, forKey: .premiumFood)
+        premiumLitter = schemaVersion < 8 && !values.contains(.premiumLitter)
+            ? 0 : try values.decode(Int.self, forKey: .premiumLitter)
         toys = try values.decode(Int.self, forKey: .toys)
         // Schema 1 saves predate movable furniture. Only an absent key migrates;
         // an explicit empty collection stays empty and malformed data still fails.

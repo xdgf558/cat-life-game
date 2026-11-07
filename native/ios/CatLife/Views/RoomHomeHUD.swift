@@ -20,14 +20,14 @@ struct RoomHomeHUD: View {
                         careButton(store.hasFood ? "care.feed" : "care.shopFood", asset: store.hasFood ? "bowl-full" : "", symbol: "basket.fill",
                                    id: "feedButton", size: 76, prominent: true) { store.feed() }
                             .overlay(alignment: .topTrailing) {
-                                Text("\(store.snapshot?.inventory.food ?? 0)")
+                                Text("\(store.totalFood)")
                                     .font(.system(size: 13, weight: .heavy)).foregroundStyle(.white)
                                     .padding(.horizontal, 10).frame(height: 27)
                                     .background(RoomTheme.gold, in: Capsule())
                                     .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                                     .offset(x: 3, y: -3).allowsHitTesting(false)
                                     .accessibilityLabel(GameStrings.text("accessibility.food"))
-                                    .accessibilityValue("\(store.snapshot?.inventory.food ?? 0)")
+                                    .accessibilityValue("\(store.totalFood)")
                                     .accessibilityIdentifier("foodCount")
                             }
                     }

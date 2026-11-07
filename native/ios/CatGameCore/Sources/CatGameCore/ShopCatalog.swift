@@ -30,7 +30,11 @@ public enum ShopCatalog {
     ]
     public static let furnitureOffers: [FurnitureOffer] = [
         .init(id: "potted_plant", kind: .plant, price: 120, unlockLevel: 2, maxOwned: 10),
-        .init(id: "cozy_cushion", kind: .floorCushion, price: 180, unlockLevel: 2, maxOwned: 10)
+        .init(id: "cozy_cushion", kind: .floorCushion, price: 180, unlockLevel: 2, maxOwned: 10),
+        .init(id: "oak_bookcase", kind: .bookcase, price: 260, unlockLevel: 3, maxOwned: 10),
+        .init(id: "rattan_chair", kind: .rattanChair, price: 320, unlockLevel: 3, maxOwned: 10),
+        .init(id: "round_side_table", kind: .sideTable, price: 220, unlockLevel: 2, maxOwned: 10),
+        .init(id: "sunrise_art", kind: .wallSunrise, price: 160, unlockLevel: 2, maxOwned: 10)
     ]
 
     public static func equipmentOffer(itemID: String) -> EquipmentOffer? {

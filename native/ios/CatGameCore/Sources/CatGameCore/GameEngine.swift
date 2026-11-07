@@ -169,43 +169,48 @@ public enum GameEngine {
         return ActionOutcome(success: .catRestEnded)
     }
 
-    public static func feed(_ state: inout GameSnapshot, catID: String,
+    public static func feed(_ state: inout GameSnapshot, catID: String, supply: SupplyKind = .food,
                             now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
+        guard supply == .food || supply == .premiumFood else { return failure(.careSupplyInvalid) }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
             return failure(.careCatMissing)
         }
         let units = state.cats[index].isPregnant ? 2 : 1
-        guard state.inventory.food >= units else {
-            return failure(.careFoodRequired, amount: units)
+        guard state.inventory.count(supply) >= units else {
+            return failure(supply == .premiumFood ? .carePremiumFoodRequired : .careFoodRequired, amount: units)
         }
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
-        state.inventory.food -= units
+        state.inventory[keyPath: supply.stock] -= units
         CatHealthEngine.relieveRisk(&state.cats[index], caringFor: \.satiety, points: 2)
-        state.cats[index].satiety = cap(state.cats[index].satiety + 25)
-        state.cats[index].mood = cap(state.cats[index].mood + 4)
+        state.cats[index].satiety = cap(state.cats[index].satiety + (supply == .premiumFood ? 55 : 25))
+        state.cats[index].mood = cap(state.cats[index].mood + (supply == .premiumFood ? 5 : 4))
+        if supply == .premiumFood { state.cats[index].intimacy = cap(state.cats[index].intimacy + 3) }
         state.cats[index].decayTracker.satiety = max(state.cats[index].decayTracker.satiety, timestamp)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.tasks.recordFeed()
         return ActionOutcome(success: .fed, amount: units)
     }
 
-    public static func clean(_ state: inout GameSnapshot, catID: String,
+    public static func clean(_ state: inout GameSnapshot, catID: String, supply: SupplyKind = .litter,
                              now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
+        guard supply == .litter || supply == .premiumLitter else { return failure(.careSupplyInvalid) }
         guard let index = state.cats.firstIndex(where: { $0.id == catID }) else {
             return failure(.careCatMissing)
         }
-        guard state.inventory.litter > 0 else { return failure(.careLitterRequired) }
+        guard state.inventory.count(supply) > 0 else {
+            return failure(supply == .premiumLitter ? .carePremiumLitterRequired : .careLitterRequired)
+        }
         let timestamp = effectiveTime(state, now: now)
         finishCatRest(&state, index: index, now: timestamp)
-        state.inventory.litter -= 1
+        state.inventory[keyPath: supply.stock] -= 1
         CatHealthEngine.relieveRisk(&state.cats[index], caringFor: \.cleanliness, points: 2)
-        state.cats[index].cleanliness = cap(state.cats[index].cleanliness + 30)
-        state.cats[index].health = cap(state.cats[index].health + 4)
+        state.cats[index].cleanliness = cap(state.cats[index].cleanliness + (supply == .premiumLitter ? 65 : 30))
+        state.cats[index].health = cap(state.cats[index].health + (supply == .premiumLitter ? 5 : 4))
         state.cats[index].decayTracker.cleanliness = max(
             state.cats[index].decayTracker.cleanliness, timestamp)
         state.tasks.recordClean()
@@ -258,20 +263,17 @@ public enum GameEngine {
 
     public static func buyFood(_ state: inout GameSnapshot, quantity: Int = 1,
                                now: Date = Date()) -> ActionOutcome {
-        buy(&state, quantity: quantity, unitPrice: foodPrice, unitsPerItem: 1,
-            stock: \.food, success: .foodPurchased, now: now)
+        buySupply(&state, kind: .food, quantity: quantity, now: now)
     }
 
     public static func buyLitter(_ state: inout GameSnapshot, quantity: Int = 1,
                                  now: Date = Date()) -> ActionOutcome {
-        buy(&state, quantity: quantity, unitPrice: litterPrice, unitsPerItem: 1,
-            stock: \.litter, success: .litterPurchased, now: now)
+        buySupply(&state, kind: .litter, quantity: quantity, now: now)
     }
 
     public static func buyToy(_ state: inout GameSnapshot, quantity: Int = 1,
                               now: Date = Date()) -> ActionOutcome {
-        buy(&state, quantity: quantity, unitPrice: toyPrice, unitsPerItem: toyUsesPerPurchase,
-            stock: \.toys, success: .toyPurchased, now: now)
+        buySupply(&state, kind: .toy, quantity: quantity, now: now)
     }
 
     public static func purchaseEquipment(_ state: inout GameSnapshot, itemID: String,
@@ -459,23 +461,6 @@ public enum GameEngine {
         return ActionOutcome(success: .layoutSaved)
     }
 
-    private static func buy(_ state: inout GameSnapshot, quantity: Int, unitPrice: Int,
-                            unitsPerItem: Int, stock: WritableKeyPath<InventoryState, Int>,
-                            success: ActionSuccess, now: Date) -> ActionOutcome {
-        let synchronized = synchronize(&state, now: now)
-        guard synchronized.succeeded else { return synchronized }
-        guard (1...999).contains(quantity) else { return failure(.shopInvalidQuantity) }
-        let cost = unitPrice * quantity
-        let count = quantity * unitsPerItem
-        guard state.player.gold >= cost else { return failure(.shopGoldRequired, amount: cost) }
-        guard state.inventory[keyPath: stock] <= GameSnapshot.maximumStock - count else {
-            return failure(.shopInventoryFull)
-        }
-        state.player.gold -= cost
-        state.inventory[keyPath: stock] += count
-        return ActionOutcome(success: success, amount: count)
-    }
-
     private static func cap(_ value: Int) -> Int { min(100, max(0, value)) }
 
     private static func settleSleep(_ player: inout PlayerState, now: Date) {
@@ -580,7 +565,7 @@ public enum GameEngine {
 
 extension GameSnapshot {
     static let maximumGold = 1_000_000_000
-    static let maximumStock = 1_000_000
+    public static let maximumStock = 1_000_000
 
     var isValid: Bool {
         guard schemaVersion == Self.currentSchemaVersion,
@@ -593,8 +578,8 @@ extension GameSnapshot {
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid,
               tasks.isValid, community.isValid, inventory.validGifts,
-              tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0),
-              [inventory.food, inventory.litter, inventory.toys].allSatisfy({ (0...Self.maximumStock).contains($0) }),
+              tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),
+              [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter].allSatisfy({ (0...Self.maximumStock).contains($0) }),
               (0...100).contains(home.comfortScore),
               HomeCatalog.level(home.roomLevel) != nil,
               home.name.map({ HomeNameRules.normalized($0) == $0 }) ?? true,

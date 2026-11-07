@@ -216,6 +216,7 @@ struct GameTaskTests {
             state.community.relationships["neighbor_mira"] = .init(friendship: 40,
                 visitedToday: true, giftsGivenToday: 1, totalVisitCount: 10, totalGiftCount: 10,
                 rewardedStageLevels: [2, 3])
+            state.community.exchangeCounts["neighbor_mira"] = .init(today: 2, total: 30)
             let before = state.player
             let outcome = GameEngine.claimTask(&state, id: definition.id, expectedDayKey: state.tasks.dailyDayKey, now: now)
             #expect(outcome.success == .taskClaimed && outcome.amount == definition.goldReward)

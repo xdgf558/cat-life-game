@@ -9,7 +9,7 @@ struct ShopAndHomeUpgradeTests {
     private func funded() -> GameSnapshot {
         var state = GameSnapshot.fresh(now: now)
         state.player.level = 4
-        state.player.gold = 10_000
+        state.player.gold = 30_000
         return state
     }
 
@@ -34,7 +34,8 @@ struct ShopAndHomeUpgradeTests {
         #expect(Set(paid.map(\.id)).isDisjoint(with: state.player.profile.ownedEquipmentIDs))
         #expect(state.player.profile.ownedEquipmentIDs == PlayerCatalog.starterEquipmentIDs)
         #expect(ShopCatalog.equipmentOffers.allSatisfy { $0.price > 0 && $0.unlockLevel >= 2 })
-        #expect(ShopCatalog.furnitureOffers.map(\.kind) == [.plant, .floorCushion])
+        #expect(ShopCatalog.furnitureOffers.map(\.kind) ==
+            [.plant, .floorCushion, .bookcase, .rattanChair, .sideTable, .wallSunrise])
         #expect(ShopCatalog.furnitureOffers.allSatisfy { $0.maxOwned == 10 && !$0.assetName.isEmpty })
         #expect(HomeCatalog.all.map(\.capacity) == [9, 12, 16])
         #expect(HomeCatalog.all.map(\.worldScale) == [1, 1.25, 1.5])
@@ -112,8 +113,9 @@ struct ShopAndHomeUpgradeTests {
             #expect(state == full)
         }
         #expect(state.player.gold == original.player.gold - spent)
-        #expect(state.inventory.furniture.count == 29)
-        #expect(Set(state.inventory.furniture.map(\.id)).count == 29)
+        let expectedCount = original.inventory.furniture.count + ShopCatalog.furnitureOffers.reduce(0) { $0 + $1.maxOwned }
+        #expect(state.inventory.furniture.count == expectedCount)
+        #expect(Set(state.inventory.furniture.map(\.id)).count == expectedCount)
         #expect(Array(state.inventory.furniture.prefix(9)) == original.inventory.furniture)
         #expect(state.home == original.home && state.cats == original.cats)
         #expect(state.inventory.food == original.inventory.food && state.inventory.litter == original.inventory.litter)

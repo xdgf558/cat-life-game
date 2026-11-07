@@ -6,6 +6,13 @@ public enum ActionKind: String, Codable, Sendable {
 }
 
 public enum ActionFailure: String, Equatable, Sendable {
+    case exchangeMissing = "market.error.missing"
+    case exchangeStageRequired = "market.error.stage"
+    case exchangeDailyLimit = "market.error.limit"
+    case exchangeMaterialsRequired = "market.error.materials"
+    case careSupplyInvalid = "care.supplyInvalid"
+    case carePremiumFoodRequired = "care.premiumFoodRequired"
+    case carePremiumLitterRequired = "care.premiumLitterRequired"
     case neighborMissing = "community.neighborMissing"
     case communityGiftMissing = "community.giftMissing"
     case communityGiftRequired = "community.giftRequired"
@@ -54,6 +61,8 @@ public enum ActionFailure: String, Equatable, Sendable {
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
+    case exchanged = "market.exchanged"
+    case supplyPurchased = "shop.supplyPurchased"
     case neighborVisited = "community.visited"
     case neighborChatted = "community.chatted"
     case neighborGifted = "community.gifted"
@@ -86,7 +95,7 @@ public enum ActionSuccess: String, Equatable, Sendable {
     public var kind: ActionKind {
         switch self {
         case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
-             .foodPurchased, .litterPurchased, .toyPurchased, .communityGiftPurchased: return .purchase
+             .foodPurchased, .litterPurchased, .toyPurchased, .communityGiftPurchased, .supplyPurchased, .exchanged: return .purchase
         case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
              .taskClaimed, .catTreated, .neighborVisited, .neighborChatted, .neighborGifted: return .none
         case .sleepStarted: return .sleepStarted

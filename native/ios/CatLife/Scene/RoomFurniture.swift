@@ -46,6 +46,10 @@ struct RoomFurnitureSpec: Sendable {
             return .init(width: 138 * factor, footprint: CGSize(width: 70 * factor, height: 42 * factor), anchorY: 0.09, isWall: false)
         case .floorCushion: return .init(width: 184, footprint: CGSize(width: 154, height: 80), anchorY: 0.42, isWall: false)
         case .flowerStool: return .init(width: 190, footprint: CGSize(width: 126, height: 68), anchorY: 0.14, isWall: false)
+        case .bookcase: return .init(width: 228, footprint: CGSize(width: 190, height: 76), anchorY: 0.12, isWall: false)
+        case .rattanChair: return .init(width: 204, footprint: CGSize(width: 158, height: 88), anchorY: 0.14, isWall: false)
+        case .sideTable: return .init(width: 170, footprint: CGSize(width: 136, height: 72), anchorY: 0.13, isWall: false)
+        case .wallSunrise: return .init(width: 104, footprint: CGSize(width: 104, height: 178), anchorY: 0.5, isWall: true)
         }
     }
 }

@@ -48,7 +48,7 @@ enum GameActionNotice {
             case .fed: return GameStrings.text("action.feed")
             case .cleaned: return GameStrings.text("action.clean")
             case .played: return GameStrings.text("action.play")
-            case .foodPurchased, .litterPurchased, .toyPurchased:
+            case .foodPurchased, .litterPurchased, .toyPurchased, .supplyPurchased:
                 return GameStrings.text("action.purchase")
             case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
                  .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
@@ -66,6 +66,9 @@ enum GameActionNotice {
             case .workFinished: return GameStrings.format("action.workFinished", outcome.amount)
             case .taskClaimed: return GameStrings.format("tasks.claimedNotice", outcome.amount)
             case .neighborVisited, .neighborGifted: return GameStrings.format(success.rawValue, outcome.amount)
+            case .exchanged:
+                return outcome.amount > 0 ? GameStrings.format("market.completedWithFriendship", outcome.amount)
+                    : GameStrings.text(success.rawValue)
             case .neighborChatted, .communityGiftPurchased: return GameStrings.text(success.rawValue)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
@@ -77,7 +80,9 @@ enum GameActionNotice {
              .workJobMissing, .workLevelRequired, .workProgressLimit,
              .shopItemMissing, .shopAlreadyOwned, .homeUpgradeUnavailable,
              .catAdoptionMissing, .catAlreadyOwned, .hospitalHealthy,
-             .neighborMissing, .communityGiftMissing, .communityGiftRequired, .communityGiftLimit:
+             .neighborMissing, .communityGiftMissing, .communityGiftRequired, .communityGiftLimit,
+             .exchangeMissing, .exchangeStageRequired, .exchangeDailyLimit, .exchangeMaterialsRequired,
+             .careSupplyInvalid, .carePremiumFoodRequired, .carePremiumLitterRequired:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:

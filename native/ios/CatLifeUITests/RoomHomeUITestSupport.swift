@@ -142,8 +142,12 @@ extension RoomHomeUITests {
                 contentTop = max(contentTop, min(frame.maxY, viewport.maxY))
             }
         }
+        let marketHeader = element("marketHeader", in: app)
+        if marketHeader.exists, marketHeader.isHittable, marketHeader.frame.intersects(viewport) {
+            contentTop = max(contentTop, min(marketHeader.frame.maxY, viewport.maxY))
+        }
         for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar",
-                           "neighborActionBar", "communityGiftConfirmBar"] {
+                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar"] {
             let bar = element(identifier, in: app)
             // A presented sheet covers the home bar even while its AX node remains present.
             if bar.exists, bar.isHittable, bar.frame.intersects(viewport), bar.frame.minY > contentTop {

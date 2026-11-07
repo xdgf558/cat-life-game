@@ -71,6 +71,10 @@ struct ActionSynchronizationTests {
             ("visit", { GameEngine.visitNeighbor(&$0, neighborID: "neighbor_mira", now: $1) }),
             ("gift", { GameEngine.giveNeighborGift(&$0, neighborID: "neighbor_mira", giftID: "flower", now: $1) }),
             ("buyGift", { GameEngine.buyCommunityGift(&$0, giftID: "flower", now: $1) }),
+            ("exchange", { GameEngine.exchange(&$0, offerID: "mira_food", now: $1) }),
+            ("premiumPurchase", { GameEngine.buySupply(&$0, kind: .premiumFood, now: $1) }),
+            ("premiumFeed", { GameEngine.feed(&$0, catID: "cat_001", supply: .premiumFood, now: $1) }),
+            ("premiumClean", { GameEngine.clean(&$0, catID: "cat_001", supply: .premiumLitter, now: $1) }),
             ("work", { GameEngine.startWork(&$0, now: $1) }),
             ("bowl", { GameEngine.setBowlPosition(&$0, .init(x: 0.6, y: 0.7), now: $1) }),
             ("layout", { state, time in
@@ -80,6 +84,8 @@ struct ActionSynchronizationTests {
         ]
         var original = GameSnapshot.fresh(now: now)
         original.inventory.toys = 1
+        original.inventory.premiumFood = 1
+        original.inventory.premiumLitter = 1
         original.inventory.gifts["flower"] = 1
         _ = GameEngine.startWork(&original, now: now)
         _ = GameEngine.startCatRest(&original, catID: "cat_001", furnitureID: "catBed", sessionID: "old-rest", now: now)

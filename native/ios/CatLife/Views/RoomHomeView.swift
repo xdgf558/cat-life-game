@@ -112,7 +112,7 @@ struct RoomHomeView: View {
                             .allowsHitTesting(false)
                     }
                     else if !store.hasSaveFailure, !store.onboarding.isPresented,
-                            !store.isShowingNeighbors,
+                            !store.isShowingNeighbors, !store.isShowingMarket,
                             !moreVisible, store.inspectedCatID == nil,
                             !store.isPresentingAdoptionConfirmation, !store.isDecorating,
                             (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),

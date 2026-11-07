@@ -41,6 +41,7 @@ final class GameStore {
                 catCollectionFilter = nil
                 adoptionCatID = nil
                 isShowingNeighbors = false
+                isShowingMarket = false
                 playNavigationSound()
             }
         }
@@ -49,12 +50,14 @@ final class GameStore {
         didSet { if oldValue != isShowingSettings { playNavigationSound() } }
     }
     var inventoryCategory: InventoryCategory = .supplies
+    var selectedInventorySupply: SupplyKind = .food
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
     var catCollectionFilter: CatCollectionView.Filter?
     var adoptionCatID: String?
     var isPresentingAdoptionConfirmation = false
     var isShowingNeighbors = false
+    var isShowingMarket = false
     var isPresentingCommunityGift = false
     var isShowingCommunityGiftShop = false
     let adoptionReminders: GameAdoptionReminderCenter
@@ -261,7 +264,8 @@ final class GameStore {
         return true
     }
     var foodRequired: Int { cat?.isPregnant == true ? 2 : 1 }
-    var hasFood: Bool { (snapshot?.inventory.food ?? 0) >= foodRequired }
+    var totalFood: Int { (snapshot?.inventory.food ?? 0) + (snapshot?.inventory.premiumFood ?? 0) }
+    var hasFood: Bool { (snapshot?.inventory.food ?? 0) >= foodRequired || (snapshot?.inventory.premiumFood ?? 0) >= foodRequired }
 
     var sceneSnapshot: GameSnapshot? {
         guard var value = snapshot else { return nil }
@@ -326,6 +330,7 @@ final class GameStore {
         inspectedCatID = nil
         activeSheet = .town
         isShowingNeighbors = false
+        isShowingMarket = false
         catCollectionFilter = filter
         adoptionCatID = adoptionID
     }
@@ -582,6 +587,7 @@ final class GameStore {
         isPresentingCommunityGift = false
         isShowingCommunityGiftShop = false
         isShowingNeighbors = false
+        isShowingMarket = false
         adoptionReminders.clearPending()
         clearSaveFailure()
         now = importDate
@@ -722,20 +728,38 @@ final class GameStore {
     }
 
     func feed() {
+        if (snapshot?.inventory.food ?? 0) < foodRequired,
+           (snapshot?.inventory.premiumFood ?? 0) >= foodRequired {
+            choosePremiumSupply(.premiumFood)
+        } else { feed(supply: .food) }
+    }
+    func feed(supply: SupplyKind) {
         guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
-        guard hasFood else { showNotice(GameStrings.text("care.needFood")); shopCategory = .supplies; activeSheet = .shop; return }
+        guard (snapshot?.inventory.count(supply) ?? 0) >= foodRequired else { showNotice(GameStrings.text(supply == .premiumFood ? "care.premiumFoodRequired" : "care.needFood")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
-            GameEngine.feed(&state, catID: cat.id, now: now)
+            GameEngine.feed(&state, catID: cat.id, supply: supply, now: now)
         }
     }
 
     func clean() {
+        if (snapshot?.inventory.litter ?? 0) == 0, (snapshot?.inventory.premiumLitter ?? 0) > 0 {
+            choosePremiumSupply(.premiumLitter)
+        } else { clean(supply: .litter) }
+    }
+
+    private func choosePremiumSupply(_ supply: SupplyKind) {
+        guard !isBusy, !isDecorating else { return }
+        selectedInventorySupply = supply
+        inventoryCategory = .supplies
+        activeSheet = .inventory
+    }
+    func clean(supply: SupplyKind) {
         guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
-        guard (snapshot?.inventory.litter ?? 0) > 0 else { showNotice(GameStrings.text("care.needLitter")); shopCategory = .supplies; activeSheet = .shop; return }
+        guard (snapshot?.inventory.count(supply) ?? 0) > 0 else { showNotice(GameStrings.text(supply == .premiumLitter ? "care.premiumLitterRequired" : "care.needLitter")); shopCategory = .supplies; activeSheet = .shop; return }
         perform(returnsToRoom: activeSheet == .inventory) { state, now in
-            GameEngine.clean(&state, catID: cat.id, now: now)
+            GameEngine.clean(&state, catID: cat.id, supply: supply, now: now)
         }
     }
 
@@ -748,6 +772,7 @@ final class GameStore {
         }
     }
 
+    func buySupply(_ kind: SupplyKind) { perform { GameEngine.buySupply(&$0, kind: kind, now: $1) } }
     func buyFood() { perform { GameEngine.buyFood(&$0, quantity: 1, now: $1) } }
     func buyLitter() { perform { GameEngine.buyLitter(&$0, quantity: 1, now: $1) } }
     func buyToy() { perform { GameEngine.buyToy(&$0, quantity: 1, now: $1) } }
@@ -1056,6 +1081,7 @@ final class GameStore {
         activeSheet = .town
         catCollectionFilter = nil
         adoptionCatID = nil
+        isShowingMarket = false
         isShowingNeighbors = true
     }
 
@@ -1097,13 +1123,19 @@ final class GameStore {
         } else {
             base = message(for: ActionOutcome(success: receipt.success, amount: receipt.friendshipGained))
         }
+        let rewards = [("community.rewardGold", receipt.goldAwarded), ("community.rewardFood", receipt.foodAwarded),
+                       ("community.rewardLitter", receipt.litterAwarded), ("community.rewardToys", receipt.toyUsesAwarded)]
+            .filter { $0.1 > 0 }.map { GameStrings.format($0.0, $0.1) }.joined(separator: " · ")
         let stageNotice = receipt.stageReached.map {
-            "\n" + GameStrings.format("community.stageReached", GameStrings.text($0.nameKey))
+            "\n" + (rewards.isEmpty ? GameStrings.text("community.relationshipUpgraded") + " · " + GameStrings.text($0.nameKey)
+                    : GameStrings.format("community.stageReached", GameStrings.text($0.nameKey)))
         } ?? ""
-        showNotice(base + stageNotice)
+        let rewardNotice = receipt.stageReached == nil ? "" : "\n" + (rewards.isEmpty
+            ? GameStrings.text("community.rewardAtCapacity") : rewards)
+        showNotice(base + stageNotice + rewardNotice)
     }
 
-    private func performNeighborAction(id: String,
+    func performNeighborAction(id: String, exchanging offer: ExchangeOffer? = nil,
         presentResult: (@MainActor (NeighborActionReceipt) -> Bool)?,
         _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> NeighborActionReceipt? {
         let generation = saveSceneGeneration
@@ -1116,13 +1148,20 @@ final class GameStore {
             if outcome.succeeded, let success = outcome.success {
                 let previous = before.community.relationship(for: id)
                 let current = $0.community.relationship(for: id)
+                let after = $0.inventory
+                func reward(_ kind: SupplyKind) -> Int {
+                    let spent = offer?.inputs.filter { $0.item == .supply(kind) }.reduce(0) { $0 + $1.quantity } ?? 0
+                    let received = offer?.outputs.filter { $0.item == .supply(kind) }.reduce(0) { $0 + $1.quantity } ?? 0
+                    // Remove the trade's net stock change, retaining only the actual stage reward.
+                    return max(0, after.count(kind) - before.inventory.count(kind) + spent - received)
+                }
                 receipt = NeighborActionReceipt(neighborID: id, success: success, saveSceneGeneration: generation,
                     friendshipGained: current.friendship - previous.friendship,
                     stageReached: current.stage.level > previous.stage.level ? current.stage : nil,
                     goldAwarded: max(0, $0.player.gold - before.player.gold),
-                    foodAwarded: max(0, $0.inventory.food - before.inventory.food),
-                    litterAwarded: max(0, $0.inventory.litter - before.inventory.litter),
-                    toyUsesAwarded: max(0, $0.inventory.toys - before.inventory.toys))
+                    foodAwarded: reward(.food),
+                    litterAwarded: reward(.litter),
+                    toyUsesAwarded: reward(.toy))
             }
             return outcome
         }
@@ -1166,7 +1205,7 @@ final class GameStore {
         return TaskClaimReceipt(taskID: id, goldAwarded: awarded, experienceAwarded: task.expReward)
     }
 
-    private func performPersistedAction(playsSound: Bool = true, showsSuccessNotice: Bool = true,
+    func performPersistedAction(playsSound: Bool = true, showsSuccessNotice: Bool = true,
                                         _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> Bool {
         guard !isBusy, !isDecorating, var context = saveContext() else { return false }
         isBusy = true

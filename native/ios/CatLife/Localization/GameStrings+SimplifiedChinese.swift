@@ -470,7 +470,7 @@ extension GameStrings {
         "town.description.plaza": "小镇的社区中心。小镇动态与活动将在后续版本陆续开放。",
         "town.description.shop": "猫粮、猫砂、家具与装备，为小家添一点新意。",
         "town.description.board": "未来在这里留下温暖的话语。留言功能暂未开放。",
-        "town.description.market": "为未来的家具与装备交换预留的地点。交换玩法暂未开放。",
+        "town.description.market": "与邻居交换猫咪用品，关系越亲近，可选的交换越丰富。",
         "town.description.adoption": "遇见新的猫咪，把它们接回温暖的小家。",
         "town.description.empty": "预留的地块。小镇会随着后续更新慢慢扩展。",
         "tasks.menuHint": "今日目标与成就",
@@ -1057,5 +1057,5 @@ extension GameStrings {
         "action.insufficientGold": "金币不够了，先去打工吧。", "action.insufficientStamina": "体力不足，先休息一会儿吧。",
         "action.full": "猫咪已经吃饱啦。", "accessibility.cat": "猫咪，点击查看档案",
         "accessibility.decorate": "布置房间，选择并移动家具和食盆", "accessibility.food": "猫粮库存",
-    ]
+    ].merging(marketChinese) { _, new in new }.merging(furniture54Chinese) { _, new in new }.merging(suppliesChinese) { _, new in new }
 }
