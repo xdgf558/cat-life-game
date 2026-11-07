@@ -18,6 +18,7 @@ extension GameStore {
             activeSheet = .shop
         case .upgrade: openHomeUpgrade()
         case .neighbors: openNeighbors()
+        case .market: openExchangeMarket()
         }
     }
 }

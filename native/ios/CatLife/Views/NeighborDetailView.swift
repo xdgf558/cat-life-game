@@ -13,6 +13,7 @@ struct NeighborDetailView: View {
     @State private var isWorking = false
     @State private var failed = false
     @State private var choosingGift = false
+    @State private var showsMarket = false
     @State private var rewardsExpanded = false
     @State private var isVisible = false
     @State private var pendingGift: (id: String, receipt: NeighborActionReceipt)?
@@ -34,6 +35,15 @@ struct NeighborDetailView: View {
                     if let neighbor {
                         profile(neighbor)
                         friendship(neighbor)
+                        Button {
+                            store.playNavigationSound()
+                            showsMarket = true
+                        } label: {
+                            Label(GameStrings.text("market.neighborEntry"), systemImage: "arrow.left.arrow.right")
+                                .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .buttonStyle(SoftButtonStyle()).disabled(isWorking || store.isBusy)
+                        .accessibilityIdentifier("neighborExchangeButton")
                     } else { Text(GameStrings.text("community.neighborMissing")) }
                 }.padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
             }
@@ -71,6 +81,10 @@ struct NeighborDetailView: View {
             .presentationDetents([.large]).presentationDragIndicator(.visible)
         }
         .onChange(of: choosingGift) { _, presented in store.isPresentingCommunityGift = presented }
+        .navigationDestination(isPresented: $showsMarket) {
+            ExchangeMarketView(store: store, initialNeighborID: neighborID,
+                               onClose: { showsMarket = false })
+        }
         .onAppear { isVisible = true }
         .onDisappear {
             isVisible = false

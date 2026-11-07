@@ -16,7 +16,7 @@ struct FurnitureOrientationTests {
 
     @Test func onlyFloorKindsSupportMirroringAndEveryLegacyItemKeepsItsOriginalDirection() throws {
         #expect(Set(FurnitureKind.allCases.filter(\.supportsMirroring)) ==
-            [.cabinet, .catTree, .catBed, .plant, .floorCushion, .flowerStool])
+            [.cabinet, .catTree, .catBed, .plant, .floorCushion, .flowerStool, .bookcase, .rattanChair, .sideTable])
         let original = GameSnapshot.fresh(now: now)
         for version in 1...5 {
             var object = try json(original)

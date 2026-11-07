@@ -57,7 +57,7 @@ extension GameEngine {
         return .init(success: .communityGiftPurchased, amount: price)
     }
 
-    private static func applyFriendship(_ points: Int, to relationship: inout NeighborRelationship,
+    static func applyFriendship(_ points: Int, to relationship: inout NeighborRelationship,
                                         in state: inout GameSnapshot) -> Int {
         let gained = min(points, 100 - relationship.friendship)
         relationship.friendship += gained

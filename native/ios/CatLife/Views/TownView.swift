@@ -18,7 +18,9 @@ struct TownView: View {
 
     var body: some View {
         Group {
-            if store.isShowingNeighbors {
+            if store.isShowingMarket {
+                ExchangeMarketView(store: store, onClose: { store.isShowingMarket = false })
+            } else if store.isShowingNeighbors {
                 CommunityView(store: store) { store.isShowingNeighbors = false }
             } else if let filter = store.catCollectionFilter {
                 CatCollectionView(store: store, initialFilter: filter, embedded: true,
@@ -238,6 +240,7 @@ struct TownView: View {
             store.playNavigationSound()
             store.isShowingNeighbors = true
         case .hospital: store.openHospital()
+        case .market: store.openExchangeMarket()
         case .adoption: openCollection(filter: availableOffer == nil ? .owned : .unowned)
         case .home, .work, .shop:
             store.isShowingSettings = false

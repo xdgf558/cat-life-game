@@ -12,18 +12,7 @@ struct InventoryView: View {
     private enum Selection: Equatable {
         case supply(Supply), furniture(String), equipment(String)
     }
-    private enum Supply: String, CaseIterable {
-        case food, litter, toy
-        var asset: String { switch self { case .food: "bowl-full"; case .litter: "icon-clean"; case .toy: "icon-play" } }
-        var symbol: String { switch self { case .food: "takeoutbag.and.cup.and.straw.fill"; case .litter: "sparkles"; case .toy: "party.popper.fill" } }
-        var tint: Color { switch self { case .food: RoomTheme.gold; case .litter: RoomTheme.sky; case .toy: RoomTheme.coral } }
-        var nameKey: String { "shop.\(rawValue)" }
-        var countID: String { switch self { case .food: "inventoryFoodCount"; case .litter: "inventoryLitterCount"; case .toy: "inventoryToyUses" } }
-        var countKey: String { switch self { case .food: "inventory.foodCount"; case .litter: "inventory.litterCount"; case .toy: "inventory.toyUses" } }
-        var actionKey: String { switch self { case .food: "care.feed"; case .litter: "care.clean"; case .toy: "care.play" } }
-        var useID: String { switch self { case .food: "useFoodButton"; case .litter: "useLitterButton"; case .toy: "useToyButton" } }
-        var restockID: String { switch self { case .food: "restockFoodButton"; case .litter: "restockLitterButton"; case .toy: "restockToyButton" } }
-    }
+    private typealias Supply = SupplyKind
     private var furniture: [FurnitureItem] { store.snapshot?.inventory.furniture ?? [] }
     private var equipment: [EquipmentItem] {
         (store.snapshot?.player.profile.ownedEquipmentIDs ?? []).compactMap(PlayerCatalog.item(id:))
@@ -89,6 +78,7 @@ struct InventoryView: View {
                     .background(RoomTheme.cream.opacity(0.96))
             }
             .onAppear {
+                selection = .supply(store.selectedInventorySupply)
                 if store.inventoryCategory == .furniture {
                     if let first = store.storedFurniture.first ?? furniture.first { selection = .furniture(first.id) }
                     proxy.scrollTo("furniture", anchor: .top)
@@ -107,8 +97,8 @@ struct InventoryView: View {
 
     private func supplyTile(_ supply: Supply) -> some View {
         tile(name: GameStrings.text(supply.nameKey), asset: supply.asset, symbol: supply.symbol,
-             badge: nil, tint: count(supply) == 0 ? RoomTheme.coral : RoomTheme.gold,
-             selected: selection == .supply(supply)) { selection = .supply(supply) }
+             badge: nil, tint: count(supply) == 0 ? RoomTheme.coral : supply.tint,
+             selected: selection == .supply(supply)) { selection = .supply(supply); store.selectedInventorySupply = supply }
             .accessibilityIdentifier("inventoryItem_\(supply.rawValue)")
             .accessibilityElement(children: .contain)
             .overlay(alignment: .topTrailing) {
@@ -116,7 +106,7 @@ struct InventoryView: View {
                 Text("\(count(supply))")
                     .font(.system(size: 12, weight: .heavy, design: .rounded)).foregroundStyle(.white)
                     .padding(.horizontal, 10).frame(minHeight: 25)
-                    .background(count(supply) == 0 ? RoomTheme.coral : RoomTheme.gold, in: Capsule())
+                    .background(count(supply) == 0 ? RoomTheme.coral : supply.tint, in: Capsule())
                     .overlay(Capsule().strokeBorder(RoomTheme.paper, lineWidth: 2))
                     .offset(x: 2, y: -2).allowsHitTesting(false)
                     .accessibilityLabel(GameStrings.text(supply.countKey)).accessibilityValue("\(count(supply))")
@@ -206,7 +196,7 @@ struct InventoryView: View {
             actionBar(name: GameStrings.text(supply.nameKey), asset: supply.asset, symbol: supply.symbol,
                       detail: supplyDetail(supply), tint: supply.tint) {
                 Button(GameStrings.text(canUse(supply) ? supply.actionKey : "inventory.restock")) {
-                    if canUse(supply) { use(supply) } else { store.activeSheet = .shop }
+                    if canUse(supply) { use(supply) } else { store.shopCategory = .supplies; store.activeSheet = .shop }
                 }
                 .buttonStyle(MintButtonStyle())
                 .disabled(store.isBusy || store.isDecorating)
@@ -276,23 +266,23 @@ struct InventoryView: View {
         }
     }
 
-    private func count(_ supply: Supply) -> Int {
-        switch supply {
-        case .food: store.snapshot?.inventory.food ?? 0
-        case .litter: store.snapshot?.inventory.litter ?? 0
-        case .toy: store.snapshot?.inventory.toys ?? 0
-        }
+    private func count(_ supply: Supply) -> Int { store.snapshot?.inventory.count(supply) ?? 0 }
+    private func canUse(_ supply: Supply) -> Bool {
+        count(supply) >= ((supply == .food || supply == .premiumFood) ? store.foodRequired : 1)
     }
-    private func canUse(_ supply: Supply) -> Bool { supply == .food ? store.hasFood : count(supply) > 0 }
     private func supplyDetail(_ supply: Supply) -> String {
-        switch supply {
-        case .food: GameStrings.format("inventory.foodDetail", store.foodRequired)
-        case .litter: GameStrings.text("inventory.litterDetail")
-        case .toy: GameStrings.format("inventory.toyDetail", GameEngine.toyUsesPerPurchase)
+        let detail = GameStrings.text(SupplyCatalog.definition(for: supply).detailKey)
+        if supply == .food || supply == .premiumFood {
+            return detail + " · " + GameStrings.format("supply.servingsRequired", store.foodRequired)
         }
+        return detail
     }
     private func use(_ supply: Supply) {
-        switch supply { case .food: store.feed(); case .litter: store.clean(); case .toy: store.play() }
+        switch supply {
+        case .food, .premiumFood: store.feed(supply: supply)
+        case .litter, .premiumLitter: store.clean(supply: supply)
+        case .toy: store.play()
+        }
     }
     private func isPlaced(_ id: String) -> Bool { store.sceneSnapshot?.home.furniture.contains { $0.itemID == id } == true }
 }

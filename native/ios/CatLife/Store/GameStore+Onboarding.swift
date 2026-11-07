@@ -19,6 +19,7 @@ extension GameStore {
         catCollectionFilter = nil
         adoptionCatID = nil
         isShowingNeighbors = false
+        isShowingMarket = false
         switch step {
         case .care: activeSheet = nil
         case .work: activeSheet = .work

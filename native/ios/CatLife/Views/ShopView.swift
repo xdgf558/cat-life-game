@@ -88,15 +88,11 @@ struct ShopView: View {
 
     private func productCard(_ product: ShopListing) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            if store.shopCategory == .supplies {
-                productContents(product)
-            } else {
-                NavigationLink(value: product) { productContents(product) }
+            NavigationLink(value: product) { productContents(product) }
                     .buttonStyle(.plain)
                     .accessibilityLabel(GameStrings.text(product.nameKey) + ", " + GameStrings.format("shop.buy", product.price))
                     .accessibilityValue(product.status(in: store.snapshot))
                     .accessibilityIdentifier("shopItem_\(product.id)")
-            }
             Button { product.purchase(in: store) } label: {
                 HStack(spacing: 5) {
                     if !product.isOwned(in: store.snapshot) {
@@ -160,7 +156,7 @@ private struct ShopPriceButtonStyle: ButtonStyle {
 enum ShopCategory: String, CaseIterable { case supplies, furniture, equipment }
 
 private struct ShopListing: Identifiable, Hashable {
-    enum Kind: Hashable { case food, litter, toy, equipment, furniture }
+    enum Kind: Hashable { case supply(SupplyKind), equipment, furniture }
     let id: String
     let kind: Kind
     let nameKey: String
@@ -174,14 +170,12 @@ private struct ShopListing: Identifiable, Hashable {
     @MainActor static func list(_ category: ShopCategory) -> [Self] {
         switch category {
         case .supplies:
-            return [
-                .init(id: "food", kind: .food, nameKey: "shop.food", detailKey: "shop.foodDetail",
-                      asset: "bowl-full", symbol: "takeoutbag.and.cup.and.straw.fill", price: GameEngine.foodPrice, unlockLevel: 1),
-                .init(id: "litter", kind: .litter, nameKey: "shop.litter", detailKey: "shop.litterDetail",
-                      asset: "icon-clean", symbol: "sparkles", price: GameEngine.litterPrice, unlockLevel: 1),
-                .init(id: "toy", kind: .toy, nameKey: "shop.toy", detailKey: "shop.toyDetail",
-                      asset: "icon-play", symbol: "party.popper.fill", price: GameEngine.toyPrice, unlockLevel: 1)
-            ]
+            return SupplyKind.allCases.map { kind in
+                let supply = SupplyCatalog.definition(for: kind)
+                return .init(id: kind.rawValue, kind: .supply(kind), nameKey: supply.nameKey,
+                             detailKey: supply.detailKey, asset: kind.asset, symbol: kind.symbol,
+                             price: supply.price, unlockLevel: supply.unlockLevel)
+            }
         case .equipment:
             return ShopCatalog.equipmentOffers.compactMap { offer in
                 guard let item = PlayerCatalog.item(id: offer.itemID) else { return nil }
@@ -201,9 +195,7 @@ private struct ShopListing: Identifiable, Hashable {
     func count(in snapshot: GameSnapshot?) -> Int {
         guard let snapshot else { return 0 }
         switch kind {
-        case .food: return snapshot.inventory.food
-        case .litter: return snapshot.inventory.litter
-        case .toy: return snapshot.inventory.toys
+        case .supply(let supply): return snapshot.inventory.count(supply)
         case .equipment: return snapshot.player.profile.ownedEquipmentIDs.contains(id) ? 1 : 0
         case .furniture: return ShopCatalog.ownedFurnitureCount(offerID: id, in: snapshot.inventory.furniture)
         }
@@ -213,9 +205,7 @@ private struct ShopListing: Identifiable, Hashable {
 
     var tint: Color {
         switch kind {
-        case .food: RoomTheme.gold
-        case .litter: RoomTheme.sky
-        case .toy: RoomTheme.coral
+        case .supply(let supply): supply.tint
         case .equipment: RoomTheme.lilac
         case .furniture: RoomTheme.darkMint
         }
@@ -223,33 +213,35 @@ private struct ShopListing: Identifiable, Hashable {
 
     func canPurchase(in snapshot: GameSnapshot?) -> Bool {
         guard let snapshot else { return false }
+        if case .supply(let supply) = kind,
+           count(in: snapshot) > GameSnapshot.maximumStock - SupplyCatalog.definition(for: supply).unitsPerPurchase { return false }
         return !isOwned(in: snapshot) && !(limit.map { count(in: snapshot) >= $0 } ?? false)
             && snapshot.player.level >= unlockLevel && snapshot.player.gold >= price
     }
 
     @MainActor func status(in snapshot: GameSnapshot?) -> String {
         if isOwned(in: snapshot) { return GameStrings.text("gear.owned") }
+        if case .supply(let supply) = kind,
+           count(in: snapshot) > GameSnapshot.maximumStock - SupplyCatalog.definition(for: supply).unitsPerPurchase {
+            return GameStrings.text("action.inventoryFull")
+        }
         if let limit, count(in: snapshot) >= limit { return GameStrings.format("shop.furnitureLimit", limit) }
         if (snapshot?.player.level ?? 1) < unlockLevel { return GameStrings.format("career.unlock", unlockLevel) }
         if (snapshot?.player.gold ?? 0) < price { return GameStrings.text("action.insufficientGold") }
-        if kind == .food || kind == .litter || kind == .toy { return GameStrings.format("shop.owned", count(in: snapshot)) }
+        if case .supply = kind { return GameStrings.format("shop.owned", count(in: snapshot)) + " · " + GameStrings.text(detailKey) }
         return GameStrings.text(detailKey)
     }
 
     func purchaseIdentifier(prefix: String = "shopBuy_") -> String {
         switch kind {
-        case .food: "buyFoodButton"
-        case .litter: "buyLitterButton"
-        case .toy: "buyToyButton"
+        case .supply(let supply): supply.buyID
         case .equipment, .furniture: prefix + id
         }
     }
 
     @MainActor func purchase(in store: GameStore) {
         switch kind {
-        case .food: store.buyFood()
-        case .litter: store.buyLitter()
-        case .toy: store.buyToy()
+        case .supply(let supply): store.buySupply(supply)
         case .equipment: store.buyEquipment(itemID: id)
         case .furniture: store.buyFurniture(offerID: id)
         }
@@ -283,7 +275,7 @@ private struct ShopDetailView: View {
                 VStack(alignment: .leading, spacing: 14) {
                     detail("shop.price", value: GameStrings.format("shop.buy", product.price), id: "shopDetailPrice")
                     detail("shop.requirements", value: GameStrings.format("career.unlock", product.unlockLevel), id: "shopDetailRequirement")
-                    Text(GameStrings.format(product.kind == .toy ? "inventory.playUses" : "shop.owned", count))
+                    Text(GameStrings.format(product.kind == .supply(.toy) ? "inventory.playUses" : "shop.owned", count))
                         .font(.subheadline).foregroundStyle(RoomTheme.secondary)
                         .accessibilityIdentifier("shopOwned_\(product.id)").accessibilityValue("\(count)")
                     if let limit = product.limit {
@@ -350,6 +342,10 @@ private struct ShopDetailView: View {
 
     private var unavailableMessage: String? {
         if alreadyOwned { return GameStrings.text("shop.equipmentPurchased") }
+        if case .supply(let supply) = product.kind,
+           count > GameSnapshot.maximumStock - SupplyCatalog.definition(for: supply).unitsPerPurchase {
+            return GameStrings.text("action.inventoryFull")
+        }
         if atLimit { return GameStrings.format("shop.furnitureLimit", product.limit ?? 0) }
         if levelLocked { return GameStrings.format("shop.levelRequired", product.unlockLevel) }
         if lacksGold { return GameStrings.text("action.insufficientGold") }

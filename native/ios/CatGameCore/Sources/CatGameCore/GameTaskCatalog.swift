@@ -6,12 +6,12 @@ public enum GameTaskCategory: String, Codable, CaseIterable, Identifiable, Senda
 }
 
 public enum GameTaskDestination: String, Sendable {
-    case work, care, furnitureShop, upgrade, neighbors
+    case work, care, furnitureShop, upgrade, neighbors, market
 }
 
 enum GameTaskMetric: Sendable {
     case totalWork, totalFeed, furniturePurchases, dailyWork, dailyFeed, dailyPlay, totalClean, dailyClean, intimacy, roomLevel
-    case dailyVisit, dailyGift, totalVisit, friendship
+    case dailyVisit, dailyGift, totalVisit, friendship, dailyExchange, totalExchange
 }
 
 public struct GameTaskDefinition: Identifiable, Sendable {
@@ -98,7 +98,15 @@ public enum GameTaskCatalog {
         .init(id: "achievement_visit10", category: .achievement, target: 10, goldReward: 80, expReward: 15,
               destination: .neighbors, metric: .totalVisit, requiredLevel: 2),
         .init(id: "achievement_friend40", category: .achievement, target: 40, goldReward: 100, expReward: 20,
-              destination: .neighbors, metric: .friendship, requiredLevel: 4)
+              destination: .neighbors, metric: .friendship, requiredLevel: 4),
+        .init(id: "tutorial_exchange", category: .tutorial, target: 1, goldReward: 20, expReward: 5,
+              destination: .market, metric: .totalExchange),
+        .init(id: "daily_exchange", category: .daily, target: 1, goldReward: 10, expReward: 3,
+              destination: .market, metric: .dailyExchange, requiredLevel: 2),
+        .init(id: "achievement_exchange10", category: .achievement, target: 10, goldReward: 80, expReward: 15,
+              destination: .market, metric: .totalExchange, requiredLevel: 2),
+        .init(id: "achievement_exchange30", category: .achievement, target: 30, goldReward: 160, expReward: 30,
+              destination: .market, metric: .totalExchange, requiredLevel: 4)
     ]
 
     public static func task(id: String) -> GameTaskDefinition? { all.first { $0.id == id } }
@@ -119,6 +127,8 @@ public enum GameTaskCatalog {
         case .dailyGift: state.community.dailyGiftCount
         case .totalVisit: state.community.totalVisitCount
         case .friendship: state.community.highestFriendship
+        case .dailyExchange: state.community.dailyExchangeCount
+        case .totalExchange: state.community.totalExchangeCount
         }
     }
 

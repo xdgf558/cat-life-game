@@ -470,7 +470,7 @@ extension GameStrings {
         "town.description.plaza": "The heart of town. Community news and activities are planned for future updates.",
         "town.description.shop": "Find food, litter, furniture and equipment to brighten your home.",
         "town.description.board": "A future place for friendly messages. Posting is not available yet.",
-        "town.description.market": "Reserved for future furniture and equipment swaps. Trading is not available yet.",
+        "town.description.market": "Trade cat supplies with your neighbors. Closer friendships unlock more offers.",
         "town.description.adoption": "Meet new cats and welcome them into your home.",
         "town.description.empty": "A reserved plot. The town will grow with future updates.",
         "tasks.menuHint": "Daily goals and achievements",
@@ -1057,5 +1057,5 @@ extension GameStrings {
         "action.insufficientGold": "A little work will earn more gold.", "action.insufficientStamina": "Take a little rest to recover stamina.",
         "action.full": "Your cat is already full.", "accessibility.cat": "Cat, tap to view profile",
         "accessibility.decorate": "Arrange the room by selecting and moving furniture or the bowl", "accessibility.food": "Cat food available",
-    ]
+    ].merging(marketEnglish) { _, new in new }.merging(furniture54English) { _, new in new }.merging(suppliesEnglish) { _, new in new }
 }
