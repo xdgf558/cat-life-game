@@ -14,3 +14,5 @@ Validation in this pass:
 Release executable SHA-256: `da65553a90f95662474b10d51963f2e1dfdc2252cbf5b7c6ac483ba868da92ad`.
 
 Full logs, result bundles, screenshots, source hashes, and signing evidence remain outside Git. No physical-device installation or save modification was performed. Core/web tests were not rerun because neither runtime was modified. Upload success and Apple processing status will be recorded separately; no test group, invitation, or beta-review submission is authorized here.
+
+Delivery: PR #19 merged at `3cf1d52abfb3a2e14ccf65121d2efef158d87927`, with an identical source tree to tested head `1c70bade5f6397177cb95abbb8ca8b76cdb7e760`. Final archive upload succeeded on 2026-11-07 at 21:55 GMT+8; Xcode reported `Upload succeeded`, `EXPORT SUCCEEDED`, and `Uploaded package is processing`. Apple processing completion was not verified because the browser session requires login. No testing groups, tester invitations, or beta-review submission were changed.
