@@ -41,7 +41,7 @@ struct CatAdoptionView: View {
                                             backID: "catAdoptionBackButton", back: back)
                         ScrollView {
                             VStack(spacing: 14) {
-                                stage(offer)
+                                stage(offer, snapshot: snapshot)
                                 requirements(offer, snapshot: snapshot)
                                 Label(GameStrings.text(failed ? "cat.adoptionFailed" : "cat.adoptionHint"), systemImage: "info.circle.fill")
                                     .font(.system(size: 12, weight: .bold)).foregroundStyle(failed ? RoomTheme.coralDeep : RoomTheme.secondary)
@@ -87,8 +87,10 @@ struct CatAdoptionView: View {
         }
     }
 
-    private func stage(_ offer: CatAdoptionOffer) -> some View {
-        VStack(spacing: 13) {
+    private func stage(_ offer: CatAdoptionOffer, snapshot: GameSnapshot) -> some View {
+        let badge = CatCollectionBadge.adoption(appearance: offer.appearance, isOwned: cat != nil,
+                                                 isAvailable: Self.conditionsMet(offer, in: snapshot) == 3)
+        return VStack(spacing: 13) {
             CatCollectionPortrait(appearance: offer.appearance, size: 128)
                 .offset(y: !reduceMotion && floating ? -3 : 0).padding(.top, 4)
             HStack(spacing: 8) {
@@ -108,11 +110,11 @@ struct CatAdoptionView: View {
         }
         .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(.white, lineWidth: 3))
         .overlay(alignment: .topLeading) {
-            if CatCollectionPalette.isNewCompanion(offer.appearance) {
-                Text(GameStrings.text("cat.adoptionNewFriend")).font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
-                    .padding(.horizontal, 9).padding(.vertical, 5).background(RoomTheme.coral, in: Capsule())
+            if let badge {
+                Text(GameStrings.text(badge.textKey)).font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
+                    .padding(.horizontal, 9).padding(.vertical, 5).background(badge.tint, in: Capsule())
                     .overlay(Capsule().strokeBorder(.white, lineWidth: 2)).padding(15)
-                    .accessibilityIdentifier("catAdoptionNewFriend")
+                    .accessibilityIdentifier("catAdoptionBadge")
             }
         }
     }

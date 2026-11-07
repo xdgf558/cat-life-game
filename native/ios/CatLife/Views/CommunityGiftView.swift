@@ -6,7 +6,7 @@ import CatGameCore
 struct CommunityGiftView: View {
     @Bindable var store: GameStore
     var neighborID: String? = nil
-    var onGift: ((String, NeighborActionReceipt) -> Void)? = nil
+    var onGift: ((String, NeighborActionReceipt) -> Bool)? = nil
     var onClose: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -15,6 +15,7 @@ struct CommunityGiftView: View {
     @State private var purchasedID: String?
     @State private var selectedID: String?
     @State private var restocking = false
+    @State private var isVisible = false
 
     private var neighbor: NeighborDefinition? { neighborID.flatMap(CommunityCatalog.neighbor) }
     private var gold: Int { store.snapshot?.player.gold ?? 0 }
@@ -81,7 +82,8 @@ struct CommunityGiftView: View {
         .navigationBarBackButtonHidden(true)
         .interactiveDismissDisabled(isWorking || store.isBusy)
         .onChange(of: isShop, initial: true) { _, visible in store.isShowingCommunityGiftShop = visible }
-        .onDisappear { store.isShowingCommunityGiftShop = false }
+        .onAppear { isVisible = true }
+        .onDisappear { isVisible = false; store.isShowingCommunityGiftShop = false }
     }
 
     private var shopBackTitle: String {
@@ -234,12 +236,16 @@ struct CommunityGiftView: View {
     private func give(_ gift: CommunityGift) {
         guard !isWorking, !store.isBusy, let neighborID else { return }
         isWorking = true; failed = false
+        let generation = store.saveSceneGeneration
         Task {
             defer { isWorking = false }
-            if let receipt = await store.giveNeighborGiftWithReceipt(neighborID: neighborID, giftID: gift.id) {
-                onGift?(gift.id, receipt)
+            let receipt = await store.giveNeighborGiftWithReceipt(neighborID: neighborID, giftID: gift.id, presentResult: { receipt in
+                guard isVisible, generation == store.saveSceneGeneration else { return false }
+                let handled = onGift?(gift.id, receipt) ?? false
                 close()
-            } else { failed = true }
+                return handled
+            })
+            if receipt == nil { failed = true }
         }
     }
 

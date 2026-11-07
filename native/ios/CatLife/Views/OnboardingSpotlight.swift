@@ -48,12 +48,17 @@ struct OnboardingSpotlight: View {
             SpotlightScrim(hole: frame)
                 .fill(Color(red: 43 / 255, green: 28 / 255, blue: 18 / 255).opacity(0.55), style: FillStyle(eoFill: true))
                 .contentShape(Rectangle()).onTapGesture {}.accessibilityHidden(true)
-            if let frame {
-                RoundedRectangle(cornerRadius: 22).stroke(.white, lineWidth: 3)
-                    .frame(width: frame.width, height: frame.height).position(x: frame.midX, y: frame.midY)
-                    .accessibilityElement(children: .ignore).accessibilityLabel(GameStrings.text("onboarding.highlight"))
+            if let frame, let step = store.onboarding.step {
+                // Handle the hole here: passing touches through could spend food or start work.
+                Button { onExplore(step) } label: {
+                    RoundedRectangle(cornerRadius: 22).stroke(.white, lineWidth: 3)
+                        .frame(width: frame.width, height: frame.height)
+                        .contentShape(RoundedRectangle(cornerRadius: 22))
+                }
+                    .buttonStyle(.plain).position(x: frame.midX, y: frame.midY)
+                    .disabled(store.isBusy || store.saveTransferInProgress)
+                    .accessibilityLabel(GameStrings.text("onboarding.\(step.rawValue).explore"))
                     .accessibilityIdentifier("onboardingSpotlight")
-                    .allowsHitTesting(false)
                 RoundedRectangle(cornerRadius: 24).stroke(.white.opacity(pulsing ? 0 : 0.55), lineWidth: 2)
                     .frame(width: frame.width + (pulsing ? 10 : 0), height: frame.height + (pulsing ? 10 : 0))
                     .position(x: frame.midX, y: frame.midY).opacity(reduceMotion ? 0 : 1)

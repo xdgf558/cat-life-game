@@ -8,17 +8,19 @@ struct NeighborDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @State private var dialogueKey: String?
     @State private var isWorking = false
     @State private var failed = false
     @State private var choosingGift = false
     @State private var rewardsExpanded = false
     @State private var isVisible = false
-    @State private var pendingStage: NeighborActionReceipt?
+    @State private var pendingGift: (id: String, receipt: NeighborActionReceipt)?
     @State private var stageReceipt: NeighborActionReceipt?
     @State private var gain: Int?
     @State private var gainFloated = false
     @State private var gainTask: Task<Void, Never>?
+    @State private var resultPresentationID = UUID()
 
     private var neighbor: NeighborDefinition? { CommunityCatalog.neighbor(id: neighborID) }
     private var relationship: NeighborRelationship {
@@ -26,16 +28,24 @@ struct NeighborDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                if let neighbor {
-                    profile(neighbor)
-                    friendship(neighbor)
-                } else { Text(GameStrings.text("community.neighborMissing")) }
-            }.padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if let neighbor {
+                        profile(neighbor)
+                        friendship(neighbor)
+                    } else { Text(GameStrings.text("community.neighborMissing")) }
+                }.padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+            }
+            .scrollBounceBehavior(.basedOnSize).background(RoomTheme.cream)
+            .accessibilityIdentifier("neighborDetail_\(neighborID)")
+            .onChange(of: resultPresentationID) { _, _ in
+                guard stageReceipt == nil else { return }
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                    proxy.scrollTo("neighborResult", anchor: .top)
+                }
+            }
         }
-        .scrollBounceBehavior(.basedOnSize).background(RoomTheme.cream)
-        .accessibilityIdentifier("neighborDetail_\(neighborID)")
         .safeAreaInset(edge: .top, spacing: 0) {
             CommunityHeader(title: GameStrings.format("community.neighborHome", GameStrings.text(neighbor?.nameKey ?? "community.title")),
                             backTitle: "community.title", gold: store.snapshot?.player.gold ?? 0,
@@ -49,15 +59,12 @@ struct NeighborDetailView: View {
             }
         }
         .sheet(isPresented: $choosingGift, onDismiss: {
-            if isVisible { stageReceipt = pendingStage }
-            pendingStage = nil
+            finishGiftPresentation()
         }) {
             CommunityGiftView(store: store, neighborID: neighborID, onGift: { giftID, receipt in
-                guard isVisible else { return }
-                dialogueKey = neighbor?.giftDialogueKey(giftID: giftID)
-                failed = false
-                showGain(receipt.friendshipGained)
-                if receipt.stageReached != nil { pendingStage = receipt }
+                guard canPresent(receipt) else { return false }
+                pendingGift = (giftID, receipt)
+                return true
             }, onClose: { choosingGift = false })
             .safeAreaInset(edge: .top, spacing: 0) { if store.hasSaveFailure { SaveStatusBanner(store: store) } }
             .saveRecoveryAlert(store: store)
@@ -68,7 +75,12 @@ struct NeighborDetailView: View {
         .onDisappear {
             isVisible = false
             store.isPresentingCommunityGift = false
-            pendingStage = nil; stageReceipt = nil
+            finishGiftPresentation()
+            stageReceipt = nil
+            gainTask?.cancel()
+        }
+        .onChange(of: store.saveSceneGeneration) { _, _ in
+            pendingGift = nil; stageReceipt = nil; dialogueKey = nil; gain = nil
             gainTask?.cancel()
         }
     }
@@ -93,6 +105,7 @@ struct NeighborDetailView: View {
                 .id(dialogueKey).transition(.opacity.combined(with: .scale(scale: 0.97)))
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.2), value: dialogueKey)
                 .accessibilityIdentifier("neighborDialogue")
+                .id("neighborResult")
             VStack(alignment: .leading, spacing: 6) {
                 Label(GameStrings.text(neighbor.homeKey), systemImage: "house.fill")
                 Label(GameStrings.text(neighbor.catsKey), systemImage: "pawprint.fill")
@@ -233,10 +246,10 @@ struct NeighborDetailView: View {
         VStack(spacing: 4) {
             Label(GameStrings.text(relationship.remainingGiftsToday > 0 ? "community.sendGift" : "community.giftedToday"),
                   systemImage: "gift.fill").font(.subheadline.weight(.heavy))
-            Text(relationship.remainingGiftsToday > 0
-                 ? GameStrings.format("community.giftDailyShort", relationship.giftsGivenToday,
-                                      CommunityCatalog.dailyGiftLimit, CommunityCatalog.favoriteGiftFriendship)
-                 : GameStrings.text("community.giftTomorrow"))
+            Text(relationship.remainingGiftsToday == 0 ? GameStrings.text("community.giftTomorrow")
+                 : relationship.friendship == 100 ? GameStrings.text("community.closestShort")
+                 : GameStrings.format("community.giftDailyShort", relationship.giftsGivenToday,
+                                      CommunityCatalog.dailyGiftLimit, CommunityCatalog.favoriteGiftFriendship))
                 .font(.caption2.weight(.bold))
                 .accessibilityIdentifier("neighborDailyGiftStatus")
         }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, minHeight: 44)
@@ -245,16 +258,37 @@ struct NeighborDetailView: View {
     private func visit() {
         guard !isWorking, !store.isBusy, let neighbor else { return }
         isWorking = true; failed = false
-        let generation = store.saveSceneGeneration
         Task {
             defer { isWorking = false }
-            if let receipt = await store.visitNeighborWithReceipt(id: neighborID) {
-                guard isVisible, generation == store.saveSceneGeneration else { return }
+            let receipt = await store.visitNeighborWithReceipt(id: neighborID, presentResult: { receipt in
+                guard canPresent(receipt) else { return false }
                 dialogueKey = neighbor.dialogueKey(friendship: relationship.friendship)
                 showGain(receipt.friendshipGained)
                 if receipt.stageReached != nil { stageReceipt = receipt }
-            } else { failed = true }
+                resultPresentationID = UUID()
+                return true
+            })
+            if receipt == nil { failed = true }
         }
+    }
+
+    private func canPresent(_ receipt: NeighborActionReceipt) -> Bool {
+        isVisible && scenePhase == .active && store.isShowingNeighbors && store.activeSheet == .town
+            && receipt.saveSceneGeneration == store.saveSceneGeneration
+    }
+
+    private func finishGiftPresentation() {
+        guard let gift = pendingGift else { return }
+        pendingGift = nil
+        guard canPresent(gift.receipt) else {
+            store.showNeighborActionResult(gift.receipt)
+            return
+        }
+        dialogueKey = neighbor?.giftDialogueKey(giftID: gift.id)
+        failed = false
+        showGain(gift.receipt.friendshipGained)
+        if gift.receipt.stageReached != nil { stageReceipt = gift.receipt }
+        resultPresentationID = UUID()
     }
 
     private func showGain(_ amount: Int) {

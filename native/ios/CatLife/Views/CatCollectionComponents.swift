@@ -23,8 +23,22 @@ enum CatCollectionPalette {
         }
     }
 
-    static func isNewCompanion(_ appearance: CatAppearance) -> Bool {
-        appearance == .siamese || appearance == .silver
+}
+
+enum CatCollectionBadge: Equatable {
+    case available, newCompanion
+
+    var textKey: String { self == .available ? "cat.adoptionAvailable" : "cat.adoptionNewFriend" }
+    var tint: Color { self == .available ? RoomTheme.mint : RoomTheme.coral }
+
+    static func adoption(appearance: CatAppearance, isOwned: Bool, isAvailable: Bool,
+                         version: String = AppVersion.current.version) -> Self? {
+        guard !isOwned else { return nil }
+        if isAvailable { return .available }
+        let releaseSeries = version.split(separator: ".", omittingEmptySubsequences: false).prefix(2)
+        // New-companion promotion ends with the release series that introduced these coats.
+        return releaseSeries == ["0", "14"] && (appearance == .siamese || appearance == .silver)
+            ? .newCompanion : nil
     }
 }
 

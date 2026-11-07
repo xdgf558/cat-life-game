@@ -236,7 +236,6 @@ struct CatCollectionView: View {
             .gameCard(cornerRadius: 24)
             .overlay(alignment: .top) {
                 if active { ribbon("catDirectory.inRoom", tint: RoomTheme.mint) }
-                else if CatCollectionPalette.isNewCompanion(cat.appearance) { ribbon("cat.adoptionNewFriend", tint: RoomTheme.coral) }
             }
         }
         .buttonStyle(.plain).accessibilityElement(children: .ignore)
@@ -248,6 +247,7 @@ struct CatCollectionView: View {
     private func adoptionCard(_ offer: CatAdoptionOffer) -> some View {
         let snapshot = store.snapshot
         let available = snapshot.map { CatAdoptionView.conditionsMet(offer, in: $0) == 3 } ?? false
+        let badge = CatCollectionBadge.adoption(appearance: offer.appearance, isOwned: false, isAvailable: available)
         return Button { path.append(.adoption(offer.id)) } label: {
             VStack(spacing: 10) {
                 CatCollectionPortrait(appearance: offer.appearance, faded: !available, badge: available ? nil : "lock.fill")
@@ -273,11 +273,10 @@ struct CatCollectionView: View {
             .shadow(color: available ? RoomTheme.mint.opacity(!reduceMotion && glowing ? 0.22 : 0.05) : RoomTheme.ink.opacity(0.08),
                     radius: available && !reduceMotion && glowing ? 8 : 0, y: 4)
             .overlay(alignment: .top) {
-                if CatCollectionPalette.isNewCompanion(offer.appearance) {
-                    ribbon("cat.adoptionNewFriend", tint: RoomTheme.coral)
-                        .accessibilityIdentifier("catNewCompanion_\(offer.id)")
+                if let badge {
+                    ribbon(badge.textKey, tint: badge.tint)
+                        .accessibilityIdentifier("catAdoptionBadge_\(offer.id)")
                 }
-                else if available { ribbon("cat.adoptionAvailable", tint: RoomTheme.mint) }
             }
         }
         .buttonStyle(.plain).accessibilityElement(children: .combine)

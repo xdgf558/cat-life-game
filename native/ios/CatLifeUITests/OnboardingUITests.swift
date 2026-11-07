@@ -134,31 +134,42 @@ extension RoomHomeUITests {
     func testSpotlightsFollowRealControlsAndSkippingKeepsProgressWithoutSpending() throws {
         continueAfterFailure = false
         let app = launchOnboardingGame(reset: true, expectsGuide: true)
-        let steps = [("care", ["playButton", "cleanButton", "feedButton"]),
-                     ("work", ["tabWork"]), ("supplies", ["tabShop"]),
-                     ("tasks", ["homeTasksButton"]), ("town", ["tabTown"])]
-        for (step, controls) in steps {
+        let steps = [("care", ["playButton", "cleanButton", "feedButton"], "feedButton"),
+                     ("work", ["tabWork"], "startWorkButton"),
+                     ("supplies", ["tabShop"], "shopCategory_supplies"),
+                     ("tasks", ["homeTasksButton"], "tasksScroll"),
+                     ("town", ["tabTown"], "townMapScroll")]
+        for (step, controls, destination) in steps {
             waitForObservedValue("onboardingStep", step, in: app)
             waitForElement("onboardingSpotlight", in: app)
             let spotlight = element("onboardingSpotlight", in: app).frame
             let card = element("onboardingCard", in: app).frame
             XCTAssertTrue(app.frame.contains(spotlight), "Outline \(spotlight) must fit screen \(app.frame), including its stroke.")
             XCTAssertFalse(card.intersects(spotlight), "Guide card must not cover its highlighted controls.")
-            // Tapping the highlighted hole must not run an underlying action or change pages.
-            let origin = app.coordinate(withNormalizedOffset: .zero)
-            origin.withOffset(CGVector(dx: spotlight.midX, dy: spotlight.midY)).tap()
-            waitForObservedValue("onboardingStep", step, in: app)
             attachScreenshot(app, named: "Spotlight — \(step)")
             tapGuideControl("onboardingSkipButton", in: app)
             waitForOnboardingClosed(in: app)
             waitForElement("onboardingResumeButton", in: app)
+            var touchPoint = CGPoint(x: spotlight.midX, y: spotlight.midY)
             for id in controls {
                 let target = element(id, in: app)
                 waitForElement(id, in: app)
                 XCTAssertTrue(spotlight.insetBy(dx: -2, dy: -2).contains(target.frame),
                               "Spotlight must contain the actual \(id) frame, not an estimated position.")
+                if id == "feedButton" { touchPoint = CGPoint(x: target.frame.midX, y: target.frame.midY) }
             }
             assertHomeGuideDoesNotOverlapCatStatus(in: app)
+            assertOnboardingDidNotSpend(in: app)
+            tapAnimationControl("onboardingResumeButton", in: app)
+            waitForObservedValue("onboardingStep", step, in: app)
+            XCTAssertTrue(app.buttons["onboardingSpotlight"].isHittable)
+            // A real touch in the hole follows the shortcut, without running the underlying action.
+            let origin = app.coordinate(withNormalizedOffset: .zero)
+            origin.withOffset(CGVector(dx: touchPoint.x, dy: touchPoint.y)).tap()
+            waitForOnboardingClosed(in: app)
+            waitForElement(destination, in: app)
+            if step == "work" { XCTAssertFalse(element("workCountdown", in: app).exists) }
+            tapAnimationControl("tabHome", in: app)
             assertOnboardingDidNotSpend(in: app)
             tapAnimationControl("onboardingResumeButton", in: app)
             waitForObservedValue("onboardingStep", step, in: app)

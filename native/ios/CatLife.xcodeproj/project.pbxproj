@@ -165,6 +165,7 @@
 		F6C5AC51DCD0A0923B24D8C47D29FE45 /* RoomLayoutPublicationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B84CB0E94D68E8CA954B0D017DE576B /* RoomLayoutPublicationTests.swift */; };
 		F713926A93AD10F493298D67BF3605B7 /* CommunityView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B2D19B73C5203BD8F6E4C695B2ACE5F /* CommunityView.swift */; };
 		F871D67641BB671E25A0B5DECA6951C7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 49FCCEEB04197D12EDD88AE993EABD81 /* PrivacyInfo.xcprivacy */; };
+		F98017800C312841C7ADBAADD9379574 /* CatCollectionBadgeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C97D9A42BC6A702180253E11DCA95E9A /* CatCollectionBadgeTests.swift */; };
 		FA0CC9540D49E6B3876B89919606B92B /* AppRelease.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CAEFDCCAD581FD7A99D1F61F95C6223 /* AppRelease.swift */; };
 		FD70E6F190E93B877C8E3EF951B1C480 /* RoomArrangementOverlayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 320E1215902744A67AA1B0308EA5B342 /* RoomArrangementOverlayTests.swift */; };
 		FE9EA1B462E935AD81357B69F46C0133 /* HospitalCatDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE06A9CD7BC08171199DD837F8E29A0A /* HospitalCatDetailView.swift */; };
@@ -325,6 +326,7 @@
 		C3AB2B832598F845135E7A44A0978AF2 /* OnboardingUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OnboardingUITests.swift; sourceTree = "<group>"; };
 		C703BA1A83E098F24249EEAD03141C91 /* RecoveryUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RecoveryUITests.swift; sourceTree = "<group>"; };
 		C7ECA1FBE97ECA9610676AF747098DED /* TownView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TownView.swift; path = Views/TownView.swift; sourceTree = "<group>"; };
+		C97D9A42BC6A702180253E11DCA95E9A /* CatCollectionBadgeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CatCollectionBadgeTests.swift; sourceTree = "<group>"; };
 		CD325D67C6D55FD025855982EFF27F4B /* GameStoreAudioSettingsTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = GameStoreAudioSettingsTests.swift; sourceTree = "<group>"; };
 		CE06A9CD7BC08171199DD837F8E29A0A /* HospitalCatDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HospitalCatDetailView.swift; path = Views/HospitalCatDetailView.swift; sourceTree = "<group>"; };
 		D19FF5E6AFE31C4709EBBF3343D0094A /* TownPlot.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = TownPlot.swift; path = Views/TownPlot.swift; sourceTree = "<group>"; };
@@ -387,6 +389,7 @@
 			isa = PBXGroup;
 			children = (
 				07069D9D22C4F66C8D00BCF6C4BDFB3A /* CareerDirectoryTests.swift */,
+				C97D9A42BC6A702180253E11DCA95E9A /* CatCollectionBadgeTests.swift */,
 				A9A6C4DD2E7F188489DEBBEE695E7791 /* CatCompanionSceneTests.swift */,
 				372B21194B0EA5731BEC27DED9D26348 /* CatNeedBubbleTests.swift */,
 				BC1C6566D49E46A32A9E83726E4EF38E /* CatSpriteLibraryTests.swift */,
@@ -760,6 +763,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				AE1FF8EED75505829BA9152D501826A5 /* CareerDirectoryTests.swift in Sources */,
+				F98017800C312841C7ADBAADD9379574 /* CatCollectionBadgeTests.swift in Sources */,
 				B139D3640316137908E8B7C62A14A8DF /* CatCompanionSceneTests.swift in Sources */,
 				C87B8AAE886D345E64F891DE7F70A838 /* CatNeedBubbleTests.swift in Sources */,
 				5168EECE86DAC18A7780248D47FEC8E8 /* CatSpriteLibraryTests.swift in Sources */,

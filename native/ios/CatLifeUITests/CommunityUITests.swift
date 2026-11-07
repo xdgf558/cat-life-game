@@ -12,12 +12,24 @@ extension RoomHomeUITests {
         scrollCareerPage("neighborDetail_neighbor_mira", to: "neighborVisitButton", in: app)
         tapAnimationControl("neighborVisitButton", in: app)
         waitForElement("communityStageSuccess", in: app)
+        XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "拜访完成")).firstMatch.exists,
+                       "The visible celebration must not also produce a visit toast.")
         attachScreenshot(app, named: "Neighbors — stage reward appears after the visit is saved")
         tapAnimationControl("communityStageSuccessDoneButton", in: app)
         waitForObservedValue("neighborFriendshipValue", "20", in: app)
+        scrollCareerPage("neighborDetail_neighbor_mira", to: "neighborRewardsDisclosure", in: app)
+        tapAnimationControl("neighborRewardsDisclosure", in: app)
+        element("neighborDetail_neighbor_mira", in: app).swipeUp()
         tapAnimationControl("neighborVisitButton", in: app)
         waitForObservedValue("neighborFriendshipValue", "20", in: app)
         XCTAssertFalse(element("communityStageSuccess", in: app).exists)
+        let visibleDialogue = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let dialogue = self.element("neighborDialogue", in: app)
+            return dialogue.exists && dialogue.isHittable
+                && self.unobscuredScrollViewport(self.element("neighborDetail_neighbor_mira", in: app), in: app).contains(dialogue.frame)
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [visibleDialogue], timeout: 8), .completed,
+                       "A normal result must scroll into view even after browsing the rewards.")
         scrollCareerPage("neighborDetail_neighbor_mira", to: "neighborGiftButton", in: app)
         tapAnimationControl("neighborGiftButton", in: app)
         waitForObservedValue("communityGiftStock_flower", "2", in: app)
@@ -185,7 +197,7 @@ extension RoomHomeUITests {
     }
 
     @MainActor
-    func testFiveCoatCollectionAndSecondPageNewCompanionAreReachable() throws {
+    func testFiveCoatCollectionAndSecondPageReadyCompanionAreReachable() throws {
         continueAfterFailure = false
         let app = launchCommunityFixture()
         openTownCollection(in: app)
@@ -197,11 +209,13 @@ extension RoomHomeUITests {
         waitForObservedValue("catPageSummary", "1/2", in: app)
         tapAnimationControl("catPageNext", in: app)
         waitForObservedValue("catPageSummary", "2/2", in: app)
-        waitForLabel("catAdoption_cat_005", "新伙伴", in: app, contains: true)
+        waitForLabel("catAdoption_cat_005", "可以领养", in: app, contains: true)
+        XCTAssertFalse(element("catAdoption_cat_005", in: app).label.contains("新伙伴"),
+                       "A ready cat's adoption status must take priority over its new-companion promotion.")
         XCTAssertFalse(element("catPageNext", in: app).isEnabled)
         attachScreenshot(app, named: "Collection — silver companion on the second page")
         tapAnimationControl("catAdoption_cat_005", in: app)
-        waitForElement("catAdoptionNewFriend", in: app)
+        waitForLabel("catAdoptionBadge", "可以领养", in: app)
         waitForObservedValue("catAdoptionConditionsMet", "3/3", in: app)
         attachScreenshot(app, named: "Collection — silver coat color and live adoption requirements")
         tapAnimationControl("catAdoptionBackButton", in: app)

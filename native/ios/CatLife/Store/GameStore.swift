@@ -1063,16 +1063,20 @@ final class GameStore {
         await visitNeighborWithReceipt(id: id) != nil
     }
 
-    func visitNeighborWithReceipt(id: String) async -> NeighborActionReceipt? {
-        await performNeighborAction(id: id) { GameEngine.visitNeighbor(&$0, neighborID: id, now: $1) }
+    func visitNeighborWithReceipt(id: String,
+        presentResult: (@MainActor (NeighborActionReceipt) -> Bool)? = nil) async -> NeighborActionReceipt? {
+        await performNeighborAction(id: id, presentResult: presentResult) {
+            GameEngine.visitNeighbor(&$0, neighborID: id, now: $1)
+        }
     }
 
     func giveNeighborGift(neighborID: String, giftID: String) async -> Bool {
         await giveNeighborGiftWithReceipt(neighborID: neighborID, giftID: giftID) != nil
     }
 
-    func giveNeighborGiftWithReceipt(neighborID: String, giftID: String) async -> NeighborActionReceipt? {
-        await performNeighborAction(id: neighborID) {
+    func giveNeighborGiftWithReceipt(neighborID: String, giftID: String,
+        presentResult: (@MainActor (NeighborActionReceipt) -> Bool)? = nil) async -> NeighborActionReceipt? {
+        await performNeighborAction(id: neighborID, presentResult: presentResult) {
             GameEngine.giveNeighborGift(&$0, neighborID: neighborID, giftID: giftID, now: $1)
         }
     }
@@ -1083,20 +1087,37 @@ final class GameStore {
 
     func showCommunityGiftLimit() { showNotice(GameStrings.text("community.giftLimit")) }
 
+    func showNeighborActionResult(_ receipt: NeighborActionReceipt) {
+        guard receipt.saveSceneGeneration == saveSceneGeneration else { return }
+        let base: String
+        if receipt.friendshipGained == 0, receipt.success == .neighborVisited {
+            base = GameStrings.text("community.visitClosest")
+        } else if receipt.friendshipGained == 0, receipt.success == .neighborGifted {
+            base = GameStrings.text("community.giftClosest")
+        } else {
+            base = message(for: ActionOutcome(success: receipt.success, amount: receipt.friendshipGained))
+        }
+        let stageNotice = receipt.stageReached.map {
+            "\n" + GameStrings.format("community.stageReached", GameStrings.text($0.nameKey))
+        } ?? ""
+        showNotice(base + stageNotice)
+    }
+
     private func performNeighborAction(id: String,
+        presentResult: (@MainActor (NeighborActionReceipt) -> Bool)?,
         _ action: (inout GameSnapshot, Date) -> ActionOutcome) async -> NeighborActionReceipt? {
-        var result: ActionOutcome?
+        let generation = saveSceneGeneration
         var receipt: NeighborActionReceipt?
         let succeeded = await performPersistedAction(showsSuccessNotice: false) {
             let synchronized = GameEngine.synchronize(&$0, now: $1)
             guard synchronized.succeeded else { return synchronized }
             let before = $0
             let outcome = action(&$0, $1)
-            result = outcome
-            if outcome.succeeded {
+            if outcome.succeeded, let success = outcome.success {
                 let previous = before.community.relationship(for: id)
                 let current = $0.community.relationship(for: id)
-                receipt = NeighborActionReceipt(neighborID: id, friendshipGained: current.friendship - previous.friendship,
+                receipt = NeighborActionReceipt(neighborID: id, success: success, saveSceneGeneration: generation,
+                    friendshipGained: current.friendship - previous.friendship,
                     stageReached: current.stage.level > previous.stage.level ? current.stage : nil,
                     goldAwarded: max(0, $0.player.gold - before.player.gold),
                     foodAwarded: max(0, $0.inventory.food - before.inventory.food),
@@ -1105,14 +1126,10 @@ final class GameStore {
             }
             return outcome
         }
-        guard succeeded, let result, let receipt else { return nil }
-        var notice = message(for: result)
-        if let stage = receipt.stageReached {
-            notice += "\n" + GameStrings.format("community.stageReached", GameStrings.text(stage.nameKey))
-            playFeedback(.claim)
-        }
-        // A durable action still reports success if the player has left its detail page.
-        showNotice(notice)
+        guard succeeded, let receipt, generation == saveSceneGeneration else { return nil }
+        if receipt.stageReached != nil { playFeedback(.claim) }
+        // Ask after the durable save; visibility may have changed while it was pending.
+        if presentResult?(receipt) != true { showNeighborActionResult(receipt) }
         return receipt
     }
 
