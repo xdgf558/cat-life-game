@@ -50,15 +50,15 @@ final class PremiumSupplyStoreTests: XCTestCase {
                 XCTAssertNotEqual(GameStrings.text(supply.nameKey), supply.nameKey)
                 XCTAssertNotEqual(GameStrings.text(supply.detailKey), supply.detailKey)
             }
-            XCTAssertNotEqual(GameStrings.text("releases.54.body"), "releases.54.body")
+            XCTAssertNotEqual(GameStrings.text("releases.56.body"), "releases.56.body")
         }
-        XCTAssertEqual(AppVersion.current.version, "0.15.0")
-        XCTAssertEqual(AppVersion.current.build, "54")
-        XCTAssertEqual(AppRelease.recent.map(\.build), [54, 53, 49])
+        XCTAssertEqual(AppVersion.current.version, "0.15.2")
+        XCTAssertEqual(AppVersion.current.build, "56")
+        XCTAssertEqual(AppRelease.recent.map(\.build), [56, 55, 54])
     }
 
     @MainActor
-    func testPremiumOnlyHomeActionsOpenBackpackWithoutConsuming() async throws {
+    func testPremiumOnlyHomeActionsOpenPickerWithoutConsuming() async throws {
         var initial = GameSnapshot.fresh(now: Date())
         initial.inventory.food = 0
         initial.inventory.litter = 0
@@ -71,13 +71,13 @@ final class PremiumSupplyStoreTests: XCTestCase {
         store.enterHome()
         XCTAssertTrue(store.hasFood)
         store.feed()
-        XCTAssertEqual(store.activeSheet, .inventory)
-        XCTAssertEqual(store.selectedInventorySupply, .premiumFood)
+        XCTAssertNil(store.activeSheet)
+        XCTAssertEqual(store.supplyPicker, .food)
         XCTAssertEqual(store.snapshot?.inventory.premiumFood, 1)
         store.activeSheet = nil
         store.clean()
-        XCTAssertEqual(store.activeSheet, .inventory)
-        XCTAssertEqual(store.selectedInventorySupply, .premiumLitter)
+        XCTAssertNil(store.activeSheet)
+        XCTAssertEqual(store.supplyPicker, .litter)
         XCTAssertEqual(store.snapshot?.inventory.premiumLitter, 1)
     }
 

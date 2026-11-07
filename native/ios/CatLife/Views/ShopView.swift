@@ -5,358 +5,282 @@ import CatGameCore
 struct ShopView: View {
     @Bindable var store: GameStore
     @State private var showsGifts = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private let newFurnitureIDs = ["oak_bookcase", "rattan_chair", "round_side_table", "sunrise_art"]
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 12, alignment: .top), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
-                HStack(spacing: 10) {
-                    GamePageHeading(title: GameStrings.text("shop.title"), subtitle: GameStrings.text("shop.subtitle"),
-                                    symbol: "storefront.fill", tint: RoomTheme.coral,
-                                    background: RoomTheme.coral.opacity(0.18))
-                    Spacer(minLength: 0)
-                    Label("\(store.snapshot?.player.gold ?? 0)", systemImage: "dollarsign.circle.fill")
-                        .font(.system(size: 16, weight: .heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.7)
-                        .foregroundStyle(RoomTheme.gold).padding(12)
-                        .background(RoomTheme.paper, in: Capsule())
-                        .accessibilityLabel(GameStrings.text("resource.gold"))
-                        .accessibilityIdentifier("shopGoldCount").accessibilityValue("\(store.snapshot?.player.gold ?? 0)")
-                }
-                CommunityGiftEntry(store: store) { showsGifts = true }
-                if let featured = ShopListing.list(.furniture).last { featuredCard(featured) }
-                HStack(spacing: 4) {
-                    ForEach(ShopCategory.allCases, id: \.self) { option in
-                        Button { store.shopCategory = option } label: {
-                            Text(GameStrings.text("shop.category.\(option.rawValue)"))
-                                .font(.system(size: 14, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .foregroundStyle(store.shopCategory == option ? RoomTheme.darkMint : RoomTheme.secondary)
-                                .background(store.shopCategory == option ? RoomTheme.paper : .clear, in: Capsule())
-                        }
-                        .buttonStyle(.plain).accessibilityIdentifier("shopCategory_\(option.rawValue)")
-                        .accessibilityAddTraits(store.shopCategory == option ? .isSelected : [])
+                header
+                categories
+                switch store.shopCategory {
+                case .supplies: supplies
+                case .furniture: furniture
+                case .equipment:
+                    LazyVGrid(columns: columns, spacing: 14) {
+                        ForEach(ShopListing.list(.equipment)) { product in equipmentCard(product) }
                     }
                 }
-                .padding(4).background(RoomTheme.chipBg, in: Capsule())
-                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 14) {
-                    ForEach(ShopListing.list(store.shopCategory)) { product in productCard(product) }
-                }
+                CommunityGiftEntry(store: store) { showsGifts = true }
             }
             .padding(16).padding(.bottom, 8).frame(maxWidth: 560).frame(maxWidth: .infinity)
         }
         .background(RoomTheme.cream)
         .accessibilityIdentifier("destinationScroll")
+        .safeAreaInset(edge: .bottom, spacing: 0) { FurniturePurchaseBanner(store: store) }
         .navigationDestination(for: ShopListing.self) { product in ShopDetailView(product: product, store: store) }
         .navigationDestination(isPresented: $showsGifts) {
             CommunityGiftView(store: store, onClose: { showsGifts = false })
         }
     }
 
-    private func featuredCard(_ product: ShopListing) -> some View {
-        HStack(spacing: 14) {
-            NavigationLink(value: product) {
-                GameIcon(asset: product.asset, symbol: product.symbol, size: 96, tint: RoomTheme.darkMint)
-                    .padding(8).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 22))
-                    .overlay(RoundedRectangle(cornerRadius: 22).strokeBorder(.white, lineWidth: 3))
-            }
-            .buttonStyle(.plain).accessibilityLabel(GameStrings.text(product.nameKey))
-            .accessibilityIdentifier("shopFeaturedDetails")
-            VStack(alignment: .leading, spacing: 8) {
-                Text(GameStrings.text("redesign.shop.featured"))
-                    .font(.system(size: 11, weight: .heavy)).foregroundStyle(.white)
-                    .padding(.horizontal, 10).padding(.vertical, 5)
-                    .background(RoomTheme.coral, in: Capsule())
-                Text(GameStrings.text(product.nameKey)).font(.system(size: 19, weight: .heavy))
-                    .lineLimit(2).minimumScaleFactor(0.8)
-                Text(GameStrings.text(product.detailKey)).font(.system(size: 11, weight: .bold))
-                    .foregroundStyle(RoomTheme.secondary).lineLimit(3)
-                NavigationLink(value: product) {
-                    Label(GameStrings.format("shop.buy", product.price), systemImage: "dollarsign.circle.fill")
-                        .font(.system(size: 13, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.75)
-                        .frame(maxWidth: .infinity)
+    private var header: some View {
+        HStack(spacing: 12) {
+            Label(GameStrings.text("shop.title"), systemImage: "storefront.fill")
+                .font(.headline.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 14).padding(.vertical, 14)
+                .background {
+                    RoundedRectangle(cornerRadius: 17).fill(RoomTheme.wood)
+                        .shadow(color: TownPalette.woodEdge, radius: 0, y: 4)
+                        .overlay(RoundedRectangle(cornerRadius: 17).strokeBorder(TownPalette.woodEdge, lineWidth: 2.5))
                 }
-                .buttonStyle(MintButtonStyle()).accessibilityIdentifier("shopFeaturedButton")
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityAddTraits(.isHeader)
+            Spacer(minLength: 0)
+            Label("\(store.snapshot?.player.gold ?? 0)", systemImage: "dollarsign.circle.fill")
+                .font(.subheadline.weight(.heavy)).monospacedDigit().lineLimit(1).minimumScaleFactor(0.65)
+                .foregroundStyle(RoomTheme.ink).padding(12).gameCard(cornerRadius: 24)
+                .accessibilityLabel(GameStrings.text("resource.gold"))
+                .accessibilityIdentifier("shopGoldCount").accessibilityValue("\(store.snapshot?.player.gold ?? 0)")
         }
-        .padding(16)
-        .background {
-            RoundedRectangle(cornerRadius: 28).fill(RoomTheme.wood)
-                .shadow(color: RoomTheme.ink.opacity(0.22), radius: 0, y: 5)
-        }
-        .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(RoomTheme.ink.opacity(0.24), lineWidth: 2))
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     }
 
-    private func productCard(_ product: ShopListing) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            NavigationLink(value: product) { productContents(product) }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel(GameStrings.text(product.nameKey) + ", " + GameStrings.format("shop.buy", product.price))
-                    .accessibilityValue(product.status(in: store.snapshot))
-                    .accessibilityIdentifier("shopItem_\(product.id)")
-            Button { product.purchase(in: store) } label: {
-                HStack(spacing: 5) {
-                    if !product.isOwned(in: store.snapshot) {
-                        Image(systemName: "dollarsign.circle.fill").font(.system(size: 12)).accessibilityHidden(true)
-                    }
-                    Text(product.isOwned(in: store.snapshot) ? GameStrings.text("gear.owned")
-                         : GameStrings.format("shop.buy", product.price))
-                        .font(.system(size: 14, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
-                }.frame(maxWidth: .infinity)
+    private var categories: some View {
+        HStack(spacing: 4) {
+            ForEach(ShopCategory.allCases, id: \.self) { option in
+                Button { store.shopCategory = option } label: {
+                    Text(GameStrings.text("shop.category.\(option.rawValue)"))
+                        .font(.subheadline.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .foregroundStyle(store.shopCategory == option ? RoomTheme.darkMint : RoomTheme.secondary)
+                        .background(store.shopCategory == option ? RoomTheme.paper : .clear, in: Capsule())
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("shopCategory_\(option.rawValue)")
+                .accessibilityAddTraits(store.shopCategory == option ? .isSelected : [])
             }
-            .buttonStyle(ShopPriceButtonStyle())
-            .disabled(store.isBusy || !product.canPurchase(in: store.snapshot))
-            .accessibilityIdentifier(product.purchaseIdentifier(prefix: "shopQuickBuy_"))
         }
-        .padding(12).gameCard(cornerRadius: 24)
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .padding(4).background(RoomTheme.chipBg, in: Capsule())
     }
 
-    private func productContents(_ product: ShopListing) -> some View {
+    private var supplies: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            ForEach([true, false], id: \.self) { premium in
+                SupplySectionHeading(premium: premium).padding(.top, premium ? 0 : 4)
+                ForEach(ShopListing.list(.supplies).filter { product in
+                    if case .supply(let kind) = product.kind { return kind.isPremium == premium }
+                    return false
+                }) { product in
+                    if case .supply(let kind) = product.kind { supplyCard(product, kind: kind) }
+                }
+            }
+            SupplyManualUseHint()
+        }
+    }
+
+    private func supplyCard(_ product: ShopListing, kind: SupplyKind) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            GameIcon(asset: product.asset, symbol: product.symbol, size: 76, tint: product.tint)
-                .frame(maxWidth: .infinity).frame(height: 96)
-                .background(product.tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 18))
-                .overlay(alignment: .topTrailing) {
-                    if product.isOwned(in: store.snapshot) || product.unlockLevel > (store.snapshot?.player.level ?? 1) {
-                        Text(product.isOwned(in: store.snapshot) ? GameStrings.text("gear.owned") : "Lv.\(product.unlockLevel)")
-                            .font(.system(size: 10, weight: .heavy)).foregroundStyle(.white)
-                            .padding(.horizontal, 7).padding(.vertical, 5)
-                            .background(RoomTheme.secondary, in: Capsule()).padding(5)
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 12) {
+                    supplyContents(product, kind: kind)
+                    buyButton(product, gold: kind.isPremium)
+                }
+            } else {
+                HStack(spacing: 10) {
+                    supplyContents(product, kind: kind)
+                    buyButton(product, gold: kind.isPremium).fixedSize(horizontal: true, vertical: false)
+                }
+            }
+            if (store.snapshot?.player.gold ?? 0) < product.price {
+                Text(GameStrings.text("action.insufficientGold"))
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.coralDeep)
+                    .accessibilityIdentifier("shopInsufficientGold_\(product.id)")
+            } else if product.count(in: store.snapshot) > GameSnapshot.maximumStock - SupplyCatalog.definition(for: kind).unitsPerPurchase {
+                Text(GameStrings.text("action.inventoryFull"))
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+            }
+        }
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 22)
+                .fill(kind.isPremium ? PremiumSupplyStyle.paper : RoomTheme.paper)
+                .shadow(color: RoomTheme.ink.opacity(0.08), radius: 0, y: 3)
+        }
+        .overlay {
+            if kind.isPremium { PremiumSupplyShine().clipShape(RoundedRectangle(cornerRadius: 22)) }
+        }
+        .overlay(RoundedRectangle(cornerRadius: 22)
+            .strokeBorder(kind.isPremium ? PremiumSupplyStyle.border : .white, lineWidth: 2))
+        .opacity(product.unlockLevel > (store.snapshot?.player.level ?? 1) ? 0.7 : 1)
+        .accessibilityElement(children: .contain)
+    }
+
+    private func supplyContents(_ product: ShopListing, kind: SupplyKind) -> some View {
+        NavigationLink(value: product) {
+            HStack(spacing: 10) {
+                SupplyArt(kind: kind, size: 52)
+                VStack(alignment: .leading, spacing: 7) {
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 6) { supplyName(product); ownedPill(product) }
+                        VStack(alignment: .leading, spacing: 5) { supplyName(product); ownedPill(product) }
                     }
+                    SupplyEffectChips(kind: kind)
                 }
-            Text(GameStrings.text(product.nameKey)).font(.system(size: 15, weight: .heavy))
-                .foregroundStyle(RoomTheme.ink).lineLimit(2).frame(minHeight: 36, alignment: .topLeading)
-            Text(product.status(in: store.snapshot))
-                .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
-                .lineLimit(2).frame(minHeight: 27, alignment: .topLeading)
-                .accessibilityIdentifier((store.snapshot?.player.gold ?? 0) < product.price
-                    ? "shopInsufficientGold_\(product.id)" : "shopItemStatus_\(product.id)")
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .contentShape(Rectangle())
         }
-        .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("shopItem_\(product.id)")
+        .accessibilityLabel(GameStrings.text(product.nameKey) + ", " + GameStrings.format("shop.buy", product.price))
+        .accessibilityValue(product.status(in: store.snapshot))
     }
-}
 
-private struct ShopPriceButtonStyle: ButtonStyle {
-    @Environment(\.isEnabled) private var isEnabled
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .foregroundStyle(isEnabled ? .white : RoomTheme.secondary)
-            .padding(.horizontal, 8).frame(minHeight: 44)
-            .background {
-                RoundedRectangle(cornerRadius: 16).fill(isEnabled ? RoomTheme.mint : RoomTheme.track)
-                    .shadow(color: isEnabled ? RoomTheme.darkMint : .clear, radius: 0, y: configuration.isPressed ? 1 : 4)
-            }
-            .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white.opacity(0.45), lineWidth: 2))
-            .offset(y: configuration.isPressed ? 3 : 0)
-            .opacity(isEnabled ? 1 : 0.6)
-            .animation(.easeOut(duration: 0.12), value: configuration.isPressed)
+    private func supplyName(_ product: ShopListing) -> some View {
+        Text(GameStrings.text(product.nameKey)).font(.subheadline.weight(.heavy))
+            .fixedSize(horizontal: false, vertical: true)
     }
-}
 
-enum ShopCategory: String, CaseIterable { case supplies, furniture, equipment }
+    private func ownedPill(_ product: ShopListing) -> some View {
+        Text(GameStrings.format("shop.owned", product.count(in: store.snapshot)))
+            .font(.caption2.weight(.heavy)).foregroundStyle(product.count(in: store.snapshot) > 0 ? RoomTheme.darkMint : RoomTheme.secondary)
+            .padding(.horizontal, 7).padding(.vertical, 3)
+            .background(product.count(in: store.snapshot) > 0 ? RoomTheme.paleMint : RoomTheme.chipBg, in: Capsule())
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("shopOwned_\(product.id)").accessibilityValue("\(product.count(in: store.snapshot))")
+    }
 
-private struct ShopListing: Identifiable, Hashable {
-    enum Kind: Hashable { case supply(SupplyKind), equipment, furniture }
-    let id: String
-    let kind: Kind
-    let nameKey: String
-    let detailKey: String
-    let asset: String
-    let symbol: String
-    let price: Int
-    let unlockLevel: Int
-    var limit: Int? = nil
-
-    @MainActor static func list(_ category: ShopCategory) -> [Self] {
-        switch category {
-        case .supplies:
-            return SupplyKind.allCases.map { kind in
-                let supply = SupplyCatalog.definition(for: kind)
-                return .init(id: kind.rawValue, kind: .supply(kind), nameKey: supply.nameKey,
-                             detailKey: supply.detailKey, asset: kind.asset, symbol: kind.symbol,
-                             price: supply.price, unlockLevel: supply.unlockLevel)
+    private var furniture: some View {
+        let products = ShopListing.list(.furniture)
+        return VStack(alignment: .leading, spacing: 14) {
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 7) { newFurnitureHeading; Text(GameStrings.text("shop.design.storageHint")).font(.caption.weight(.bold)) }
+                VStack(alignment: .leading, spacing: 6) { newFurnitureHeading; Text(GameStrings.text("shop.design.storageHint")).font(.caption.weight(.bold)) }
+            }.foregroundStyle(RoomTheme.secondary)
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(products.filter { newFurnitureIDs.contains($0.id) }) { furnitureCard($0, isNew: true) }
             }
-        case .equipment:
-            return ShopCatalog.equipmentOffers.compactMap { offer in
-                guard let item = PlayerCatalog.item(id: offer.itemID) else { return nil }
-                return .init(id: item.id, kind: .equipment, nameKey: item.nameKey, detailKey: item.detailKey,
-                             asset: item.displayAssetName, symbol: "tshirt.fill", price: offer.price,
-                             unlockLevel: offer.unlockLevel)
-            }
-        case .furniture:
-            return ShopCatalog.furnitureOffers.map { offer in
-                .init(id: offer.id, kind: .furniture, nameKey: offer.nameKey, detailKey: offer.detailKey,
-                      asset: offer.assetName, symbol: "sofa.fill", price: offer.price,
-                      unlockLevel: offer.unlockLevel, limit: offer.maxOwned)
+            Text(GameStrings.text("shop.design.moreFurniture")).font(.headline.weight(.heavy)).padding(.top, 6)
+            LazyVGrid(columns: columns, spacing: 14) {
+                ForEach(products.filter { !newFurnitureIDs.contains($0.id) }) { furnitureCard($0, isNew: false) }
             }
         }
     }
 
-    func count(in snapshot: GameSnapshot?) -> Int {
-        guard let snapshot else { return 0 }
-        switch kind {
-        case .supply(let supply): return snapshot.inventory.count(supply)
-        case .equipment: return snapshot.player.profile.ownedEquipmentIDs.contains(id) ? 1 : 0
-        case .furniture: return ShopCatalog.ownedFurnitureCount(offerID: id, in: snapshot.inventory.furniture)
+    private var newFurnitureHeading: some View {
+        HStack(spacing: 7) {
+            newBadge
+            Text(GameStrings.format("shop.design.newCount", newFurnitureIDs.count)).font(.subheadline.weight(.heavy))
         }
     }
 
-    func isOwned(in snapshot: GameSnapshot?) -> Bool { kind == .equipment && count(in: snapshot) > 0 }
-
-    var tint: Color {
-        switch kind {
-        case .supply(let supply): supply.tint
-        case .equipment: RoomTheme.lilac
-        case .furniture: RoomTheme.darkMint
-        }
+    private var newBadge: some View {
+        Text(GameStrings.text("shop.design.new"))
+            .font(.caption2.weight(.heavy)).foregroundStyle(.white)
+            .padding(.horizontal, 9).padding(.vertical, 4).background(RoomTheme.friendship, in: Capsule())
     }
 
-    func canPurchase(in snapshot: GameSnapshot?) -> Bool {
-        guard let snapshot else { return false }
-        if case .supply(let supply) = kind,
-           count(in: snapshot) > GameSnapshot.maximumStock - SupplyCatalog.definition(for: supply).unitsPerPurchase { return false }
-        return !isOwned(in: snapshot) && !(limit.map { count(in: snapshot) >= $0 } ?? false)
-            && snapshot.player.level >= unlockLevel && snapshot.player.gold >= price
-    }
-
-    @MainActor func status(in snapshot: GameSnapshot?) -> String {
-        if isOwned(in: snapshot) { return GameStrings.text("gear.owned") }
-        if case .supply(let supply) = kind,
-           count(in: snapshot) > GameSnapshot.maximumStock - SupplyCatalog.definition(for: supply).unitsPerPurchase {
-            return GameStrings.text("action.inventoryFull")
-        }
-        if let limit, count(in: snapshot) >= limit { return GameStrings.format("shop.furnitureLimit", limit) }
-        if (snapshot?.player.level ?? 1) < unlockLevel { return GameStrings.format("career.unlock", unlockLevel) }
-        if (snapshot?.player.gold ?? 0) < price { return GameStrings.text("action.insufficientGold") }
-        if case .supply = kind { return GameStrings.format("shop.owned", count(in: snapshot)) + " · " + GameStrings.text(detailKey) }
-        return GameStrings.text(detailKey)
-    }
-
-    func purchaseIdentifier(prefix: String = "shopBuy_") -> String {
-        switch kind {
-        case .supply(let supply): supply.buyID
-        case .equipment, .furniture: prefix + id
-        }
-    }
-
-    @MainActor func purchase(in store: GameStore) {
-        switch kind {
-        case .supply(let supply): store.buySupply(supply)
-        case .equipment: store.buyEquipment(itemID: id)
-        case .furniture: store.buyFurniture(offerID: id)
-        }
-    }
-
-}
-
-@MainActor
-private struct ShopDetailView: View {
-    let product: ShopListing
-    @Bindable var store: GameStore
-    @Environment(\.dismiss) private var dismiss
-
-    private var count: Int { product.count(in: store.snapshot) }
-    private var alreadyOwned: Bool { product.isOwned(in: store.snapshot) }
-    private var atLimit: Bool { product.limit.map { count >= $0 } ?? false }
-    private var levelLocked: Bool { (store.snapshot?.player.level ?? 1) < product.unlockLevel }
-    private var lacksGold: Bool { (store.snapshot?.player.gold ?? 0) < product.price }
-    private var canBuy: Bool { !store.isBusy && product.canPurchase(in: store.snapshot) }
-
-    var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                VStack(spacing: 16) {
-                    GameIcon(asset: product.asset, symbol: product.symbol, size: 112, tint: RoomTheme.darkMint)
-                    Text(GameStrings.text(product.nameKey)).font(.title2.bold()).multilineTextAlignment(.center)
-                        .accessibilityIdentifier("shopDetailName")
-                }.frame(maxWidth: .infinity)
-                Text(GameStrings.text(product.detailKey)).font(.body).foregroundStyle(RoomTheme.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                VStack(alignment: .leading, spacing: 14) {
-                    detail("shop.price", value: GameStrings.format("shop.buy", product.price), id: "shopDetailPrice")
-                    detail("shop.requirements", value: GameStrings.format("career.unlock", product.unlockLevel), id: "shopDetailRequirement")
-                    Text(GameStrings.format(product.kind == .supply(.toy) ? "inventory.playUses" : "shop.owned", count))
-                        .font(.subheadline).foregroundStyle(RoomTheme.secondary)
-                        .accessibilityIdentifier("shopOwned_\(product.id)").accessibilityValue("\(count)")
-                    if let limit = product.limit {
-                        Text(GameStrings.format("shop.limit", limit)).font(.footnote).foregroundStyle(RoomTheme.secondary)
+    private func furnitureCard(_ product: ShopListing, isNew: Bool) -> some View {
+        let kind = ShopCatalog.furnitureOffer(id: product.id)?.kind
+        let wall = kind.map { !$0.supportsMirroring } ?? false
+        let hasAny = product.count(in: store.snapshot) > 0
+        return VStack(alignment: .leading, spacing: 0) {
+            NavigationLink(value: product) {
+                VStack(alignment: .leading, spacing: 0) {
+                    ZStack {
+                        (wall ? RoomTheme.paleCoral : (product.id == "rattan_chair" ? RoomTheme.paleMint : RoomTheme.track))
+                        if wall {
+                            VStack(spacing: 17) { ForEach(0..<7) { _ in Rectangle().fill(.white.opacity(0.25)).frame(height: 2) } }
+                        }
+                        GameIcon(asset: product.asset, symbol: product.symbol, size: 96, tint: product.tint).padding(6)
                     }
-                }
-                .padding(18).frame(maxWidth: .infinity, alignment: .leading)
-                .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 22))
-                if product.kind == .equipment, let item = PlayerCatalog.item(id: product.id) {
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(GameStrings.text("shop.effects")).font(.headline)
-                        Text(GameStrings.text("gear.slot.\(item.slot.rawValue)")).font(.subheadline)
-                        if item.bonuses.durationReductionPercent > 0 {
-                            Text(GameStrings.format("player.bonus.duration", item.bonuses.durationReductionPercent))
+                    .frame(height: 108).clipped()
+                    .overlay(alignment: .topLeading) { if isNew { newBadge.padding(8) } }
+                    .overlay(alignment: .bottomTrailing) {
+                        if kind?.supportsMirroring == true {
+                            Image(systemName: "arrow.left.arrow.right").font(.caption.weight(.heavy))
+                                .foregroundStyle(RoomTheme.darkMint).frame(width: 28, height: 28)
+                                .background(RoomTheme.paper, in: Circle()).padding(8).accessibilityHidden(true)
                         }
-                        if item.bonuses.staminaReductionPercent > 0 {
-                            Text(GameStrings.format("player.bonus.stamina", item.bonuses.staminaReductionPercent))
-                        }
-                        if item.bonuses.moodReductionPercent > 0 {
-                            Text(GameStrings.format("player.bonus.mood", item.bonuses.moodReductionPercent))
-                        }
-                    }.font(.subheadline).foregroundStyle(RoomTheme.darkMint)
-                }
-                Text(GameStrings.text(product.kind == .equipment ? "shop.equipmentHint" :
-                    (product.kind == .furniture ? "shop.furnitureHint" : "shop.suppliesHint")))
-                    .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let message = unavailableMessage {
-                    Text(message).font(.subheadline).foregroundStyle(RoomTheme.secondary)
-                        .accessibilityIdentifier("shopPurchaseStatus")
-                }
-                Button { product.purchase(in: store) } label: {
-                    HStack(spacing: 5) {
-                        if !alreadyOwned {
-                            Image(systemName: "dollarsign.circle.fill").accessibilityHidden(true)
-                        }
-                        Text(alreadyOwned ? GameStrings.text("gear.owned") : GameStrings.format("shop.buy", product.price))
                     }
-                    .font(.headline).frame(maxWidth: .infinity)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(GameStrings.text(product.nameKey)).font(.subheadline.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+                        Text(GameStrings.text(product.detailKey)).font(.caption.weight(.bold))
+                            .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                        Label(GameStrings.text(wall ? "shop.design.wallTag" : "shop.design.mirrorTag"),
+                              systemImage: wall ? "photo.artframe" : "arrow.left.arrow.right")
+                            .font(.caption2.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 8).padding(.vertical, 4)
+                            .foregroundStyle(wall ? RoomTheme.lilac : RoomTheme.darkMint)
+                            .background(wall ? RoomTheme.lilac.opacity(0.14) : RoomTheme.paleMint, in: Capsule())
+                        if hasAny { ownedPill(product) }
+                    }.padding(10)
                 }
-                .buttonStyle(ShopPriceButtonStyle()).disabled(!canBuy)
-                .accessibilityIdentifier(product.purchaseIdentifier())
-                Label(GameStrings.format("shop.balance", store.snapshot?.player.gold ?? 0), systemImage: "dollarsign.circle.fill")
-                    .font(.footnote).foregroundStyle(RoomTheme.secondary)
-                    .accessibilityIdentifier("shopGoldCount").accessibilityValue("\(store.snapshot?.player.gold ?? 0)")
             }
-            .padding(20).frame(maxWidth: 520, alignment: .leading).frame(maxWidth: .infinity)
+            .buttonStyle(.plain).accessibilityIdentifier("shopItem_\(product.id)")
+            .accessibilityLabel(GameStrings.text(product.nameKey) + ", " + GameStrings.format("shop.buy", product.price))
+            .accessibilityValue(product.status(in: store.snapshot))
+            buyButton(product).padding(.horizontal, 10).padding(.bottom, 12)
         }
-        .accessibilityIdentifier("shopDetailScroll").background(RoomTheme.cream)
-        .navigationTitle(GameStrings.text("shop.detail.title")).navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden()
-        .toolbar(.visible, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button { dismiss() } label: { Label(GameStrings.text("common.back"), systemImage: "chevron.left") }
-                    .foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("shopDetailBackButton")
-            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button(GameStrings.text("common.done")) { store.activeSheet = nil }
-                    .foregroundStyle(RoomTheme.darkMint).accessibilityIdentifier("closeSheetButton")
-            }
+        .clipShape(RoundedRectangle(cornerRadius: 24))
+        .background {
+            RoundedRectangle(cornerRadius: 24).fill(RoomTheme.paper)
+                .shadow(color: RoomTheme.ink.opacity(0.08), radius: 0, y: 4)
         }
+        .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(hasAny ? Color(red: 207 / 255, green: 230 / 255, blue: 217 / 255) : .white, lineWidth: 2))
     }
 
-    private var unavailableMessage: String? {
-        if alreadyOwned { return GameStrings.text("shop.equipmentPurchased") }
-        if case .supply(let supply) = product.kind,
-           count > GameSnapshot.maximumStock - SupplyCatalog.definition(for: supply).unitsPerPurchase {
-            return GameStrings.text("action.inventoryFull")
-        }
-        if atLimit { return GameStrings.format("shop.furnitureLimit", product.limit ?? 0) }
-        if levelLocked { return GameStrings.format("shop.levelRequired", product.unlockLevel) }
-        if lacksGold { return GameStrings.text("action.insufficientGold") }
-        return nil
+    private func equipmentCard(_ product: ShopListing) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            NavigationLink(value: product) {
+                VStack(alignment: .leading, spacing: 8) {
+                    GameIcon(asset: product.asset, symbol: product.symbol, size: 76, tint: product.tint)
+                        .frame(maxWidth: .infinity).frame(height: 96)
+                        .background(product.tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 18))
+                    Text(GameStrings.text(product.nameKey)).font(.subheadline.weight(.heavy))
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(product.status(in: store.snapshot)).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier((store.snapshot?.player.gold ?? 0) < product.price
+                            ? "shopInsufficientGold_\(product.id)" : "shopItemStatus_\(product.id)")
+                }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).accessibilityIdentifier("shopItem_\(product.id)")
+            .accessibilityLabel(GameStrings.text(product.nameKey) + ", " + GameStrings.format("shop.buy", product.price))
+            .accessibilityValue(product.status(in: store.snapshot))
+            buyButton(product)
+        }.padding(12).gameCard(cornerRadius: 24)
     }
 
-    private func detail(_ key: String, value: String, id: String) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(GameStrings.text(key)).font(.caption).foregroundStyle(RoomTheme.secondary)
-            Text(value).font(.headline)
+    private func buyButton(_ product: ShopListing, gold: Bool = false) -> some View {
+        let locked = product.unlockLevel > (store.snapshot?.player.level ?? 1)
+        let capped = product.limit.map { product.count(in: store.snapshot) >= $0 } ?? false
+        let owned = product.isOwned(in: store.snapshot) || capped
+        return Button { product.purchase(in: store) } label: {
+            HStack(spacing: 4) {
+                Image(systemName: owned ? "checkmark.circle.fill" : (locked ? "lock.fill" : "dollarsign.circle.fill"))
+                    .accessibilityHidden(true)
+                Text(owned ? GameStrings.text("gear.owned") : locked ? GameStrings.format("shop.design.unlock", product.unlockLevel)
+                     : product.price.formatted())
+            }.font(.subheadline.weight(.heavy)).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
         }
-        .accessibilityElement(children: .combine).accessibilityIdentifier(id)
+        .buttonStyle(ShopPriceButtonStyle(gold: gold))
+        .disabled(store.isBusy || !product.canPurchase(in: store.snapshot))
+        .accessibilityLabel(owned ? GameStrings.text("gear.owned") : locked ? GameStrings.format("shop.design.unlock", product.unlockLevel)
+                            : GameStrings.format("shop.buy", product.price))
+        .accessibilityIdentifier(product.purchaseIdentifier(prefix: "shopQuickBuy_"))
     }
 }

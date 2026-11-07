@@ -14,8 +14,15 @@ extension RoomHomeUITests {
         waitForObservedValue("inventoryToyUses", "0", in: app)
         attachScreenshot(app, named: "Inventory — real starting supplies and empty toy stock")
 
-        bringIntoView("useFoodButton", in: app)
+        scrollCareerPage("destinationScroll", to: "useFoodButton", in: app)
         tapAnimationControl("useFoodButton", in: app)
+        waitForElement("supplyPicker", in: app)
+        XCTAssertFalse(element("supplyPickerConfirmButton", in: app).isEnabled)
+        waitForObservedValue("supplyPickerStock_food", "3", in: app)
+        tapAnimationControl("supplyOption_food", in: app)
+        waitForObservedValue("supplyPickerStock_food", "3", in: app)
+        tapAnimationControl("supplyPickerConfirmButton", in: app)
+        XCTAssertTrue(element("supplyPicker", in: app).waitForNonExistence(timeout: 10))
         waitForInventoryClosed("inventoryFoodCount", in: app)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("catSatiety", "60", in: app)
@@ -40,12 +47,14 @@ extension RoomHomeUITests {
         let app = launchFreshHome()
         tapAnimationControl("tabInventory", in: app)
         waitForObservedValue("inventoryToyUses", "0", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryItem_toy", in: app)
         tapAnimationControl("inventoryItem_toy", in: app)
         XCTAssertTrue(element("inventoryItem_toy", in: app).exists,
                       "An empty toy tile must remain visible in the inventory.")
         XCTAssertFalse(element("useToyButton", in: app).exists,
                        "Empty stock offers restocking instead of a consumable action.")
         waitForElement("restockToyButton", in: app)
+        scrollCareerPage("destinationScroll", to: "restockToyButton", in: app)
         attachScreenshot(app, named: "Inventory — selected empty toy offers restocking")
         tapAnimationControl("restockToyButton", in: app)
         waitForElement("buyToyButton", in: app)
@@ -60,8 +69,9 @@ extension RoomHomeUITests {
         // six purchased wands or retain the empty stock from the previous visit.
         waitForObservedValue("inventoryToyUses", "6", in: app)
         waitForObservedValue("inventoryFoodCount", "3", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryItem_toy", in: app)
         tapAnimationControl("inventoryItem_toy", in: app)
-        bringIntoView("useToyButton", in: app)
+        scrollCareerPage("destinationScroll", to: "useToyButton", in: app)
         attachScreenshot(app, named: "Inventory — purchased toy supplies six remaining uses")
         tapAnimationControl("useToyButton", in: app)
         waitForInventoryClosed("inventoryToyUses", in: app)
@@ -71,7 +81,7 @@ extension RoomHomeUITests {
         waitForObservedValue("inventoryToyUses", "5", in: app)
         waitForObservedValue("inventoryFoodCount", "3", in: app)
         waitForObservedValue("inventoryLitterCount", "2", in: app)
-        bringIntoView("inventoryToyUses", in: app)
+        scrollCareerPage("destinationScroll", to: "inventoryToyUses", in: app)
         attachScreenshot(app, named: "Inventory — one play use consumed without changing other supplies")
     }
 

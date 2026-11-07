@@ -5,6 +5,7 @@ import CatGameCore
 struct NeighborDetailView: View {
     @Bindable var store: GameStore
     let neighborID: String
+    var showsExchangeEntry = true
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -35,15 +36,17 @@ struct NeighborDetailView: View {
                     if let neighbor {
                         profile(neighbor)
                         friendship(neighbor)
-                        Button {
-                            store.playNavigationSound()
-                            showsMarket = true
-                        } label: {
-                            Label(GameStrings.text("market.neighborEntry"), systemImage: "arrow.left.arrow.right")
-                                .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity, minHeight: 44)
+                        if showsExchangeEntry {
+                            Button {
+                                store.playNavigationSound()
+                                showsMarket = true
+                            } label: {
+                                Label(GameStrings.text("market.neighborEntry"), systemImage: "arrow.left.arrow.right")
+                                    .font(.subheadline.weight(.heavy)).frame(maxWidth: .infinity, minHeight: 44)
+                            }
+                            .buttonStyle(SoftButtonStyle()).disabled(isWorking || store.isBusy)
+                            .accessibilityIdentifier("neighborExchangeButton")
                         }
-                        .buttonStyle(SoftButtonStyle()).disabled(isWorking || store.isBusy)
-                        .accessibilityIdentifier("neighborExchangeButton")
                     } else { Text(GameStrings.text("community.neighborMissing")) }
                 }.padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
             }
@@ -58,7 +61,8 @@ struct NeighborDetailView: View {
         }
         .safeAreaInset(edge: .top, spacing: 0) {
             CommunityHeader(title: GameStrings.format("community.neighborHome", GameStrings.text(neighbor?.nameKey ?? "community.title")),
-                            backTitle: "community.title", gold: store.snapshot?.player.gold ?? 0,
+                            backTitle: showsExchangeEntry ? "community.title" : "market.shortTitle",
+                            gold: store.snapshot?.player.gold ?? 0,
                             symbol: "house.fill", backID: "neighborBackButton") { dismiss() }
         }
         .safeAreaInset(edge: .bottom, spacing: 0) { if neighbor != nil { actions } }
@@ -287,7 +291,7 @@ struct NeighborDetailView: View {
     }
 
     private func canPresent(_ receipt: NeighborActionReceipt) -> Bool {
-        isVisible && scenePhase == .active && store.isShowingNeighbors && store.activeSheet == .town
+        isVisible && scenePhase == .active && (store.isShowingNeighbors || store.isShowingMarket) && store.activeSheet == .town
             && receipt.saveSceneGeneration == store.saveSceneGeneration
     }
 

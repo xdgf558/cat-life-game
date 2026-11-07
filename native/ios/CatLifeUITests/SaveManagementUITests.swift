@@ -358,15 +358,19 @@ extension RoomHomeUITests {
         scrollSaveManagement(to: "saveExportButton", in: app)
         tapAnimationControl("saveExportButton", in: app)
         waitForElement("saveExportPrepared", in: app)
+        let filenameText = app.staticTexts.matching(NSPredicate(format: "label MATCHES %@",
+            "CatLife-Backup-[0-9]{4}-[0-9]{2}-[0-9]{2}_[0-9]{2}-[0-9]{2}-[0-9]{2}\\.json")).firstMatch
+        XCTAssertTrue(filenameText.exists, app.debugDescription)
+        let defaultFilename = (filenameText.label as NSString).deletingPathExtension
         scrollSaveManagement(to: "saveExportFilesButton", in: app)
         tapAnimationControl("saveExportFilesButton", in: app)
-        return try savePresentedBackupToFiles(in: app)
+        return try savePresentedBackupToFiles(in: app, defaultFilename: defaultFilename)
     }
 
     @MainActor
     private func savePresentedBackupToFiles(in app: XCUIApplication,
                                             statusIdentifier: String = "saveTransferStatus",
-                                            defaultFilename: String = "CatLife-Backup") throws -> String {
+                                            defaultFilename: String) throws -> String {
         var filename = "CatLife-QA-" + String(UUID().uuidString.prefix(8))
         let save = app.buttons.matching(NSPredicate(
             format: "identifier == %@ OR label IN %@", "DOCPicker.actionButton",
@@ -379,6 +383,10 @@ extension RoomHomeUITests {
         let nameField = app.textFields["DOCPicker.filenameTextField"]
         if nameField.waitForExistence(timeout: 3) {
             let previousName = try XCTUnwrap(nameField.value as? String)
+            if defaultFilename.hasPrefix("CatLife-Backup-") {
+                XCTAssertTrue(previousName == defaultFilename || previousName == defaultFilename + ".json",
+                              "The Files default must match the prepared dated backup: " + previousName)
+            }
             nameField.tap()
             nameField.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: previousName.count) + filename)
         } else {

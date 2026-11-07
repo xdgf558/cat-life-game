@@ -58,16 +58,27 @@ struct RoomHomeView: View {
         .sheet(isPresented: catSheetVisible) {
             CatCollectionView(store: store, initialCatID: store.inspectedCatID)
         }
+        .sheet(isPresented: Binding(get: { store.supplyPicker != nil }, set: { if !$0 { store.supplyPicker = nil } })) {
+            if let kind = store.supplyPicker {
+                SupplyPickerView(store: store, kind: kind)
+                    .safeAreaInset(edge: .top, spacing: 0) { if store.hasSaveFailure { SaveStatusBanner(store: store) } }
+                    .saveRecoveryAlert(store: store)
+                    .presentationBackground(RoomTheme.cream)
+                    .interactiveDismissDisabled(store.isBusy)
+            }
+        }
         .onChange(of: store.onboarding.isPresented, initial: true) { _, presented in
             if presented {
                 moreVisible = false
+                store.supplyPicker = nil
                 store.activeSheet = nil
                 store.isShowingSettings = false
             }
         }
         .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
                           && store.inspectedCatID == nil && store.activeSheet != .town
-                          && store.activeSheet != .player && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
+                          && store.activeSheet != .player && store.supplyPicker == nil && !store.isPresentingExchange
+                          && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
     }
 
     private func shell(_ snapshot: GameSnapshot) -> some View {
@@ -193,7 +204,9 @@ struct RoomHomeView: View {
                             }
                         }
                     }
-                }.tint(RoomTheme.darkMint)
+                }
+                .id(store.activeSheet)
+                .tint(RoomTheme.darkMint)
             case nil: EmptyView()
             }
         }
@@ -211,7 +224,7 @@ struct RoomHomeView: View {
         ZStack(alignment: .top) {
             RoomSceneHost(store: store,
                           isActive: scenePhase == .active && homeVisible && !moreVisible
-                              && store.inspectedCatID == nil && !store.onboarding.isPresented,
+                              && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
                           reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
                           arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
                 .id(store.saveSceneGeneration)

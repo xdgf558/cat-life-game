@@ -28,6 +28,15 @@ struct SaveArchiveSelection: Sendable {
 }
 
 enum SaveArchiveFiles {
+    static func backupFilename(exportedAt: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = .current
+        formatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        return "CatLife-Backup-" + formatter.string(from: exportedAt)
+    }
+
     static func read(_ url: URL) throws -> NativeSaveArchive {
         try readSelection(url).archive
     }
@@ -68,14 +77,18 @@ enum SaveArchiveFiles {
         return data
     }
 
-    static func prepareShareFile(_ data: Data) throws -> URL {
+    static func prepareShareFile(_ data: Data, filename: String) throws -> URL {
         do {
             let directory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
                 .appendingPathComponent("SaveExports", isDirectory: true)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-            // A single replaceable export avoids collecting a copy after every share.
-            let url = directory.appendingPathComponent("CatLife-Backup.json")
+            let url = directory.appendingPathComponent(filename).appendingPathExtension("json")
             try data.write(to: url, options: .atomic)
+            // Keep one prepared attachment; saved Files exports are outside this cache.
+            for previous in (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
+                where previous != url && previous.lastPathComponent.hasPrefix("CatLife-Backup") && previous.pathExtension == "json" {
+                try? FileManager.default.removeItem(at: previous)
+            }
             return url
         } catch { throw SaveTransferError.writeFailed }
     }

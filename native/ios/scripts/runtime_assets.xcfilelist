@@ -237,6 +237,15 @@ $(SRCROOT)/CatLife/Assets.xcassets/hospital-reception.imageset/hospital-receptio
 $(SRCROOT)/CatLife/Assets.xcassets/icon-clean.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/icon-clean.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/icon-clean.imageset/icon-clean.png
+$(SRCROOT)/CatLife/Assets.xcassets/icon-decor-shop55.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/icon-decor-shop55.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/icon-decor-shop55.imageset/icon-decor-shop55.png
+$(SRCROOT)/CatLife/Assets.xcassets/icon-furniture-bag55.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/icon-furniture-bag55.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/icon-furniture-bag55.imageset/icon-furniture-bag55.png
+$(SRCROOT)/CatLife/Assets.xcassets/icon-home-upgrade55.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/icon-home-upgrade55.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/icon-home-upgrade55.imageset/icon-home-upgrade55.png
 $(SRCROOT)/CatLife/Assets.xcassets/icon-home.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/icon-home.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/icon-home.imageset/icon-home.png

@@ -126,7 +126,8 @@ extension RoomHomeUITests {
         tapAnimationControl("tabShop", in: app)
         waitForObservedValue("shopGoldCount", "5,000", in: app)
         attachScreenshot(app, named: "Reference 05 — shop supplies")
-        XCTAssertTrue(element("shopFeaturedButton", in: app).isHittable)
+        XCTAssertTrue(element("shopItem_premiumFood", in: app).isHittable)
+        XCTAssertTrue(element("buyPremiumFoodButton", in: app).isHittable)
         XCTAssertTrue(element("shopCategory_supplies", in: app).isHittable)
 
         tapAnimationControl("tabTown", in: app)
@@ -269,6 +270,69 @@ extension RoomHomeUITests {
         assertRoomFrame(roomFrame, in: app, context: "cancelling from the collapsed arrangement tray")
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
+    }
+
+    @MainActor
+    func testArrangementCartoonShortcutsOpenBagUpgradeAndShopWithoutChangingProgress() throws {
+        continueAfterFailure = false
+        let app = launchFurnitureHome()
+        let original = furnitureState(in: app)
+        let roomFrame = element("roomScene", in: app).frame
+        tapAnimationControl("homeDecorateButton", in: app)
+        _ = waitForFurniture(in: app, description: "arrangement shortcuts ready") {
+            $0.phase == "editing" && !$0.pending
+        }
+        waitForObservedValue("layoutTrayToggle", "expanded", in: app)
+        attachScreenshot(app, named: "Arrangement — cartoon furniture bag, room upgrade and shop shortcuts")
+
+        for identifier in ["furnitureInventoryButton", "homeUpgradeButton", "layoutShopButton"] {
+            let shortcut = element(identifier, in: app)
+            XCTAssertTrue(shortcut.isHittable)
+            XCTAssertEqual(shortcut.frame.width, 70, accuracy: 1)
+            XCTAssertEqual(shortcut.frame.height, 70, accuracy: 1)
+            XCTAssertFalse(shortcut.label.isEmpty)
+            tapAnimationControl(identifier, in: app)
+            switch identifier {
+            case "furnitureInventoryButton":
+                waitForObservedValue("inventoryPlacedFurnitureCount", "\(original.items.count)", in: app)
+                XCTAssertTrue(element("inventoryFurnitureTab", in: app).isHittable)
+            case "homeUpgradeButton":
+                waitForObservedValue("homeUpgradeCurrentLevel", "1", in: app)
+            default:
+                waitForObservedValue("shopGoldCount", "200", in: app)
+                XCTAssertTrue(element("shopCategory_supplies", in: app).isHittable)
+            }
+            tapAnimationControl("layoutReturnButton", in: app)
+            let returned = waitForFurniture(in: app, description: "return from \(identifier) preserves the arrangement") {
+                $0.phase == "editing" && !$0.pending
+            }
+            waitForObservedValue("layoutTrayToggle", "expanded", in: app)
+            XCTAssertEqual(returned.items.map(\.id).sorted(), original.items.map(\.id).sorted())
+            for item in original.items {
+                let unchanged = try XCTUnwrap(returned.items.first { $0.id == item.id })
+                XCTAssertEqual(unchanged.x, item.x, accuracy: 0.0001)
+                XCTAssertEqual(unchanged.y, item.y, accuracy: 0.0001)
+                XCTAssertEqual(unchanged.orientation, item.orientation)
+            }
+            XCTAssertEqual(returned.bowl.x, original.bowl.x, accuracy: 0.0001)
+            XCTAssertEqual(returned.bowl.y, original.bowl.y, accuracy: 0.0001)
+            assertRoomFrame(roomFrame, in: app, context: "returning from \(identifier)")
+            waitForObservedValue("goldCount", "200", in: app)
+        }
+        tapAnimationControl("layoutCancelButton", in: app)
+        _ = waitForFurniture(in: app, description: "shortcut browsing leaves the room unchanged") {
+            $0.phase == "idle" && !$0.pending
+        }
+        waitForObservedValue("foodCount", "3", in: app)
+        app.terminate()
+        app.launchArguments = arguments(reset: false) + ["--furniture-test"]
+        launchAndEnterHome(app)
+        let reopened = waitForFurniture(in: app, description: "shortcut browsing persists no layout or purchase") {
+            $0.phase == "idle" && !$0.pending
+        }
+        XCTAssertEqual(reopened.items.map(\.id).sorted(), original.items.map(\.id).sorted())
+        waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
     }
 
     @MainActor

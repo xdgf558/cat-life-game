@@ -1057,5 +1057,5 @@ extension GameStrings {
         "action.insufficientGold": "金币不够了，先去打工吧。", "action.insufficientStamina": "体力不足，先休息一会儿吧。",
         "action.full": "猫咪已经吃饱啦。", "accessibility.cat": "猫咪，点击查看档案",
         "accessibility.decorate": "布置房间，选择并移动家具和食盆", "accessibility.food": "猫粮库存",
-    ].merging(marketChinese) { _, new in new }.merging(furniture54Chinese) { _, new in new }.merging(suppliesChinese) { _, new in new }
+    ].merging(design55Chinese) { _, new in new }.merging(marketDesign55Chinese) { _, new in new }.merging(supplyDesign55Chinese) { _, new in new }.merging(shopDesign55Chinese) { _, new in new }.merging(marketChinese) { _, new in new }.merging(furniture54Chinese) { _, new in new }.merging(suppliesChinese) { _, new in new }
 }

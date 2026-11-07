@@ -82,6 +82,22 @@ struct CatNeedBubble: View {
                                mood: cat.mood, hasFood: store.hasFood, isIll: cat.healthState?.illness != nil)
     }
 
+    private func premiumChoice(_ need: CatNeed) -> Bool {
+        if need == .food {
+            return (store.snapshot?.inventory.food ?? 0) < store.foodRequired
+                && (store.snapshot?.inventory.premiumFood ?? 0) >= store.foodRequired
+        }
+        return need == .clean && (store.snapshot?.inventory.litter ?? 0) == 0
+            && (store.snapshot?.inventory.premiumLitter ?? 0) > 0
+    }
+    private func titleKey(_ need: CatNeed) -> String {
+        guard premiumChoice(need) else { return need.titleKey }
+        if need == .food {
+            return (store.snapshot?.inventory.food ?? 0) == 0 ? "supply.home.foodChoice" : "supply.home.foodShort"
+        }
+        return "supply.home.litterChoice"
+    }
+
     var body: some View {
         if isActive, !store.isBusy, !store.isDecorating, let anchor = presentation.anchor, let need {
             Button {
@@ -93,14 +109,14 @@ struct CatNeedBubble: View {
                 case .hospital: store.openHospital(catID: store.cat?.id)
                 }
             } label: {
-                Label(GameStrings.text(need.titleKey), systemImage: need.symbol)
+                Label(GameStrings.text(titleKey(need)), systemImage: need.symbol)
                     .font(.system(.footnote, design: .rounded, weight: .heavy))
-                    .lineLimit(2).multilineTextAlignment(.center)
+                    .lineLimit(premiumChoice(need) ? 3 : 2).multilineTextAlignment(.center)
                     .padding(.horizontal, 14).padding(.vertical, 10)
                     .frame(minHeight: 44).frame(maxWidth: 190)
-                    .foregroundStyle(need == .hospital ? RoomTheme.coralDeep : (need == .clean ? RoomTheme.sky : RoomTheme.ink))
+                    .foregroundStyle(premiumChoice(need) ? PremiumSupplyStyle.effectText : (need == .hospital ? RoomTheme.coralDeep : (need == .clean ? RoomTheme.sky : RoomTheme.ink)))
                     .background(RoomTheme.paper, in: Capsule())
-                    .overlay(Capsule().strokeBorder(need == .hospital ? RoomTheme.coralBorder : .white, lineWidth: 2))
+                    .overlay(Capsule().strokeBorder(premiumChoice(need) ? PremiumSupplyStyle.border : (need == .hospital ? RoomTheme.coralBorder : .white), lineWidth: 2))
                     .background {
                         if need == .hospital && !reduceMotion {
                             Capsule().stroke(RoomTheme.coralBorder.opacity(0.5), lineWidth: 2)
@@ -120,7 +136,7 @@ struct CatNeedBubble: View {
             }
             .buttonStyle(.plain)
             .accessibilityIdentifier("catNeedBubble")
-            .accessibilityLabel(GameStrings.text(need.titleKey))
+            .accessibilityLabel(GameStrings.text(titleKey(need)))
             .position(CatNeedBubbleLayout.position(above: anchor, in: canvasSize))
         }
     }

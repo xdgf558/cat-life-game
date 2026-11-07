@@ -42,15 +42,31 @@ final class GameStore {
                 adoptionCatID = nil
                 isShowingNeighbors = false
                 isShowingMarket = false
+                isPresentingExchange = false
+                supplyPicker = nil
+                furniturePurchaseNotice = nil
+                furniturePurchaseItemID = nil
                 playNavigationSound()
             }
         }
     }
     var isShowingSettings = false {
-        didSet { if oldValue != isShowingSettings { playNavigationSound() } }
+        didSet {
+            if oldValue != isShowingSettings {
+                supplyPicker = nil
+                furniturePurchaseNotice = nil
+                furniturePurchaseItemID = nil
+                playNavigationSound()
+            }
+        }
     }
     var inventoryCategory: InventoryCategory = .supplies
     var selectedInventorySupply: SupplyKind = .food
+    var supplyPicker: SupplyKind?
+    var furniturePurchaseNotice: String?
+    private(set) var furniturePurchaseItemID: String?
+    private(set) var selectedStoredFurnitureID: String?
+    var isFurnitureTrayExpanded = true
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
     var catCollectionFilter: CatCollectionView.Filter?
@@ -58,6 +74,7 @@ final class GameStore {
     var isPresentingAdoptionConfirmation = false
     var isShowingNeighbors = false
     var isShowingMarket = false
+    var isPresentingExchange = false
     var isPresentingCommunityGift = false
     var isShowingCommunityGiftShop = false
     let adoptionReminders: GameAdoptionReminderCenter
@@ -589,6 +606,10 @@ final class GameStore {
         isShowingNeighbors = false
         isShowingMarket = false
         adoptionReminders.clearPending()
+        isPresentingExchange = false
+        supplyPicker = nil
+        furniturePurchaseNotice = nil
+        furniturePurchaseItemID = nil
         clearSaveFailure()
         now = importDate
         lastSyncCheck = importDate
@@ -730,7 +751,7 @@ final class GameStore {
     func feed() {
         if (snapshot?.inventory.food ?? 0) < foodRequired,
            (snapshot?.inventory.premiumFood ?? 0) >= foodRequired {
-            choosePremiumSupply(.premiumFood)
+            openSupplyPicker(for: .food)
         } else { feed(supply: .food) }
     }
     func feed(supply: SupplyKind) {
@@ -744,15 +765,43 @@ final class GameStore {
 
     func clean() {
         if (snapshot?.inventory.litter ?? 0) == 0, (snapshot?.inventory.premiumLitter ?? 0) > 0 {
-            choosePremiumSupply(.premiumLitter)
+            openSupplyPicker(for: .litter)
         } else { clean(supply: .litter) }
     }
 
-    private func choosePremiumSupply(_ supply: SupplyKind) {
-        guard !isBusy, !isDecorating else { return }
-        selectedInventorySupply = supply
-        inventoryCategory = .supplies
-        activeSheet = .inventory
+    func openSupplyPicker(for supply: SupplyKind) {
+        guard !isBusy, !isDecorating, cat != nil, supply != .toy else { return }
+        supplyPicker = supply == .food || supply == .premiumFood ? .food : .litter
+    }
+
+    func useSupplyFromPicker(_ supply: SupplyKind) async -> Bool {
+        let family: SupplyKind = supply == .food || supply == .premiumFood ? .food : .litter
+        guard supply != .toy, supplyPicker == family, !isBusy, !isDecorating, let cat else { return false }
+        let generation = saveSceneGeneration
+        var effects: [String] = []
+        var actionKind: ActionKind = .none
+        let succeeded = await performPersistedAction(showsSuccessNotice: false) { state, date in
+            let synchronized = GameEngine.synchronize(&state, now: date)
+            guard synchronized.succeeded else { return synchronized }
+            let before = state.cats.first { $0.id == cat.id }
+            let result = family == .food ? GameEngine.feed(&state, catID: cat.id, supply: supply, now: date)
+                : GameEngine.clean(&state, catID: cat.id, supply: supply, now: date)
+            if result.succeeded, let before, let after = state.cats.first(where: { $0.id == cat.id }) {
+                actionKind = result.kind
+                effects = [("stat.satiety", after.satiety - before.satiety), ("stat.cleanliness", after.cleanliness - before.cleanliness),
+                           ("stat.mood", after.mood - before.mood), ("stat.health", after.health - before.health),
+                           ("stat.bond", after.intimacy - before.intimacy)]
+                    .filter { $0.1 > 0 }.map { GameStrings.text($0.0) + " +\($0.1)" }
+            }
+            return result
+        }
+        guard succeeded, generation == saveSceneGeneration else { return false }
+        supplyPicker = nil
+        if activeSheet == .inventory { activeSheet = nil }
+        feedback = RoomFeedback(kind: actionKind, catID: cat.id)
+        showNotice(GameStrings.format("supplyPicker.used", GameStrings.text(SupplyCatalog.definition(for: supply).nameKey),
+                                     effects.isEmpty ? GameStrings.text("design55.careFull") : effects.joined(separator: " · ")))
+        return true
     }
     func clean(supply: SupplyKind) {
         guard !isDecorating, !isBusy, let cat else { return }
@@ -780,7 +829,33 @@ final class GameStore {
         perform { GameEngine.purchaseEquipment(&$0, itemID: itemID, now: $1) }
     }
     func buyFurniture(offerID: String) {
-        perform { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
+        let generation = saveSceneGeneration
+        let ownedIDs = Set(snapshot?.inventory.furniture.map(\.id) ?? [])
+        perform(presentSuccess: { [weak self] in
+            guard let self, self.saveSceneGeneration == generation,
+                  self.activeSheet == .shop, !self.isShowingSettings else { return false }
+            self.furniturePurchaseNotice = offerID
+            self.furniturePurchaseItemID = self.snapshot?.inventory.furniture.first { !ownedIDs.contains($0.id) }?.id
+            return true
+        }) { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
+    }
+
+    func decoratePurchasedFurniture() {
+        guard !isBusy, furniturePurchaseNotice != nil, let itemID = furniturePurchaseItemID,
+              storedFurniture.contains(where: { $0.id == itemID }) else { return }
+        if !canPlaceMoreFurniture && canUpgradeHome {
+            openHomeUpgrade()
+            return
+        }
+        isShowingSettings = false
+        activeSheet = nil
+        beginDecorating()
+        isFurnitureTrayExpanded = true
+        if canPlaceMoreFurniture {
+            selectedFurnitureID = nil
+            selectedStoredFurnitureID = itemID
+        }
+        else { showNotice(furnitureCapacityNotice) }
     }
     func upgradeHome(toLevel: Int) {
         guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
@@ -807,8 +882,10 @@ final class GameStore {
         draftFurniture = snapshot.home.furniture
         draftFurnitureOrientations = [:]
         selectedFurnitureID = nil
+        selectedStoredFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
+        isFurnitureTrayExpanded = true
         isDecorating = true
     }
 
@@ -966,11 +1043,13 @@ final class GameStore {
         // Realtime autosaves must not discard a user's in-progress layout draft.
         // Only an explicit layout commit freezes further edits.
         guard isDecorating, !isSavingLayout else { return }
+        selectedStoredFurnitureID = nil
         draftBowlPosition = point
     }
 
     func selectFurniture(id: String?) {
         guard isDecorating, !isSavingLayout else { return }
+        selectedStoredFurnitureID = nil
         guard let id else { selectedFurnitureID = nil; return }
         guard snapshot?.inventory.furniture.contains(where: { $0.id == id }) == true,
               draftFurniture?.contains(where: { $0.itemID == id }) == true else { return }
@@ -989,6 +1068,7 @@ final class GameStore {
             furniture.append(FurniturePlacement(itemID: id, position: point))
         }
         draftFurniture = furniture
+        selectedStoredFurnitureID = nil
         selectedFurnitureID = id
     }
 
@@ -1014,6 +1094,7 @@ final class GameStore {
         if !isDecorating { beginDecorating() }
         guard isDecorating else { return }
         activeSheet = nil
+        selectedStoredFurnitureID = nil
         selectedFurnitureID = id
         placingFurnitureID = id
         isResolvingLayout = true
@@ -1044,6 +1125,7 @@ final class GameStore {
         draftFurniture = nil
         draftFurnitureOrientations = nil
         selectedFurnitureID = nil
+        selectedStoredFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
         isDecorating = false
@@ -1226,6 +1308,7 @@ final class GameStore {
     }
 
     private func perform(finishesLayout: Bool = false, returnsToRoom: Bool = false,
+                         presentSuccess: (() -> Bool)? = nil,
                          _ action: @escaping (inout GameSnapshot, Date) -> ActionOutcome) {
         guard !isBusy, var context = saveContext() else { return }
         isBusy = true
@@ -1251,7 +1334,7 @@ final class GameStore {
                     feedback = RoomFeedback(kind: outcome.kind, catID: context.candidate.activeCatID)
                     playCommittedSound(outcome.kind)
                 }
-                showNotice(message(for: outcome))
+                if !outcome.succeeded || presentSuccess?() != true { showNotice(message(for: outcome)) }
                 if !outcome.succeeded { playFailureSound(outcome.failure) }
             } catch {
                 recordSaveFailure(userInitiated: true)
