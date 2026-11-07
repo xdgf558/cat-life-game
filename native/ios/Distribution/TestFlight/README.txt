@@ -1,4 +1,8 @@
-最新上传：0.15.2（56）交换与用品 UI、布置入口及备份体验修复，2026-11-07 21:55（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；浏览器的 App Store Connect 登录已过期。未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+最新上传：0.16.0（57）猫咪成长与陪伴、高阶职业和商店布局修复，2026-11-08 02:42（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+PR #20 已合并，合并提交 70ce3bfdfef87a3ee34c0fe3587c0e757fd792dd；本地 main 已同步，完整源码树与已审查的 7e8b475c0ba291aa53ef64187ec07b44ae5d1c26 一致。上传 CatLife-0.16.0-57-review-p3.xcarchive，包含岁/月显示、公猫怀孕校验兼容及成长独立上限三项复审修复，未使用此前 final 候选。归档二进制 SHA256：a93604174caf72e49103c5ba414e43efa8cdb8cb1dc4175f3e4ef0915ab6f814；上传前后核对 146 项源码/配置指纹一致。
+版本、Bundle ID、严格签名、dSYM、隐私清单和 Release 测试入口隔离均已校验；不自动修改构建号，不限制为 Internal Only。371 项 Core 和 205 项 App 测试为同源码合并前验证，本次不重复计作重跑。大小屏 UI 范围及限制见 ../../QA/cat-growth-build57-summary.md；本轮未安装真实设备或修改玩家存档。目标 App ID 6830428076，Bundle ID com.stationcat.catlife.native。测试内容见 cat-growth-0.16.0-57.txt。
+
+历史上传：0.15.2（56）交换与用品 UI、布置入口及备份体验修复，2026-11-07 21:55（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；浏览器的 App Store Connect 登录已过期。未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
 PR #19 已合并，合并提交 3cf1d52abfb3a2e14ccf65121d2efef158d87927；本地 main 已同步，合并源码树与验证提交 1c70bade5f6397177cb95abbb8ca8b76cdb7e760 完全一致。上传 CatLife-0.15.2-56-final.xcarchive，包含满房跳转的导航修复，未使用较早的 reviewed 候选。归档二进制 SHA256：da65553a90f95662474b10d51963f2e1dfdc2252cbf5b7c6ac483ba868da92ad。上传前后核对 143 个源码/配置文件指纹一致。
 版本、Bundle ID、严格签名、dSYM、隐私清单和 Release 测试入口隔离均已校验。201 项 App 测试和 5 类交互回归的范围及失败修正历史见 ../../QA/market-review-build56-summary.md；本轮未安装真实设备或修改玩家存档。目标 App ID 6830428076（打工养猫日记），Bundle ID com.stationcat.catlife.native。测试内容见 market-fixes-0.15.2-56.txt。0.15.0（54）及 0.15.1（55）未单独上传，本次一并交付。
 
@@ -82,7 +86,7 @@ No registration, sign-in, or demo account is required. Open the app, wait for lo
 - 外测首个构建需经 Apple TestFlight App Review（Beta Review）；上传成功、处理完成、审核通过和测试开放须分别记录，不能混写为已发布。
 - 审核联系人及用户授权使用的反馈邮箱已填写并保存到 TestFlight；仓库不记录实际邮箱、电话号码等联系资料。
 - 隐私政策 URL 尚未提供，后续补充真实链接；它不是 Beta 测试资料的通用必填字段，不单独阻断本次 Beta 提交，也不使用占位链接。
-- 本轮测试固定使用 0.9.2（37）的提交及归档，后续开发另开 codex/ 分支；新交付按仓库规则同步递增对外版本号和构建号。
+- 首轮 0.9.2 历史交接：当时测试固定使用 0.9.2（37）的提交及归档，后续开发另开 codex/ 分支；新交付按仓库规则同步递增对外版本号和构建号。
 - 后续存档变更必须兼容已有进度；归档、上传及真机验证分别留下脱敏记录，不在本目录放签名私钥、设备标识或玩家真实存档。
 - 后续由用户完成：内外测组配置、Beta Review、TestFlight 安装与反馈；隐私政策 URL 另行补充。
 
