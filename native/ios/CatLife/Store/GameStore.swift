@@ -45,6 +45,7 @@ final class GameStore {
                 isPresentingExchange = false
                 supplyPicker = nil
                 furniturePurchaseNotice = nil
+                furniturePurchaseItemID = nil
                 playNavigationSound()
             }
         }
@@ -54,6 +55,7 @@ final class GameStore {
             if oldValue != isShowingSettings {
                 supplyPicker = nil
                 furniturePurchaseNotice = nil
+                furniturePurchaseItemID = nil
                 playNavigationSound()
             }
         }
@@ -62,6 +64,8 @@ final class GameStore {
     var selectedInventorySupply: SupplyKind = .food
     var supplyPicker: SupplyKind?
     var furniturePurchaseNotice: String?
+    private(set) var furniturePurchaseItemID: String?
+    private(set) var selectedStoredFurnitureID: String?
     var isFurnitureTrayExpanded = true
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
@@ -605,6 +609,7 @@ final class GameStore {
         isPresentingExchange = false
         supplyPicker = nil
         furniturePurchaseNotice = nil
+        furniturePurchaseItemID = nil
         clearSaveFailure()
         now = importDate
         lastSyncCheck = importDate
@@ -825,21 +830,32 @@ final class GameStore {
     }
     func buyFurniture(offerID: String) {
         let generation = saveSceneGeneration
+        let ownedIDs = Set(snapshot?.inventory.furniture.map(\.id) ?? [])
         perform(presentSuccess: { [weak self] in
             guard let self, self.saveSceneGeneration == generation,
                   self.activeSheet == .shop, !self.isShowingSettings else { return false }
             self.furniturePurchaseNotice = offerID
+            self.furniturePurchaseItemID = self.snapshot?.inventory.furniture.first { !ownedIDs.contains($0.id) }?.id
             return true
         }) { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
     }
 
     func decoratePurchasedFurniture() {
-        guard !isBusy, let offerID = furniturePurchaseNotice, let snapshot,
-              ShopCatalog.ownedFurnitureCount(offerID: offerID, in: snapshot.inventory.furniture) > 0 else { return }
+        guard !isBusy, furniturePurchaseNotice != nil, let itemID = furniturePurchaseItemID,
+              storedFurniture.contains(where: { $0.id == itemID }) else { return }
+        if !canPlaceMoreFurniture && canUpgradeHome {
+            openHomeUpgrade()
+            return
+        }
         isShowingSettings = false
         activeSheet = nil
         beginDecorating()
         isFurnitureTrayExpanded = true
+        if canPlaceMoreFurniture {
+            selectedFurnitureID = nil
+            selectedStoredFurnitureID = itemID
+        }
+        else { showNotice(furnitureCapacityNotice) }
     }
     func upgradeHome(toLevel: Int) {
         guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
@@ -866,6 +882,7 @@ final class GameStore {
         draftFurniture = snapshot.home.furniture
         draftFurnitureOrientations = [:]
         selectedFurnitureID = nil
+        selectedStoredFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
         isFurnitureTrayExpanded = true
@@ -1026,11 +1043,13 @@ final class GameStore {
         // Realtime autosaves must not discard a user's in-progress layout draft.
         // Only an explicit layout commit freezes further edits.
         guard isDecorating, !isSavingLayout else { return }
+        selectedStoredFurnitureID = nil
         draftBowlPosition = point
     }
 
     func selectFurniture(id: String?) {
         guard isDecorating, !isSavingLayout else { return }
+        selectedStoredFurnitureID = nil
         guard let id else { selectedFurnitureID = nil; return }
         guard snapshot?.inventory.furniture.contains(where: { $0.id == id }) == true,
               draftFurniture?.contains(where: { $0.itemID == id }) == true else { return }
@@ -1049,6 +1068,7 @@ final class GameStore {
             furniture.append(FurniturePlacement(itemID: id, position: point))
         }
         draftFurniture = furniture
+        selectedStoredFurnitureID = nil
         selectedFurnitureID = id
     }
 
@@ -1074,6 +1094,7 @@ final class GameStore {
         if !isDecorating { beginDecorating() }
         guard isDecorating else { return }
         activeSheet = nil
+        selectedStoredFurnitureID = nil
         selectedFurnitureID = id
         placingFurnitureID = id
         isResolvingLayout = true
@@ -1104,6 +1125,7 @@ final class GameStore {
         draftFurniture = nil
         draftFurnitureOrientations = nil
         selectedFurnitureID = nil
+        selectedStoredFurnitureID = nil
         placingFurnitureID = nil
         isResolvingLayout = false
         isDecorating = false

@@ -15,6 +15,7 @@ final class Design55StoreTests: XCTestCase {
         var state = GameSnapshot.fresh()
         state.player.level = 8
         state.player.gold = 5_000
+        state.home.roomLevel = 3
         state.inventory.premiumFood = 2
         state.inventory.premiumLitter = 2
         state.settings.language = .simplifiedChinese
@@ -66,8 +67,80 @@ final class Design55StoreTests: XCTestCase {
         XCTAssertTrue(store.isDecorating && store.isFurnitureTrayExpanded)
         XCTAssertNil(store.placingFurnitureID)
         XCTAssertNil(store.selectedFurnitureID)
+        XCTAssertEqual(store.selectedStoredFurnitureID, "shop_oak_bookcase_1")
+        XCTAssertNil(store.furniturePurchaseItemID)
         XCTAssertEqual(store.draftFurniture, purchased.home.furniture)
         XCTAssertEqual(store.snapshot, purchased, "The purchase CTA opens the tray without placing or resaving furniture.")
+    }
+
+    @MainActor
+    func testFullRoomPurchaseGoesToUpgradeOrStorageWithoutChangingLayout() async throws {
+        for level in [1, 3] {
+            var initial = seed()
+            initial.home.roomLevel = level
+            let capacity = try XCTUnwrap(HomeCatalog.level(level)).capacity
+            while initial.home.furniture.count < capacity {
+                let id = "capacity-test-\(initial.home.furniture.count)"
+                initial.inventory.furniture.append(FurnitureItem(id: id, kind: .plant))
+                initial.home.furniture.append(FurniturePlacement(itemID: id, position: .init(x: 0.6, y: 0.7)))
+            }
+            let store = makeStore(Design55Repository(initial))
+            await store.load()
+            store.enterHome()
+            store.activeSheet = .shop
+            store.buyFurniture(offerID: "sunrise_art")
+            try await eventually { !store.isBusy }
+            XCTAssertEqual(store.furniturePurchaseItemID, "shop_sunrise_art_1")
+            let purchased = store.snapshot
+            store.decoratePurchasedFurniture()
+            XCTAssertEqual(store.snapshot, purchased)
+            XCTAssertFalse(store.canPlaceMoreFurniture)
+            XCTAssertNil(store.selectedStoredFurnitureID)
+            XCTAssertNil(store.placingFurnitureID)
+            if level == 1 {
+                XCTAssertEqual(store.activeSheet, .upgrade)
+                XCTAssertFalse(store.isDecorating)
+            } else {
+                XCTAssertNil(store.activeSheet)
+                XCTAssertTrue(store.isDecorating && store.isFurnitureTrayExpanded)
+                XCTAssertEqual(store.draftFurniture, purchased?.home.furniture)
+                XCTAssertEqual(store.toast, store.furnitureCapacityNotice)
+            }
+        }
+    }
+
+    @MainActor
+    func testRepeatedPurchaseFocusesNewestItemAndClearsOnSelectionCancelAndImport() async throws {
+        let store = makeStore(Design55Repository(seed()))
+        await store.load()
+        store.enterHome()
+        store.activeSheet = .shop
+        for _ in 0..<2 {
+            store.buyFurniture(offerID: "oak_bookcase")
+            try await eventually { !store.isBusy }
+        }
+        XCTAssertEqual(store.furniturePurchaseItemID, "shop_oak_bookcase_2")
+        store.decoratePurchasedFurniture()
+        XCTAssertEqual(store.selectedStoredFurnitureID, "shop_oak_bookcase_2")
+        XCTAssertNil(store.placingFurnitureID)
+        store.selectFurniture(id: "catBed")
+        XCTAssertNil(store.selectedStoredFurnitureID)
+        store.cancelDecorating()
+        XCTAssertNil(store.selectedStoredFurnitureID)
+        store.activeSheet = .shop
+        store.buyFurniture(offerID: "sunrise_art")
+        try await eventually { !store.isBusy }
+        store.decoratePurchasedFurniture()
+        XCTAssertEqual(store.selectedStoredFurnitureID, "shop_sunrise_art_1")
+        store.cancelDecorating()
+        store.activeSheet = .shop
+        store.buyFurniture(offerID: "sunrise_art")
+        try await eventually { !store.isBusy }
+        XCTAssertNotNil(store.furniturePurchaseItemID)
+        let archive = try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: seed()))
+        try await store.importSaveArchive(archive)
+        XCTAssertNil(store.selectedStoredFurnitureID)
+        XCTAssertNil(store.furniturePurchaseItemID)
     }
 
     @MainActor

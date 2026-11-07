@@ -35,6 +35,13 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("furniturePurchaseBanner", in: app).exists)
         waitForObservedValue("layoutTrayToggle", "expanded", in: app)
         waitForElement("layoutStored_" + itemID, in: app)
+        waitForObservedValue("selectedFurnitureName", "橡木矮书架", in: app)
+        let selectedPurchase = element("layoutStored_" + itemID, in: app)
+        XCTAssertTrue(selectedPurchase.isSelected, "The purchased item must be highlighted in the tray.")
+        XCTAssertTrue(selectedPurchase.isHittable, "The purchase shortcut must scroll the tray to the new item.")
+        XCTAssertFalse(element("storeFurnitureButton", in: app).isEnabled,
+                       "A selected bag item is still unplaced and cannot be stored again.")
+        attachScreenshot(app, named: "New furniture — purchased bookcase selected without changing the layout")
 
         tapAnimationControl("layoutStored_" + itemID, in: app)
         let placed = waitForFurniture(in: app, timeout: 30, description: "new bookcase safely placed in expanded room") {

@@ -51,7 +51,9 @@ struct FurniturePurchaseBanner: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(GameStrings.format("shop.design.purchased", GameStrings.text(offer.nameKey)))
                     .font(.subheadline.weight(.heavy))
-                Text(GameStrings.text(offer.kind.supportsMirroring ? "shop.design.placeFloorHint" : "shop.design.placeWallHint"))
+                Text(store.canPlaceMoreFurniture
+                     ? GameStrings.text(FurnitureCatalog.metadata(for: offer.kind).isWall ? "shop.design.placeWallHint" : "shop.design.placeFloorHint")
+                     : store.furnitureCapacityNotice)
                     .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
             }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
         }
@@ -59,7 +61,9 @@ struct FurniturePurchaseBanner: View {
 
     private var decorateButton: some View {
         Button { store.decoratePurchasedFurniture() } label: {
-            Text(GameStrings.text("shop.design.decorate")).font(.subheadline.weight(.heavy))
+            Text(GameStrings.text(store.canPlaceMoreFurniture ? "shop.design.decorate"
+                : store.canUpgradeHome ? "shop.design.upgrade" : "shop.design.makeRoom"))
+                .font(.subheadline.weight(.heavy))
         }
         .buttonStyle(ShopPriceButtonStyle()).disabled(store.isBusy)
         .accessibilityIdentifier("shopDecoratePurchaseButton")

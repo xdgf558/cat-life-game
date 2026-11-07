@@ -178,6 +178,10 @@ struct RoomHomeHUD: View {
 struct RoomArrangementPanel: View {
     let store: GameStore
     private var collapsed: Bool { !store.isFurnitureTrayExpanded }
+    private var selectedItem: FurnitureItem? {
+        store.storedFurniture.first { $0.id == store.selectedStoredFurnitureID } ?? store.selectedFurniture
+    }
+    private var selectedName: String { selectedItem.map(GameStrings.furnitureName) ?? store.selectedFurnitureName }
 
     var body: some View {
         VStack(spacing: 8) {
@@ -191,15 +195,15 @@ struct RoomArrangementPanel: View {
             .accessibilityValue(collapsed ? "collapsed" : "expanded")
             if !collapsed {
             HStack(spacing: 10) {
-                GameIcon(asset: store.selectedFurniture.map { FurnitureCatalog.metadata(for: $0.kind).assetName } ?? "bowl-empty",
+                GameIcon(asset: selectedItem.map { FurnitureCatalog.metadata(for: $0.kind).assetName } ?? "bowl-empty",
                          symbol: "sofa.fill", size: 42)
-                    .scaleEffect(x: store.selectedFurniture?.orientation == .mirrored ? -1 : 1, y: 1)
+                    .scaleEffect(x: selectedItem?.orientation == .mirrored ? -1 : 1, y: 1)
                     .padding(5).background(RoomTheme.paleCoral, in: RoundedRectangle(cornerRadius: 16))
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(GameStrings.format("layout.selected", store.selectedFurnitureName))
+                    Text(GameStrings.format("layout.selected", selectedName))
                         .font(.system(size: 16, weight: .heavy)).lineLimit(2)
                         .accessibilityIdentifier("selectedFurnitureName")
-                        .accessibilityValue(store.selectedFurnitureName)
+                        .accessibilityValue(selectedName)
                     Text(orientationHint).font(.system(size: 11, weight: .bold))
                         .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("layoutOrientationHint")
@@ -220,6 +224,7 @@ struct RoomArrangementPanel: View {
             }
             .padding(4).background(RoomTheme.chipBg, in: Capsule())
             .opacity(supportsMirroring ? 1 : 0.45)
+            ScrollViewReader { proxy in
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 10) {
                     ForEach(store.storedFurniture) { item in
@@ -229,15 +234,23 @@ struct RoomArrangementPanel: View {
                                 Text(GameStrings.furnitureName(item)).font(.system(size: 10, weight: .bold)).lineLimit(1)
                             }
                             .frame(width: 70, height: 70).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
-                            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(RoomTheme.wood, style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
+                            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(
+                                store.selectedStoredFurnitureID == item.id ? RoomTheme.mint : RoomTheme.wood,
+                                style: StrokeStyle(lineWidth: 2, dash: store.selectedStoredFurnitureID == item.id ? [] : [5, 4])))
                         }
                         .buttonStyle(.plain).accessibilityIdentifier("layoutStored_\(item.id)")
+                        .accessibilityAddTraits(store.selectedStoredFurnitureID == item.id ? .isSelected : [])
+                        .id(item.id)
                         .disabled(store.isBusy || store.isResolvingLayout || store.placingFurnitureID != nil || !store.canPlaceMoreFurniture)
                     }
                     tool("layout.furnitureBag", asset: "icon-furniture-bag55", symbol: "backpack.fill", id: "furnitureInventoryButton") { store.openFurnitureInventory() }
                     tool("homeUpgrade.entry", asset: "icon-home-upgrade55", symbol: "house.and.flag.fill", id: "homeUpgradeButton") { store.openHomeUpgrade() }
                     tool("tab.shop", asset: "icon-decor-shop55", symbol: "plus.circle.fill", id: "layoutShopButton") { store.activeSheet = .shop }
                 }.padding(.vertical, 3)
+            }
+            .onChange(of: store.selectedStoredFurnitureID, initial: true) { _, id in
+                if let id { proxy.scrollTo(id, anchor: .center) }
+            }
             }
             }
         }
@@ -251,6 +264,7 @@ struct RoomArrangementPanel: View {
 
     private var supportsMirroring: Bool { store.selectedFurniture?.kind.supportsMirroring == true }
     private var orientationHint: String {
+        if store.selectedStoredFurnitureID != nil { return GameStrings.text("shop.design.tapSelected") }
         guard supportsMirroring, let item = store.selectedFurniture else {
             return GameStrings.text(store.selectedFurniture == nil ? "layout.bowlCannotFlip" : "layout.wallCannotFlip")
         }
@@ -276,7 +290,7 @@ struct RoomArrangementPanel: View {
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .disabled(store.isBusy || store.isSavingLayout || store.isResolvingLayout || store.placingFurnitureID != nil)
+        .disabled(store.isBusy || store.isSavingLayout || store.isResolvingLayout || store.placingFurnitureID != nil || store.selectedStoredFurnitureID != nil)
         .accessibilityIdentifier("furnitureOrientation_\(orientation.rawValue)")
         .accessibilityAddTraits(selected ? .isSelected : [])
         .accessibilityValue(supportsMirroring ? GameStrings.text("layout.orientation.\(store.selectedFurniture?.orientation.rawValue ?? "normal")") : orientationHint)

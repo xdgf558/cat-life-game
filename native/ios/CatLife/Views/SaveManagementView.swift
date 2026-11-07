@@ -15,9 +15,10 @@ struct SaveManagementView: View {
     @State private var isImportingFile = false
     @State private var isExportingFile = false
     @State private var presentedExportDocument: SaveArchiveDocument?
-    @State private var presentedExportFilename = "CatLife-Backup"
+    @State private var presentedExportFilename = ""
     @State private var presentedExportCompletion: ((Result<URL, Error>?) -> Void)?
     @State private var exportDocument: SaveArchiveDocument?
+    @State private var exportFilename = ""
     @State private var exportURL: URL?
     @State private var exportDate: Date?
     @State private var exportSize: Int?
@@ -191,7 +192,7 @@ struct SaveManagementView: View {
         VStack(alignment: .leading, spacing: 14) {
             cardHeading("saveTransfer.prepareExport", subtitle: "saveTransfer.backupHint", symbol: "shippingbox", tint: RoomTheme.darkMint)
             if exportDocument != nil, let exportDate {
-                SaveTransferPostcard(filename: "CatLife-Backup.json", byteCount: exportSize,
+                SaveTransferPostcard(filename: exportFilename + ".json", byteCount: exportSize,
                     subtitle: GameStrings.format("saveTransfer.preparedAt", dateText(exportDate)), prepared: true)
                     .accessibilityIdentifier("saveExportPrepared")
                 if store.hasSaveFailure {
@@ -222,7 +223,7 @@ struct SaveManagementView: View {
         Button {
             statusKey = nil
             presentedExportDocument = exportDocument
-            presentedExportFilename = "CatLife-Backup"
+            presentedExportFilename = exportFilename
             presentedExportCompletion = nil
             isExportingFile = true
         } label: {
@@ -430,12 +431,15 @@ struct SaveManagementView: View {
             do {
                 let data = try await store.exportSaveArchive()
                 let prepared = try await Task.detached {
+                    let exportedAt = try NativeSaveTransfer.decode(data).exportedAt
+                    let filename = SaveArchiveFiles.backupFilename(exportedAt: exportedAt)
                     // FileExporter can write the in-memory document to another provider
                     // even when local storage cannot create a ShareLink attachment.
-                    (try? SaveArchiveFiles.prepareShareFile(data), try NativeSaveTransfer.decode(data).exportedAt)
+                    return (try? SaveArchiveFiles.prepareShareFile(data, filename: filename), exportedAt, filename)
                 }.value
                 exportDocument = SaveArchiveDocument(data: data)
                 exportURL = prepared.0; exportDate = prepared.1; exportSize = data.count
+                exportFilename = prepared.2
             } catch { report(error) }
         }
     }

@@ -79,6 +79,51 @@ extension RoomHomeUITests {
     }
 
     @MainActor
+    func testMarketNeighborNavigationCannotBuildAReturnLoop() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--community-fixture"]
+        launchAndEnterHome(app)
+        openExchangeMarket(in: app)
+        scrollCareerPage("exchangeMarketScroll", to: "marketOffer_mira_feast", in: app)
+        tapAnimationControl("marketOffer_mira_feast", in: app)
+        waitForElement("neighborDetail_neighbor_mira", in: app)
+        XCTAssertFalse(element("neighborExchangeButton", in: app).exists,
+                       "A neighbor reached from the market must not push another market.")
+        tapAnimationControl("neighborBackButton", in: app)
+        waitForElement("exchangeMarketScroll", in: app)
+        tapAnimationControl("marketBackButton", in: app)
+        waitForElement("townMapScroll", in: app)
+
+        tapAnimationControl("townPlot_street", in: app)
+        scrollCareerPage("townMapScroll", to: "townEnter_street", in: app)
+        tapAnimationControl("townEnter_street", in: app)
+        tapAnimationControl("neighborCard_neighbor_mira", in: app)
+        scrollCareerPage("neighborDetail_neighbor_mira", to: "neighborExchangeButton", in: app)
+        tapAnimationControl("neighborExchangeButton", in: app)
+        waitForElement("exchangeMarketScroll", in: app)
+        scrollCareerPage("exchangeMarketScroll", to: "marketOffer_mira_feast", in: app)
+        tapAnimationControl("marketOffer_mira_feast", in: app)
+        waitForElement("neighborDetail_neighbor_mira", in: app)
+        XCTAssertFalse(element("neighborExchangeButton", in: app).exists,
+                       "The market entered from a neighbor must also terminate the forward navigation chain.")
+        tapAnimationControl("neighborBackButton", in: app)
+        waitForElement("exchangeMarketScroll", in: app)
+        tapAnimationControl("marketBackButton", in: app)
+        scrollCareerPage("neighborDetail_neighbor_mira", to: "neighborExchangeButton", in: app)
+        XCTAssertTrue(element("neighborExchangeButton", in: app).isHittable,
+                      "Returning restores the original neighbor's exchange entry.")
+        tapAnimationControl("neighborBackButton", in: app)
+        waitForElement("communityDirectory", in: app)
+        tapAnimationControl("communityBackButton", in: app)
+        waitForElement("townMapScroll", in: app)
+        attachScreenshot(app, named: "Market — both entry paths return to town without a navigation loop")
+        tapAnimationControl("tabHome", in: app)
+        waitForObservedValue("goldCount", "5,000", in: app)
+        waitForObservedValue("foodCount", "3", in: app)
+    }
+
+    @MainActor
     func testExchangeFiltersPaginationLanguagesAndLargeType() throws {
         verifyExchangeLanguagesAtLargestType(["zh-Hans", "zh-Hant", "en"])
     }

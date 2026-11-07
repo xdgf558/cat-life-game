@@ -66,7 +66,7 @@ struct ExchangeMarketView: View {
                 }
             }
             .navigationDestination(isPresented: Binding(get: { visitID != nil }, set: { if !$0 { visitID = nil } })) {
-                if let visitID { NeighborDetailView(store: store, neighborID: visitID) }
+                if let visitID { NeighborDetailView(store: store, neighborID: visitID, showsExchangeEntry: false) }
             }
             .navigationDestination(isPresented: $showsGiftShop) {
                 CommunityGiftView(store: store, onClose: { showsGiftShop = false })

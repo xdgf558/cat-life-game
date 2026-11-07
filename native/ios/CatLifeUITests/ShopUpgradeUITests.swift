@@ -2,6 +2,38 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testFurniturePurchaseInFullRoomOffersUpgradeWithoutChangingLayout() throws {
+        continueAfterFailure = false
+        let app = launchShopUpgradeHome()
+        let initial = try expansionState(in: app)
+        tapAnimationControl("tabShop", in: app)
+        tapAnimationControl("shopCategory_furniture", in: app)
+        scrollCareerPage("destinationScroll", to: "shopItem_potted_plant", in: app)
+        tapAnimationControl("shopItem_potted_plant", in: app)
+        scrollCareerPage("shopDetailScroll", to: "shopBuy_potted_plant", in: app)
+        tapAnimationControl("shopBuy_potted_plant", in: app)
+        waitForObservedValue("shopOwned_potted_plant", "1", in: app)
+        waitForElement("furniturePurchaseBanner", in: app)
+        waitForLabel("shopDecoratePurchaseButton", "升级", in: app, contains: true)
+        attachScreenshot(app, named: "Furniture purchase — full room offers upgrade")
+        tapAnimationControl("shopDecoratePurchaseButton", in: app)
+        waitForObservedValue("homeUpgradeCurrentLevel", "1", in: app)
+        scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeGold", in: app)
+        waitForObservedValue("homeUpgradeGold", "4,880", in: app)
+        XCTAssertFalse(element("layoutReturnButton", in: app).exists,
+                       "A full-room purchase shortcut must not enter an unusable arrangement session.")
+        XCTAssertFalse(element("furniturePurchaseBanner", in: app).exists)
+        tapAnimationControl("tabHome", in: app)
+        _ = waitForFurniture(in: app, description: "return from full-room upgrade suggestion") {
+            $0.phase == "idle" && !$0.pending
+        }
+        let returned = try expansionState(in: app)
+        XCTAssertEqual(returned.number("roomLevel"), 1)
+        XCTAssertEqual(returned.savedLayout, initial.savedLayout)
+        waitForObservedValue("goldCount", "4,880", in: app)
+    }
+
+    @MainActor
     func testShopPurchasesEquipmentAndFurniturePersistWithoutDuplicateCharges() throws {
         continueAfterFailure = false
         let app = launchShopUpgradeHome()

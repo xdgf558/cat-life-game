@@ -204,7 +204,9 @@ struct RoomHomeView: View {
                             }
                         }
                     }
-                }.tint(RoomTheme.darkMint)
+                }
+                .id(store.activeSheet)
+                .tint(RoomTheme.darkMint)
             case nil: EmptyView()
             }
         }
