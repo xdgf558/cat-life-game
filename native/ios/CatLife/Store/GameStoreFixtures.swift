@@ -126,6 +126,15 @@ struct GameStoreFixtures {
                                           health: 100, now: now, appearance: .blue))
             }
             initialSnapshot = value
+        } else if arguments.contains("--cat-growth-fixture") {
+            let recorded = now.addingTimeInterval(-3 * 86_400)
+            var value = GameSnapshot.fresh(now: recorded)
+            value.cats[0].growthState = .legacy(appearance: .orange, now: recorded)
+            value.cats[0].intimacy = 24
+            value.cats.append(CatState(id: CatCatalog.cowCatID, name: "牛奶", intimacy: 75,
+                                      now: now.addingTimeInterval(-2 * 86_400), appearance: .cow))
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
         } else if arguments.contains("--cat-collection-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.cats += (2...9).map { index in
@@ -135,15 +144,20 @@ struct GameStoreFixtures {
             }
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
             initialSnapshot = value
-        } else if arguments.contains("--shop-upgrade-fixture") || arguments.contains("--room-zoom-fixture") {
+        } else if arguments.contains("--shop-upgrade-fixture") || arguments.contains("--room-zoom-fixture") || arguments.contains("--shop-layout-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 4
             value.player.gold = 5000
             if arguments.contains("--room-zoom-fixture") { value.home.roomLevel = 3 }
+            if arguments.contains("--shop-layout-fixture") {
+                _ = GameEngine.purchaseFurniture(&value, offerID: "potted_plant", now: now)
+                value.player.gold = 455
+                if arguments.contains("--shop-layout-level2") { value.player.level = 2 }
+            }
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
             initialSnapshot = value
         } else if let fixture = arguments.first(where: {
-            ["--career-completion-fixture", "--career-active-fixture", "--career-level10-fixture",
+            ["--career-completion-fixture", "--career-active-fixture", "--career-level10-fixture", "--career-level20-fixture",
              "--player-equipped-active-fixture"].contains($0)
         }) {
             let offset: TimeInterval = fixture == "--player-equipped-active-fixture" ? -57 :
@@ -157,7 +171,7 @@ struct GameStoreFixtures {
                 value.player.exp = 90
                 _ = GameEngine.startWork(&value, now: started)
             } else {
-                value.player.level = fixture == "--career-active-fixture" ? 4 : 10
+                value.player.level = fixture == "--career-active-fixture" ? 4 : (fixture == "--career-level20-fixture" ? 20 : 10)
                 value.player.stamina = 100
                 value.player.mood = 100
                 if fixture == "--career-active-fixture" {

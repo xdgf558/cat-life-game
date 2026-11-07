@@ -50,11 +50,11 @@ final class PremiumSupplyStoreTests: XCTestCase {
                 XCTAssertNotEqual(GameStrings.text(supply.nameKey), supply.nameKey)
                 XCTAssertNotEqual(GameStrings.text(supply.detailKey), supply.detailKey)
             }
-            XCTAssertNotEqual(GameStrings.text("releases.56.body"), "releases.56.body")
+            XCTAssertNotEqual(GameStrings.text("releases.57.body"), "releases.57.body")
         }
-        XCTAssertEqual(AppVersion.current.version, "0.15.2")
-        XCTAssertEqual(AppVersion.current.build, "56")
-        XCTAssertEqual(AppRelease.recent.map(\.build), [56, 55, 54])
+        XCTAssertEqual(AppVersion.current.version, "0.16.0")
+        XCTAssertEqual(AppVersion.current.build, "57")
+        XCTAssertEqual(AppRelease.recent.map(\.build), [57, 56, 55])
     }
 
     @MainActor

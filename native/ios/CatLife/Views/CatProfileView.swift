@@ -8,6 +8,7 @@ struct CatProfileView: View {
     @Binding var isSaving: Bool
     let health: () -> Void
     let rename: () -> Void
+    let growth: () -> Void
     @State private var selectionFailed = false
     private var cat: CatState? { store.snapshot?.cats.first { $0.id == catID } }
 
@@ -64,6 +65,21 @@ struct CatProfileView: View {
                         .font(.footnote).foregroundStyle(RoomTheme.secondary)
                         .fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
                         .accessibilityIdentifier("catCompanionHint").accessibilityValue(selectionFailed ? "failed" : "ready")
+                    Button(action: growth) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "leaf.fill").font(.title2).foregroundStyle(RoomTheme.darkMint)
+                                .frame(width: 44, height: 44).background(RoomTheme.paleMint, in: Circle())
+                            VStack(alignment: .leading, spacing: 5) {
+                                Text(GameStrings.text("catGrowth.title")).font(.subheadline.weight(.bold))
+                                Text(GameStrings.text("catGrowth.entryHint"))
+                                    .font(.caption).foregroundStyle(RoomTheme.secondary)
+                            }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
+                            Image(systemName: "chevron.right").font(.footnote.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
+                        }
+                        .padding(14).background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 22))
+                    }
+                    .buttonStyle(.plain).disabled(isSaving)
+                    .accessibilityIdentifier("catGrowthEntry")
                     attributeGroup("catProfile.daily") {
                         stat("stat.satiety", value: cat.satiety, identifier: "catProfileSatiety")
                         stat("stat.cleanliness", value: cat.cleanliness, identifier: "catProfileCleanliness")

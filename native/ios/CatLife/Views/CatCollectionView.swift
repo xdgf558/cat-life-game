@@ -15,7 +15,7 @@ struct CatCollectionView: View {
     let embedded: Bool
     var onClose: (() -> Void)?
 
-    private enum Route: Hashable { case profile(String), name(String), adoption(String), health(String) }
+    private enum Route: Hashable { case profile(String), name(String), adoption(String), health(String), growth(String) }
     enum Filter: String, CaseIterable { case all, owned, unowned }
     private enum Entry: Identifiable {
         case owned(CatState), adoption(CatAdoptionOffer)
@@ -54,9 +54,16 @@ struct CatCollectionView: View {
                     switch route {
                     case .profile(let id):
                         CatProfileView(store: store, catID: id, isSaving: $isSaving,
-                                       health: { path.append(.health(id)) }, rename: { path.append(.name(id)) })
+                                       health: { path.append(.health(id)) }, rename: { path.append(.name(id)) },
+                                       growth: { path.append(.growth(id)) })
                             .navigationBarBackButtonHidden().toolbar(.visible, for: .navigationBar)
                             .toolbar { backButton("catProfileBackButton"); doneButton }
+                    case .growth(let id):
+                        CatGrowthView(store: store, catID: id, isSaving: $isSaving) {
+                            close(); store.inspectedCatID = nil; store.activeSheet = nil
+                        }
+                        .navigationBarBackButtonHidden().toolbar(.visible, for: .navigationBar)
+                        .toolbar { backButton("catGrowthBackButton"); doneButton }
                     case .health(let id):
                         HospitalCatDetailView(store: store, catID: id, isSaving: $isSaving) { go(.work) }
                             .navigationBarBackButtonHidden().toolbar(.visible, for: .navigationBar)

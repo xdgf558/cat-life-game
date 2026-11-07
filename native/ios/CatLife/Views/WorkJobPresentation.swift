@@ -19,6 +19,8 @@ enum WorkJobPresentation {
         case "job_petshop": "job-petshop-cartoon"
         case "job_it_engineer": "job-it-cartoon"
         case "job_cat_cafe_manager": "job-cafe-cartoon"
+        case "job_pet_photographer": "job-photographer-cartoon"
+        case "job_pet_brand_designer": "job-designer-cartoon"
         default: ""
         }
     }
@@ -29,6 +31,8 @@ enum WorkJobPresentation {
         case "job_petshop": "pawprint.fill"
         case "job_it_engineer": "laptopcomputer"
         case "job_cat_cafe_manager": "cup.and.saucer.fill"
+        case "job_pet_photographer": "camera.fill"
+        case "job_pet_brand_designer": "paintpalette.fill"
         default: "newspaper.fill"
         }
     }
@@ -49,6 +53,8 @@ struct WorkCareerCard: View {
         case "job_petshop": RoomTheme.coral
         case "job_it_engineer": RoomTheme.sky
         case "job_cat_cafe_manager": RoomTheme.lilac
+        case "job_pet_photographer": RoomTheme.coral
+        case "job_pet_brand_designer": RoomTheme.sky
         default: RoomTheme.darkMint
         }
     }

@@ -1,7 +1,7 @@
 import Foundation
 
-/// The native career milestone uses the web game's base job values. Random
-/// events, hunger and mood-dependent duration modifiers are separate systems.
+/// The first five careers retain the web game's base values; higher tiers are
+/// native additions. Random events and need-dependent modifiers are separate.
 public struct WorkJob: Identifiable, Equatable, Sendable {
     public let id: String
     public let unlockLevel: Int
@@ -23,7 +23,11 @@ public enum WorkCatalog {
         .init(id: "job_it_engineer", unlockLevel: 6, durationMinutes: 10,
               staminaCost: 30, moodCost: 12, goldReward: 400, expReward: 100),
         .init(id: "job_cat_cafe_manager", unlockLevel: 10, durationMinutes: 30,
-              staminaCost: 50, moodCost: 20, goldReward: 800, expReward: 200)
+              staminaCost: 50, moodCost: 20, goldReward: 800, expReward: 200),
+        .init(id: "job_pet_photographer", unlockLevel: 15, durationMinutes: 45,
+              staminaCost: 65, moodCost: 24, goldReward: 1_400, expReward: 320),
+        .init(id: "job_pet_brand_designer", unlockLevel: 20, durationMinutes: 60,
+              staminaCost: 80, moodCost: 28, goldReward: 2_000, expReward: 450)
     ]
 
     public static func job(id: String) -> WorkJob? {
