@@ -1196,12 +1196,13 @@ final class GameStore {
         }
     }
 
-    func inspectCat() {
+    func inspectCat(catID: String? = nil) {
         guard !isDecorating else { return }
-        let voice: GameSoundEffect = cat?.healthState?.illness != nil ? .catUnwell
-            : ((cat?.satiety ?? 100) < 50 ? .catHungry : .catHappy)
+        let inspected = catID.flatMap { id in snapshot?.cats.first { $0.id == id } } ?? cat
+        let voice: GameSoundEffect = inspected?.healthState?.illness != nil ? .catUnwell
+            : ((inspected?.satiety ?? 100) < 50 ? .catHungry : .catHappy)
         audio.play(voice, userInitiated: true)
-        inspectedCatID = cat?.id
+        inspectedCatID = inspected?.id
     }
 
     func openHospital(catID: String? = nil) {

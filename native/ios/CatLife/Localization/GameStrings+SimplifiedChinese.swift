@@ -403,6 +403,7 @@ extension GameStrings {
         "tasks.destination.care": "回家照顾",
         "tasks.destination.furnitureShop": "去商店",
         "tasks.destination.upgrade": "去升级",
+        "tasks.destination.neighbors": "去拜访",
         "tasks.rewardTitle": "奖励到手！",
         "tasks.rewardTask": "「%@」完成",
         "tasks.rewardDone": "好的",
@@ -1057,5 +1058,5 @@ extension GameStrings {
         "action.insufficientGold": "金币不够了，先去打工吧。", "action.insufficientStamina": "体力不足，先休息一会儿吧。",
         "action.full": "猫咪已经吃饱啦。", "accessibility.cat": "猫咪，点击查看档案",
         "accessibility.decorate": "布置房间，选择并移动家具和食盆", "accessibility.food": "猫粮库存",
-    ].merging(careers57Chinese) { _, new in new }.merging(design55Chinese) { _, new in new }.merging(marketDesign55Chinese) { _, new in new }.merging(supplyDesign55Chinese) { _, new in new }.merging(shopDesign55Chinese) { _, new in new }.merging(marketChinese) { _, new in new }.merging(furniture54Chinese) { _, new in new }.merging(suppliesChinese) { _, new in new }.merging(catGrowth57Chinese) { _, new in new }.merging(shopBrowseChinese) { _, new in new }.merging(homeExpansion58Chinese) { _, new in new }.merging(homeInventory58Chinese) { _, new in new }.merging(townMap58Chinese) { _, new in new }.merging(townMusic58Chinese) { _, new in new }
+    ].merging(careers57Chinese) { _, new in new }.merging(design55Chinese) { _, new in new }.merging(marketDesign55Chinese) { _, new in new }.merging(supplyDesign55Chinese) { _, new in new }.merging(shopDesign55Chinese) { _, new in new }.merging(marketChinese) { _, new in new }.merging(furniture54Chinese) { _, new in new }.merging(suppliesChinese) { _, new in new }.merging(catGrowth57Chinese) { _, new in new }.merging(shopBrowseChinese) { _, new in new }.merging(homeExpansion58Chinese) { _, new in new }.merging(homeInventory58Chinese) { _, new in new }.merging(townMap58Chinese) { _, new in new }.merging(townMusic58Chinese) { _, new in new }.merging(sharedHome59Chinese) { _, new in new }
 }

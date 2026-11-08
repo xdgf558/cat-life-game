@@ -5,6 +5,26 @@ import CatGameCore
 
 final class GameStoreTaskTests: XCTestCase {
     @MainActor
+    func testEveryCatalogTaskDestinationHasATranslatedButtonInEachLanguage() throws {
+        // Derive required keys from live tasks, not from dictionary parity: a key missing
+        // in all languages must still fail before it can appear verbatim on a task card.
+        let keys = Set(GameTaskCatalog.all.map { "tasks.destination.\($0.destination.rawValue)" })
+        for (language, dictionary, neighbors) in [
+            ("zh-Hans", GameStrings.chinese, "去拜访"),
+            ("zh-Hant", GameStrings.traditionalChinese, "去拜訪"),
+            ("en", GameStrings.english, "Visit neighbors")
+        ] {
+            for key in keys {
+                let text = try XCTUnwrap(dictionary[key], "Missing task button: \(language), \(key)")
+                XCTAssertFalse(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                               "Empty task button: \(language), \(key)")
+                XCTAssertNotEqual(text, key, "Untranslated task button: \(language), \(key)")
+            }
+            XCTAssertEqual(dictionary["tasks.destination.neighbors"], neighbors)
+        }
+    }
+
+    @MainActor
     func testClaimReceiptUsesCappedGoldAndIsAbsentOnSaveFailure() async throws {
         let maximumGold = 1_000_000_000
         var seed = try fedSnapshot()

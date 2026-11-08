@@ -24,7 +24,8 @@ final class CatActor: SKNode {
     }
 
     private enum Activity {
-        case feed(eatingPoint: CGPoint, facing: CGFloat, approach: [CGPoint], dockingPath: [CGPoint], returnPath: [CGPoint])
+        case feed(eatingPoint: CGPoint, facing: CGFloat, approach: [CGPoint], dockingPath: [CGPoint],
+                  returnPath: [CGPoint], onMealFinished: () -> Void)
         case clean(home: CGPoint)
         case play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint])
         case stroll(path: [CGPoint])
@@ -34,7 +35,7 @@ final class CatActor: SKNode {
             switch self {
             case let .clean(home): home
             case .rest: origin
-            case let .feed(_, _, _, _, path), let .play(_, _, path), let .stroll(path):
+            case let .feed(_, _, _, _, path, _), let .play(_, _, path), let .stroll(path):
                 // Empty/single-point routes convey no movement. In particular,
                 // they must not turn a reduced-motion change into a teleport.
                 CatWalkRoute(path)?.destination ?? origin
@@ -264,9 +265,10 @@ final class CatActor: SKNode {
     }
 
     func feed(at eatingPoint: CGPoint, facing: CGFloat, approach: [CGPoint], dockingPath: [CGPoint],
-              returnPath: [CGPoint], completion: @escaping () -> Void) {
+              returnPath: [CGPoint], onMealFinished: @escaping () -> Void,
+              completion: @escaping () -> Void) {
         submit(.feed(eatingPoint: eatingPoint, facing: facing, approach: approach,
-                     dockingPath: dockingPath, returnPath: returnPath),
+                     dockingPath: dockingPath, returnPath: returnPath, onMealFinished: onMealFinished),
                completion: completion)
     }
 
@@ -444,12 +446,16 @@ final class CatActor: SKNode {
             }
             animation = .sequence([.run { [weak self] in
                 if let sound { self?.onSound?(sound) }
-            }, frame(.expressions, 6), .wait(forDuration: 0.35)])
+            }, frame(.expressions, 6), .wait(forDuration: 0.35), .run { [weak self] in
+                guard let self, self.activityGeneration == generation else { return }
+                if case let .feed(_, _, _, _, _, onMealFinished) = activity { onMealFinished() }
+            }])
         } else {
             switch activity {
-            case let .feed(eatingPoint, facing, approach, dockingPath, returnPath):
+            case let .feed(eatingPoint, facing, approach, dockingPath, returnPath, onMealFinished):
                 animation = feeding(at: eatingPoint, facing: facing, approach: approach,
-                                    dockingPath: dockingPath, returnPath: returnPath)
+                                    dockingPath: dockingPath, returnPath: returnPath,
+                                    generation: generation, onMealFinished: onMealFinished)
             case let .clean(home): animation = cleaning(home: home)
             case let .play(landing, facing, returnPath):
                 animation = playing(landing: landing, facing: facing, returnPath: returnPath)
@@ -816,7 +822,8 @@ final class CatActor: SKNode {
     }
 
     private func feeding(at eatingPoint: CGPoint, facing direction: CGFloat, approach: [CGPoint],
-                         dockingPath: [CGPoint], returnPath: [CGPoint]) -> SKAction {
+                         dockingPath: [CGPoint], returnPath: [CGPoint], generation: Int,
+                         onMealFinished: @escaping () -> Void) -> SKAction {
         let stage = dockingPath.first ?? eatingPoint
         let home = returnPath.last ?? stage
         // The room validates obstacles; the actor verifies continuity. A stale
@@ -854,9 +861,14 @@ final class CatActor: SKNode {
             }
         }
         actions.append(frames(.meal, [5, 6, 7], durations: [0.13, 0.18, 0.24]))
+        actions.append(.run { [weak self] in
+            guard let self, self.activityGeneration == generation else { return }
 #if DEBUG
-        actions.append(.run { [weak self] in self?.completedMeals += 1 })
+            self.completedMeals += 1
 #endif
+            // Empty the bowl before withdrawal; completion includes the walk home.
+            onMealFinished()
+        })
         actions += [
                     // Back away while still facing the bowl. A turn at the food
                     // would swing the body through the bowl's solid footprint.

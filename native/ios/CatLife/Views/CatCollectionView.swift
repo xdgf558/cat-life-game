@@ -169,6 +169,12 @@ struct CatCollectionView: View {
                     .accessibilityIdentifier("catCollectionCoat_\(appearance.rawValue)")
                 }
             }
+            Text((store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel
+                 ? GameStrings.text("catDirectory.sharedHomeUnlocked")
+                 : GameStrings.format("catDirectory.sharedHomeLocked", RoomResidentCats.unlockLevel))
+                .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.darkMint)
+                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("catCollectionSharedHomeHint")
         }.padding(16).gameCard(cornerRadius: 28)
     }
 

@@ -51,6 +51,7 @@ final class RoomSceneDiagnostics {
     private var foodContactSamples = 0
     private var foodContactViolations = 0
     private var collisionViolations = 0
+    private var residentCollisionViolations = 0
     private var longestRoute = 0
     private var lastDiagnosticTime: TimeInterval = 0
 
@@ -161,6 +162,24 @@ final class RoomSceneDiagnostics {
         return false
     }
 
+    func sampleResidents(_ residents: RoomResidentCats, cat: CatActor, floor: RoomFloor?, dock: FeedingDock?) {
+        guard furnitureTesting, let floor else { return }
+        let activeFeet = cat.isDockingForMeal ? dock?.feetRect(at: cat.position) : nil
+        let groundFeet = CGRect(x: cat.position.x - floor.catFootprint.width / 2,
+                                y: cat.position.y - floor.catFootprint.height / 2,
+                                width: floor.catFootprint.width, height: floor.catFootprint.height)
+        let footprints = [activeFeet ?? groundFeet] + residents.actors.values.filter { !$0.isHidden }.map {
+            CGRect(x: $0.position.x - floor.catFootprint.width / 2,
+                   y: $0.position.y - floor.catFootprint.height / 2,
+                   width: floor.catFootprint.width, height: floor.catFootprint.height)
+        }
+        for first in footprints.indices {
+            for second in footprints.indices where second > first {
+                if footprints[first].intersects(footprints[second]) { residentCollisionViolations += 1 }
+            }
+        }
+    }
+
     func noteRoute(_ path: [CGPoint], navigation: RoomNavigation?) {
         longestRoute = max(longestRoute, path.count)
         if navigationTesting, let navigation,
@@ -192,7 +211,8 @@ final class RoomSceneDiagnostics {
         onDragMetricsChanged?(dragDescription)
     }
 
-    func publishFurnitureStatus(_ state: FurnitureState, cat: CatActor, bowl: CGPoint) {
+    func publishFurnitureStatus(_ state: FurnitureState, cat: CatActor, bowl: CGPoint,
+                                residents: RoomResidentCats, bowlHasFood: Bool) {
         let size = state.geometry.viewportSize
         let worldSize = state.geometry.worldSize
         func screenPoint(_ point: CGPoint) -> [String: CGFloat] {
@@ -229,7 +249,14 @@ final class RoomSceneDiagnostics {
                     "screenWidth": node.size.width / state.cameraScale, "screenHeight": node.size.height / state.cameraScale,
                     "footprintWidth": footprint.width, "footprintHeight": footprint.height]
         }
+        let catNodes = [(state.latest?.activeCatID ?? "", cat)] + residents.actors.map { ($0.key, $0.value) }
+        let residentCats: [[String: Any]] = catNodes.map { id, actor in
+            let frame = actor.visualFrame
+            let point = screenPoint(CGPoint(x: frame.midX, y: frame.midY))
+            return ["id": id, "x": point["x"]!, "y": point["y"]!, "visible": !actor.isHidden]
+        }
         let payload: [String: Any] = [
+            "residentCollisions": residentCollisionViolations, "residentCats": residentCats, "residentsBusy": residents.isBusy, "bowlHasFood": bowlHasFood,
             "roomLevel": state.roomLevel,
             "worldWidth": worldSize.width, "worldHeight": worldSize.height,
             "viewportWidth": size.width, "viewportHeight": size.height,

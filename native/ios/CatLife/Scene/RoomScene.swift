@@ -52,6 +52,8 @@ final class RoomScene: SKScene {
 #endif
 
     var onCatTapped: (() -> Void)?
+    var onResidentTapped: ((String) -> Void)?
+    let residents = RoomResidentCats()
     var onFloorTravelAvailabilityChanged: ((Bool) -> Void)?
     private var lastFloorTravelAvailability: Bool?
     var onCatNeedAnchorChanged: ((CGPoint?) -> Void)? {
@@ -68,7 +70,7 @@ final class RoomScene: SKScene {
     private var arrangementFrameSampler = CatVisualFrameSampler()
     var canShowCatNeed: Bool {
         presentationActive && !editing && !presentationBusy && !cat.isPerforming
-            && !cat.isHidden && bowlPlanningRequest == nil
+            && !cat.isHidden && bowlPlanningRequest == nil && !residents.isBusy
     }
     var onFurnitureSelected: ((String?) -> Void)?
     var onFurnitureMoved: ((String, NormalizedPoint) -> Void)?
@@ -113,6 +115,7 @@ final class RoomScene: SKScene {
         didSet {
             guard reducedMotion != oldValue else { return }
             if reducedMotion { artwork.finishOrientationAnimations() }
+            residents.invalidate()
             cancelCameraInteraction()
             if activeRest != nil { leaveFurnitureRest(); return }
             cancelPresentation(at: cat.position)
@@ -157,6 +160,7 @@ final class RoomScene: SKScene {
     private var dockingNavigation: RoomNavigation?
 #if DEBUG
     let diagnostics = RoomSceneDiagnostics()
+    private var bowlHasFood = false
 #endif
 
     private var artworkTransform: RoomArtworkTransform {
@@ -180,6 +184,13 @@ final class RoomScene: SKScene {
     override init(size: CGSize) {
         super.init(size: size)
         cat.onSound = { [weak self] sound in self?.onSound?(sound) }
+        residents.onFinished = { [weak self] in
+            guard let self, self.presentationActive else { return }
+            self.finishPresentation()
+        }
+        residents.onLimitedSpace = { [weak self] in
+            self?.onFurnitureNotice?("room.sharedHomeNoSpace")
+        }
         scaleMode = .resizeFill
         backgroundColor = UIColor(red: 0.98, green: 0.95, blue: 0.89, alpha: 1)
         artwork.install(in: self)
@@ -241,6 +252,7 @@ final class RoomScene: SKScene {
         // A smaller y is nearer the camera. The bowl is anchored at its base,
         // not the center of its tall texture.
         cat.zPosition = 1_000 - cat.position.y
+        residents.updateDepths()
         updateBowlLayers()
         updateFurnitureLayers()
         toy.zPosition = 1_001 - toy.position.y
@@ -273,6 +285,10 @@ final class RoomScene: SKScene {
             if arrangementFrameSampler.sample(projected, at: currentTime) { onArrangementFrameChanged(projected) }
         }
 #if DEBUG
+        if bowlPlanningRequest == nil, !editing,
+           !residents.isBusy || cat.isPerforming || residents.actors.values.contains(where: \.isPerforming) {
+            diagnostics.sampleResidents(residents, cat: cat, floor: floor, dock: activeFeedingDock)
+        }
         if bowlPlanningRequest == nil, diagnostics.enabled,
            diagnostics.sample(at: currentTime, cat: cat, floor: floor, navigation: navigation,
                               activeRest: activeRest, editing: editing, activeFeedingDock: activeFeedingDock,
@@ -288,9 +304,13 @@ final class RoomScene: SKScene {
                placingFurnitureID placing: String? = nil) {
         let companionChanged = renderedCatID != snapshot.activeCatID
         if companionChanged {
+            residents.invalidate()
             // Invalidate old paths, queued care and rest callbacks before changing identity.
             // First load has no prior owner; keep its initial bowl planning intact.
             if latest != nil { cancelPresentation(at: cat.position) }
+            if let position = residents.exchangeActive(from: latest?.activeCat, to: snapshot.activeCat, at: cat.position) {
+                cat.cancelAndSettle(at: position)
+            }
             renderedCatID = snapshot.activeCatID
             cat.setAppearance(snapshot.activeCat?.appearance ?? .orange)
         }
@@ -322,6 +342,7 @@ final class RoomScene: SKScene {
         }
         let modeChanged = self.editing != editing
         if modeChanged {
+            residents.invalidate(hide: editing)
             self.editing = editing
             cancelBowlPlanning(keepingRequest: false)
             lastRequestedBowlPoint = nil
@@ -431,7 +452,7 @@ final class RoomScene: SKScene {
         guard !editing, let item = ownedFurniture.first(where: { $0.id == id }),
               [.catBed, .floorCushion].contains(item.kind),
               renderedFurniture.contains(where: { $0.itemID == id }) else { return }
-        if bowlPlanningRequest != nil { pendingRestID = id; return }
+        if bowlPlanningRequest != nil || residents.isBusy { pendingRestID = id; return }
         if let occupied = activeRest {
             pendingRestID = occupied.item.id == id ? nil : id
             leaveFurnitureRest()
@@ -450,7 +471,10 @@ final class RoomScene: SKScene {
         let ticket = revision
         let world = furnitureWorld
         let origin = cat.position
-        let worker = Task.detached(priority: .userInitiated) { world.restVisit(to: id, from: origin) }
+        let otherCats = residents.obstacles
+        let worker = Task.detached(priority: .userInitiated) {
+            world.restVisit(to: id, from: origin, additionalObstacles: otherCats)
+        }
         restPlanningTask = worker
         Task { [weak self] in
             let visit = await worker.value
@@ -538,7 +562,9 @@ final class RoomScene: SKScene {
                 playFeedback(kind: kind)
             }
             reconcileRestSession()
-            if !presentationBusy { resumeIdle() }
+            if !presentationBusy, !residents.isBusy, pendingFeedback != nil || pendingRestID != nil {
+                finishPresentation()
+            } else if !presentationBusy { resumeIdle() }
         }
     }
 
@@ -691,6 +717,7 @@ final class RoomScene: SKScene {
             leaveFurnitureRest()
             return
         }
+        if residents.isBusy { pendingFeedback = kind; return }
         if restPlanningTask != nil { cancelPresentation(at: cat.position) }
         if presentationBusy || cat.isPerforming {
             // Coalesce presentation only; each successful game action was saved.
@@ -720,7 +747,9 @@ final class RoomScene: SKScene {
                 cat.clean(returnTo: returnPoint, completion: completion)
                 return
             }
-            let planner = RoomCarePlanner(floor: floor, navigation: navigation, origin: returnPoint,
+            let careFloor = floor.addingObstacles(residents.obstacles)
+            let careNavigation = residents.obstacles.isEmpty ? navigation : careFloor.navigator(bowlAt: bowl.position, precomputeGrid: false)
+            let planner = RoomCarePlanner(floor: careFloor, navigation: careNavigation, origin: returnPoint,
                                           bowl: bowl.position, catWidth: catWidth)
 #if DEBUG
             let args = ProcessInfo.processInfo.arguments
@@ -764,7 +793,11 @@ final class RoomScene: SKScene {
             activeFeedingStage = plan.dockingPath.first
             dockingNavigation = plan.dockingNavigation
             cat.feed(at: plan.dock.eatingPoint, facing: plan.facing, approach: plan.path,
-                     dockingPath: plan.dockingPath, returnPath: Array(plan.path.reversed()), completion: completion)
+                     dockingPath: plan.dockingPath, returnPath: Array(plan.path.reversed()),
+                     onMealFinished: { [weak self] in
+                         guard let self, self.revision == ticket else { return }
+                         self.setBowlTexture("bowl-empty")
+                     }, completion: completion)
         case .play(let plan):
 #if DEBUG
             noteRoute(plan.approach)
@@ -801,6 +834,9 @@ final class RoomScene: SKScene {
 
     private func setBowlTexture(_ name: String) {
         artwork.setBowlTexture(name)
+#if DEBUG
+        bowlHasFood = name == "bowl-full"
+#endif
         updateBowlLayers()
     }
 
@@ -868,12 +904,28 @@ final class RoomScene: SKScene {
         enumerateChildNodes(withName: "care-particle") { node, _ in node.removeFromParent() }
         setPhase(bowlPlanningRequest != nil ? "layout-planning" : (editing ? "editing" : "idle"))
     }
+    private var residentPlanner: RoomResidentPlanner? {
+        guard let floor else { return nil }
+        return RoomResidentPlanner(floor: floor, bowl: bowl.position, world: furnitureWorld,
+                                   active: cat.position, catWidth: catWidth)
+    }
+
+    private func prepareResidents() {
+        if editing { residents.invalidate(hide: true); return }
+        guard presentationActive, !presentationBusy, bowlPlanningRequest == nil,
+              let latest, let planner = residentPlanner else { return }
+        residents.prepare(snapshot: latest, active: cat.position, scene: self, planner: planner,
+                          width: catWidth, reducedMotion: reducedMotion)
+    }
+
     private func resumeIdle() {
         if applyPendingRoomExpansion() { return }
+        prepareResidents()
+        residents.setIdleEnabled(presentationActive && !editing)
         cat.setIdleEnabled(presentationActive && bowlPlanningRequest == nil && !editing && !presentationBusy)
         updateThought()
         guard presentationActive, bowlPlanningRequest == nil, !editing, !presentationBusy,
-              !reducedMotion, action(forKey: "ambient-walk") == nil else { return }
+              !reducedMotion, !residents.isBusy, action(forKey: "ambient-walk") == nil else { return }
 #if DEBUG
         let args = ProcessInfo.processInfo.arguments
         if args.contains("--ui-testing") && !args.contains("--allow-ambient-motion") { return }
@@ -885,7 +937,11 @@ final class RoomScene: SKScene {
     private func takeQuietStroll() {
         removeAction(forKey: "ambient-walk")
         guard presentationActive, bowlPlanningRequest == nil, !editing, !presentationBusy,
-              !cat.isPerforming, !reducedMotion else { resumeIdle(); return }
+              !cat.isPerforming, !reducedMotion, !residents.isBusy else { resumeIdle(); return }
+        if !residents.actors.isEmpty, let planner = residentPlanner {
+            _ = residents.stroll(planner: planner, active: cat.position, activeActor: cat)
+            return
+        }
         if Date().timeIntervalSince(lastRestFinished) > 40, Int.random(in: 0..<3) == 0,
            let destination = renderedFurniture.filter({ placement in
                ownedFurniture.contains { $0.id == placement.itemID && [.catBed, .floorCushion].contains($0.kind) }
@@ -931,13 +987,14 @@ final class RoomScene: SKScene {
     private func publishFloorTravelAvailability() {
         let ready = bowlPlanningRequest == nil && !editing && !dragging && !isPlacementPending
             && !floorTravelCareActive && suspendedCareKind == nil && pendingFeedback == nil
-            && restPlanningTask == nil && !cat.isEnteringFurniture && !restExiting
+            && restPlanningTask == nil && !cat.isEnteringFurniture && !restExiting && !residents.isBusy
         if ready != lastFloorTravelAvailability {
             lastFloorTravelAvailability = ready
             onFloorTravelAvailabilityChanged?(ready)
         }
     }
     private func layoutRoom(preservingPositionFrom oldSize: CGSize? = nil, preservingNewPlacement: Bool = false) {
+        residents.invalidate(hide: editing)
         guard size.width > 0, size.height > 0 else { return }
         let suspended = suspendedCareKind ?? planningCareKind
         let feedback = pendingFeedback
@@ -1193,7 +1250,7 @@ final class RoomScene: SKScene {
             ownedFurniture: ownedFurniture, furnitureNodes: furnitureNodes, selectedFurnitureID: selectedFurnitureID,
             isPlacementPending: isPlacementPending, presentationPhase: presentationPhase, activeRest: activeRest,
             restSessionID: restSessionID, restSessionWasCommitted: restSessionWasCommitted,
-            restEndReported: restEndReported, restDeadline: restDeadline, latest: latest), cat: cat, bowl: bowl.position)
+            restEndReported: restEndReported, restDeadline: restDeadline, latest: latest), cat: cat, bowl: bowl.position, residents: residents, bowlHasFood: bowlHasFood)
     }
 #endif
 
