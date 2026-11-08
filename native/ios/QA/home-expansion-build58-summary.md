@@ -1,6 +1,6 @@
 # iOS 0.17.0 (58) — two-floor homes, compact shop, town map v2 and music
 
-Prepared for review, not uploaded to TestFlight. This version covers the requested house expansion and shop browsing, followed by the town-map v2 design handoff. Community events/message-board gameplay remains deferred. The independent web game is unchanged.
+PR #21 merged as `8d294067db1e2187d7f7f5da16323dc33feacc43`. Uploaded to TestFlight on 2026-11-08 at 19:01 (GMT+8); Apple accepted the package and started processing. Processing completion and test availability have not been verified. No tester groups, invitations or Beta Review submission were changed. This version covers the requested house expansion and shop browsing, followed by the town-map v2 design handoff. Community events/message-board gameplay remains deferred. The independent web game is unchanged.
 
 ## Behavior
 
@@ -41,6 +41,10 @@ Schema 10 adds an explicit floor to furniture placements and an upper-floor bowl
 - One large-screen test failure was traced to Simulator loading a stale UITest Runner from its retired container. Reinstalling only the test runner made the unchanged test/build pass; game data and DerivedData were not removed.
 - All 171 runtime assets passed preflight. The 0.17.0 (58) Release archive passed strict signature verification, dSYM UUID matching, bundled-new-audio hash matching and absence of DEBUG UI-test flags; final diff checks passed. No raw QA result bundles, logs, screenshots or art/audio source files are added to Git; new runtime PNG/CAF files use LFS.
 
+## Upload verification
+
+The merged source tree exactly matches reviewed commit `e49e0a276c42b1a2927bd5f995413a3c47b8dcf9`. Upload used the verified `CatLife-0.17.0-58-review-fix.xcarchive`; 458 source/configuration/asset fingerprints remained unchanged through upload. Version/build were preserved, and the export was not restricted to internal testing. Binary SHA256: `18bc46cb194d037a89e48230fb1c179eb849e7a48d028efef595b6d19a20ca95`. No physical device or player save was changed. Tests above were performed before merge on identical source, not rerun during upload. Raw upload logs and the receipt summary remain outside Git.
+
 ## Not included
 
-No community events, message board, player consumables, web-game changes or TestFlight distribution. Physical-device play, subjective music transitions/speaker/headphone listening, long-session battery behavior, actual VoiceOver and iPad/landscape require separate validation. The existing beta update link still targets TestFlight and must change before an App Store release.
+No community events, message board, player consumables, web-game changes or tester distribution. Physical-device play, subjective music transitions/speaker/headphone listening, long-session battery behavior, actual VoiceOver and iPad/landscape require separate validation. The existing beta update link still targets TestFlight and must change before an App Store release.

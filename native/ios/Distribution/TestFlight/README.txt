@@ -1,4 +1,8 @@
-最新上传：0.16.0（57）猫咪成长与陪伴、高阶职业和商店布局修复，2026-11-08 02:42（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+最新上传：0.17.0（58）双层小家、猫町地图与场景音乐，2026-11-08 19:01（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+PR #21 已合并，合并提交 8d294067db1e2187d7f7f5da16323dc33feacc43；本地 main 已同步，完整源码树与已审查的 e49e0a276c42b1a2927bd5f995413a3c47b8dcf9 一致。上传 CatLife-0.17.0-58-review-fix.xcarchive，包含购买后优先前往有空位楼层的复审修复，未使用此前 final 候选。归档二进制 SHA256：18bc46cb194d037a89e48230fb1c179eb849e7a48d028efef595b6d19a20ca95；上传前后核对 458 项源码、配置和资源指纹一致。
+版本、Bundle ID、严格签名、dSYM、隐私清单、音频资源和 Release 测试入口隔离均已校验；不自动修改构建号，不限制为 Internal Only。378 项 Core 和 236 项 App 测试为同源码合并前验证，本次不重复计作重跑；大小屏交互范围与限制见 ../../QA/home-expansion-build58-summary.md。本轮未安装真实设备或修改玩家存档。目标 App ID 6830428076，Bundle ID com.stationcat.catlife.native。测试内容见 home-town-0.17.0-58.txt。
+
+历史上传：0.16.0（57）猫咪成长与陪伴、高阶职业和商店布局修复，2026-11-08 02:42（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
 PR #20 已合并，合并提交 70ce3bfdfef87a3ee34c0fe3587c0e757fd792dd；本地 main 已同步，完整源码树与已审查的 7e8b475c0ba291aa53ef64187ec07b44ae5d1c26 一致。上传 CatLife-0.16.0-57-review-p3.xcarchive，包含岁/月显示、公猫怀孕校验兼容及成长独立上限三项复审修复，未使用此前 final 候选。归档二进制 SHA256：a93604174caf72e49103c5ba414e43efa8cdb8cb1dc4175f3e4ef0915ab6f814；上传前后核对 146 项源码/配置指纹一致。
 版本、Bundle ID、严格签名、dSYM、隐私清单和 Release 测试入口隔离均已校验；不自动修改构建号，不限制为 Internal Only。371 项 Core 和 205 项 App 测试为同源码合并前验证，本次不重复计作重跑。大小屏 UI 范围及限制见 ../../QA/cat-growth-build57-summary.md；本轮未安装真实设备或修改玩家存档。目标 App ID 6830428076，Bundle ID com.stationcat.catlife.native。测试内容见 cat-growth-0.16.0-57.txt。
 
