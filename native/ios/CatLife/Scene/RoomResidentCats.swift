@@ -10,6 +10,8 @@ final class RoomResidentCats {
     private var revision = 0
     private var worker: Task<Void, Never>?
     private(set) var isBusy = false
+    private(set) var isPreparing = false
+    var isStrolling: Bool { isBusy && !isPreparing }
     var onFinished: (() -> Void)?
     var onLimitedSpace: (() -> Void)?
 
@@ -34,6 +36,7 @@ final class RoomResidentCats {
         worker?.cancel()
         worker = nil
         isBusy = false
+        isPreparing = false
         preparedIDs = nil
         for actor in actors.values {
             actor.cancelAndSettle(at: actor.position)
@@ -75,6 +78,7 @@ final class RoomResidentCats {
         revision += 1
         let ticket = revision
         isBusy = true
+        isPreparing = true
         let existing = ids.prefix { actors[$0] != nil }.compactMap { actors[$0]?.position }
         let calculation = Task.detached(priority: .userInitiated) {
             planner.positions(count: cats.count, existing: existing)
@@ -103,6 +107,7 @@ final class RoomResidentCats {
             }
             self.preparedIDs = ids
             self.isBusy = false
+            self.isPreparing = false
             if points.count < cats.count { self.onLimitedSpace?() }
             self.onFinished?()
         }

@@ -10,7 +10,9 @@ Prepared for PR review. Not installed on a physical device and not uploaded to T
 - Tap a resident to open that cat's existing profile and select a companion. Feeding, cleaning, play and durable furniture rest still apply to the selected cat. Shared rendering does not duplicate care, spending, rewards, adoption or save records.
 - Other cats breathe/look around and take short turns walking. Only one cat travels at a time; care waits for that short walk, then uses stationary-cat obstacles throughout approach, meal docking, pouncing and furniture entry. The planner runs off the main thread and preserves feeding routes for every cat and reachable rest routes for the companion.
 - Routine refreshes retain actors and positions. Switching companions preserves safe positions instead of redistributing housemates. Floor/layout changes invalidate old planning results; queued care resumes when returning from a paused page. Decoration temporarily hides the other residents and rebuilds their safe positions afterward.
-- A crowded or unreachable floor never forces cats into furniture or each other. A single notice asks the player to clear floor space if some residents cannot fit; all owned cats remain available in the collection. No save schema change is needed: positions are presentation state, while ownership and selected companion use existing saved fields.
+- A crowded or unreachable floor never forces cats into furniture or each other. A notice asks the player to clear floor space if some residents cannot fit; all owned cats remain available in the collection. The Store remembers up to 64 warned saved layouts across floor travel and cold starts; a changed layout or roster can produce a new hint. No save schema change is needed: positions are presentation state, while ownership and selected companion use existing saved fields.
+- Autonomous furniture rest keeps its original priority, 40-second cooldown and one-in-three roll before choosing a shared-room stroll. Only the selected cat starts a durable rest and recovers energy.
+- Resident position preparation blocks floor travel and need bubbles; ordinary strolling does not. Feeding still queues behind a moving cat for collision safety. Leaving the room cancels a stroll or its pending worker; returning revalidates stopped positions before draining queued care.
 
 ## Verification
 
@@ -22,6 +24,13 @@ Prepared for PR review. Not installed on a physical device and not uploaded to T
 - Runtime asset preflight passes (171 hydrated files); project generation remains deterministic. Final generic-iOS Release build succeeds with code signing disabled. DEBUG fixtures/diagnostics are checked separately from the shipping configuration.
 
 Raw logs, result bundles and screenshots are kept outside Git in the build-59 QA artifact directory. Early test-driver and numeric-format expectation failures were fixed before the successful runs; the role-switch regression also caught and drove the position-preservation fix.
+
+## PR review follow-up
+
+- The existing 251 App tests passed again after the review fixes. All six new checks passed in the focused rerun (257 distinct App tests): real SpriteKit automatic rest through Store/repository persistence and energy recovery; preparation versus strolling UI gates; cancellation during stroll planning and playback followed by exactly one queued meal; notice suppression across floor travel/cold launch; saved-layout versus harmless state changes; and failed/successful import handling.
+- iPhone SE simulator: both floor-travel/cancelled-arrangement and ambient-walk/feeding flows passed. After the final return-order correction, all 16 affected scene tests plus the ambient-walk/feeding UI flow passed again. The pause matrix covers both planning and an accepted walk, with feeding submitted either before leaving the room or while away.
+- The first run caught two test-fixture defects: a level-6 seed omitted the upstairs bowl, and the fake import repository did not declare the transfer protocol. Both fixtures were corrected to use the production contracts; success assertions were retained. The targeted walking UI fixture stores its rest furniture so random automatic rest cannot replace the specific stroll being tested.
+- No physical iPhone SE was connected for this review. Simulator timing is not a physical-device performance measurement. The level-8 dense-furniture performance and power checks remain pending before TestFlight delivery.
 
 ## Remaining validation
 

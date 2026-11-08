@@ -106,6 +106,7 @@ final class GameStore {
     private(set) var pendingWorkResultID: String?
 
     @ObservationIgnored private let repository: any GameSaveRepository
+    @ObservationIgnored let sharedHomeNoticeDefaults: UserDefaults
     @ObservationIgnored private let audio = GameAudioController()
     @ObservationIgnored private var timerTask: Task<Void, Never>?
     @ObservationIgnored private let notices = GameNoticeCenter()
@@ -161,6 +162,7 @@ final class GameStore {
         if testing && arguments.contains("--reset-ui-test-save") && directory == nil {
             reminderDefaults.removeObject(forKey: GameAdoptionReminderCenter.presentedIDsKey)
             reminderDefaults.removeObject(forKey: GameOnboardingCenter.progressKey)
+            reminderDefaults.removeObject(forKey: Self.sharedHomeSpaceNoticesKey)
         }
         let saveDirectory = directory ?? base.appendingPathComponent(testing ? "CatLife-UITests" : "CatLife", isDirectory: true)
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)
@@ -174,6 +176,7 @@ final class GameStore {
         let saveDirectory = directory ?? base.appendingPathComponent("CatLife", isDirectory: true)
         #endif
         repository = FileSaveRepository(directory: saveDirectory)
+        sharedHomeNoticeDefaults = reminderDefaults
         adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults)
         onboarding = GameOnboardingCenter(defaults: reminderDefaults)
     }
@@ -181,6 +184,7 @@ final class GameStore {
     init(repository: any GameSaveRepository, reminderDefaults: UserDefaults? = nil) {
         self.repository = repository
         let defaults = reminderDefaults ?? UserDefaults(suiteName: "com.stationcat.catlife.tests.\(UUID().uuidString)")!
+        sharedHomeNoticeDefaults = defaults
         adoptionReminders = GameAdoptionReminderCenter(defaults: defaults)
         onboarding = GameOnboardingCenter(defaults: defaults)
     }
@@ -627,6 +631,7 @@ final class GameStore {
         silentProgressThrough = nil
         snapshot = candidate
         onboarding.didImport(snapshot: candidate)
+        sharedHomeNoticeDefaults.removeObject(forKey: Self.sharedHomeSpaceNoticesKey)
         visibleHomeFloor = .ground
         roomFloorTravelReady = true
         homeUpgradeCelebration = nil

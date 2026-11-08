@@ -69,7 +69,7 @@ extension RoomHomeUITests {
     func testSharedHomeAmbientWalkQueuesFeedingWithoutCollisions() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
-        app.launchArguments = arguments(reset: true) + ["--shared-home-test", "--furniture-test", "--allow-ambient-motion"]
+        app.launchArguments = arguments(reset: true) + ["--shared-home-test", "--shared-home-stroll-test", "--furniture-test", "--allow-ambient-motion"]
         launchAndEnterHome(app)
         _ = try waitForSharedHome(in: app, description: "five cats ready") { $0.visibleCount == 5 && !$0.residentsBusy }
         _ = try waitForSharedHome(in: app, timeout: 30, description: "a cat takes a quiet stroll") { $0.residentsBusy }

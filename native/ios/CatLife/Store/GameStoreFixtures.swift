@@ -42,6 +42,11 @@ struct GameStoreFixtures {
                              "The shared-home fixture must use valid adopted cats.")
             }
             for index in value.cats.indices { value.cats[index].satiety = 35 }
+            if arguments.contains("--shared-home-stroll-test") {
+                // This regression isolates walking; automatic furniture rest has its own scene test.
+                let restIDs = Set(value.inventory.furniture.filter { [.catBed, .floorCushion].contains($0.kind) }.map(\.id))
+                value.home.furniture.removeAll { restIDs.contains($0.itemID) }
+            }
             value.inventory.food = 12
             value.inventory.litter = 12
             value.inventory.toys = 12

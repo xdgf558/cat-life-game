@@ -69,8 +69,8 @@ final class RoomScene: SKScene {
     }
     private var arrangementFrameSampler = CatVisualFrameSampler()
     var canShowCatNeed: Bool {
-        presentationActive && !editing && !presentationBusy && !cat.isPerforming
-            && !cat.isHidden && bowlPlanningRequest == nil && !residents.isBusy
+        presentationActive && !editing && !presentationBusy && (!cat.isPerforming || residents.isStrolling)
+            && !cat.isHidden && bowlPlanningRequest == nil && !residents.isPreparing
     }
     var onFurnitureSelected: ((String?) -> Void)?
     var onFurnitureMoved: ((String, NormalizedPoint) -> Void)?
@@ -543,6 +543,10 @@ final class RoomScene: SKScene {
             arrangementFrameSampler = CatVisualFrameSampler()
             cancelCameraInteraction()
             cancelBowlPlanning(keepingRequest: true)
+            if residents.isStrolling {
+                residents.invalidate()
+                cat.cancelAndSettle(at: cat.position)
+            }
         }
         if !active, let kind = planningCareKind {
             // A worker cannot start SpriteKit actions behind Settings or while
@@ -559,9 +563,12 @@ final class RoomScene: SKScene {
             if let kind = suspendedCareKind, !editing {
                 suspendedCareKind = nil
                 presentationBusy = false
+                prepareResidents()
                 playFeedback(kind: kind)
             }
             reconcileRestSession()
+            // A paused stroll may stop in a care corridor; validate those positions before draining care.
+            if !presentationBusy { prepareResidents() }
             if !presentationBusy, !residents.isBusy, pendingFeedback != nil || pendingRestID != nil {
                 finishPresentation()
             } else if !presentationBusy { resumeIdle() }
@@ -934,19 +941,19 @@ final class RoomScene: SKScene {
             self?.takeQuietStroll()
         }]), withKey: "ambient-walk")
     }
-    private func takeQuietStroll() {
+    func takeQuietStroll(now: Date = Date(), restRoll: Int = Int.random(in: 0..<3)) {
         removeAction(forKey: "ambient-walk")
         guard presentationActive, bowlPlanningRequest == nil, !editing, !presentationBusy,
               !cat.isPerforming, !reducedMotion, !residents.isBusy else { resumeIdle(); return }
-        if !residents.actors.isEmpty, let planner = residentPlanner {
-            _ = residents.stroll(planner: planner, active: cat.position, activeActor: cat)
-            return
-        }
-        if Date().timeIntervalSince(lastRestFinished) > 40, Int.random(in: 0..<3) == 0,
+        if now.timeIntervalSince(lastRestFinished) > 40, restRoll == 0,
            let destination = renderedFurniture.filter({ placement in
                ownedFurniture.contains { $0.id == placement.itemID && [.catBed, .floorCushion].contains($0.kind) }
            }).randomElement() {
             visitFurniture(destination.itemID, notify: false)
+            return
+        }
+        if !residents.actors.isEmpty, let planner = residentPlanner {
+            _ = residents.stroll(planner: planner, active: cat.position, activeActor: cat)
             return
         }
         guard let navigation else { resumeIdle(); return }
@@ -987,7 +994,7 @@ final class RoomScene: SKScene {
     private func publishFloorTravelAvailability() {
         let ready = bowlPlanningRequest == nil && !editing && !dragging && !isPlacementPending
             && !floorTravelCareActive && suspendedCareKind == nil && pendingFeedback == nil
-            && restPlanningTask == nil && !cat.isEnteringFurniture && !restExiting && !residents.isBusy
+            && restPlanningTask == nil && !cat.isEnteringFurniture && !restExiting && !residents.isPreparing
         if ready != lastFloorTravelAvailability {
             lastFloorTravelAvailability = ready
             onFloorTravelAvailabilityChanged?(ready)
