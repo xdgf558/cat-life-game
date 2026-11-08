@@ -7,36 +7,39 @@ import CatGameCore
 final class NewFurnitureGeometryTests: XCTestCase {
     func testNewFloorFurnitureCanBePlacedWithoutBlockingCareAndMirroringKeepsTheSameFootprint() throws {
         for viewport in [CGSize(width: 375, height: 436), CGSize(width: 402, height: 776)] {
-            for level in [1, 3] {
-                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
-                let sceneSize = CGSize(width: viewport.width * scale, height: viewport.height * scale)
-                let transform = RoomArtworkTransform(sceneSize: sceneSize, artworkSize: .init(width: 1024, height: 1536),
-                                                     viewportSize: viewport)
-                let cat = CGPoint(x: sceneSize.width * 0.43, y: sceneSize.height * 0.18)
-                // The measured feeding dock requires the same bowl sizing as RoomLayoutPlanning.
-                let bowlWidth = min(viewport.width * 0.156, viewport.height * 0.185)
-                for kind in [FurnitureKind.bookcase, .rattanChair, .sideTable] {
-                    let context = "\(kind.rawValue), \(viewport), room level \(level)"
-                    let item = FurnitureItem(id: "new", kind: kind)
-                    let world = RoomFurnitureWorld(transform: transform, catWidth: viewport.width * 0.14,
-                        bowlSize: .init(width: bowlWidth, height: bowlWidth * 0.83),
-                        bowlPosition: .init(x: sceneSize.width * 0.76, y: sceneSize.height * 0.21),
-                        items: [item], placements: [])
-                    XCTAssertNotNil(world.roomFloor.feedingPlan(from: cat, bowlAt: world.bowlPosition,
-                        navigator: world.roomFloor.navigator(bowlAt: world.bowlPosition)),
-                        "The empty-room fixture must already support feeding: \(context)")
-                    let navigation = world.placementNavigator(for: item.id, catAt: cat)
-                    let result = try XCTUnwrap(world.resolve(id: item.id,
-                        near: transform.point(.init(x: 0.50, y: 0.65)), catAt: cat, placement: navigation), context)
-                    let placed = world.replacing(item.id, with: result.center)
-                    XCTAssertEqual(placed.floorObstacles().count, 1)
-                    XCTAssertFalse(placed.roomFloor.navigator(bowlAt: placed.bowlPosition).isWalkable(result.center))
-                    XCTAssertNotNil(placed.roomFloor.feedingPlan(from: cat, bowlAt: placed.bowlPosition,
-                        navigator: placed.roomFloor.navigator(bowlAt: placed.bowlPosition)))
-                    XCTAssertNil(placed.restVisit(to: item.id, from: cat))
-                    var mirrored = item
-                    mirrored.orientation = .mirrored
-                    XCTAssertEqual(placed.footprint(item), placed.footprint(mirrored))
+            for room in HomeCatalog.all {
+                for floor in room.floors {
+                    let floorContext = "room level \(room.level), \(floor.rawValue), \(viewport)"
+                    let scale = CGFloat(try XCTUnwrap(room.worldScale(on: floor), floorContext))
+                    let sceneSize = CGSize(width: viewport.width * scale, height: viewport.height * scale)
+                    let transform = RoomArtworkTransform(sceneSize: sceneSize, artworkSize: .init(width: 1024, height: 1536),
+                                                         viewportSize: viewport)
+                    let cat = CGPoint(x: sceneSize.width * 0.43, y: sceneSize.height * 0.18)
+                    // The measured feeding dock requires the same bowl sizing as RoomLayoutPlanning.
+                    let bowlWidth = min(viewport.width * 0.156, viewport.height * 0.185)
+                    for kind in [FurnitureKind.bookcase, .rattanChair, .sideTable] {
+                        let context = "\(kind.rawValue), \(floorContext)"
+                        let item = FurnitureItem(id: "new", kind: kind)
+                        let world = RoomFurnitureWorld(transform: transform, catWidth: viewport.width * 0.14,
+                            bowlSize: .init(width: bowlWidth, height: bowlWidth * 0.83),
+                            bowlPosition: .init(x: sceneSize.width * 0.76, y: sceneSize.height * 0.21),
+                            items: [item], placements: [])
+                        XCTAssertNotNil(world.roomFloor.feedingPlan(from: cat, bowlAt: world.bowlPosition,
+                            navigator: world.roomFloor.navigator(bowlAt: world.bowlPosition)),
+                            "The empty-room fixture must already support feeding: \(context)")
+                        let navigation = world.placementNavigator(for: item.id, catAt: cat)
+                        let result = try XCTUnwrap(world.resolve(id: item.id,
+                            near: transform.point(.init(x: 0.50, y: 0.65)), catAt: cat, placement: navigation), context)
+                        let placed = world.replacing(item.id, with: result.center)
+                        XCTAssertEqual(placed.floorObstacles().count, 1, context)
+                        XCTAssertFalse(placed.roomFloor.navigator(bowlAt: placed.bowlPosition).isWalkable(result.center), context)
+                        XCTAssertNotNil(placed.roomFloor.feedingPlan(from: cat, bowlAt: placed.bowlPosition,
+                            navigator: placed.roomFloor.navigator(bowlAt: placed.bowlPosition)), context)
+                        XCTAssertNil(placed.restVisit(to: item.id, from: cat), context)
+                        var mirrored = item
+                        mirrored.orientation = .mirrored
+                        XCTAssertEqual(placed.footprint(item), placed.footprint(mirrored), context)
+                    }
                 }
             }
         }

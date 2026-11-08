@@ -321,12 +321,8 @@ final class GameStore {
     var placedFurnitureCount: Int { sceneSnapshot?.home.furniture.count ?? 0 }
 
     var furnitureCapacity: Int { HomeCatalog.level(snapshot?.home.roomLevel ?? 1)?.capacity(on: visibleHomeFloor) ?? 9 }
-    var canPlaceMoreFurniture: Bool { placedFurnitureCount < furnitureCapacity }
+    var canPlaceMoreFurniture: Bool { availableFurnitureSlots(on: visibleHomeFloor) > 0 }
     var canUpgradeHome: Bool { HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil }
-    var furnitureCapacityNotice: String {
-        canUpgradeHome ? GameStrings.text("homeUpgrade.capacityReached")
-            : GameStrings.format("room.capacityReachedMax", furnitureCapacity)
-    }
 
     var selectedFurniture: FurnitureItem? {
         guard let id = selectedFurnitureID,
@@ -858,10 +854,14 @@ final class GameStore {
         }) { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
     }
 
-    func decoratePurchasedFurniture() {
+    func decoratePurchasedFurniture() async {
         guard !isBusy, furniturePurchaseNotice != nil, let itemID = furniturePurchaseItemID,
               storedFurniture.contains(where: { $0.id == itemID }) else { return }
-        if !canPlaceMoreFurniture && canUpgradeHome {
+        if availableFurnitureFloor != nil {
+            await arrangeInventoryFurniture(id: itemID)
+            return
+        }
+        if canUpgradeHome {
             openHomeUpgrade()
             return
         }
@@ -869,11 +869,7 @@ final class GameStore {
         activeSheet = nil
         beginDecorating()
         isFurnitureTrayExpanded = true
-        if canPlaceMoreFurniture {
-            selectedFurnitureID = nil
-            selectedStoredFurnitureID = itemID
-        }
-        else { showNotice(furnitureCapacityNotice) }
+        showNotice(furnitureCapacityNotice)
     }
     func upgradeHome(toLevel: Int) {
         guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
@@ -1105,6 +1101,14 @@ final class GameStore {
         guard snapshot?.inventory.furniture.contains(where: { $0.id == id }) == true,
               draftFurniture?.contains(where: { $0.itemID == id }) == true else { return }
         selectedFurnitureID = id
+    }
+
+    func selectStoredFurniture(id: String) {
+        guard isDecorating, !isSavingLayout, canPlaceMoreFurniture,
+              storedFurniture.contains(where: { $0.id == id }) else { return }
+        isFurnitureTrayExpanded = true
+        selectedFurnitureID = nil
+        selectedStoredFurnitureID = id
     }
 
     func moveFurniture(id: String, to point: NormalizedPoint) {

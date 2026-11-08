@@ -540,7 +540,7 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertEqual(maximumStore.placedFurnitureCount, maximumFloorCapacity)
         maximumStore.placeFurniture(id: extra.id)
         XCTAssertFalse(maximumStore.isDecorating, "Unused upstairs capacity must not allow placement on a full ground floor.")
-        XCTAssertEqual(maximumStore.furnitureCapacityNotice, GameStrings.format("room.capacityReachedMax", maximumFloorCapacity))
+        XCTAssertEqual(maximumStore.furnitureCapacityNotice, GameStrings.format("homeInventory.space.upper", maximumFloorCapacity))
     }
 
     @MainActor

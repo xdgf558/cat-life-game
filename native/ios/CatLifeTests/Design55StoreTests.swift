@@ -61,7 +61,7 @@ final class Design55StoreTests: XCTestCase {
         XCTAssertEqual(ShopCatalog.ownedFurnitureCount(offerID: "oak_bookcase", in: purchased.inventory.furniture), 1)
         XCTAssertEqual(purchased.home, original.home)
 
-        store.decoratePurchasedFurniture()
+        await store.decoratePurchasedFurniture()
         XCTAssertNil(store.activeSheet)
         XCTAssertNil(store.furniturePurchaseNotice)
         XCTAssertTrue(store.isDecorating && store.isFurnitureTrayExpanded)
@@ -76,20 +76,21 @@ final class Design55StoreTests: XCTestCase {
     @MainActor
     func testFullRoomPurchaseGoesToUpgradeOrStorageWithoutChangingLayout() async throws {
         let maximumLevel = try XCTUnwrap(HomeCatalog.all.last)
-        for level in [1, maximumLevel.level] {
+        for level in [1, 6, maximumLevel.level] {
             var initial = seed()
             initial.home.roomLevel = level
             let room = try XCTUnwrap(HomeCatalog.level(level))
             initial.player.level = max(initial.player.level, room.requiredPlayerLevel)
             initial.home.upperBowlPosition = room.floors.contains(.upper) ? HomeState.defaultBowlPosition : nil
             let capacity = room.capacity(on: .ground)
-            while initial.home.placements(on: .ground).count < capacity {
-                let id = "capacity-test-\(initial.home.furniture.count)"
-                initial.inventory.furniture.append(FurnitureItem(id: id, kind: .plant))
-                initial.home.furniture.append(FurniturePlacement(itemID: id, position: .init(x: 0.6, y: 0.7)))
+            for floor in room.floors {
+                while initial.home.placements(on: floor).count < room.capacity(on: floor) {
+                    let id = "capacity-test-\(initial.home.furniture.count)"
+                    initial.inventory.furniture.append(FurnitureItem(id: id, kind: .plant))
+                    initial.home.furniture.append(FurniturePlacement(itemID: id, position: .init(x: 0.6, y: 0.7), floor: floor))
+                }
             }
             XCTAssertNoThrow(try NativeSaveTransfer.encode(snapshot: initial))
-            XCTAssertTrue(initial.home.placements(on: .upper).isEmpty)
             let store = makeStore(Design55Repository(initial))
             await store.load()
             store.enterHome()
@@ -98,19 +99,19 @@ final class Design55StoreTests: XCTestCase {
             try await eventually { !store.isBusy }
             XCTAssertEqual(store.furniturePurchaseItemID, "shop_sunrise_art_1")
             let purchased = store.snapshot
-            store.decoratePurchasedFurniture()
+            await store.decoratePurchasedFurniture()
             XCTAssertEqual(store.snapshot, purchased)
             XCTAssertFalse(store.canPlaceMoreFurniture)
             XCTAssertEqual(store.placedFurnitureCount, capacity)
             XCTAssertNil(store.selectedStoredFurnitureID)
             XCTAssertNil(store.placingFurnitureID)
-            if level == 1 {
+            if level < maximumLevel.level {
                 XCTAssertEqual(store.activeSheet, .upgrade)
                 XCTAssertFalse(store.isDecorating)
             } else {
                 XCTAssertNil(store.activeSheet)
                 XCTAssertTrue(store.isDecorating && store.isFurnitureTrayExpanded)
-                XCTAssertEqual(store.draftFurniture, purchased?.home.furniture)
+                XCTAssertEqual(store.draftFurniture, purchased?.home.placements(on: .ground))
                 XCTAssertEqual(store.toast, store.furnitureCapacityNotice)
             }
         }
@@ -127,7 +128,7 @@ final class Design55StoreTests: XCTestCase {
             try await eventually { !store.isBusy }
         }
         XCTAssertEqual(store.furniturePurchaseItemID, "shop_oak_bookcase_2")
-        store.decoratePurchasedFurniture()
+        await store.decoratePurchasedFurniture()
         XCTAssertEqual(store.selectedStoredFurnitureID, "shop_oak_bookcase_2")
         XCTAssertNil(store.placingFurnitureID)
         store.selectFurniture(id: "catBed")
@@ -137,7 +138,7 @@ final class Design55StoreTests: XCTestCase {
         store.activeSheet = .shop
         store.buyFurniture(offerID: "sunrise_art")
         try await eventually { !store.isBusy }
-        store.decoratePurchasedFurniture()
+        await store.decoratePurchasedFurniture()
         XCTAssertEqual(store.selectedStoredFurnitureID, "shop_sunrise_art_1")
         store.cancelDecorating()
         store.activeSheet = .shop
@@ -175,7 +176,7 @@ final class Design55StoreTests: XCTestCase {
         XCTAssertEqual(store.furniturePurchaseNotice, "sunrise_art")
         store.activeSheet = .inventory
         XCTAssertNil(store.furniturePurchaseNotice)
-        store.decoratePurchasedFurniture()
+        await store.decoratePurchasedFurniture()
         XCTAssertFalse(store.isDecorating, "A dismissed purchase must not retain a stale placement shortcut.")
     }
 
@@ -275,7 +276,7 @@ final class Design55StoreTests: XCTestCase {
         XCTAssertNotEqual(store.saveSceneGeneration, generation)
         XCTAssertNil(store.furniturePurchaseNotice)
         XCTAssertNil(store.supplyPicker)
-        store.decoratePurchasedFurniture()
+        await store.decoratePurchasedFurniture()
         XCTAssertFalse(store.isDecorating)
         let beforeUse = store.snapshot
         let staleUse = await store.useSupplyFromPicker(.premiumLitter)

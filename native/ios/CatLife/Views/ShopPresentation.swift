@@ -51,7 +51,9 @@ struct FurniturePurchaseBanner: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(GameStrings.format("shop.design.purchased", GameStrings.text(offer.nameKey)))
                     .font(.subheadline.weight(.heavy))
-                Text(store.canPlaceMoreFurniture
+                Text(needsFloorTravel && !store.canChangeHomeFloor
+                     ? GameStrings.text(store.isDecorating ? "homeFloor.finishLayout" : "homeFloor.waitCare")
+                     : store.canPlaceMoreFurniture
                      ? GameStrings.text(FurnitureCatalog.metadata(for: offer.kind).isWall ? "shop.design.placeWallHint" : "shop.design.placeFloorHint")
                      : store.furnitureCapacityNotice)
                     .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
@@ -60,12 +62,16 @@ struct FurniturePurchaseBanner: View {
     }
 
     private var decorateButton: some View {
-        Button { store.decoratePurchasedFurniture() } label: {
-            Text(GameStrings.text(store.canPlaceMoreFurniture ? "shop.design.decorate"
-                : store.canUpgradeHome ? "shop.design.upgrade" : "shop.design.makeRoom"))
+        Button { Task { await store.decoratePurchasedFurniture() } } label: {
+            Text(GameStrings.text(store.furniturePurchaseActionKey))
                 .font(.subheadline.weight(.heavy))
         }
-        .buttonStyle(ShopPriceButtonStyle()).disabled(store.isBusy)
+        .buttonStyle(ShopPriceButtonStyle())
+        .disabled(store.isBusy || store.isChangingHomeFloor || (needsFloorTravel && !store.canChangeHomeFloor))
         .accessibilityIdentifier("shopDecoratePurchaseButton")
+    }
+
+    private var needsFloorTravel: Bool {
+        store.availableFurnitureFloor.map { $0 != store.visibleHomeFloor } ?? false
     }
 }

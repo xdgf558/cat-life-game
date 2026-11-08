@@ -2,6 +2,41 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testFullGroundFloorPurchaseOffersUpstairsAndSelectsNewFurniture() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--home-full-ground-fixture", "--furniture-test"]
+        launchAndEnterHome(app)
+        _ = waitForFurniture(in: app, description: "full downstairs ready") { $0.phase == "idle" && !$0.pending }
+        tapAnimationControl("tabShop", in: app)
+        tapAnimationControl("shopCategory_furniture", in: app)
+        tapAnimationControl("shopItem_oak_bookcase", in: app)
+        scrollCareerPage("shopDetailScroll", to: "shopBuy_oak_bookcase", in: app)
+        tapAnimationControl("shopBuy_oak_bookcase", in: app)
+        waitForElement("furniturePurchaseBanner", in: app)
+        waitForLabel("shopDecoratePurchaseButton", "前往二楼布置", in: app)
+        XCTAssertTrue(app.staticTexts["这一层已满，二楼还有 24 个家具位置。"].exists)
+        attachScreenshot(app, named: "Purchase — downstairs full offers free upstairs space")
+        tapAnimationControl("shopDecoratePurchaseButton", in: app)
+        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        waitForLabel("selectedFurnitureName", "橡木矮书架", in: app, contains: true)
+        let stored = element("layoutStored_shop_oak_bookcase_1", in: app)
+        XCTAssertTrue(stored.isSelected)
+        XCTAssertFalse(element("homeUpgradeCurrentLevel", in: app).exists)
+        let empty = waitForFurniture(in: app, description: "new purchase highlighted without automatic placement") {
+            $0.phase == "editing" && !$0.pending
+        }
+        XCTAssertTrue(empty.items.isEmpty)
+        attachScreenshot(app, named: "Purchase — upstairs tray focuses new furniture")
+        tapAnimationControl("layoutCancelButton", in: app)
+        _ = waitForFurniture(in: app, description: "cancel upstairs purchase draft") { $0.phase == "idle" && !$0.pending }
+        tapAnimationControl("homeStairsButton", in: app)
+        waitForObservedValue("homeStairsButton", "1F · 一楼", in: app)
+        let ground = waitForFurniture(in: app, description: "original full downstairs preserved") { $0.phase == "idle" && !$0.pending }
+        XCTAssertEqual(ground.items.count, 24)
+    }
+
+    @MainActor
     func testUpgradeCelebrationStairsIndependentFloorAndPersistedFurniture() throws {
         continueAfterFailure = false
         let app = XCUIApplication()

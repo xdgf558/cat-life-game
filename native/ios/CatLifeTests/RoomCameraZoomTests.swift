@@ -4,30 +4,35 @@ import CatGameCore
 @testable import CatLife
 
 final class RoomCameraZoomTests: XCTestCase {
-    func testZoomProjectionRoundTripsAndKeepsVisibleWorldInsideBounds() {
+    func testZoomProjectionRoundTripsAndKeepsVisibleWorldInsideBounds() throws {
         for viewport in [CGSize(width: 375, height: 436), CGSize(width: 402, height: 567)] {
-            for expansion: CGFloat in [1.25, 1.5] {
-                let geometry = RoomWorldGeometry(viewportSize: viewport, worldScale: expansion)
-                for scale: CGFloat in [0.625, 1, expansion] {
-                    for proposed in [CGPoint(x: -1_000, y: -1_000), CGPoint(x: 10_000, y: 10_000)] {
-                        let camera = geometry.clampedCameraPosition(proposed, cameraScale: scale)
-                        let topLeft = geometry.worldPoint(.zero, camera: camera, cameraScale: scale)
-                        let bottomRight = geometry.worldPoint(CGPoint(x: viewport.width, y: viewport.height),
-                                                              camera: camera, cameraScale: scale)
-                        XCTAssertGreaterThanOrEqual(topLeft.x, -0.0001)
-                        XCTAssertLessThanOrEqual(topLeft.y, geometry.worldSize.height + 0.0001)
-                        XCTAssertLessThanOrEqual(bottomRight.x, geometry.worldSize.width + 0.0001)
-                        XCTAssertGreaterThanOrEqual(bottomRight.y, -0.0001)
-                        let savedWorldPoint = CGPoint(x: geometry.worldSize.width * 0.76, y: geometry.worldSize.height * 0.21)
-                        let projected = geometry.screenPoint(savedWorldPoint, camera: camera, cameraScale: scale)
-                        let restored = geometry.worldPoint(projected, camera: camera, cameraScale: scale)
-                        XCTAssertEqual(restored.x, savedWorldPoint.x, accuracy: 0.0001)
-                        XCTAssertEqual(restored.y, savedWorldPoint.y, accuracy: 0.0001)
-                        if scale == expansion {
-                            XCTAssertEqual(topLeft.x, 0, accuracy: 0.0001)
-                            XCTAssertEqual(topLeft.y, geometry.worldSize.height, accuracy: 0.0001)
-                            XCTAssertEqual(bottomRight.x, geometry.worldSize.width, accuracy: 0.0001)
-                            XCTAssertEqual(bottomRight.y, 0, accuracy: 0.0001)
+            for room in HomeCatalog.all {
+                for floor in room.floors {
+                    let context = "room level \(room.level), \(floor.rawValue), \(viewport)"
+                    let expansion = CGFloat(try XCTUnwrap(room.worldScale(on: floor), context))
+                    let geometry = RoomWorldGeometry(viewportSize: viewport, worldScale: expansion)
+                    for scale: CGFloat in expansion > 1 ? [0.625, 1, expansion] : [1] {
+                        for proposed in [CGPoint(x: -1_000, y: -1_000), CGPoint(x: 10_000, y: 10_000)] {
+                            let sample = "\(context), camera scale \(scale), proposed \(proposed)"
+                            let camera = geometry.clampedCameraPosition(proposed, cameraScale: scale)
+                            let topLeft = geometry.worldPoint(.zero, camera: camera, cameraScale: scale)
+                            let bottomRight = geometry.worldPoint(CGPoint(x: viewport.width, y: viewport.height),
+                                                                  camera: camera, cameraScale: scale)
+                            XCTAssertGreaterThanOrEqual(topLeft.x, -0.0001, sample)
+                            XCTAssertLessThanOrEqual(topLeft.y, geometry.worldSize.height + 0.0001, sample)
+                            XCTAssertLessThanOrEqual(bottomRight.x, geometry.worldSize.width + 0.0001, sample)
+                            XCTAssertGreaterThanOrEqual(bottomRight.y, -0.0001, sample)
+                            let savedWorldPoint = CGPoint(x: geometry.worldSize.width * 0.76, y: geometry.worldSize.height * 0.21)
+                            let projected = geometry.screenPoint(savedWorldPoint, camera: camera, cameraScale: scale)
+                            let restored = geometry.worldPoint(projected, camera: camera, cameraScale: scale)
+                            XCTAssertEqual(restored.x, savedWorldPoint.x, accuracy: 0.0001, sample)
+                            XCTAssertEqual(restored.y, savedWorldPoint.y, accuracy: 0.0001, sample)
+                            if scale == expansion {
+                                XCTAssertEqual(topLeft.x, 0, accuracy: 0.0001, sample)
+                                XCTAssertEqual(topLeft.y, geometry.worldSize.height, accuracy: 0.0001, sample)
+                                XCTAssertEqual(bottomRight.x, geometry.worldSize.width, accuracy: 0.0001, sample)
+                                XCTAssertEqual(bottomRight.y, 0, accuracy: 0.0001, sample)
+                            }
                         }
                     }
                 }

@@ -42,6 +42,7 @@
 		26344AADD0A3B3832A3B50CC775DD322 /* FurnitureOrientationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CB3AD54EF7EE9D555C95FB2299D85EF /* FurnitureOrientationUITests.swift */; };
 		2B8427104B6A448BB2669F285CCF0534 /* SaveManagementUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DA42806C947986DD8571F88C772CA5E /* SaveManagementUITests.swift */; };
 		2E1634F6B7672922BE869680CF89B4D7 /* GameStrings+TownMap58.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57199C5A0920FDEB363A3B392E5324F0 /* GameStrings+TownMap58.swift */; };
+		2E5F112B35E73CF1F193B60FEB50A962 /* HomePurchaseFloorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A120CA4E214DB6A340EC606F106ECB0C /* HomePurchaseFloorTests.swift */; };
 		2EA1D06240017E3FBBE0AB1A8D001A42 /* ShopPriceZoomUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6D7074ED9C9633E0802C4026612C2A3 /* ShopPriceZoomUITests.swift */; };
 		2EC6D7616DB11CE2880B540A777AEB08 /* TaskDestinationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07A0EAE5D3EC31CA30915C696B47CDFE /* TaskDestinationView.swift */; };
 		324F2F1058BD5836EFACD7FF616C3AAD /* GameStrings+HomeInventory58.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC198046991BD2C4170A81048D1FFF85 /* GameStrings+HomeInventory58.swift */; };
@@ -389,6 +390,7 @@
 		9E1C0B25B45DF1D8F3A368A113C4D4AC /* CatLife.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CatLife.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F822AF23CA73BE90A5AE5FC71C42B89 /* WorkCareerDirectoryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WorkCareerDirectoryView.swift; path = Views/WorkCareerDirectoryView.swift; sourceTree = "<group>"; };
 		A0FBB74AE48DAC5F03F286ECB2157033 /* RoomCameraZoomTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoomCameraZoomTests.swift; sourceTree = "<group>"; };
+		A120CA4E214DB6A340EC606F106ECB0C /* HomePurchaseFloorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = HomePurchaseFloorTests.swift; sourceTree = "<group>"; };
 		A7028C7FFC93024C390E9B1BEF8FC3A4 /* BowlPlanningUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BowlPlanningUITests.swift; sourceTree = "<group>"; };
 		A80C50DA807983BB8CC67225330F0391 /* ShopPresentation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ShopPresentation.swift; path = Views/ShopPresentation.swift; sourceTree = "<group>"; };
 		A82F6958AAF3E03AE4241E750105C612 /* SettingsAudioControl.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SettingsAudioControl.swift; path = Views/SettingsAudioControl.swift; sourceTree = "<group>"; };
@@ -518,6 +520,7 @@
 				3A2569AD539E6F6932C1B579D4CFA1B0 /* GameStoreTaskTests.swift */,
 				E64B658DE72F83E67FA4DED0F86CD12B /* HomeFloorBoundaryTests.swift */,
 				B30B8BF94FDA00A8E2B03EE02F682090 /* HomeFloorStoreTests.swift */,
+				A120CA4E214DB6A340EC606F106ECB0C /* HomePurchaseFloorTests.swift */,
 				74D2C06BF8B266B93211A65AAFB671FD /* MarketDesign55Tests.swift */,
 				3FA4308FAB6DE74DA355E200025D9337 /* NewFurnitureGeometryTests.swift */,
 				F8F9BF5AB016D8B3F32236F7FECE33AD /* OnboardingSpotlightLayoutTests.swift */,
@@ -944,6 +947,7 @@
 				7A1169688B266E110AA96F3282BC7494 /* GameStoreTaskTests.swift in Sources */,
 				1D19F72CD832D519BA14967F67A4CDED /* HomeFloorBoundaryTests.swift in Sources */,
 				A6151500604A0C77C92AF9B1F0C45DB8 /* HomeFloorStoreTests.swift in Sources */,
+				2E5F112B35E73CF1F193B60FEB50A962 /* HomePurchaseFloorTests.swift in Sources */,
 				4B629CD1FFF2DDC4E54BFA5BA16EE869 /* MarketDesign55Tests.swift in Sources */,
 				77896862B648B8A22F5497C2F135BC71 /* NewFurnitureGeometryTests.swift in Sources */,
 				6497DB34FF0000FF545334FF94421E24 /* OnboardingSpotlightLayoutTests.swift in Sources */,
