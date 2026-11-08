@@ -75,15 +75,21 @@ final class Design55StoreTests: XCTestCase {
 
     @MainActor
     func testFullRoomPurchaseGoesToUpgradeOrStorageWithoutChangingLayout() async throws {
-        for level in [1, 3] {
+        let maximumLevel = try XCTUnwrap(HomeCatalog.all.last)
+        for level in [1, maximumLevel.level] {
             var initial = seed()
             initial.home.roomLevel = level
-            let capacity = try XCTUnwrap(HomeCatalog.level(level)).capacity
-            while initial.home.furniture.count < capacity {
+            let room = try XCTUnwrap(HomeCatalog.level(level))
+            initial.player.level = max(initial.player.level, room.requiredPlayerLevel)
+            initial.home.upperBowlPosition = room.floors.contains(.upper) ? HomeState.defaultBowlPosition : nil
+            let capacity = room.capacity(on: .ground)
+            while initial.home.placements(on: .ground).count < capacity {
                 let id = "capacity-test-\(initial.home.furniture.count)"
                 initial.inventory.furniture.append(FurnitureItem(id: id, kind: .plant))
                 initial.home.furniture.append(FurniturePlacement(itemID: id, position: .init(x: 0.6, y: 0.7)))
             }
+            XCTAssertNoThrow(try NativeSaveTransfer.encode(snapshot: initial))
+            XCTAssertTrue(initial.home.placements(on: .upper).isEmpty)
             let store = makeStore(Design55Repository(initial))
             await store.load()
             store.enterHome()
@@ -95,6 +101,7 @@ final class Design55StoreTests: XCTestCase {
             store.decoratePurchasedFurniture()
             XCTAssertEqual(store.snapshot, purchased)
             XCTAssertFalse(store.canPlaceMoreFurniture)
+            XCTAssertEqual(store.placedFurnitureCount, capacity)
             XCTAssertNil(store.selectedStoredFurnitureID)
             XCTAssertNil(store.placingFurnitureID)
             if level == 1 {

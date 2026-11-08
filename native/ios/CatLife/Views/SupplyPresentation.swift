@@ -110,13 +110,25 @@ struct SupplySectionHeading: View {
 
 @MainActor
 struct SupplyManualUseHint: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     var body: some View {
-        Label(GameStrings.text("supply.manualUseHint"), systemImage: "info.circle.fill")
-            .font(.caption.weight(.bold)).foregroundStyle(PremiumSupplyStyle.effectText)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(14).frame(maxWidth: .infinity, alignment: .leading)
-            .background(PremiumSupplyStyle.paper, in: RoundedRectangle(cornerRadius: 20))
-            .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(PremiumSupplyStyle.border, lineWidth: 2))
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: 8) {
+                    Image(systemName: "info.circle.fill").accessibilityHidden(true)
+                    Text(GameStrings.text("supply.manualUseHint"))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+            } else {
+                Label(GameStrings.text("supply.manualUseHint"), systemImage: "info.circle.fill")
+            }
+        }
+        .font(.caption.weight(.bold)).foregroundStyle(PremiumSupplyStyle.effectText)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+        .background(PremiumSupplyStyle.paper, in: RoundedRectangle(cornerRadius: 20))
+        .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(PremiumSupplyStyle.border, lineWidth: 2))
     }
 }
 

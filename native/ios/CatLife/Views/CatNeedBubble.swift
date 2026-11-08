@@ -50,11 +50,31 @@ struct CatNeedAnchorSampler {
 }
 
 enum CatNeedBubbleLayout {
-    static func position(above anchor: CGPoint, in size: CGSize) -> CGPoint {
-        let minimumX = min(100, max(0, size.width / 2))
-        let minimumY = min(100, max(0, size.height / 2))
-        return CGPoint(x: min(max(minimumX, size.width - 100), max(minimumX, anchor.x)),
-                       y: min(max(minimumY, size.height - 200), max(minimumY, anchor.y - 36)))
+    static func position(above anchor: CGPoint, in size: CGSize,
+                         bubbleSize: CGSize = CGSize(width: 190, height: 44), avoiding obstacle: CGRect = .zero) -> CGPoint {
+        let minimumX = min(max(100, bubbleSize.width / 2 + 5), max(0, size.width / 2))
+        let minimumY = min(max(100, bubbleSize.height / 2 + 8), max(0, size.height / 2))
+        let maximumY = max(minimumY, min(size.height - 200, size.height - bubbleSize.height / 2 - 8))
+        func clamped(_ point: CGPoint) -> CGPoint {
+            CGPoint(x: min(max(minimumX, size.width - minimumX), max(minimumX, point.x)),
+                    y: min(maximumY, max(minimumY, point.y)))
+        }
+        let preferred = clamped(CGPoint(x: anchor.x, y: anchor.y - 36))
+        guard !obstacle.isEmpty else { return preferred }
+        let blocked = obstacle.insetBy(dx: -8, dy: -8)
+        func isClear(_ center: CGPoint) -> Bool {
+            !CGRect(x: center.x - bubbleSize.width / 2, y: center.y - bubbleSize.height / 2,
+                    width: bubbleSize.width, height: bubbleSize.height).intersects(blocked)
+        }
+        guard !isClear(preferred) else { return preferred }
+        // Prefer a sideways shift so the bubble stays above the cat, without taking the stair button's hit area.
+        let candidates = [
+            CGPoint(x: blocked.minX - bubbleSize.width / 2 - 1, y: preferred.y),
+            CGPoint(x: blocked.maxX + bubbleSize.width / 2 + 1, y: preferred.y),
+            CGPoint(x: preferred.x, y: blocked.minY - bubbleSize.height / 2 - 1),
+            CGPoint(x: preferred.x, y: blocked.maxY + bubbleSize.height / 2 + 1)
+        ].map(clamped)
+        return candidates.first(where: isClear) ?? preferred
     }
 }
 
@@ -70,11 +90,13 @@ final class CatNeedPresentation {
 @MainActor
 struct CatNeedBubble: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var bubbleSize = CGSize(width: 190, height: 44)
     let store: GameStore
     let presentation: CatNeedPresentation
     let canvasSize: CGSize
     let isActive: Bool
     let canAct: () -> Bool
+    var avoidingFrame: CGRect = .zero
 
     private var need: CatNeed? {
         guard let cat = store.cat else { return nil }
@@ -135,9 +157,16 @@ struct CatNeedBubble: View {
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
+            .background {
+                GeometryReader { geometry in
+                    Color.clear.onAppear { bubbleSize = geometry.size }
+                        .onChange(of: geometry.size) { _, size in bubbleSize = size }
+                }.allowsHitTesting(false)
+            }
             .accessibilityIdentifier("catNeedBubble")
             .accessibilityLabel(GameStrings.text(titleKey(need)))
-            .position(CatNeedBubbleLayout.position(above: anchor, in: canvasSize))
+            .position(CatNeedBubbleLayout.position(above: anchor, in: canvasSize,
+                                                  bubbleSize: bubbleSize, avoiding: avoidingFrame))
         }
     }
 }

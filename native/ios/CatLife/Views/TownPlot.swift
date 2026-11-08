@@ -4,81 +4,88 @@ struct TownPlot: View {
     let place: TownPlace
     let selected: Bool
     let inLayer: Bool
-    let sickCount: Int
-    var availableAdoption = false
-    var availableExchanges = 0
+    let badge: String?
+    let badgeTint: Color
+    let animates: Bool
     let action: () -> Void
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var lift: CGFloat = 0
     @State private var pulse = false
-
-    private var canAdopt: Bool { place == .adoption && availableAdoption }
-
-    private var needsAttention: Bool { place == .hospital && sickCount > 0 }
-    private var status: String {
-        if place == .market { return GameStrings.format("market.availableCount", availableExchanges) }
-        if canAdopt { return GameStrings.text("cat.adoptionAvailable") }
-        if needsAttention { return GameStrings.format("town.sickCount", sickCount) }
-        return GameStrings.text(place.isFuture ? "town.comingSoon" : place.statusKey(sickCount: sickCount))
-    }
+    private var size: CGFloat { TownMapLayout.frame(for: place).width }
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 4) {
-                GameIcon(asset: place.asset, symbol: place.symbol, size: 38, tint: place.tint)
-                Text(GameStrings.text(place.titleKey)).font(.system(size: 12, weight: .heavy))
-                    .lineLimit(2).minimumScaleFactor(0.75).multilineTextAlignment(.center)
-            }
-            .padding(.horizontal, 3).frame(maxWidth: .infinity).frame(height: 72)
-            .foregroundStyle(RoomTheme.ink)
-            .background {
-                RoundedRectangle(cornerRadius: 20).fill(place.tile)
-                    .shadow(color: place.isFuture || place.isEmpty ? .clear : RoomTheme.ink.opacity(0.12), radius: 0, y: 4)
-            }
-            .overlay {
-                RoundedRectangle(cornerRadius: 20).strokeBorder(
-                    place.isEmpty ? TownPalette.emptyEdge : (place.isFuture ? TownPalette.communityEdge : .white),
-                    style: StrokeStyle(lineWidth: place.isFuture || place.isEmpty ? 2 : 3,
-                                       dash: place.isFuture || place.isEmpty ? [5, 4] : []))
-            }
-            .overlay {
+            ZStack(alignment: .bottom) {
                 if selected {
-                    RoundedRectangle(cornerRadius: 24).strokeBorder(RoomTheme.gold, lineWidth: 3).padding(-4)
+                    Ellipse().fill(RoomTheme.gold.opacity(0.28))
+                        .frame(width: size * 0.82, height: 28)
+                        .blur(radius: 8).offset(y: -24)
                 }
-            }
-            .overlay(alignment: .topTrailing) {
-                if place.isFuture || needsAttention || canAdopt || place == .market {
-                    Text(status)
-                        .font(.system(size: 10, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
-                        .foregroundStyle(.white).padding(.horizontal, 7).frame(height: 22)
-                        .background(place == .market ? (availableExchanges > 0 ? RoomTheme.mint : RoomTheme.secondary)
-                            : canAdopt ? RoomTheme.mint : (place.isFuture ? RoomTheme.lilac : RoomTheme.coral), in: Capsule())
+                GameIcon(asset: place.asset, symbol: place.symbol, size: size, tint: place.tint)
+                    .saturation(place.isFuture ? 0.4 : 1).opacity(place.isFuture ? 0.63 : 1)
+                    .offset(y: -24 + lift)
+                if place.isFuture { constructionFence.offset(y: -33) }
+                Label(GameStrings.text(place.titleKey), systemImage: place.symbol)
+                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    .lineLimit(2).minimumScaleFactor(0.75).multilineTextAlignment(.center)
+                    .padding(.horizontal, 9).padding(.vertical, 7)
+                    .foregroundStyle(place.isFuture ? RoomTheme.lilac : RoomTheme.ink)
+                    .background(selected ? Color(red: 1, green: 0.91, blue: 0.65)
+                                : place.isFuture ? TownPalette.community : RoomTheme.paper,
+                                in: RoundedRectangle(cornerRadius: 13))
+                    .overlay(RoundedRectangle(cornerRadius: 13)
+                        .strokeBorder(selected ? RoomTheme.gold : .white, lineWidth: 2))
+                    .shadow(color: TownPalette.woodEdge.opacity(0.5), radius: 0, y: 3)
+                    .padding(.horizontal, 2)
+                if let badge {
+                    Text(badge).font(.system(size: 11, weight: .heavy, design: .rounded))
+                        .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
+                        .foregroundStyle(.white).padding(.horizontal, 8).padding(.vertical, 5)
+                        .background(badgeTint, in: Capsule())
                         .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                         .background {
-                            if needsAttention, !reduceMotion {
-                                Capsule().stroke(RoomTheme.coral.opacity(pulse ? 0 : 0.5), lineWidth: 3)
+                            if place == .hospital, animates {
+                                Capsule().stroke(badgeTint.opacity(pulse ? 0 : 0.5), lineWidth: 3)
                                     .scaleEffect(pulse ? 1.15 : 1)
                             }
                         }
-                        .offset(x: 3, y: -12).accessibilityHidden(true)
+                        .frame(maxWidth: size - 8, maxHeight: .infinity,
+                               alignment: TownMapLayout.frame(for: place).midX > 200 ? .topLeading : .topTrailing)
+                        .offset(y: -2)
                 }
             }
-            .overlay(alignment: .topLeading) {
-                if place == .home {
-                    Image(systemName: "mappin.circle.fill").font(.system(size: 27, weight: .bold))
-                        .foregroundStyle(RoomTheme.mint, RoomTheme.paper).offset(x: 8, y: -10)
-                        .accessibilityHidden(true)
-                }
-            }
-            .opacity(inLayer ? 1 : 0.25).contentShape(RoundedRectangle(cornerRadius: 20))
+            .frame(width: size, height: size + 24)
+            .opacity(inLayer ? 1 : 0.35).saturation(inLayer ? 1 : 0.2)
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain).accessibilityIdentifier(place.accessibilityIdentifier)
         .accessibilityLabel(GameStrings.text(place.titleKey))
-        .accessibilityValue(status)
+        .accessibilityValue(badge ?? GameStrings.text(place.statusKey(sickCount: 0)))
         .accessibilityAddTraits(selected ? .isSelected : [])
-        .onChange(of: needsAttention && !reduceMotion, initial: true) { _, animate in
-            if animate {
-                withAnimation(.easeOut(duration: 1.4).repeatForever(autoreverses: false)) { pulse = true }
-            } else { pulse = false }
+        .task(id: selected && animates) {
+            guard selected && animates else { lift = 0; return }
+            withAnimation(.easeOut(duration: 0.18)) { lift = -7 }
+            do { try await Task.sleep(for: .milliseconds(180)) } catch { lift = 0; return }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) { lift = 0 }
         }
+        .onChange(of: animates && place == .hospital && badge != nil, initial: true) { _, active in
+            if active {
+                withAnimation(.easeOut(duration: 1.4).repeatForever(autoreverses: false)) { pulse = true }
+            } else { var transaction = Transaction(); transaction.disablesAnimations = true
+                withTransaction(transaction) { pulse = false; lift = 0 }
+            }
+        }
+    }
+
+    private var constructionFence: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(RoomTheme.gold)
+            ForEach(0..<6) { _ in
+                Rectangle().fill(RoomTheme.lilac.opacity(0.65)).frame(width: 9, height: 15)
+                    .rotationEffect(.degrees(25))
+            }
+        }
+        .font(.system(size: 17)).padding(.horizontal, 4)
+        .frame(height: 19).background(RoomTheme.paper.opacity(0.9), in: RoundedRectangle(cornerRadius: 3))
+        .accessibilityHidden(true)
     }
 }

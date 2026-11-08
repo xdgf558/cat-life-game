@@ -8,9 +8,11 @@ extension RoomHomeUITests {
         tapAnimationControl("tabTown", in: app)
         waitForElement("townMapTitle", in: app)
         for marker in ["townHomeMarker", "townAdoptionMarker", "townCollectionButton"] {
+            scrollCareerPage("townMapScroll", to: marker, in: app)
             XCTAssertTrue(element(marker, in: app).isHittable, "Map destinations must be real tappable controls.")
         }
         attachScreenshot(app, named: "Town — map destinations use the native collection and adoption flow")
+        scrollCareerPage("townMapScroll", to: "townAdoptionMarker", in: app)
         tapAnimationControl("townAdoptionMarker", in: app)
         scrollCareerPage("townMapScroll", to: "townAdoptionCollectionButton", in: app)
         tapAnimationControl("townAdoptionCollectionButton", in: app)
@@ -76,7 +78,9 @@ extension RoomHomeUITests {
     @MainActor
     func testTownPlotsKeepTheirLayoutAndFuturePlacesDoNotUnlockGameplay() throws {
         continueAfterFailure = false
-        let app = launchFreshHome()
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--town-day", "--town-reduce-motion"]
+        launchAndEnterHome(app)
         // English has the widest availability badges and landmark names.
         tapAnimationControl("settingsButton", in: app)
         scrollCareerPage("settingsScroll", to: "languageOption_en", in: app)
@@ -84,16 +88,30 @@ extension RoomHomeUITests {
         assertSettingsLanguageSelection("en", in: app)
         tapAnimationControl("tabTown", in: app)
         waitForElement("townMapScroll", in: app)
-        let row = ["townPlot_street", "townHospitalMarker", "townPlot_cafe"]
-        let frames = row.map { element($0, in: app).frame }
-        attachScreenshot(app, named: "Town — cartoon buildings retain the twelve-place map")
+        waitForObservedValue("townPlaceDetail", "home", in: app)
+        XCTAssertTrue(element("townHomeMarker", in: app).isHittable,
+                      "The first visit must locate the player's home without a manual swipe.")
+        scrollCareerPage("townMapScroll", to: "townHomeMarker", in: app)
+        let places = ["townPlot_work", "townPlot_shop", "townPlot_plaza", "townPlot_board", "townPlot_market",
+                      "townPlot_street", "townHomeMarker", "townHospitalMarker", "townAdoptionMarker",
+                      "townPlot_cafe", "townPlot_lot1", "townPlot_lot2"]
+        let canvas = element("townMapCanvas", in: app)
+        let initialCanvas = canvas.frame
+        XCTAssertGreaterThan(initialCanvas.height, element("townMapScroll", in: app).frame.height,
+                             "The town is a vertically scrollable map, not a fixed twelve-card grid.")
+        let frames = places.map { element($0, in: app).frame.offsetBy(dx: -initialCanvas.minX, dy: -initialCanvas.minY) }
+        for id in places { XCTAssertTrue(element(id, in: app).exists) }
+        attachScreenshot(app, named: "Town v2 — home district on the continuous map")
         tapAnimationControl("townLayer_neighbors", in: app)
-        for (index, id) in row.enumerated() {
+        let filteredCanvas = canvas.frame
+        for (index, id) in places.enumerated() {
             XCTAssertTrue(element(id, in: app).exists)
-            XCTAssertEqual(element(id, in: app).frame, frames[index], "Filtering dims places without rearranging the map.")
+            let frame = element(id, in: app).frame.offsetBy(dx: -filteredCanvas.minX, dy: -filteredCanvas.minY)
+            XCTAssertEqual(frame.minX, frames[index].minX, accuracy: 1, "Filtering must not rearrange map positions.")
+            XCTAssertEqual(frame.minY, frames[index].minY, accuracy: 1, "Filtering must not rearrange map positions.")
         }
         tapAnimationControl("townLayer_all", in: app)
-        for id in ["street", "cafe", "plaza", "board", "market", "lot1", "lot2"] {
+        for id in ["cafe", "plaza", "board", "lot1", "lot2"] {
             scrollCareerPage("townMapScroll", to: "townPlot_\(id)", in: app)
             tapAnimationControl("townPlot_\(id)", in: app)
             waitForObservedValue("townPlaceDetail", id, in: app)
@@ -102,7 +120,17 @@ extension RoomHomeUITests {
                            "Future places cannot open prototype-only gameplay or notification bookings.")
         }
         XCTAssertFalse(app.buttons["开放时提醒我"].exists)
-        attachScreenshot(app, named: "Town — reserved plots remain previews without fake unlocks")
+        attachScreenshot(app, named: "Town v2 — southern reserved plots remain previews")
+        tapAnimationControl("townMapFocusHome", in: app)
+        waitForObservedValue("townPlaceDetail", "home", in: app)
+        XCTAssertTrue(element("townHomeMarker", in: app).isHittable)
+        for id in ["street", "market"] {
+            scrollCareerPage("townMapScroll", to: "townPlot_\(id)", in: app)
+            tapAnimationControl("townPlot_\(id)", in: app)
+            waitForObservedValue("townPlaceDetail", id, in: app)
+            XCTAssertTrue(element("townEnter_\(id)", in: app).isEnabled,
+                          "The already released neighbors and market remain open.")
+        }
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         waitForObservedValue("foodCount", "3", in: app)
@@ -112,18 +140,31 @@ extension RoomHomeUITests {
     func testTownDestinationsRequireSelectingThenEnteringWithoutChangingResources() throws {
         continueAfterFailure = false
         let app = launchFreshHome()
-        for (plot, enter, destination) in [
-            ("townPlot_work", "townEnter_work", "careerChooseJobButton"),
-            ("townPlot_shop", "townEnter_shop", "shopCategory_supplies"),
-            ("townHospitalMarker", "townHospitalButton", "hospitalDirectoryScroll")
+        for (plot, place, enter, destination) in [
+            ("townPlot_work", "work", "townEnter_work", "careerChooseJobButton"),
+            ("townPlot_shop", "shop", "townEnter_shop", "shopCategory_supplies"),
+            ("townHospitalMarker", "hospital", "townHospitalButton", "hospitalDirectoryScroll")
         ] {
             tapAnimationControl("tabTown", in: app)
             scrollCareerPage("townMapScroll", to: plot, in: app)
             tapAnimationControl(plot, in: app)
             XCTAssertTrue(element("townMapScroll", in: app).exists, "Choosing a plot only updates its detail panel.")
             scrollCareerPage("townMapScroll", to: enter, in: app)
+            XCTAssertLessThanOrEqual(element(enter, in: app).frame.maxY,
+                                    element("homeNavigationBar", in: app).frame.minY + 1,
+                                    "A selected place's fixed action must stay above the bottom tabs.")
             tapAnimationControl(enter, in: app)
             waitForElement(destination, in: app)
+            tapAnimationControl("tabTown", in: app)
+            waitForObservedValue("townPlaceDetail", place, in: app)
+            let marker = element(plot, in: app)
+            let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+                marker.exists && marker.isHittable
+                    && self.unobscuredScrollViewport(self.element("townMapScroll", in: app), in: app)
+                        .insetBy(dx: -1, dy: -1).contains(marker.frame)
+            }, object: nil)
+            XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 8), .completed,
+                           "Returning from \(place) must preserve its selection and reveal its building without another swipe.")
         }
         tapAnimationControl("tabTown", in: app)
         tapAnimationControl("townCollectionButton", in: app)
@@ -150,13 +191,21 @@ extension RoomHomeUITests {
         scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeAction", in: app)
         tapAnimationControl("homeUpgradeAction", in: app)
         tapAnimationControl("homeUpgradeConfirm", in: app)
+        tapAnimationControl("homeUpgradeCelebrationDone", in: app)
         waitForObservedValue("adoptionAvailableNotice", "cat_002", in: app)
         tapAnimationControl("adoptionReminderDismiss", in: app)
+        // The celebration returns home; follow the still-locked blue cat's room requirement again.
+        openTownCollection(in: app)
+        tapAnimationControl("catFilter_all", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catAdoption_cat_003", in: app)
+        tapAnimationControl("catAdoption_cat_003", in: app)
+        tapAnimationControl("catAdoptionRequirementAction", in: app)
         scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeCurrentLevel", in: app)
         waitForObservedValue("homeUpgradeCurrentLevel", "2", in: app)
         scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeAction", in: app)
         tapAnimationControl("homeUpgradeAction", in: app)
         tapAnimationControl("homeUpgradeConfirm", in: app)
+        tapAnimationControl("homeUpgradeCelebrationDone", in: app)
         waitForObservedValue("adoptionAvailableNotice", "cat_003", in: app)
         tapAnimationControl("adoptionReminderOpen", in: app)
         waitForLabel("catAdoptionName", "蓝影", in: app)

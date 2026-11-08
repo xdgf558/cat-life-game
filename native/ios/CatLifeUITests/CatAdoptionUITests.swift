@@ -105,6 +105,7 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchCatAdoptionFixture("--uitesting-blue-adoption-ready", extra: ["--cat-adoption-save-failure-once"])
         tapAnimationControl("tabTown", in: app)
+        scrollCareerPage("townMapScroll", to: "townAdoptionMarker", in: app)
         tapAnimationControl("townAdoptionMarker", in: app)
         scrollCareerPage("townMapScroll", to: "townMeetCatButton", in: app)
         tapAnimationControl("townMeetCatButton", in: app)

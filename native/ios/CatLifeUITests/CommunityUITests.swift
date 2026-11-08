@@ -237,6 +237,7 @@ extension RoomHomeUITests {
     @MainActor
     private func openNeighbors(in app: XCUIApplication) {
         tapAnimationControl("tabTown", in: app)
+        scrollCareerPage("townMapScroll", to: "townPlot_street", in: app)
         tapAnimationControl("townPlot_street", in: app)
         scrollCareerPage("townMapScroll", to: "townEnter_street", in: app)
         tapAnimationControl("townEnter_street", in: app)

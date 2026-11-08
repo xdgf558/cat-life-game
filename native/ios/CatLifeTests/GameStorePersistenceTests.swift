@@ -520,12 +520,27 @@ final class GameStorePersistenceTests: XCTestCase {
         store.cancelDecorating()
         XCTAssertEqual(store.snapshot?.home.roomLevel, 2, "Cancelling a layout must not undo a paid upgrade.")
         XCTAssertEqual(store.snapshot?.home.furniture, seed.home.furniture)
-        store.upgradeHome(toLevel: 3)
-        try await eventually("The final room level should replace upgrade guidance with storage guidance") {
-            !store.isBusy && store.snapshot?.home.roomLevel == 3
+        let maximumLevel = try XCTUnwrap(HomeCatalog.all.last)
+        var maximumSeed = try XCTUnwrap(store.snapshot)
+        maximumSeed.home.roomLevel = maximumLevel.level
+        maximumSeed.player.level = maximumLevel.requiredPlayerLevel
+        maximumSeed.home.upperBowlPosition = maximumLevel.floors.contains(.upper) ? HomeState.defaultBowlPosition : nil
+        let maximumFloorCapacity = maximumLevel.capacity(on: .ground)
+        while maximumSeed.home.placements(on: .ground).count < maximumFloorCapacity {
+            let id = "maximum-capacity-\(maximumSeed.home.furniture.count)"
+            maximumSeed.inventory.furniture.append(FurnitureItem(id: id, kind: .plant))
+            maximumSeed.home.furniture.append(FurniturePlacement(itemID: id, position: .init(x: 0.6, y: 0.7)))
         }
-        XCTAssertFalse(store.canUpgradeHome)
-        XCTAssertEqual(store.furnitureCapacityNotice, GameStrings.format("room.capacityReachedMax", 16))
+        XCTAssertNoThrow(try NativeSaveTransfer.encode(snapshot: maximumSeed))
+        XCTAssertTrue(maximumSeed.home.placements(on: .upper).isEmpty)
+        let maximumStore = GameStore(repository: MemorySaveRepository(maximumSeed))
+        await maximumStore.load()
+        XCTAssertFalse(maximumStore.canUpgradeHome)
+        XCTAssertFalse(maximumStore.canPlaceMoreFurniture)
+        XCTAssertEqual(maximumStore.placedFurnitureCount, maximumFloorCapacity)
+        maximumStore.placeFurniture(id: extra.id)
+        XCTAssertFalse(maximumStore.isDecorating, "Unused upstairs capacity must not allow placement on a full ground floor.")
+        XCTAssertEqual(maximumStore.furnitureCapacityNotice, GameStrings.format("room.capacityReachedMax", maximumFloorCapacity))
     }
 
     @MainActor

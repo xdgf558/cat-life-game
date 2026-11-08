@@ -32,7 +32,17 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--onboarding-existing-save") {
+        if arguments.contains("--home-floors-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.player.level = 20
+            value.player.gold = 30_000
+            value.home = HomeState(roomLevel: 5)
+            value.inventory.furniture.append(.init(id: "upstairsPlant", kind: .plant))
+            value.inventory.food = 5
+            value.cats[0].satiety = 45
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
+        } else if arguments.contains("--onboarding-existing-save") {
             initialSnapshot = GameSnapshot.fresh(now: now)
         } else if arguments.contains("--uitesting-siamese-owned") || arguments.contains("--uitesting-silver-owned") {
             var value = GameSnapshot.fresh(now: now)

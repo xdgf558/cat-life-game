@@ -37,11 +37,11 @@ struct ShopAndHomeUpgradeTests {
         #expect(ShopCatalog.furnitureOffers.map(\.kind) ==
             [.plant, .floorCushion, .bookcase, .rattanChair, .sideTable, .wallSunrise])
         #expect(ShopCatalog.furnitureOffers.allSatisfy { $0.maxOwned == 10 && !$0.assetName.isEmpty })
-        #expect(HomeCatalog.all.map(\.capacity) == [9, 12, 16])
-        #expect(HomeCatalog.all.map(\.worldScale) == [1, 1.25, 1.5])
-        #expect(HomeCatalog.nextLevel(after: 3) == nil)
+        #expect(HomeCatalog.all.map(\.capacity) == [9, 12, 16, 20, 24, 48, 56, 64])
+        #expect(HomeCatalog.all.map(\.worldScale) == [1, 1.25, 1.5, 1.65, 1.8, 1.8, 1.9, 2])
+        #expect(HomeCatalog.nextLevel(after: 8) == nil)
         #expect(HomeCatalog.nextLevel(after: Int.max) == nil)
-        #expect(HomeCatalog.level(0) == nil && HomeCatalog.level(4) == nil)
+        #expect(HomeCatalog.level(0) == nil && HomeCatalog.level(9) == nil)
     }
 
     @Test func equipmentPurchaseChargesExactlyOnceAndDoesNotAutomaticallyEquip() {
@@ -155,6 +155,7 @@ struct ShopAndHomeUpgradeTests {
 
     @Test func upgradesAreSequentialAtomicAndKeepAllCoordinatesAndWorkTerms() throws {
         var state = funded()
+        state.player.level = 16
         state.home.name = "My room"
         state.home.bowlPosition = .init(x: 0.65, y: 0.72)
         state.home.furniture[0].position = .init(x: 0.42, y: 0.45)
@@ -168,11 +169,12 @@ struct ShopAndHomeUpgradeTests {
             #expect(result.succeeded && result.messageKey == "home.upgraded" && result.amount == next.upgradeCost)
             expected.player.gold -= next.upgradeCost
             expected.home.roomLevel = next.level
+            if next.level >= 6 { expected.home.upperBowlPosition = HomeState.defaultBowlPosition }
             #expect(state == expected)
             #expect(GameEngine.upgradeHome(&state, toLevel: next.level, now: now).failure == .homeUpgradeUnavailable)
             #expect(state == expected)
         }
-        #expect(GameEngine.upgradeHome(&state, toLevel: 4, now: now).failure == .homeUpgradeUnavailable)
+        #expect(GameEngine.upgradeHome(&state, toLevel: 9, now: now).failure == .homeUpgradeUnavailable)
         #expect(state == expected)
         #expect(state.player.activeWork == original.player.activeWork)
     }
@@ -180,7 +182,7 @@ struct ShopAndHomeUpgradeTests {
     @Test func rejectedUpgradesDoNotChangeMoneyRoomOrRestAndExactCostIsEnough() {
         for next in HomeCatalog.all.dropFirst() {
             var state = funded()
-            state.home.roomLevel = next.level - 1
+            state.home = HomeState(roomLevel: next.level - 1)
             state.player.level = next.requiredPlayerLevel - 1
             let locked = state
             #expect(GameEngine.upgradeHome(&state, toLevel: next.level, now: now).failure == .homeLevelRequired)
@@ -304,7 +306,7 @@ struct ShopAndHomeUpgradeTests {
     @Test func explicitInvalidRoomLevelsAreRejectedAndCannotOverwritePrimaryOrBackup() async throws {
         let original = funded()
         let encoded = try JSONEncoder().encode(original)
-        for badValue: Any in [NSNull(), "2", 0, -1, 4, Int.max, 1.5] {
+        for badValue: Any in [NSNull(), "2", 0, -1, 9, Int.max, 1.5] {
             do {
                 let decoded = try JSONDecoder().decode(GameSnapshot.self, from: roomLevelData(encoded, value: badValue))
                 #expect(!decoded.isValid)
@@ -319,7 +321,7 @@ struct ShopAndHomeUpgradeTests {
         try await repository.save(current, now: now)
         let primary = try Data(contentsOf: repository.saveURL)
         let backup = try Data(contentsOf: repository.backupURL)
-        for invalid in [0, -1, 4, Int.max] {
+        for invalid in [0, -1, 9, Int.max] {
             var candidate = current
             candidate.home.roomLevel = invalid
             await #expect(throws: SaveRepositoryError.invalidSnapshot) { try await repository.save(candidate, now: now) }

@@ -55,6 +55,7 @@ extension RoomHomeUITests {
         XCTAssertTrue(element("marketConfirmButton", in: app).isEnabled)
         tapAnimationControl("marketCancelButton", in: app)
         tapAnimationControl("marketBackButton", in: app)
+        scrollCareerPage("townMapScroll", to: "townPlot_street", in: app)
         tapAnimationControl("townPlot_street", in: app)
         scrollCareerPage("townMapScroll", to: "townEnter_street", in: app)
         tapAnimationControl("townEnter_street", in: app)
@@ -95,6 +96,7 @@ extension RoomHomeUITests {
         tapAnimationControl("marketBackButton", in: app)
         waitForElement("townMapScroll", in: app)
 
+        scrollCareerPage("townMapScroll", to: "townPlot_street", in: app)
         tapAnimationControl("townPlot_street", in: app)
         scrollCareerPage("townMapScroll", to: "townEnter_street", in: app)
         tapAnimationControl("townEnter_street", in: app)
@@ -249,6 +251,7 @@ extension RoomHomeUITests {
     @MainActor
     private func openExchangeMarket(in app: XCUIApplication) {
         tapAnimationControl("tabTown", in: app)
+        scrollCareerPage("townMapScroll", to: "townPlot_market", in: app)
         tapAnimationControl("townPlot_market", in: app)
         scrollCareerPage("townMapScroll", to: "townEnter_market", in: app)
         tapAnimationControl("townEnter_market", in: app)

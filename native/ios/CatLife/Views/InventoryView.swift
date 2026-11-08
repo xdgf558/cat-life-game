@@ -196,12 +196,12 @@ struct InventoryView: View {
     private func furnitureTile(_ item: FurnitureItem) -> some View {
         let metadata = FurnitureCatalog.metadata(for: item.kind)
         return tile(name: GameStrings.furnitureName(item), asset: metadata.assetName, symbol: "sofa.fill",
-                    badge: GameStrings.text(isPlaced(item.id) ? "bag.placedBadge" : "bag.storedBadge"),
+                    badge: furnitureStatus(item.id, badge: true),
                     tint: RoomTheme.mint, selected: selection == .furniture(item.id)) {
             selection = .furniture(item.id)
         }
         .accessibilityIdentifier("inventoryFurniture_\(item.id)")
-        .accessibilityValue(GameStrings.text(isPlaced(item.id) ? "bag.placed" : "bag.stored"))
+        .accessibilityValue(furnitureStatus(item.id))
     }
 
     private func equipmentTile(_ item: EquipmentItem) -> some View {
@@ -249,8 +249,8 @@ struct InventoryView: View {
                     .accessibilityValue("\(store.storedFurniture.count)")
                     .accessibilityIdentifier("inventoryStoredFurnitureCount")
                 Spacer(minLength: 4)
-                Text(GameStrings.format("inventory.furniturePlacedCount", store.placedFurnitureCount))
-                    .accessibilityValue("\(store.placedFurnitureCount)")
+                Text(GameStrings.format("inventory.furniturePlacedCount", store.totalPlacedFurnitureCount))
+                    .accessibilityValue("\(store.totalPlacedFurnitureCount)")
                     .accessibilityIdentifier("inventoryPlacedFurnitureCount")
             }
             .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
@@ -274,19 +274,26 @@ struct InventoryView: View {
         case .supply: EmptyView()
         case .furniture(let id):
             if let item = furniture.first(where: { $0.id == id }) {
+                let floor = store.furnitureFloor(for: id)
+                let onOtherFloor = floor != nil && floor != store.visibleHomeFloor
+                let actionKey = floor.map { $0 == store.visibleHomeFloor
+                    ? "inventory.arrangeRoom" : "homeInventory.arrange.\($0.rawValue)" } ?? "inventory.placeFurniture"
                 actionBar(name: GameStrings.furnitureName(item), asset: FurnitureCatalog.metadata(for: item.kind).assetName,
-                          symbol: "sofa.fill", detail: GameStrings.text(isPlaced(id) ? "bag.placed" : "bag.stored"),
+                          symbol: "sofa.fill", detail: onOtherFloor && store.isDecorating
+                              ? GameStrings.text("homeInventory.finishFloor")
+                              : onOtherFloor && !store.roomFloorTravelReady
+                              ? GameStrings.text("homeFloor.waitCare") : furnitureStatus(id),
                           tint: RoomTheme.mint) {
-                    Button(GameStrings.text(isPlaced(id) ? "inventory.arrangeRoom" : "inventory.placeFurniture")) {
-                        if isPlaced(id) {
-                            store.beginDecorating()
-                            store.selectFurniture(id: id)
-                            store.activeSheet = nil
+                    Button(GameStrings.text(actionKey)) {
+                        if floor != nil {
+                            Task { await store.arrangeInventoryFurniture(id: id) }
                         } else { store.placeFurniture(id: id) }
                     }
                     .buttonStyle(MintButtonStyle())
-                    .disabled(store.isBusy || store.isResolvingLayout || (!isPlaced(id) && !store.canPlaceMoreFurniture))
-                    .accessibilityIdentifier(isPlaced(id) ? "inventoryArrangeButton" : "placeFurniture_\(id)")
+                    .disabled(store.isBusy || store.isResolvingLayout || store.isChangingHomeFloor
+                              || (onOtherFloor && !store.canChangeHomeFloor) || (floor == nil && !store.canPlaceMoreFurniture))
+                    .accessibilityIdentifier(onOtherFloor ? "inventoryGoToFloorButton"
+                        : (floor != nil ? "inventoryArrangeButton" : "placeFurniture_\(id)"))
                 }
             }
         case .equipment(let id):
@@ -346,5 +353,11 @@ struct InventoryView: View {
         case .toy: store.play()
         }
     }
-    private func isPlaced(_ id: String) -> Bool { store.sceneSnapshot?.home.furniture.contains { $0.itemID == id } == true }
+    private func furnitureStatus(_ id: String, badge: Bool = false) -> String {
+        guard let floor = store.furnitureFloor(for: id) else {
+            return GameStrings.text(badge ? "bag.storedBadge" : "bag.stored")
+        }
+        return GameStrings.text(store.snapshot?.home.availableFloors.count == 2
+            ? "homeInventory.\(badge ? "badge" : "placed").\(floor.rawValue)" : (badge ? "bag.placedBadge" : "bag.placed"))
+    }
 }

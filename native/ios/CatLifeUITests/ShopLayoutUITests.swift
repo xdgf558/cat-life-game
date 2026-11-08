@@ -93,6 +93,8 @@ extension RoomHomeUITests {
         assertAccessibleShopPurchase("advanced_jacket", in: app)
         XCTAssertFalse(element("shopQuickBuy_advanced_jacket", in: app).isEnabled)
         selectShopLayoutCategory("furniture", in: app)
+        scrollCareerPage("destinationScroll", to: "shopPageNext", in: app)
+        tapAnimationControl("shopPageNext", in: app)
         assertAccessibleShopPurchase("round_side_table", in: app)
         attachScreenshot(app, named: "Shop 57 — English largest text furniture remains scrollable")
     }

@@ -47,6 +47,41 @@ final class CatNeedBubbleTests: XCTestCase {
                        CGPoint(x: 60, y: 80))
         XCTAssertEqual(CatNeedBubbleLayout.position(above: .zero, in: .zero), .zero)
     }
+
+    func testBubbleMovesBesideMeasuredStairsWithoutCoveringTheirHitTarget() {
+        for canvas in [CGSize(width: 375, height: 603), CGSize(width: 430, height: 850)] {
+            let stairs = RoomStairLandingLayout.frame(size: CGSize(width: 76, height: 106), canvas: canvas)
+            XCTAssertEqual(stairs.minX, canvas.width - 88)
+            XCTAssertEqual(stairs.minY, 240)
+            let anchor = CGPoint(x: canvas.width - 75, y: 344)
+            for height: CGFloat in [44, 80, 140] {
+                let bubble = CGSize(width: 190, height: height)
+                let result = CatNeedBubbleLayout.position(above: anchor, in: canvas,
+                                                         bubbleSize: bubble, avoiding: stairs)
+                let frame = CGRect(x: result.x - bubble.width / 2, y: result.y - bubble.height / 2,
+                                   width: bubble.width, height: bubble.height)
+                XCTAssertFalse(frame.intersects(stairs.insetBy(dx: -7, dy: -7)))
+                XCTAssertTrue(CGRect(origin: .zero, size: canvas).contains(frame))
+                XCTAssertLessThan(result.x, stairs.minX)
+                XCTAssertEqual(result.y, anchor.y - 36, "Sideways avoidance keeps the bubble above its cat.")
+            }
+        }
+    }
+
+    func testWideStairCardUsesVerticalSpaceAndClearAnchorsDoNotMove() {
+        let canvas = CGSize(width: 375, height: 603)
+        let stairs = RoomStairLandingLayout.frame(size: CGSize(width: 183, height: 106), canvas: canvas)
+        XCTAssertEqual(RoomStairLandingLayout.frame(size: .zero, canvas: canvas), .zero)
+        let bubble = CGSize(width: 190, height: 80)
+        let result = CatNeedBubbleLayout.position(above: CGPoint(x: 290, y: 344), in: canvas,
+                                                 bubbleSize: bubble, avoiding: stairs)
+        let frame = CGRect(x: result.x - 95, y: result.y - 40, width: 190, height: 80)
+        XCTAssertFalse(frame.intersects(stairs.insetBy(dx: -7, dy: -7)))
+        XCTAssertTrue(CGRect(origin: .zero, size: canvas).contains(frame))
+        let clear = CGPoint(x: 150, y: 180)
+        XCTAssertEqual(CatNeedBubbleLayout.position(above: clear, in: canvas, avoiding: stairs),
+                       CatNeedBubbleLayout.position(above: clear, in: canvas))
+    }
     func testVisualFrameSamplerIncludesZoomSizeChangesAndHidesOnlyWhenAbsent() {
         var sampler = CatVisualFrameSampler()
         let idle = CGRect(x: 140, y: 430, width: 100, height: 120)
