@@ -1,6 +1,6 @@
 # iOS 0.18.0 (59) — shared cat rooms and care fixes
 
-Prepared for PR review. Not installed on a physical device and not uploaded to TestFlight. The independent web game is unchanged.
+PR #22 was merged and build 59 was uploaded to TestFlight on 2026-11-09. Apple acknowledged receipt and began processing; processing completion and test availability are not verified. This release was not installed on a physical device. The independent web game is unchanged.
 
 ## Behavior
 
@@ -34,4 +34,11 @@ Raw logs, result bundles and screenshots are kept outside Git in the build-59 QA
 
 ## Remaining validation
 
-Physical-device performance, prolonged play in a densely furnished level-8 home, battery use, VoiceOver operation, iPad and landscape are not verified here. This PR does not introduce cat-to-cat social animations or persistent per-floor cat assignments. TestFlight upload remains pending review; tester distribution is handled by the user.
+Physical-device performance, prolonged play in a densely furnished level-8 home, battery use, VoiceOver operation, iPad and landscape are not verified here. This PR does not introduce cat-to-cat social animations or persistent per-floor cat assignments. Tester groups and review distribution are handled by the user; physical-device performance remains unverified.
+
+## Release delivery
+
+- PR #22 merged as `1fc2cefbb9fb3e4025d91a386de3607e064caf9a`; its source tree matches reviewed commit `8b33c45cbb53eb8be6d3d779ecfe279db423205d`.
+- A new signed `CatLife-0.18.0-59-main.xcarchive` was built from main. Version/Bundle ID, strict signing and provisioning coverage, matching dSYM UUIDs, privacy manifest and absence of Release test fixtures were checked. All 468 production input fingerprints remained unchanged before and after upload.
+- Xcode reported `Upload succeeded` and `EXPORT SUCCEEDED` at 2026-11-09 07:00 GMT+8, with `Uploaded package is processing`. Apple processing completion has not been independently verified. No test groups, invitations or Beta Review submission were changed.
+- Archive binary SHA256: `dfe7c26d2f2531c9b550a934e7514bd91996902cffd6426287738aefc323e4e7`. Raw signing/upload evidence stays outside Git. This release step does not reclassify simulator tests as physical-device validation.
