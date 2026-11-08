@@ -321,6 +321,9 @@ public enum GameEngine {
         finishAllCatRests(&state, now: effectiveTime(state, now: now))
         state.player.gold -= next.upgradeCost
         state.home.roomLevel = next.level
+        if next.floors.contains(.upper), state.home.upperBowlPosition == nil {
+            state.home.upperBowlPosition = HomeState.defaultBowlPosition
+        }
         return ActionOutcome(success: .homeUpgraded, amount: next.upgradeCost)
     }
 
@@ -417,26 +420,30 @@ public enum GameEngine {
 
     public static func setBowlPosition(_ state: inout GameSnapshot,
                                        _ position: NormalizedPoint,
+                                       floor: HomeFloor = .ground,
                                        now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
+        guard state.home.availableFloors.contains(floor) else { return failure(.roomInvalidFurnitureLayout) }
         guard position.x.isFinite, position.y.isFinite else { return failure(.roomInvalidPosition) }
         let position = NormalizedPoint(x: min(1, max(0, position.x)), y: min(1, max(0, position.y)))
-        if position != state.home.bowlPosition { finishAllCatRests(&state, now: effectiveTime(state, now: now)) }
-        state.home.bowlPosition = position
+        if position != state.home.bowlPosition(on: floor) { finishAllCatRests(&state, now: effectiveTime(state, now: now)) }
+        state.home.setBowlPosition(position, on: floor)
         return ActionOutcome(success: .layoutSaved)
     }
 
-    /// Commit the complete draft only after every coordinate and owned-item
+    /// Commit one floor's complete draft only after every coordinate and owned-item
     /// reference has been validated. Storing/replacing furniture changes no
     /// ownership, currency, care supply, or comfort values.
     public static func setRoomLayout(_ state: inout GameSnapshot,
                                      bowlPosition: NormalizedPoint,
                                      furniture: [FurniturePlacement],
                                      orientations: [String: FurnitureOrientation] = [:],
+                                     floor: HomeFloor = .ground,
                                      now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
+        guard state.home.availableFloors.contains(floor) else { return failure(.roomInvalidFurnitureLayout) }
         guard GameSnapshot.isUnitPosition(bowlPosition) else { return failure(.roomInvalidPosition) }
         guard Set(orientations.keys).isSubset(of: Set(state.inventory.furniture.map(\.id))) else {
             return failure(.roomInvalidFurnitureLayout)
@@ -446,20 +453,27 @@ public enum GameEngine {
             updated.orientation = orientations[item.id] ?? item.orientation
             return updated
         }
-        guard GameSnapshot.validFurniture(owned: owned, placements: furniture) else {
+        let otherFloor = state.home.furniture.filter { $0.floor != floor }
+        // A placed instance must be put away before moving it between floors.
+        let furniture = furniture.map { FurniturePlacement(itemID: $0.itemID, position: $0.position, floor: floor) }
+        let merged = otherFloor + furniture
+        guard GameSnapshot.validFurniture(owned: owned, placements: merged),
+              !zip(owned, state.inventory.furniture).contains(where: { updated, previous in
+                  updated.orientation != previous.orientation && otherFloor.contains { $0.itemID == updated.id }
+              }) else {
             return failure(.roomInvalidFurnitureLayout)
         }
-        guard HomeCatalog.allowsLayout(furniture, replacing: state.home.furniture, roomLevel: state.home.roomLevel)
-        else { return failure(.roomCapacityReached, amount: HomeCatalog.level(state.home.roomLevel)?.capacity ?? 0) }
+        guard HomeCatalog.allowsLayout(merged, replacing: state.home.furniture, roomLevel: state.home.roomLevel)
+        else { return failure(.roomCapacityReached, amount: HomeCatalog.level(state.home.roomLevel)?.capacity(on: floor) ?? 0) }
         let turnedPlacedItem = zip(owned, state.inventory.furniture).contains { updated, previous in
             updated.orientation != previous.orientation && state.home.furniture.contains { $0.itemID == updated.id }
         }
-        if bowlPosition != state.home.bowlPosition || furniture != state.home.furniture || turnedPlacedItem {
+        if bowlPosition != state.home.bowlPosition(on: floor) || furniture != state.home.placements(on: floor) || turnedPlacedItem {
             // Geometry changes can affect an exit route as well as the occupied item.
             finishAllCatRests(&state, now: effectiveTime(state, now: now))
         }
-        state.home.bowlPosition = bowlPosition
-        state.home.furniture = furniture
+        state.home.setBowlPosition(bowlPosition, on: floor)
+        state.home.furniture = merged
         state.inventory.furniture = owned
         return ActionOutcome(success: .layoutSaved)
     }
@@ -585,6 +599,7 @@ extension GameSnapshot {
               [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter].allSatisfy({ (0...Self.maximumStock).contains($0) }),
               (0...100).contains(home.comfortScore),
               HomeCatalog.level(home.roomLevel) != nil,
+              home.hasValidFloors,
               home.name.map({ HomeNameRules.normalized($0) == $0 }) ?? true,
               Self.isUnitPosition(home.bowlPosition),
               Self.validFurniture(owned: inventory.furniture, placements: home.furniture),

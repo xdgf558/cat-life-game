@@ -52,6 +52,8 @@ final class RoomScene: SKScene {
 #endif
 
     var onCatTapped: (() -> Void)?
+    var onFloorTravelAvailabilityChanged: ((Bool) -> Void)?
+    private var lastFloorTravelAvailability: Bool?
     var onCatNeedAnchorChanged: ((CGPoint?) -> Void)? {
         didSet { needAnchorSampler = CatNeedAnchorSampler(); updateThought() }
     }
@@ -134,6 +136,7 @@ final class RoomScene: SKScene {
     private var catWidth: CGFloat = 120
     private var presentationBusy = false
     private var pendingFeedback: ActionKind?
+    private var floorTravelCareActive = false
     private var carePlanningTask: Task<RoomCarePlanningResult, Never>?
     private var planningCareKind: ActionKind?
     private var suspendedCareKind: ActionKind?
@@ -225,6 +228,7 @@ final class RoomScene: SKScene {
         if pendingItem != nil { lastPlacingRequest = nil }
     }
     override func update(_ currentTime: TimeInterval) {
+        publishFloorTravelAvailability()
         if roomCamera.update(at: currentTime, target: presentationBusy && !editing ? cat.position : nil,
                              draggingAt: dragging ? dragScreenPoint : nil), dragging, let point = dragScreenPoint {
             let worldPoint = worldGeometry.worldPoint(point, camera: roomCamera.node.position,
@@ -665,6 +669,7 @@ final class RoomScene: SKScene {
 #endif
 
     func playFeedback(kind: ActionKind, catID: String? = nil) {
+        defer { publishFloorTravelAvailability() }
         guard catID == nil || catID == renderedCatID else { return }
         guard [.feed, .clean, .play].contains(kind), !editing else { return }
         if bowlPlanningRequest != nil {
@@ -693,6 +698,7 @@ final class RoomScene: SKScene {
             return
         }
         removeAction(forKey: "ambient-walk")
+        floorTravelCareActive = true
         presentationBusy = true
         roomCamera.beginFollowing(cat.position, animated: !reducedMotion)
         cat.setIdleEnabled(false)
@@ -801,6 +807,7 @@ final class RoomScene: SKScene {
     func updateBowlLayers() { artwork.updateBowlLayers(cat: cat, floor: floor) }
 
     private func finishPresentation() {
+        floorTravelCareActive = false
         presentationBusy = false
         activeFeedingDock = nil
         activeFeedingStage = nil
@@ -823,6 +830,7 @@ final class RoomScene: SKScene {
         updateThought()
     }
     private func cancelPresentation(at point: CGPoint) {
+        floorTravelCareActive = false
 #if DEBUG
         diagnostics.recordPresentationEvent("cancel \(presentationPhase), active=\(presentationActive), size=\(size)")
 #endif
@@ -918,6 +926,16 @@ final class RoomScene: SKScene {
 #if DEBUG
         diagnostics.onPresentationChanged?(phase)
 #endif
+    }
+
+    private func publishFloorTravelAvailability() {
+        let ready = bowlPlanningRequest == nil && !editing && !dragging && !isPlacementPending
+            && !floorTravelCareActive && suspendedCareKind == nil && pendingFeedback == nil
+            && restPlanningTask == nil && !cat.isEnteringFurniture && !restExiting
+        if ready != lastFloorTravelAvailability {
+            lastFloorTravelAvailability = ready
+            onFloorTravelAvailabilityChanged?(ready)
+        }
     }
     private func layoutRoom(preservingPositionFrom oldSize: CGSize? = nil, preservingNewPlacement: Bool = false) {
         guard size.width > 0, size.height > 0 else { return }

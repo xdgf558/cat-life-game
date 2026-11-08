@@ -13,11 +13,11 @@ struct CommunityMigrationTests {
         try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
-    @Test func schema9GrowthMigrationKeepsReviewedCommunityLedgers() throws {
+    @Test func schema10HomeMigrationKeepsReviewedCommunityLedgers() throws {
         // Freeze the v7 ledger independently of the catalog and fresh-save defaults.
         let schema7IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
-        #expect(GameSnapshot.currentSchemaVersion == 9,
-                "Review the v9 migration before updating this schema guard; preserve the independent v7/v8 ledgers below.")
+        #expect(GameSnapshot.currentSchemaVersion == 10,
+                "Review the v10 migration before updating this schema guard; preserve the independent v7/v8 ledgers below.")
         #expect(CommunityCatalog.neighbors.map(\.id).sorted() == schema7IDs,
                 "Changing neighbors requires a schema/migration review, not just a new catalog entry.")
         let recordedRelationship: [String: Any] = [

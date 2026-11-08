@@ -28,6 +28,12 @@ final class GameStore {
     private(set) var isBusy = false
     private(set) var saveTransferInProgress = false
     private(set) var saveSceneGeneration = UUID()
+    private(set) var visibleHomeFloor: HomeFloor = .ground {
+        didSet { if oldValue != visibleHomeFloor { syncAudio() } }
+    }
+    private(set) var isChangingHomeFloor = false
+    var roomFloorTravelReady = true
+    var homeUpgradeCelebration: HomeUpgradeCelebration?
     private(set) var loadFailed = false
     private(set) var needsNewerVersion = false
     // Welcome presentation belongs to this process, not the durable game save.
@@ -69,11 +75,13 @@ final class GameStore {
     var isFurnitureTrayExpanded = true
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
-    var catCollectionFilter: CatCollectionView.Filter?
+    var catCollectionFilter: CatCollectionView.Filter? {
+        didSet { if oldValue != catCollectionFilter { syncAudio() } }
+    }
     var adoptionCatID: String?
     var isPresentingAdoptionConfirmation = false
-    var isShowingNeighbors = false
-    var isShowingMarket = false
+    var isShowingNeighbors = false { didSet { if oldValue != isShowingNeighbors { syncAudio() } } }
+    var isShowingMarket = false { didSet { if oldValue != isShowingMarket { syncAudio() } } }
     var isPresentingExchange = false
     var isPresentingCommunityGift = false
     var isShowingCommunityGiftShop = false
@@ -185,11 +193,13 @@ final class GameStore {
         if !hasEnteredHome { track = .cover }
         else if activeSheet == .hospital || isInspectingHealth { track = .hospital }
         else if activeSheet == .shop { track = .shop }
-        else if activeSheet == .town { track = .town }
+        else if activeSheet == .town {
+            track = isShowingNeighbors || isShowingMarket || catCollectionFilter != nil ? .town : .promenade
+        }
         else if snapshot?.player.activeSleep != nil { track = .sleep }
         else if activeSheet == .work { track = .work }
         else if cat?.activeRest != nil { track = .sleep }
-        else { track = .home }
+        else { track = visibleHomeFloor == .upper ? .upstairs : .home }
         audio.configure(settings: audioSettings, track: track, foreground: foreground,
                         ready: snapshot != nil && !isLoading && !loadFailed)
     }
@@ -286,6 +296,9 @@ final class GameStore {
 
     var sceneSnapshot: GameSnapshot? {
         guard var value = snapshot else { return nil }
+        // The scene is a projection of one floor; the durable save keeps both.
+        value.home.bowlPosition = value.home.bowlPosition(on: visibleHomeFloor) ?? value.home.bowlPosition
+        value.home.furniture = value.home.placements(on: visibleHomeFloor)
         if let draftBowlPosition { value.home.bowlPosition = draftBowlPosition }
         if let draftFurniture { value.home.furniture = draftFurniture }
         if let draftFurnitureOrientations {
@@ -300,19 +313,16 @@ final class GameStore {
 
     var storedFurniture: [FurnitureItem] {
         guard let value = sceneSnapshot else { return [] }
-        let placed = Set(value.home.furniture.map(\.itemID))
+        let otherFloor = snapshot?.home.furniture.filter { $0.floor != visibleHomeFloor } ?? []
+        let placed = Set((value.home.furniture + otherFloor).map(\.itemID))
         return value.inventory.furniture.filter { !placed.contains($0.id) }
     }
 
     var placedFurnitureCount: Int { sceneSnapshot?.home.furniture.count ?? 0 }
 
-    var furnitureCapacity: Int { HomeCatalog.level(snapshot?.home.roomLevel ?? 1)?.capacity ?? 9 }
-    var canPlaceMoreFurniture: Bool { placedFurnitureCount < furnitureCapacity }
+    var furnitureCapacity: Int { HomeCatalog.level(snapshot?.home.roomLevel ?? 1)?.capacity(on: visibleHomeFloor) ?? 9 }
+    var canPlaceMoreFurniture: Bool { availableFurnitureSlots(on: visibleHomeFloor) > 0 }
     var canUpgradeHome: Bool { HomeCatalog.nextLevel(after: snapshot?.home.roomLevel ?? 1) != nil }
-    var furnitureCapacityNotice: String {
-        canUpgradeHome ? GameStrings.text("homeUpgrade.capacityReached")
-            : GameStrings.format("room.capacityReachedMax", furnitureCapacity)
-    }
 
     var selectedFurniture: FurnitureItem? {
         guard let id = selectedFurnitureID,
@@ -335,7 +345,8 @@ final class GameStore {
 
     var hasUnsavedLayoutChanges: Bool {
         guard isDecorating, let snapshot else { return false }
-        return draftBowlPosition != snapshot.home.bowlPosition || draftFurniture != snapshot.home.furniture
+        return draftBowlPosition != snapshot.home.bowlPosition(on: visibleHomeFloor)
+            || draftFurniture != snapshot.home.placements(on: visibleHomeFloor)
             || (draftFurnitureOrientations ?? [:]).contains { id, direction in
                 snapshot.inventory.furniture.first(where: { $0.id == id })?.orientation != direction
             }
@@ -616,6 +627,9 @@ final class GameStore {
         silentProgressThrough = nil
         snapshot = candidate
         onboarding.didImport(snapshot: candidate)
+        visibleHomeFloor = .ground
+        roomFloorTravelReady = true
+        homeUpgradeCelebration = nil
         saveSceneGeneration = UUID()
         GameLocalization.shared.language = candidate.settings.language
             ?? GameLanguage.preferred(in: Locale.preferredLanguages)
@@ -840,10 +854,14 @@ final class GameStore {
         }) { GameEngine.purchaseFurniture(&$0, offerID: offerID, now: $1) }
     }
 
-    func decoratePurchasedFurniture() {
+    func decoratePurchasedFurniture() async {
         guard !isBusy, furniturePurchaseNotice != nil, let itemID = furniturePurchaseItemID,
               storedFurniture.contains(where: { $0.id == itemID }) else { return }
-        if !canPlaceMoreFurniture && canUpgradeHome {
+        if availableFurnitureFloor != nil {
+            await arrangeInventoryFurniture(id: itemID)
+            return
+        }
+        if canUpgradeHome {
             openHomeUpgrade()
             return
         }
@@ -851,15 +869,44 @@ final class GameStore {
         activeSheet = nil
         beginDecorating()
         isFurnitureTrayExpanded = true
-        if canPlaceMoreFurniture {
-            selectedFurnitureID = nil
-            selectedStoredFurnitureID = itemID
-        }
-        else { showNotice(furnitureCapacityNotice) }
+        showNotice(furnitureCapacityNotice)
     }
     func upgradeHome(toLevel: Int) {
         guard !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
-        perform { GameEngine.upgradeHome(&$0, toLevel: toLevel, now: $1) }
+        let generation = saveSceneGeneration
+        perform(presentSuccess: { [weak self] in
+            guard let self, self.saveSceneGeneration == generation,
+                  self.snapshot?.home.roomLevel == toLevel else { return false }
+            self.homeUpgradeCelebration = HomeUpgradeCelebration(level: toLevel)
+            return true
+        }) { GameEngine.upgradeHome(&$0, toLevel: toLevel, now: $1) }
+    }
+
+    var canChangeHomeFloor: Bool {
+        snapshot?.home.availableFloors.count == 2 && !isBusy && !isDecorating
+            && !isChangingHomeFloor && !saveTransferInProgress && roomFloorTravelReady
+    }
+
+    func changeHomeFloor(to floor: HomeFloor) async {
+        guard canChangeHomeFloor, floor != visibleHomeFloor,
+              snapshot?.home.availableFloors.contains(floor) == true else { return }
+        isChangingHomeFloor = true
+        defer { isChangingHomeFloor = false }
+        let generation = saveSceneGeneration
+        // Finish a real rest durably before carrying the companion upstairs.
+        // A failed write leaves both the visible floor and the rest untouched.
+        if let cat, cat.activeRest != nil || restingFurnitureID != nil {
+            let succeeded = await performPersistedAction(playsSound: false, showsSuccessNotice: false) {
+                GameEngine.endCatRest(&$0, catID: cat.id, now: $1)
+            }
+            guard succeeded else { return }
+        }
+        guard generation == saveSceneGeneration else { return }
+        restingFurnitureID = nil
+        presentedRestSessionID = nil
+        feedback = nil
+        visibleHomeFloor = floor
+        playNavigationSound()
     }
     func openHomeUpgrade() {
         guard !isBusy, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
@@ -878,8 +925,8 @@ final class GameStore {
     func beginDecorating() {
         guard !isBusy, let snapshot else { return }
         guard !isDecorating else { return }
-        draftBowlPosition = snapshot.home.bowlPosition
-        draftFurniture = snapshot.home.furniture
+        draftBowlPosition = snapshot.home.bowlPosition(on: visibleHomeFloor)
+        draftFurniture = snapshot.home.placements(on: visibleHomeFloor)
         draftFurnitureOrientations = [:]
         selectedFurnitureID = nil
         selectedStoredFurnitureID = nil
@@ -1056,6 +1103,14 @@ final class GameStore {
         selectedFurnitureID = id
     }
 
+    func selectStoredFurniture(id: String) {
+        guard isDecorating, !isSavingLayout, canPlaceMoreFurniture,
+              storedFurniture.contains(where: { $0.id == id }) else { return }
+        isFurnitureTrayExpanded = true
+        selectedFurnitureID = nil
+        selectedStoredFurnitureID = id
+    }
+
     func moveFurniture(id: String, to point: NormalizedPoint) {
         guard isDecorating, !isSavingLayout, var furniture = draftFurniture,
               snapshot?.inventory.furniture.contains(where: { $0.id == id }) == true,
@@ -1065,7 +1120,7 @@ final class GameStore {
             furniture[index].position = point
         } else {
             guard placingFurnitureID == id, canPlaceMoreFurniture else { return }
-            furniture.append(FurniturePlacement(itemID: id, position: point))
+            furniture.append(FurniturePlacement(itemID: id, position: point, floor: visibleHomeFloor))
         }
         draftFurniture = furniture
         selectedStoredFurnitureID = nil
@@ -1136,7 +1191,8 @@ final class GameStore {
               let point = draftBowlPosition, let furniture = draftFurniture,
               let orientations = draftFurnitureOrientations else { return }
         perform(finishesLayout: true) {
-            GameEngine.setRoomLayout(&$0, bowlPosition: point, furniture: furniture, orientations: orientations, now: $1)
+            GameEngine.setRoomLayout(&$0, bowlPosition: point, furniture: furniture,
+                                     orientations: orientations, floor: self.visibleHomeFloor, now: $1)
         }
     }
 

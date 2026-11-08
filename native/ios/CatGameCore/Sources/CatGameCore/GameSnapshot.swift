@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 9
+    public static let currentSchemaVersion = 10
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -57,7 +57,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         let selected = try? values.decode(String.self, forKey: .activeCatID)
         activeCatID = selected.flatMap { id in decodedCats.first { $0.id == id }?.id } ?? decodedCats.first?.id ?? ""
         inventory = try InventoryState(from: values.superDecoder(forKey: .inventory), schemaVersion: version)
-        home = try values.decode(HomeState.self, forKey: .home)
+        home = try HomeState(from: values.superDecoder(forKey: .home), schemaVersion: version)
         // The original starter cushion is cropped off the full-height room.
         // Only migrate the complete untouched starter layout; a moved, stored
         // or newly placed item makes the player's arrangement authoritative.
@@ -357,7 +357,9 @@ public struct NormalizedPoint: Codable, Equatable, Sendable {
 public struct HomeState: Codable, Equatable, Sendable {
     /// nil uses the localized default title; custom names remain player text.
     public var name: String?
+    /// Ground-floor bowl, kept under its original key for save migration.
     public var bowlPosition: NormalizedPoint
+    public var upperBowlPosition: NormalizedPoint?
     public var comfortScore: Int
     public var furniture: [FurniturePlacement]
     public var roomLevel: Int
@@ -365,29 +367,70 @@ public struct HomeState: Codable, Equatable, Sendable {
     public init(bowlPosition: NormalizedPoint = .init(x: 0.76, y: 0.79),
                 comfortScore: Int = 30,
                 furniture: [FurniturePlacement] = FurnitureCatalog.defaultPlacements,
-                name: String? = nil, roomLevel: Int = 1) {
+                name: String? = nil, roomLevel: Int = 1,
+                upperBowlPosition: NormalizedPoint? = nil) {
         self.name = name
         self.bowlPosition = bowlPosition
         self.comfortScore = comfortScore
         self.furniture = furniture
         self.roomLevel = roomLevel
+        self.upperBowlPosition = upperBowlPosition
+            ?? (HomeCatalog.level(roomLevel)?.floors.contains(.upper) == true ? Self.defaultBowlPosition : nil)
     }
 
-    private enum CodingKeys: String, CodingKey { case name, bowlPosition, comfortScore, furniture, roomLevel }
+    public static let defaultBowlPosition = NormalizedPoint(x: 0.76, y: 0.79)
+    public var availableFloors: [HomeFloor] { HomeCatalog.level(roomLevel)?.floors ?? [] }
+    public func placements(on floor: HomeFloor) -> [FurniturePlacement] { furniture.filter { $0.floor == floor } }
+    public func bowlPosition(on floor: HomeFloor) -> NormalizedPoint? {
+        guard availableFloors.contains(floor) else { return nil }
+        return floor == .ground ? bowlPosition : upperBowlPosition
+    }
+
+    @discardableResult
+    public mutating func setBowlPosition(_ position: NormalizedPoint, on floor: HomeFloor) -> Bool {
+        guard availableFloors.contains(floor), GameSnapshot.isUnitPosition(position) else { return false }
+        if floor == .ground { bowlPosition = position } else { upperBowlPosition = position }
+        return true
+    }
+
+    var hasValidFloors: Bool {
+        guard !availableFloors.isEmpty,
+              furniture.allSatisfy({ availableFloors.contains($0.floor) }) else { return false }
+        if availableFloors.contains(.upper) {
+            return upperBowlPosition.map(GameSnapshot.isUnitPosition) ?? false
+        }
+        return upperBowlPosition == nil
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case name, bowlPosition, upperBowlPosition, comfortScore, furniture, roomLevel
+    }
 
     public init(from decoder: Decoder) throws {
+        try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
+    }
+
+    init(from decoder: Decoder, schemaVersion: Int) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         // A missing or invalid display preference must not recover an older
         // backup and lose otherwise valid cats, supplies or room placements.
         name = (try? values.decode(String.self, forKey: .name)).flatMap(HomeNameRules.normalized)
         bowlPosition = try values.decode(NormalizedPoint.self, forKey: .bowlPosition)
         comfortScore = try values.decode(Int.self, forKey: .comfortScore)
-        furniture = values.contains(.furniture)
-            ? try values.decode([FurniturePlacement].self, forKey: .furniture)
-            : FurnitureCatalog.defaultPlacements
+        if values.contains(.furniture) {
+            var placements = try values.nestedUnkeyedContainer(forKey: .furniture)
+            furniture = []
+            while !placements.isAtEnd {
+                furniture.append(try FurniturePlacement(from: placements.superDecoder(), schemaVersion: schemaVersion))
+            }
+        } else { furniture = FurnitureCatalog.defaultPlacements }
         // Unlike cosmetic names, purchased room progress must not be silently
         // reset. Only an absent field belongs to the schema-1 migration.
         roomLevel = values.contains(.roomLevel) ? try values.decode(Int.self, forKey: .roomLevel) : 1
+        upperBowlPosition = try values.decodeIfPresent(NormalizedPoint.self, forKey: .upperBowlPosition)
+        guard hasValidFloors,
+              schemaVersion >= 10 || ((1...3).contains(roomLevel) && upperBowlPosition == nil)
+        else { throw SaveRepositoryError.invalidSnapshot }
     }
 }
 

@@ -32,7 +32,26 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--onboarding-existing-save") {
+        if arguments.contains("--home-floors-fixture") || arguments.contains("--home-full-ground-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.player.level = 20
+            value.player.gold = 30_000
+            value.home = HomeState(roomLevel: 5)
+            value.inventory.furniture.append(.init(id: "upstairsPlant", kind: .plant))
+            value.inventory.food = 5
+            value.cats[0].satiety = 45
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            if arguments.contains("--home-full-ground-fixture") {
+                value.home = HomeState(roomLevel: 6)
+                // Fill capacity with wall art so this navigation fixture keeps the floor paths clear.
+                while value.home.furniture.count < HomeCatalog.level(6)!.floorCapacity {
+                    let id = "full-ground-wall-\(value.home.furniture.count)"
+                    value.inventory.furniture.append(.init(id: id, kind: .wallFlower))
+                    value.home.furniture.append(.init(itemID: id, position: .init(x: 0.7, y: 0.3)))
+                }
+            }
+            initialSnapshot = value
+        } else if arguments.contains("--onboarding-existing-save") {
             initialSnapshot = GameSnapshot.fresh(now: now)
         } else if arguments.contains("--uitesting-siamese-owned") || arguments.contains("--uitesting-silver-owned") {
             var value = GameSnapshot.fresh(now: now)

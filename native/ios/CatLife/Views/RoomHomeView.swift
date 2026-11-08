@@ -7,6 +7,8 @@ struct RoomHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var moreVisible = false
+    @State private var townSelectedPlace: TownPlace = .home
+    @State private var townLayer: TownLayer = .all
     @State private var catNeedPresentation = CatNeedPresentation()
     @State private var arrangementPanelHeight: CGFloat = 0
     @State private var saveTransferWorking = false
@@ -55,6 +57,10 @@ struct RoomHomeView: View {
             }
         }
         .onChange(of: scenePhase, initial: true) { _, phase in store.setForeground(phase == .active) }
+        .onChange(of: store.saveSceneGeneration) { _, _ in
+            townSelectedPlace = .home
+            townLayer = .all
+        }
         .sheet(isPresented: catSheetVisible) {
             CatCollectionView(store: store, initialCatID: store.inspectedCatID)
         }
@@ -172,6 +178,16 @@ struct RoomHomeView: View {
             moreVisible = false
             if !editing { store.activeSheet = nil }
         }
+        .overlay {
+            if let celebration = store.homeUpgradeCelebration {
+                HomeUpgradeCelebrationView(celebration: celebration) {
+                    store.homeUpgradeCelebration = nil
+                    store.activeSheet = nil
+                    store.isShowingSettings = false
+                }
+                .id(celebration.id)
+            }
+        }
     }
 
     @ViewBuilder private var destination: some View {
@@ -183,7 +199,7 @@ struct RoomHomeView: View {
             case .work: WorkDestinationView(store: store)
             case .player: PlayerProfileView(store: store)
             case .tasks: TaskDestinationView(store: store)
-            case .town: TownView(store: store)
+            case .town: TownView(store: store, selectedPlace: $townSelectedPlace, layer: $townLayer)
             case .hospital: HospitalView(store: store, initialCatID: store.hospitalCatID)
             case .shop, .inventory, .upgrade:
                 NavigationStack {
@@ -227,7 +243,7 @@ struct RoomHomeView: View {
                               && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
                           reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
                           arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
-                .id(store.saveSceneGeneration)
+                .id("\(store.saveSceneGeneration)-\(store.visibleHomeFloor.rawValue)")
                 .ignoresSafeArea(.container, edges: .top)
             RoomHomeHUD(store: store, catNeedPresentation: catNeedPresentation)
             if store.isDecorating {

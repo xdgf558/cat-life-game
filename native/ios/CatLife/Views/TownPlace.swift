@@ -21,8 +21,8 @@ enum TownPlace: String, CaseIterable, Identifiable {
     var isEmpty: Bool { self == .lot1 || self == .lot2 }
     var isFuture: Bool { [.cafe, .plaza, .board].contains(self) }
     var layer: TownLayer {
-        if self == .street { return .neighbors }
-        return isFuture || self == .market ? .community : .life
+        if self == .street || self == .market { return .neighbors }
+        return isFuture ? .community : .life
     }
     var titleKey: String {
         switch self {
@@ -39,13 +39,13 @@ enum TownPlace: String, CaseIterable, Identifiable {
         case .street: "town-street-cartoon"
         case .hospital: "town-hospital-cartoon"
         case .cafe: "town-cafe-cartoon"
-        case .work: "icon-work"
+        case .work: "town-work-cartoon"
         case .plaza: "town-plaza-cartoon"
         case .shop: "icon-shop"
-        case .home: "icon-home"
+        case .home: "town-home-cartoon"
         case .board: "town-board-cartoon"
         case .market: "town-market-cartoon"
-        case .adoption: ""
+        case .adoption: "town-collection-cartoon"
         case .lot1, .lot2: "town-lot-cartoon"
         }
     }

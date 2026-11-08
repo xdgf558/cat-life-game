@@ -41,11 +41,27 @@ public struct FurnitureItem: Codable, Equatable, Hashable, Identifiable, Sendabl
 public struct FurniturePlacement: Codable, Equatable, Identifiable, Sendable {
     public var itemID: String
     public var position: NormalizedPoint
+    public var floor: HomeFloor
     public var id: String { itemID }
 
-    public init(itemID: String, position: NormalizedPoint) {
+    public init(itemID: String, position: NormalizedPoint, floor: HomeFloor = .ground) {
         self.itemID = itemID
         self.position = position
+        self.floor = floor
+    }
+
+    private enum CodingKeys: String, CodingKey { case itemID, position, floor }
+
+    public init(from decoder: Decoder) throws {
+        try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
+    }
+
+    init(from decoder: Decoder, schemaVersion: Int) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        itemID = try values.decode(String.self, forKey: .itemID)
+        position = try values.decode(NormalizedPoint.self, forKey: .position)
+        floor = schemaVersion < 10 && !values.contains(.floor)
+            ? .ground : try values.decode(HomeFloor.self, forKey: .floor)
     }
 }
 

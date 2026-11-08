@@ -2,6 +2,17 @@ import SwiftUI
 import SpriteKit
 import CatGameCore
 
+enum RoomStairLandingLayout {
+    static let topInset: CGFloat = 240
+    static let trailingInset: CGFloat = 12
+
+    static func frame(size: CGSize, canvas: CGSize) -> CGRect {
+        guard size.width > 0, size.height > 0 else { return .zero }
+        return CGRect(x: canvas.width - trailingInset - size.width, y: topInset,
+                      width: size.width, height: size.height)
+    }
+}
+
 @MainActor
 struct RoomSceneHost: View {
     let store: GameStore
@@ -9,6 +20,8 @@ struct RoomSceneHost: View {
     let reducedMotion: Bool
     @State private var scene = RoomScene(size: CGSize(width: 390, height: 480))
     @State private var arrangementFrame: CGRect?
+    @State private var canTravelFloors = false
+    @State private var stairSize = CGSize.zero
     let catNeedPresentation: CatNeedPresentation
     var arrangementBottomInset: CGFloat = 0
     #if DEBUG
@@ -50,8 +63,10 @@ struct RoomSceneHost: View {
 
     var body: some View {
         GeometryReader { geometry in
+            let showsStairs = isActive && store.snapshot?.home.availableFloors.count == 2
+            let stairFrame = showsStairs ? RoomStairLandingLayout.frame(size: stairSize, canvas: geometry.size) : .zero
             let canvas = NativeRoomCanvas(scene: scene, isActive: isActive, canvasSize: geometry.size)
-                .allowsHitTesting(!store.isSavingLayout)
+                .allowsHitTesting(!store.isSavingLayout && !store.isChangingHomeFloor)
                 .onAppear {
                     scene.scaleMode = .resizeFill
                     if scene.size != geometry.size { scene.size = geometry.size }
@@ -65,9 +80,20 @@ struct RoomSceneHost: View {
                     navigationStatus = scene.diagnostics.navigationDescription
                     animationPhase = scene.presentationPhase
                     #endif
-                    scene.onPlacementPendingChanged = { store.setLayoutResolving($0) }
+                    let generation = store.saveSceneGeneration
+                    let sourceFloor = store.visibleHomeFloor
+                    let acceptsSceneUpdates = {
+                        store.saveSceneGeneration == generation && store.visibleHomeFloor == sourceFloor
+                            && !store.isChangingHomeFloor
+                    }
+                    scene.onPlacementPendingChanged = { if acceptsSceneUpdates() { store.setLayoutResolving($0) } }
                     scene.reducedMotion = effectiveReducedMotion
                     scene.onCatTapped = { store.inspectCat() }
+                    scene.onFloorTravelAvailabilityChanged = {
+                        guard acceptsSceneUpdates() else { return }
+                        canTravelFloors = $0
+                        store.roomFloorTravelReady = $0
+                    }
                     let presentation = catNeedPresentation
                     presentation.canvasOrigin = geometry.frame(in: .global).origin
                     scene.onCatNeedAnchorChanged = { [weak presentation] point in presentation?.anchor = point }
@@ -75,13 +101,14 @@ struct RoomSceneHost: View {
                     scene.onArrangementFrameChanged = { arrangementFrame = $0 }
                     scene.onSound = { store.playSceneSound($0) }
                     scene.onBowlTapped = { store.feed() }
-                    scene.onBowlMoved = { store.moveBowl(to: $0) }
-                    scene.onFurnitureSelected = { store.selectFurniture(id: $0) }
-                    scene.onFurnitureMoved = { store.moveFurniture(id: $0, to: $1) }
-                    scene.onFurniturePlacementFinished = { store.finishFurniturePlacement(id: $0, succeeded: $1) }
-                    let generation = store.saveSceneGeneration
+                    scene.onBowlMoved = { if acceptsSceneUpdates() { store.moveBowl(to: $0) } }
+                    scene.onFurnitureSelected = { if acceptsSceneUpdates() { store.selectFurniture(id: $0) } }
+                    scene.onFurnitureMoved = { if acceptsSceneUpdates() { store.moveFurniture(id: $0, to: $1) } }
+                    scene.onFurniturePlacementFinished = {
+                        if acceptsSceneUpdates() { store.finishFurniturePlacement(id: $0, succeeded: $1) }
+                    }
                     scene.onRestingFurnitureChanged = { furnitureID, sessionID, catID in
-                        guard store.saveSceneGeneration == generation else { return }
+                        guard acceptsSceneUpdates() else { return }
                         store.setRestingFurniture(id: furnitureID, sessionID: sessionID, catID: catID)
                     }
                     scene.onFurnitureNotice = { store.showFurnitureNotice($0) }
@@ -102,6 +129,7 @@ struct RoomSceneHost: View {
                     scene.onCatNeedAnchorChanged = nil
                     scene.onCatVisualFrameChanged = nil
                     scene.onArrangementFrameChanged = nil
+                    scene.onFloorTravelAvailabilityChanged = nil
                     arrangementFrame = nil
                     catNeedPresentation.anchor = nil
                     catNeedPresentation.localCatFrame = nil
@@ -139,7 +167,7 @@ struct RoomSceneHost: View {
             .overlay {
                 CatNeedBubble(store: store, presentation: catNeedPresentation,
                               canvasSize: geometry.size, isActive: isActive,
-                              canAct: { scene.canShowCatNeed })
+                              canAct: { scene.canShowCatNeed }, avoidingFrame: stairFrame)
             }
             .overlay {
                 if isActive, store.isDecorating, !store.isResolvingLayout, let arrangementFrame {
@@ -159,6 +187,19 @@ struct RoomSceneHost: View {
                     .accessibilityIdentifier("focusCatButton")
                     .accessibilityHint(GameStrings.text("homeUpgrade.zoomHint"))
                     .padding(.leading, 12).padding(.top, 240)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if showsStairs {
+                    HomeStairLanding(store: store, roomReady: canTravelFloors)
+                        .background {
+                            GeometryReader { landing in
+                                Color.clear.onAppear { stairSize = landing.size }
+                                    .onChange(of: landing.size) { _, size in stairSize = size }
+                            }.allowsHitTesting(false)
+                        }
+                        .padding(.trailing, RoomStairLandingLayout.trailingInset)
+                        .padding(.top, RoomStairLandingLayout.topInset)
                 }
             }
         }

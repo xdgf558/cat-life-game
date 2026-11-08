@@ -87,6 +87,10 @@ struct HomeUpgradeView: View {
                 .accessibilityValue(area(home))
             Text(GameStrings.format("homeUpgrade.dimensions", number(home.worldScale)))
                 .font(.footnote).foregroundStyle(RoomTheme.secondary)
+            if home.floors.count > 1 {
+                Label(GameStrings.format("homeUpgrade.floorCapacity", home.floorCapacity), systemImage: "stairs")
+                    .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
+            }
             Label(GameStrings.format("homeUpgrade.capacity", home.capacity), systemImage: "sofa.fill")
                 .font(.subheadline).accessibilityIdentifier("homeUpgrade\(prefix)Capacity")
                 .accessibilityValue("\(home.capacity)")
@@ -96,7 +100,7 @@ struct HomeUpgradeView: View {
                     in: RoundedRectangle(cornerRadius: 24))
     }
 
-    private func area(_ home: HomeLevel) -> String { number(home.worldScale * home.worldScale) }
+    private func area(_ home: HomeLevel) -> String { number(home.worldScale * home.worldScale * Double(home.floors.count)) }
 
     private func number(_ value: Double) -> String {
         value.formatted(.number.precision(.fractionLength(0...2))

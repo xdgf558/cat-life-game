@@ -4,31 +4,41 @@ import CatGameCore
 @MainActor
 struct TownView: View {
     @Bindable var store: GameStore
-    @State private var selectedPlace: TownPlace = .plaza
-    @State private var layer: TownLayer = .all
-    private var cats: [CatState] { store.snapshot?.cats ?? [] }
-    private var sickCount: Int { cats.filter { $0.healthState?.illness != nil }.count }
-    private var availableOffer: CatAdoptionOffer? {
-        CatCatalog.adoptionOffers.first { offer in
-            guard let snapshot = store.snapshot else { return false }
-            return !cats.contains { $0.id == offer.id } && snapshot.player.level >= offer.requiredPlayerLevel
-                && snapshot.home.roomLevel >= offer.requiredRoomLevel && snapshot.player.gold >= offer.price
+    @Binding var selectedPlace: TownPlace
+    @Binding var layer: TownLayer
+    @State private var mapVisible = false
+    @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    private var status: TownMapStatus { TownMapStatus(snapshot: store.snapshot) }
+    private var reducedMotion: Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-testing"),
+           ProcessInfo.processInfo.arguments.contains("--town-reduce-motion") { return true }
+        #endif
+        return reduceMotion
+    }
+    private var animates: Bool { !reducedMotion && mapVisible && scenePhase == .active && !store.onboarding.isPresented }
+    private func isNight(_ now: Date) -> Bool {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--ui-testing") {
+            if ProcessInfo.processInfo.arguments.contains("--town-night") { return true }
+            if ProcessInfo.processInfo.arguments.contains("--town-day") { return false }
         }
+        #endif
+        return TownMapLayout.isNight(now)
     }
 
     var body: some View {
         Group {
             if store.isShowingMarket {
-                NavigationStack {
-                    ExchangeMarketView(store: store, onClose: { store.isShowingMarket = false })
-                }
+                NavigationStack { ExchangeMarketView(store: store, onClose: { store.isShowingMarket = false }) }
             } else if store.isShowingNeighbors {
                 CommunityView(store: store) { store.isShowingNeighbors = false }
             } else if let filter = store.catCollectionFilter {
                 CatCollectionView(store: store, initialFilter: filter, embedded: true,
                                   initialAdoptionID: store.adoptionCatID, onClose: {
-                    store.catCollectionFilter = nil
-                    store.adoptionCatID = nil
+                    store.catCollectionFilter = nil; store.adoptionCatID = nil
                 }).id(store.adoptionCatID ?? "collection")
             } else { map }
         }
@@ -38,69 +48,79 @@ struct TownView: View {
     }
 
     private var map: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 0) {
-                    header
-                    plots
-                    detail
-                        .frame(minHeight: max(230, geometry.size.height - 454), alignment: .top)
-                        .background(RoomTheme.cream, in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))
-                        .padding(.top, -8)
+        TimelineView(.periodic(from: .now, by: 60)) { clock in
+            let night = isNight(clock.date)
+            GeometryReader { geometry in
+                ScrollViewReader { proxy in
+                    VStack(spacing: 0) {
+                        header(now: clock.date, night: night, proxy: proxy)
+                        ScrollView(.vertical) {
+                            if dynamicTypeSize.isAccessibilitySize { accessiblePlaces(proxy: proxy) }
+                            else {
+                                TownMapCanvas(width: min(640, geometry.size.width), selected: selectedPlace,
+                                              layer: layer, status: status, now: store.now, night: night,
+                                              animates: animates) { choose($0, proxy: proxy) }
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .scrollBounceBehavior(.basedOnSize).accessibilityIdentifier("townMapScroll")
+                        .overlay(alignment: .bottomTrailing) { locateButton(proxy: proxy).padding(12) }
+                        .onAppear {
+                            mapVisible = true
+                            Task { @MainActor in
+                                await Task.yield()
+                                proxy.scrollTo(selectedPlace, anchor: .center)
+                            }
+                        }
+                        .onDisappear { mapVisible = false }
+                        .onChange(of: dynamicTypeSize) { _, _ in proxy.scrollTo(selectedPlace, anchor: .center) }
+                        TownMapDetail(store: store, place: selectedPlace, status: status,
+                                      primaryKey: primaryKey, primaryIdentifier: primaryIdentifier, enter: enterPlace)
+                            .padding(.horizontal, 8).padding(.top, 6).padding(.bottom, 8)
+                    }
+                    .background(night ? Color(red: 0.36, green: 0.46, blue: 0.42) : TownPalette.grass)
                 }
-                .frame(maxWidth: 640).frame(maxWidth: .infinity)
             }
-            .scrollBounceBehavior(.basedOnSize)
-            .background(TownPalette.grass)
-            .accessibilityIdentifier("townMapScroll")
         }
     }
 
-    private var header: some View {
-        VStack(spacing: 5) {
-            HStack(spacing: 8) {
-                HStack(spacing: 6) {
-                    Text(GameStrings.text("tab.town"))
-                    GameIcon(asset: "icon-town", symbol: "map.fill", size: 26, tint: RoomTheme.darkMint)
+    private func header(now: Date, night: Bool, proxy: ScrollViewProxy) -> some View {
+        VStack(spacing: 3) {
+            HStack(spacing: 7) {
+                Text(GameStrings.text("tab.town")).font(.system(size: 21, weight: .heavy, design: .rounded))
+                    .padding(.horizontal, 13).frame(height: 42)
+                    .background(RoomTheme.wood, in: RoundedRectangle(cornerRadius: 15))
+                    .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(TownPalette.woodEdge, lineWidth: 3))
+                    .shadow(color: TownPalette.woodEdge, radius: 0, y: 3)
+                    .accessibilityIdentifier("townMapTitle").accessibilityAddTraits(.isHeader)
+                HStack(spacing: 4) {
+                    Image(systemName: night ? "moon.stars.fill" : "sun.horizon.fill").foregroundStyle(night ? RoomTheme.lilac : RoomTheme.gold)
+                    Text(GameStrings.text(night ? "townMap.night" : "townMap.day"))
+                    Text(now, format: .dateTime.hour().minute())
                 }
-                .font(.system(size: 20, weight: .heavy, design: .rounded))
-                .padding(.horizontal, 14).frame(height: 46)
-                .background {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(LinearGradient(colors: [RoomTheme.wood, Color(red: 0.91, green: 0.72, blue: 0.47)],
-                                             startPoint: .top, endPoint: .bottom))
-                        .shadow(color: TownPalette.woodEdge, radius: 0, y: 4)
-                }
-                .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(TownPalette.woodEdge, lineWidth: 3))
-                .accessibilityIdentifier("townMapTitle").accessibilityAddTraits(.isHeader)
-
+                .font(.system(size: 11, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
+                .padding(.horizontal, 8).frame(height: 34).background(RoomTheme.paper, in: Capsule())
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(GameStrings.text(night ? "townMap.night" : "townMap.day") + " " + now.formatted(date: .omitted, time: .shortened))
+                .accessibilityIdentifier("townTimeOfDay").accessibilityValue(night ? "night" : "day")
+                Spacer(minLength: 0)
                 Button { openCollection() } label: {
-                    Label(GameStrings.format("town.yourCatsCount", cats.count), systemImage: "pawprint.fill")
-                        .font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.75)
-                        .padding(.horizontal, 10).frame(minHeight: 44)
-                        .foregroundStyle(RoomTheme.darkMint)
-                        .background(RoomTheme.paper, in: Capsule())
-                        .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
+                    Image(systemName: "book.closed.fill").font(.system(size: 17)).frame(width: 44, height: 44)
+                        .foregroundStyle(RoomTheme.darkMint).background(RoomTheme.paper, in: Circle())
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("townCollectionButton")
                 .accessibilityLabel(GameStrings.text("town.myCats"))
-                .accessibilityValue(GameStrings.format("catDirectory.count", cats.count))
-                Spacer(minLength: 0)
-                Button { choose(.plaza) } label: {
-                    Image(systemName: "bell.fill").font(.system(size: 21))
-                        .foregroundStyle(RoomTheme.lilac).frame(width: 44, height: 44)
-                        .background(RoomTheme.paper, in: Circle())
-                        .overlay(Circle().strokeBorder(.white, lineWidth: 2))
+                .accessibilityValue(GameStrings.format("catDirectory.count", store.snapshot?.cats.count ?? 0))
+                Button { choose(.plaza, proxy: proxy) } label: {
+                    Image(systemName: "bell.fill").font(.system(size: 19)).frame(width: 44, height: 44)
+                        .foregroundStyle(RoomTheme.lilac).background(RoomTheme.paper, in: Circle())
                 }
                 .buttonStyle(.plain).accessibilityLabel(GameStrings.text("town.communityPreview"))
                 .accessibilityIdentifier("townCommunityPreviewButton")
             }
             HStack(spacing: 5) {
                 ForEach(TownLayer.allCases) { item in
-                    Button {
-                        store.playNavigationSound()
-                        layer = item
-                    } label: {
+                    Button { store.playNavigationSound(); layer = item } label: {
                         Label(GameStrings.text(item.titleKey), systemImage: item.symbol)
                             .font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.7)
                             .frame(maxWidth: .infinity).frame(height: 28)
@@ -108,153 +128,84 @@ struct TownView: View {
                             .background(layer == item ? RoomTheme.mint : RoomTheme.paper, in: Capsule())
                             .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                             .frame(height: 44).contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain).accessibilityIdentifier("townLayer_\(item.rawValue)")
-                    .accessibilityAddTraits(layer == item ? .isSelected : [])
+                    }.buttonStyle(.plain).accessibilityIdentifier("townLayer_\(item.rawValue)")
+                        .accessibilityAddTraits(layer == item ? .isSelected : [])
                 }
             }
         }
-        .padding(.horizontal, 14).padding(.top, 8)
+        .padding(.horizontal, 12).padding(.top, 6)
+        .background(LinearGradient(colors: [Color(red: 0.80, green: 0.92, blue: 0.96), TownPalette.grass], startPoint: .top, endPoint: .bottom))
+        .accessibilityElement(children: .contain).accessibilityIdentifier("townMapToolbar")
     }
 
-    private var plots: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 3), spacing: 14) {
-            ForEach(TownPlace.allCases) { place in
-                TownPlot(place: place, selected: selectedPlace == place,
-                         inLayer: layer == .all || place.layer == layer || place.isEmpty,
-                         sickCount: sickCount, availableAdoption: availableOffer != nil,
-                         availableExchanges: availableExchangeCount) { choose(place) }
+    private func accessiblePlaces(proxy: ScrollViewProxy) -> some View {
+        VStack(spacing: 10) {
+            ForEach(TownMapLayout.readingOrder) { place in
+                Button { choose(place, proxy: proxy) } label: {
+                    HStack(spacing: 10) {
+                        GameIcon(asset: place.asset, symbol: place.symbol, size: 60, tint: place.tint)
+                            .overlay(alignment: .topTrailing) {
+                                if selectedPlace == place {
+                                    Image(systemName: "checkmark.circle.fill").font(.system(size: 20, weight: .bold))
+                                        .foregroundStyle(RoomTheme.darkMint, RoomTheme.paper)
+                                }
+                            }.accessibilityHidden(true)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(GameStrings.text(place.titleKey)).font(.headline)
+                            Text(status.badge(for: place, now: store.now) ?? GameStrings.text(place.statusKey(sickCount: status.sickCount)))
+                                .font(.caption).foregroundStyle(RoomTheme.secondary)
+                        }
+                        Spacer(minLength: 0)
+                    }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 18))
+                        .opacity(layer == .all || place.layer == layer || place.isEmpty ? 1 : 0.45)
+                }.buttonStyle(.plain).id(place).accessibilityIdentifier(place.accessibilityIdentifier)
+                    .accessibilityAddTraits(selectedPlace == place ? .isSelected : [])
             }
+        }.padding(12).padding(.bottom, 60)
+            .accessibilityElement(children: .contain).accessibilityIdentifier("townMapCanvas").accessibilityValue("static")
+    }
+
+    private func locateButton(proxy: ScrollViewProxy) -> some View {
+        Button { layer = .all; choose(.home, proxy: proxy) } label: {
+            Image(systemName: "location.viewfinder").font(.system(size: 22, weight: .bold))
+                .foregroundStyle(.white).frame(width: 46, height: 46).background(RoomTheme.mint, in: Circle())
+                .overlay(Circle().strokeBorder(.white, lineWidth: 3)).shadow(color: RoomTheme.darkMint.opacity(0.5), radius: 0, y: 3)
+        }.buttonStyle(.plain).accessibilityLabel(GameStrings.text("townMap.locateHome"))
+            .accessibilityIdentifier("townMapFocusHome")
+    }
+    private func choose(_ place: TownPlace, proxy: ScrollViewProxy) {
+        store.playFeedback(.pin); selectedPlace = place
+        Task { @MainActor in
+            await Task.yield()
+            guard mapVisible, selectedPlace == place else { return }
+            if reducedMotion { proxy.scrollTo(place, anchor: .center) }
+            else { withAnimation(.easeInOut(duration: 0.35)) { proxy.scrollTo(place, anchor: .center) } }
         }
-        .padding(.horizontal, 8).padding(.top, 8).padding(.bottom, 24)
-        .background {
-            TownPalette.road
-            GeometryReader { geometry in
-                Path { path in
-                    for row in 1...3 {
-                        let y = CGFloat(row) * 86 + 1
-                        path.move(to: CGPoint(x: 0, y: y))
-                        path.addLine(to: CGPoint(x: geometry.size.width, y: y))
-                    }
-                }
-                .stroke(.white.opacity(0.8), style: StrokeStyle(lineWidth: 2, dash: [7, 5]))
-            }
-        }
     }
-
-    private var detail: some View {
-        VStack(alignment: .leading, spacing: 13) {
-            Capsule().fill(RoomTheme.wood.opacity(0.7)).frame(width: 40, height: 5)
-                .frame(maxWidth: .infinity).accessibilityHidden(true)
-            HStack(alignment: .top, spacing: 10) {
-                GameIconTile(asset: selectedPlace.asset, symbol: selectedPlace.symbol, tint: selectedPlace.tint,
-                             background: selectedPlace.tile, size: 50, iconScale: 0.9)
-                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(.white, lineWidth: 2))
-                VStack(alignment: .leading, spacing: 5) {
-                    ViewThatFits(in: .horizontal) {
-                        HStack(spacing: 7) { detailTitle; statusChip }
-                        VStack(alignment: .leading, spacing: 5) { detailTitle; statusChip }
-                    }
-                    Text(detailDescription).font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            if selectedPlace.isFuture {
-                Label(GameStrings.text("town.futureNotice"), systemImage: "sparkles")
-                    .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.lilac)
-                    .padding(.horizontal, 12).padding(.vertical, 9)
-                    .background(TownPalette.community, in: RoundedRectangle(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16)
-                        .strokeBorder(TownPalette.communityEdge, style: StrokeStyle(lineWidth: 2, dash: [5, 4])))
-            }
-            Spacer(minLength: 4)
-            Group {
-                if selectedPlace.isFuture || selectedPlace.isEmpty {
-                    Button(action: {}) { primaryLabel }
-                        .buttonStyle(SoftButtonStyle()).disabled(true)
-                } else {
-                    Button(action: enterPlace) { primaryLabel }.buttonStyle(MintButtonStyle())
-                }
-            }
-            .accessibilityIdentifier(primaryIdentifier)
-        }
-        .padding(.horizontal, 16).padding(.top, 10).padding(.bottom, 16)
-        .accessibilityElement(children: .contain).accessibilityIdentifier("townPlaceDetail")
-        .accessibilityValue(selectedPlace.rawValue)
-    }
-
-    private var detailTitle: some View {
-        Text(GameStrings.text(selectedPlace.titleKey)).font(.system(size: 19, weight: .heavy))
-            .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
-    }
-
-    private var primaryLabel: some View {
-        Label {
-            Text(GameStrings.text(primaryKey))
-        } icon: {
-            GameIcon(asset: selectedPlace.asset, symbol: selectedPlace.symbol, size: 26,
-                     tint: selectedPlace.isFuture || selectedPlace.isEmpty ? RoomTheme.ink : .white)
-        }
-        .font(.system(size: 16, weight: .heavy)).frame(maxWidth: .infinity)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-
-    private var statusChip: some View {
-        Text(GameStrings.text(selectedPlace == .adoption && availableOffer != nil ? "cat.adoptionAvailable" : selectedPlace.statusKey(sickCount: sickCount)))
-            .font(.system(size: 11, weight: .heavy)).fixedSize()
-            .foregroundStyle(selectedPlace.isFuture ? RoomTheme.lilac :
-                (selectedPlace == .hospital && sickCount > 0 ? RoomTheme.coral : RoomTheme.darkMint))
-            .padding(.horizontal, 8).padding(.vertical, 4)
-            .background(selectedPlace.isFuture ? TownPalette.community : selectedPlace.tile, in: Capsule())
-    }
-
-    private var detailDescription: String {
-        if selectedPlace == .hospital, sickCount > 0 { return GameStrings.format("town.hospitalAttention", sickCount) }
-        if selectedPlace == .home { return GameStrings.format("town.homeDescription", store.homeDisplayName) }
-        return GameStrings.text(selectedPlace.descriptionKey)
-    }
-
     private var primaryKey: String {
-        if selectedPlace == .adoption, availableOffer == nil { return "town.viewCats" }
+        if selectedPlace == .adoption, status.availableAdoptions.isEmpty { return "town.viewCats" }
         return selectedPlace.actionKey
     }
-
     private var primaryIdentifier: String {
         switch selectedPlace {
         case .hospital: "townHospitalButton"
-        case .adoption: availableOffer == nil ? "townAdoptionCollectionButton" : "townMeetCatButton"
+        case .adoption: status.availableAdoptions.isEmpty ? "townAdoptionCollectionButton" : "townMeetCatButton"
         default: "townEnter_\(selectedPlace.rawValue)"
         }
     }
-
-    private func choose(_ place: TownPlace) {
-        store.playFeedback(.pin)
-        selectedPlace = place
-    }
-
-    private var availableExchangeCount: Int {
-        guard let snapshot = store.snapshot else { return 0 }
-        return ExchangeCatalog.offers.filter { ExchangeCatalog.eligibility(of: $0, in: snapshot) == nil }.count
-    }
-
     private func openCollection(filter: CatCollectionView.Filter = .all) {
-        store.playNavigationSound()
-        store.openCatCollection(filter: filter)
+        store.playNavigationSound(); store.openCatCollection(filter: filter)
     }
-
     private func enterPlace() {
         switch selectedPlace {
-        case .street:
-            store.playNavigationSound()
-            store.isShowingNeighbors = true
+        case .street: store.playNavigationSound(); store.isShowingNeighbors = true
         case .hospital: store.openHospital()
         case .market: store.openExchangeMarket()
-        case .adoption: openCollection(filter: availableOffer == nil ? .owned : .unowned)
+        case .adoption: openCollection(filter: status.availableAdoptions.isEmpty ? .owned : .unowned)
         case .home, .work, .shop:
-            store.isShowingSettings = false
-            store.inspectedCatID = nil
-            store.activeSheet = selectedPlace == .work ? .work : (selectedPlace == .shop ? .shop : nil)
+            store.isShowingSettings = false; store.inspectedCatID = nil
+            store.activeSheet = selectedPlace == .work ? .work : selectedPlace == .shop ? .shop : nil
         default: break
         }
     }

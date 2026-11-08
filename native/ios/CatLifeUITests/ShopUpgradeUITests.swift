@@ -48,6 +48,7 @@ extension RoomHomeUITests {
         tapAnimationControl("shopDetailBackButton", in: app)
         waitForObservedValue("shopGoldCount", "4,640", in: app)
         tapAnimationControl("shopCategory_furniture", in: app)
+        scrollCareerPage("destinationScroll", to: "shopItem_potted_plant", in: app)
         tapAnimationControl("shopItem_potted_plant", in: app)
         for count in 1...2 {
             scrollCareerPage("shopDetailScroll", to: "shopBuy_potted_plant", in: app)
@@ -87,6 +88,7 @@ extension RoomHomeUITests {
         let initial = try expansionState(in: app)
         tapAnimationControl("tabShop", in: app)
         tapAnimationControl("shopCategory_furniture", in: app)
+        scrollCareerPage("destinationScroll", to: "shopItem_potted_plant", in: app)
         tapAnimationControl("shopItem_potted_plant", in: app)
         scrollCareerPage("shopDetailScroll", to: "shopBuy_potted_plant", in: app)
         tapAnimationControl("shopBuy_potted_plant", in: app)
@@ -99,10 +101,14 @@ extension RoomHomeUITests {
             scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeAction", in: app)
             tapAnimationControl("homeUpgradeAction", in: app)
             tapAnimationControl("homeUpgradeConfirm", in: app)
+            waitForElement("homeUpgradeCelebration", in: app)
+            tapAnimationControl("homeUpgradeCelebrationDone", in: app)
+            tapAnimationControl("homeUpgradeButton", in: app)
             scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeCurrentLevel", in: app)
             waitForObservedValue("homeUpgradeCurrentLevel", "\(level)", in: app)
         }
-        scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeMaxed", in: app)
+        scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeNextLevel", in: app)
+        waitForObservedValue("homeUpgradeNextLevel", "4", in: app)
         attachScreenshot(app, named: "Room renovation — level three and sixteen furniture slots")
         tapAnimationControl("layoutReturnButton", in: app)
         _ = waitForFurniture(in: app, description: "expanded room geometry to finish", matching: { $0.phase == "editing" && !$0.pending })
@@ -143,9 +149,11 @@ extension RoomHomeUITests {
         tapAnimationControl("layoutDoneButton", in: app)
         _ = waitForFurniture(in: app, description: "expanded layout to save", matching: { $0.phase == "idle" && !$0.pending })
         let beforePan = try expansionState(in: app)
-        // The upper empty wall never starts a furniture drag or cat action.
-        room.coordinate(withNormalizedOffset: CGVector(dx: 0.25, dy: 0.22))
-            .press(forDuration: 0.08, thenDragTo: room.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.35)))
+        // Start below the task/reminder HUD, and pan away from the current camera edge.
+        let canMoveCameraLeft = beforePan.number("cameraX") > beforePan.number("viewportWidth") / 2 + 20
+        room.coordinate(withNormalizedOffset: CGVector(dx: canMoveCameraLeft ? 0.30 : 0.68, dy: 0.42))
+            .press(forDuration: 0.08, thenDragTo: room.coordinate(withNormalizedOffset:
+                CGVector(dx: canMoveCameraLeft ? 0.68 : 0.30, dy: 0.49)))
         let panned = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             guard let value = room.value as? String,
                   let state = try? JSONSerialization.jsonObject(with: Data(value.utf8)) as? [String: Any],

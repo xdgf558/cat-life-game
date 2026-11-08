@@ -1,4 +1,5 @@
 import XCTest
+import AVFoundation
 import CatGameCore
 @testable import CatLife
 
@@ -7,15 +8,19 @@ final class GameAudioPolicyTests: XCTestCase {
         var settings = AudioSettings()
         for hour in [0, 6, 22, 23] {
             XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: hour), .night)
+            XCTAssertEqual(GameAudioPolicy.track(.upstairs, settings: settings, hour: hour), .night)
             XCTAssertEqual(GameAudioPolicy.musicVolume(settings: settings, hour: hour, ducked: false), 0.245, accuracy: 0.0001)
         }
         for hour in [7, 12, 21] {
             XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: hour), .home)
+            XCTAssertEqual(GameAudioPolicy.track(.upstairs, settings: settings, hour: hour), .upstairs)
         }
         XCTAssertEqual(GameAudioPolicy.track(.hospital, settings: settings, hour: 23), .hospital)
         XCTAssertEqual(GameAudioPolicy.track(.sleep, settings: settings, hour: 23), .sleep)
+        XCTAssertEqual(GameAudioPolicy.track(.promenade, settings: settings, hour: 23), .promenade)
         settings.nightQuiet = false
         XCTAssertEqual(GameAudioPolicy.track(.home, settings: settings, hour: 23), .home)
+        XCTAssertEqual(GameAudioPolicy.track(.upstairs, settings: settings, hour: 23), .upstairs)
         XCTAssertEqual(GameAudioPolicy.musicVolume(settings: settings, hour: 23, ducked: false), 0.35, accuracy: 0.0001)
         settings.sceneMusic = false
         for scene in GameMusicTrack.allCases {
@@ -49,12 +54,20 @@ final class GameAudioPolicyTests: XCTestCase {
         XCTAssertFalse(GameSoundEffect.tap.ducksMusic)
     }
 
-    func testEveryDeclaredRuntimeCueHasABundledResource() {
-        XCTAssertEqual(GameMusicTrack.allCases.count, 8)
+    func testEveryDeclaredRuntimeCueHasABundledResource() throws {
+        XCTAssertEqual(GameMusicTrack.allCases.count, 10)
         XCTAssertEqual(GameSoundEffect.allCases.count, 35)
         let bundle = Bundle(for: GameAudioController.self)
         for name in GameMusicTrack.allCases.map(\.fileName) + GameSoundEffect.allCases.map(\.fileName) {
             XCTAssertNotNil(bundle.url(forResource: name, withExtension: "caf", subdirectory: "Audio"), name)
+        }
+        for track in [GameMusicTrack.promenade, .upstairs] {
+            let url = try XCTUnwrap(bundle.url(forResource: track.fileName, withExtension: "caf", subdirectory: "Audio"))
+            let file = try AVAudioFile(forReading: url)
+            XCTAssertGreaterThan(file.length, 0)
+            let buffer = try XCTUnwrap(AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: 4_096))
+            try file.read(into: buffer)
+            XCTAssertGreaterThan(buffer.frameLength, 0, "\(track.fileName) must contain decodable audio, not just a named file.")
         }
     }
 

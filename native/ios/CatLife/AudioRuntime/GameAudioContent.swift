@@ -2,7 +2,7 @@ import Foundation
 import CatGameCore
 
 enum GameMusicTrack: String, CaseIterable {
-    case cover, home, night, sleep, work, town, hospital, shop
+    case cover, home, night, sleep, work, town, hospital, shop, promenade, upstairs
     var fileName: String { "bgm-\(rawValue)" }
     var sceneKey: String { "audio.scene.\(rawValue)" }
     var title: String {
@@ -13,6 +13,8 @@ enum GameMusicTrack: String, CaseIterable {
         case .sleep: "Paws at Rest"
         case .work: "Little Steps to Payday"
         case .town: "Town Stroll"
+        case .promenade: "Cat Town Promenade"
+        case .upstairs: "Sunlit Upstairs"
         case .hospital: "Gentle Checkup"
         case .shop: "Bell Over the Door"
         }
@@ -71,7 +73,7 @@ enum GameAudioPolicy {
 
     static func track(_ requested: GameMusicTrack, settings: AudioSettings, hour: Int) -> GameMusicTrack {
         guard settings.sceneMusic else { return .home }
-        return requested == .home && settings.nightQuiet && isQuietHour(hour) ? .night : requested
+        return (requested == .home || requested == .upstairs) && settings.nightQuiet && isQuietHour(hour) ? .night : requested
     }
 
     static func musicVolume(settings: AudioSettings, hour: Int, ducked: Bool) -> Float {

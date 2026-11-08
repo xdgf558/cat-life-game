@@ -5,26 +5,54 @@ import CatGameCore
 struct ShopView: View {
     @Bindable var store: GameStore
     @State private var showsGifts = false
+    @State private var filter: ShopBrowser.Filter = .all
+    @State private var page = 0
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    private let newFurnitureIDs = ["oak_bookcase", "rattan_chair", "round_side_table", "sunrise_art"]
+    private var products: [ShopListing] { ShopBrowser.products(in: store.shopCategory, filter: filter) }
+    private var pageSize: Int { ShopBrowser.pageSize(accessibility: dynamicTypeSize.isAccessibilitySize) }
+    private var pageCount: Int { ShopBrowser.pageCount(for: products.count, pageSize: pageSize) }
+    private var currentPage: Int { ShopBrowser.clampedPage(page, count: products.count, pageSize: pageSize) }
+    private var visibleProducts: [ShopListing] {
+        Array(products[ShopBrowser.pageRange(page, count: products.count, pageSize: pageSize)])
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                header
-                categories
-                switch store.shopCategory {
-                case .supplies: supplies
-                case .furniture: furniture
-                case .equipment:
-                    productRows(ShopListing.list(.equipment)) { equipmentCard($0) }
+        ScrollViewReader { proxy in
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    header
+                    categories.id("shopProductsTop")
+                    browseFilters
+                    Group {
+                        switch store.shopCategory {
+                        case .supplies: supplies
+                        case .furniture: furniture
+                        case .equipment:
+                            productRows(visibleProducts) { equipmentCard($0) }
+                        }
+                    }.id("\(store.shopCategory.rawValue)-\(filter.rawValue)-\(currentPage)")
+                    if pageCount > 1 { pagination }
+                    CommunityGiftEntry(store: store) { showsGifts = true }
                 }
-                CommunityGiftEntry(store: store) { showsGifts = true }
+                .padding(16).padding(.bottom, 8).frame(maxWidth: 560).frame(maxWidth: .infinity)
             }
-            .padding(16).padding(.bottom, 8).frame(maxWidth: 560).frame(maxWidth: .infinity)
+            .accessibilityIdentifier("destinationScroll")
+            .onChange(of: store.shopCategory) { _, _ in
+                filter = .all
+                page = 0
+                proxy.scrollTo("shopProductsTop", anchor: .top)
+            }
+            .onChange(of: filter) { _, _ in
+                page = 0
+                proxy.scrollTo("shopProductsTop", anchor: .top)
+            }
+            .onChange(of: page) { _, _ in proxy.scrollTo("shopProductsTop", anchor: .top) }
+            .onChange(of: pageSize) { _, _ in
+                page = 0
+                proxy.scrollTo("shopProductsTop", anchor: .top)
+            }
         }
         .background(RoomTheme.cream)
-        .accessibilityIdentifier("destinationScroll")
         .safeAreaInset(edge: .bottom, spacing: 0) { FurniturePurchaseBanner(store: store) }
         .navigationDestination(for: ShopListing.self) { product in ShopDetailView(product: product, store: store) }
         .navigationDestination(isPresented: $showsGifts) {
@@ -74,16 +102,66 @@ struct ShopView: View {
     private var supplies: some View {
         VStack(alignment: .leading, spacing: 14) {
             ForEach([true, false], id: \.self) { premium in
-                SupplySectionHeading(premium: premium).padding(.top, premium ? 0 : 4)
-                ForEach(ShopListing.list(.supplies).filter { product in
+                let group = visibleProducts.filter { product in
                     if case .supply(let kind) = product.kind { return kind.isPremium == premium }
                     return false
-                }) { product in
-                    if case .supply(let kind) = product.kind { supplyCard(product, kind: kind) }
+                }
+                if !group.isEmpty {
+                    SupplySectionHeading(premium: premium)
+                    ForEach(group) { product in
+                        if case .supply(let kind) = product.kind { supplyCard(product, kind: kind) }
+                    }
                 }
             }
             SupplyManualUseHint()
         }
+    }
+
+    private var browseFilters: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            let options = ShopBrowser.filters(for: store.shopCategory)
+            if !options.isEmpty {
+                HStack(spacing: 8) {
+                    ForEach(options, id: \.self) { option in
+                        Button { filter = option } label: {
+                            Text(GameStrings.text("shop.browse.filter.\(option.rawValue)"))
+                                .font(.caption.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .foregroundStyle(filter == option ? RoomTheme.darkMint : RoomTheme.secondary)
+                                .background(filter == option ? RoomTheme.paleMint : RoomTheme.paper, in: Capsule())
+                        }
+                        .buttonStyle(.plain).accessibilityIdentifier("shopFilter_\(option.rawValue)")
+                        .accessibilityAddTraits(filter == option ? .isSelected : [])
+                    }
+                }.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+            }
+            Text(GameStrings.format("shop.browse.total", products.count))
+                .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                .accessibilityIdentifier("shopResultCount").accessibilityValue("\(products.count)")
+        }
+    }
+
+    private var pagination: some View {
+        HStack(spacing: 12) {
+            Button { page = max(0, currentPage - 1) } label: {
+                Image(systemName: "chevron.left").frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .disabled(currentPage == 0)
+            .accessibilityLabel(GameStrings.text("shop.browse.previous"))
+            .accessibilityIdentifier("shopPagePrevious")
+            Text(GameStrings.format("shop.browse.page", currentPage + 1, pageCount))
+                .font(.caption.weight(.heavy)).monospacedDigit().fixedSize()
+                .accessibilityIdentifier("shopPageSummary").accessibilityValue("\(currentPage + 1)/\(pageCount)")
+            Button { page = min(pageCount - 1, currentPage + 1) } label: {
+                Image(systemName: "chevron.right").frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .disabled(currentPage + 1 >= pageCount)
+            .accessibilityLabel(GameStrings.text("shop.browse.next"))
+            .accessibilityIdentifier("shopPageNext")
+        }
+        .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint)
+        .padding(.horizontal, 12).background(RoomTheme.paper, in: Capsule())
+        .accessibilityElement(children: .contain).accessibilityIdentifier("shopPaginationBar")
     }
 
     private func supplyCard(_ product: ShopListing, kind: SupplyKind) -> some View {
@@ -159,15 +237,12 @@ struct ShopView: View {
     }
 
     private var furniture: some View {
-        let products = ShopListing.list(.furniture)
-        return VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 12) {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 7) { newFurnitureHeading; Text(GameStrings.text("shop.design.storageHint")).font(.caption.weight(.bold)) }
                 VStack(alignment: .leading, spacing: 6) { newFurnitureHeading; Text(GameStrings.text("shop.design.storageHint")).font(.caption.weight(.bold)) }
             }.foregroundStyle(RoomTheme.secondary)
-            productRows(products.filter { newFurnitureIDs.contains($0.id) }) { furnitureCard($0, isNew: true) }
-            Text(GameStrings.text("shop.design.moreFurniture")).font(.headline.weight(.heavy)).padding(.top, 6)
-            productRows(products.filter { !newFurnitureIDs.contains($0.id) }) { furnitureCard($0, isNew: false) }
+            productRows(visibleProducts) { furnitureCard($0, isNew: ShopBrowser.newFurnitureIDs.contains($0.id)) }
         }
     }
 
@@ -190,7 +265,8 @@ struct ShopView: View {
     private var newFurnitureHeading: some View {
         HStack(spacing: 7) {
             newBadge
-            Text(GameStrings.format("shop.design.newCount", newFurnitureIDs.count)).font(.subheadline.weight(.heavy))
+            Text(GameStrings.format("shop.design.newCount", products.filter { ShopBrowser.newFurnitureIDs.contains($0.id) }.count))
+                .font(.subheadline.weight(.heavy))
         }
     }
 

@@ -82,7 +82,14 @@ extension RoomHomeUITests {
                 // Move only the amount required to reveal the target, with a
                 // small margin. Full-screen swipes can repeatedly overshoot a
                 // short stat row or equipment tile in opposite directions.
-                if frame.minY < viewport.minY + 8 {
+                if scrollIdentifier == "townMapScroll",
+                   identifier.hasPrefix("townPlot_") || identifier.hasSuffix("Marker"),
+                   scroll.descendants(matching: .button).matching(identifier: identifier).firstMatch.exists {
+                    // Large map buildings need a deliberate drag to their centre.
+                    // Tiny edge-reveal gestures can cross touch slop and oscillate
+                    // between the two fixed panels on the small-screen simulator.
+                    distance = viewport.midY - frame.midY
+                } else if frame.minY < viewport.minY + 8 {
                     distance = viewport.minY + 8 - frame.minY
                 } else if frame.maxY > viewport.maxY - 8 {
                     distance = viewport.maxY - 8 - frame.maxY
@@ -142,12 +149,14 @@ extension RoomHomeUITests {
                 contentTop = max(contentTop, min(frame.maxY, viewport.maxY))
             }
         }
-        let marketHeader = element("marketHeader", in: app)
-        if marketHeader.exists, marketHeader.isHittable, marketHeader.frame.intersects(viewport) {
-            contentTop = max(contentTop, min(marketHeader.frame.maxY, viewport.maxY))
+        for identifier in ["marketHeader", "townMapToolbar"] {
+            let header = element(identifier, in: app)
+            if header.exists, header.isHittable, header.frame.intersects(viewport) {
+                contentTop = max(contentTop, min(header.frame.maxY, viewport.maxY))
+            }
         }
         for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar",
-                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar"] {
+                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail"] {
             let bar = element(identifier, in: app)
             // A presented sheet covers the home bar even while its AX node remains present.
             if bar.exists, bar.isHittable, bar.frame.intersects(viewport), bar.frame.minY > contentTop {
