@@ -403,6 +403,7 @@ extension GameStrings {
         "tasks.destination.care": "Care at home",
         "tasks.destination.furnitureShop": "Visit shop",
         "tasks.destination.upgrade": "Upgrade home",
+        "tasks.destination.neighbors": "Visit neighbors",
         "tasks.rewardTitle": "Reward collected!",
         "tasks.rewardTask": "“%@” completed",
         "tasks.rewardDone": "Lovely!",
@@ -1057,5 +1058,5 @@ extension GameStrings {
         "action.insufficientGold": "A little work will earn more gold.", "action.insufficientStamina": "Take a little rest to recover stamina.",
         "action.full": "Your cat is already full.", "accessibility.cat": "Cat, tap to view profile",
         "accessibility.decorate": "Arrange the room by selecting and moving furniture or the bowl", "accessibility.food": "Cat food available",
-    ].merging(careers57English) { _, new in new }.merging(design55English) { _, new in new }.merging(marketDesign55English) { _, new in new }.merging(supplyDesign55English) { _, new in new }.merging(shopDesign55English) { _, new in new }.merging(marketEnglish) { _, new in new }.merging(furniture54English) { _, new in new }.merging(suppliesEnglish) { _, new in new }.merging(catGrowth57English) { _, new in new }.merging(shopBrowseEnglish) { _, new in new }.merging(homeExpansion58English) { _, new in new }.merging(homeInventory58English) { _, new in new }.merging(townMap58English) { _, new in new }.merging(townMusic58English) { _, new in new }
+    ].merging(careers57English) { _, new in new }.merging(design55English) { _, new in new }.merging(marketDesign55English) { _, new in new }.merging(supplyDesign55English) { _, new in new }.merging(shopDesign55English) { _, new in new }.merging(marketEnglish) { _, new in new }.merging(furniture54English) { _, new in new }.merging(suppliesEnglish) { _, new in new }.merging(catGrowth57English) { _, new in new }.merging(shopBrowseEnglish) { _, new in new }.merging(homeExpansion58English) { _, new in new }.merging(homeInventory58English) { _, new in new }.merging(townMap58English) { _, new in new }.merging(townMusic58English) { _, new in new }.merging(sharedHome59English) { _, new in new }
 }

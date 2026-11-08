@@ -91,6 +91,11 @@ struct HomeUpgradeView: View {
                 Label(GameStrings.format("homeUpgrade.floorCapacity", home.floorCapacity), systemImage: "stairs")
                     .font(.subheadline.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
             }
+            if home.level >= RoomResidentCats.unlockLevel {
+                Label(GameStrings.text("catDirectory.sharedHomeUnlocked"), systemImage: "pawprint.fill")
+                    .font(.footnote.weight(.semibold)).foregroundStyle(RoomTheme.darkMint)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Label(GameStrings.format("homeUpgrade.capacity", home.capacity), systemImage: "sofa.fill")
                 .font(.subheadline).accessibilityIdentifier("homeUpgrade\(prefix)Capacity")
                 .accessibilityValue("\(home.capacity)")

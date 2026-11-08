@@ -50,11 +50,17 @@ final class PremiumSupplyStoreTests: XCTestCase {
                 XCTAssertNotEqual(GameStrings.text(supply.nameKey), supply.nameKey)
                 XCTAssertNotEqual(GameStrings.text(supply.detailKey), supply.detailKey)
             }
-            XCTAssertNotEqual(GameStrings.text("releases.58.body"), "releases.58.body")
+            XCTAssertNotEqual(GameStrings.text("releases.59.body"), "releases.59.body")
         }
-        XCTAssertEqual(AppVersion.current.version, "0.17.0")
-        XCTAssertEqual(AppVersion.current.build, "58")
-        XCTAssertEqual(AppRelease.recent.map(\.build), [58, 57, 56])
+        for dictionary in [GameStrings.chinese, GameStrings.traditionalChinese, GameStrings.english] {
+            for key in ["catDirectory.sharedHomeLocked", "catDirectory.sharedHomeUnlocked",
+                        "room.inspectResident", "releases.59.title", "releases.59.body"] {
+                XCTAssertNotNil(dictionary[key], "Each language must register \(key) without relying on a fallback.")
+            }
+        }
+        XCTAssertEqual(AppVersion.current.version, "0.18.0")
+        XCTAssertEqual(AppVersion.current.build, "59")
+        XCTAssertEqual(AppRelease.recent.map(\.build), [59, 58, 57])
     }
 
     @MainActor

@@ -403,6 +403,7 @@ extension GameStrings {
         "tasks.destination.care": "回家照顧",
         "tasks.destination.furnitureShop": "去商店",
         "tasks.destination.upgrade": "去升級",
+        "tasks.destination.neighbors": "去拜訪",
         "tasks.rewardTitle": "獎勵到手！",
         "tasks.rewardTask": "「%@」完成",
         "tasks.rewardDone": "好的",
@@ -1057,5 +1058,5 @@ extension GameStrings {
         "action.insufficientGold": "金幣不夠了，先去打工吧。", "action.insufficientStamina": "體力不足，先休息一會兒吧。",
         "action.full": "貓咪已經吃飽啦。", "accessibility.cat": "貓咪，點一下查看檔案",
         "accessibility.decorate": "布置房間，選取並移動家具和食盆", "accessibility.food": "貓糧庫存",
-    ].merging(careers57TraditionalChinese) { _, new in new }.merging(design55TraditionalChinese) { _, new in new }.merging(marketDesign55TraditionalChinese) { _, new in new }.merging(supplyDesign55TraditionalChinese) { _, new in new }.merging(shopDesign55TraditionalChinese) { _, new in new }.merging(marketTraditionalChinese) { _, new in new }.merging(furniture54TraditionalChinese) { _, new in new }.merging(suppliesTraditionalChinese) { _, new in new }.merging(catGrowth57Traditional) { _, new in new }.merging(shopBrowseTraditionalChinese) { _, new in new }.merging(homeExpansion58Traditional) { _, new in new }.merging(homeInventory58Traditional) { _, new in new }.merging(townMap58Traditional) { _, new in new }.merging(townMusic58Traditional) { _, new in new }
+    ].merging(careers57TraditionalChinese) { _, new in new }.merging(design55TraditionalChinese) { _, new in new }.merging(marketDesign55TraditionalChinese) { _, new in new }.merging(supplyDesign55TraditionalChinese) { _, new in new }.merging(shopDesign55TraditionalChinese) { _, new in new }.merging(marketTraditionalChinese) { _, new in new }.merging(furniture54TraditionalChinese) { _, new in new }.merging(suppliesTraditionalChinese) { _, new in new }.merging(catGrowth57Traditional) { _, new in new }.merging(shopBrowseTraditionalChinese) { _, new in new }.merging(homeExpansion58Traditional) { _, new in new }.merging(homeInventory58Traditional) { _, new in new }.merging(townMap58Traditional) { _, new in new }.merging(townMusic58Traditional) { _, new in new }.merging(sharedHome59Traditional) { _, new in new }
 }

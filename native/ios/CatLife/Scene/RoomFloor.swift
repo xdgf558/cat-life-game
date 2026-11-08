@@ -12,7 +12,7 @@ struct RoomFloor: Sendable {
     let catFootprint: CGSize
     let bowlFootprint: CGSize
     let bowlGroundOffset: CGFloat
-    let furnitureObstacles: [CGRect]
+    private(set) var furnitureObstacles: [CGRect]
 
     init(sceneSize: CGSize, artworkSize: CGSize, catWidth: CGFloat, bowlSize: CGSize, furnitureObstacles: [CGRect] = []) {
         self.furnitureObstacles = furnitureObstacles
@@ -44,6 +44,12 @@ struct RoomFloor: Sendable {
 
     func bowlGround(at center: CGPoint) -> CGPoint {
         CGPoint(x: center.x, y: center.y + bowlGroundOffset)
+    }
+
+    func addingObstacles(_ obstacles: [CGRect]) -> Self {
+        var result = self
+        result.furnitureObstacles += obstacles
+        return result
     }
 
     func bowlObstacle(at center: CGPoint) -> CGRect {

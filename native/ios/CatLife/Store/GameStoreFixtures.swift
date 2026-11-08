@@ -32,7 +32,27 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--home-floors-fixture") || arguments.contains("--home-full-ground-fixture") {
+        if arguments.contains("--shared-home-test") || arguments.contains("--shared-home-upper-test") {
+            var value = GameSnapshot.fresh(now: now)
+            value.player.level = 20
+            value.player.gold = 30_000
+            value.home = HomeState(roomLevel: arguments.contains("--shared-home-upper-test") ? 6 : 4)
+            for offer in CatCatalog.adoptionOffers {
+                precondition(GameEngine.adoptCat(&value, catID: offer.id, now: now).succeeded,
+                             "The shared-home fixture must use valid adopted cats.")
+            }
+            for index in value.cats.indices { value.cats[index].satiety = 35 }
+            if arguments.contains("--shared-home-stroll-test") {
+                // This regression isolates walking; automatic furniture rest has its own scene test.
+                let restIDs = Set(value.inventory.furniture.filter { [.catBed, .floorCushion].contains($0.kind) }.map(\.id))
+                value.home.furniture.removeAll { restIDs.contains($0.itemID) }
+            }
+            value.inventory.food = 12
+            value.inventory.litter = 12
+            value.inventory.toys = 12
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false)
+            initialSnapshot = value
+        } else if arguments.contains("--home-floors-fixture") || arguments.contains("--home-full-ground-fixture") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 20
             value.player.gold = 30_000

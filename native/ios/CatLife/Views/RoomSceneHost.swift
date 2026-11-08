@@ -88,7 +88,8 @@ struct RoomSceneHost: View {
                     }
                     scene.onPlacementPendingChanged = { if acceptsSceneUpdates() { store.setLayoutResolving($0) } }
                     scene.reducedMotion = effectiveReducedMotion
-                    scene.onCatTapped = { store.inspectCat() }
+                    scene.onCatTapped = { if acceptsSceneUpdates() { store.inspectCat() } }
+                    scene.onResidentTapped = { if acceptsSceneUpdates() { store.inspectCat(catID: $0) } }
                     scene.onFloorTravelAvailabilityChanged = {
                         guard acceptsSceneUpdates() else { return }
                         canTravelFloors = $0
@@ -111,7 +112,11 @@ struct RoomSceneHost: View {
                         guard acceptsSceneUpdates() else { return }
                         store.setRestingFurniture(id: furnitureID, sessionID: sessionID, catID: catID)
                     }
-                    scene.onFurnitureNotice = { store.showFurnitureNotice($0) }
+                    scene.onFurnitureNotice = {
+                        guard acceptsSceneUpdates() else { return }
+                        if $0 == "room.sharedHomeNoSpace" { store.showSharedHomeSpaceNotice() }
+                        else { store.showFurnitureNotice($0) }
+                    }
                     refreshScene()
                     scene.setPresentationActive(isActive)
                 }
@@ -220,6 +225,15 @@ struct RoomSceneHost: View {
             .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.focusCat"))) { scene.resetCamera() }
             .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomIn"))) { scene.zoomIn() }
             .accessibilityAction(named: Text(GameStrings.text("homeUpgrade.zoomOut"))) { scene.zoomOut() }
+            .accessibilityActions {
+                if (store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel {
+                    ForEach(store.snapshot?.cats ?? []) { cat in
+                        Button(GameStrings.format("room.inspectResident", GameStrings.catName(cat))) {
+                            store.inspectCat(catID: cat.id)
+                        }
+                    }
+                }
+            }
     }
 
     private var sceneAccessibilityValue: String {

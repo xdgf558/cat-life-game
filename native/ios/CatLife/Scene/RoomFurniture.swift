@@ -183,12 +183,12 @@ struct RoomFurnitureRest: Sendable {
 }
 
 extension RoomFurnitureWorld {
-    func restVisit(to id: String, from start: CGPoint) -> RoomFurnitureRest? {
+    func restVisit(to id: String, from start: CGPoint, additionalObstacles: [CGRect] = []) -> RoomFurnitureRest? {
         guard let item = item(id), [.catBed, .floorCushion].contains(item.kind),
               let center = center(id) else { return nil }
         let floor = roomFloor
         let target = rectangle(item, at: center)
-        let otherObstacles = floorObstacles(excluding: id) + [floor.bowlObstacle(at: bowlPosition)]
+        let otherObstacles = floorObstacles(excluding: id) + [floor.bowlObstacle(at: bowlPosition)] + additionalObstacles
         var point = center
         var elevation = catWidth * 0.14
         var contactProgress = CatFurnitureStepTimeline.defaultContactProgress
