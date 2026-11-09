@@ -39,15 +39,17 @@ public struct NeighborRelationship: Codable, Equatable, Sendable {
 public struct CommunityState: Codable, Equatable, Sendable {
     public var relationships: [String: NeighborRelationship]
     public var exchangeCounts: [String: NeighborExchangeCount]
+    public var events: TownEventState
 
     public init(relationships: [String: NeighborRelationship]? = nil,
-                exchangeCounts: [String: NeighborExchangeCount] = [:]) {
+                exchangeCounts: [String: NeighborExchangeCount] = [:], events: TownEventState = TownEventState()) {
         self.relationships = relationships ?? Dictionary(uniqueKeysWithValues:
             CommunityCatalog.neighbors.map { ($0.id, NeighborRelationship()) })
         self.exchangeCounts = exchangeCounts
+        self.events = events
     }
 
-    private enum CodingKeys: String, CodingKey { case relationships, exchangeCounts }
+    private enum CodingKeys: String, CodingKey { case relationships, exchangeCounts, events }
 
     public init(from decoder: Decoder) throws {
         try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
@@ -59,6 +61,8 @@ public struct CommunityState: Codable, Equatable, Sendable {
         // Only old ledgers predate exchange limits; damaged current counters must not reset.
         exchangeCounts = schemaVersion < 8 && !values.contains(.exchangeCounts)
             ? [:] : try values.decode([String: NeighborExchangeCount].self, forKey: .exchangeCounts)
+        events = schemaVersion < 11 && !values.contains(.events)
+            ? TownEventState() : try values.decode(TownEventState.self, forKey: .events)
         guard isValid else { throw SaveRepositoryError.invalidSnapshot }
     }
 
@@ -87,7 +91,7 @@ public struct CommunityState: Codable, Equatable, Sendable {
     }
 
     var isValid: Bool {
-        guard relationships.count <= 32, exchangeCounts.count <= 32,
+        guard relationships.count <= 32, exchangeCounts.count <= 32, events.isValid,
               exchangeCounts.allSatisfy({ id, count in
                   relationships[id] != nil && count.isValid
               }),

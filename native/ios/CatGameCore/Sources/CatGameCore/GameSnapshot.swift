@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 10
+    public static let currentSchemaVersion = 11
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -29,6 +29,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.settings = settings
         self.tasks = tasks ?? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
         self.community = community
+        self.community.events.advance(to: self.tasks.dailyDayKey)
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -81,7 +82,9 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         tasks.restoreFurniturePurchaseHistory(from: inventory.furniture)
         community = version < 7 && !values.contains(.community)
             ? CommunityState() : try CommunityState(from: values.superDecoder(forKey: .community), schemaVersion: version)
+        if version < 11 { community.events.advance(to: tasks.dailyDayKey) }
         guard community.isValid, inventory.validGifts,
+              community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0)
         else { throw SaveRepositoryError.invalidSnapshot }
     }

@@ -9,6 +9,7 @@ extension GameStore {
         catCollectionFilter = nil
         adoptionCatID = nil
         isShowingNeighbors = false
+        isShowingTownBoard = false
         isShowingMarket = true
     }
 

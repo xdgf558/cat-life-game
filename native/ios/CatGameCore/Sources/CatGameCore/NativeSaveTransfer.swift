@@ -25,7 +25,8 @@ public enum NativeSaveTransfer {
         let growthDates = archive.snapshot.cats.compactMap(\.growthState).flatMap {
             [$0.recordedSince] + [$0.adoptedAt].compactMap { $0 }
         }
-        guard ([archive.snapshot.meta.lastSyncAt] + growthDates).allSatisfy({ $0.timeIntervalSince(now) <= 24 * 60 * 60 }) else {
+        let eventDates = archive.snapshot.community.events.letters.map(\.completedAt)
+        guard ([archive.snapshot.meta.lastSyncAt] + growthDates + eventDates).allSatisfy({ $0.timeIntervalSince(now) <= 24 * 60 * 60 }) else {
             throw NativeSaveTransferError.futureProgress
         }
     }

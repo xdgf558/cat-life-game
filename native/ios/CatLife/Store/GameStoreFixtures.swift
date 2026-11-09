@@ -32,7 +32,29 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--shared-home-test") || arguments.contains("--shared-home-upper-test") {
+        if arguments.contains("--town-events-fixture") {
+            let calendar = Calendar(identifier: .gregorian)
+            let start = calendar.date(byAdding: .day, value: -6, to: now)!
+            var value = GameSnapshot.fresh(now: start)
+            value.player.level = 8
+            value.player.gold = 5_000
+            value.home.roomLevel = 3
+            value.inventory.food = 20
+            value.inventory.litter = 20
+            value.inventory.toys = 20
+            value.inventory.gifts = Dictionary(uniqueKeysWithValues: CommunityCatalog.gifts.map { ($0.id, 3) })
+            // Actual engine receipts exercise history and the seventh participation reward together.
+            for offset in 0..<6 {
+                let date = calendar.date(byAdding: .day, value: offset, to: start)!
+                precondition(GameEngine.synchronize(&value, now: date).succeeded)
+                let event = TownEventCatalog.current(in: value)!
+                precondition(GameEngine.resolveTownEvent(&value, eventID: event.id, choiceID: "help",
+                    dayKey: value.community.events.dayKey!, now: date).succeeded)
+            }
+            precondition(GameEngine.synchronize(&value, now: now).succeeded)
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false, catEnabled: false, haptics: false)
+            initialSnapshot = value
+        } else if arguments.contains("--shared-home-test") || arguments.contains("--shared-home-upper-test") {
             var value = GameSnapshot.fresh(now: now)
             value.player.level = 20
             value.player.gold = 30_000

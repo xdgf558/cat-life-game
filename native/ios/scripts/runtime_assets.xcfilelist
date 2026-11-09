@@ -198,6 +198,9 @@ $(SRCROOT)/CatLife/Assets.xcassets/furniture-rattan-chair.imageset/furniture-rat
 $(SRCROOT)/CatLife/Assets.xcassets/furniture-side-table.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/furniture-side-table.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/furniture-side-table.imageset/furniture-side-table.png
+$(SRCROOT)/CatLife/Assets.xcassets/furniture-town-memory-frame.imageset
+$(SRCROOT)/CatLife/Assets.xcassets/furniture-town-memory-frame.imageset/Contents.json
+$(SRCROOT)/CatLife/Assets.xcassets/furniture-town-memory-frame.imageset/furniture-town-memory-frame.png
 $(SRCROOT)/CatLife/Assets.xcassets/furniture-wall-cat.imageset
 $(SRCROOT)/CatLife/Assets.xcassets/furniture-wall-cat.imageset/Contents.json
 $(SRCROOT)/CatLife/Assets.xcassets/furniture-wall-cat.imageset/furniture-wall-cat.png

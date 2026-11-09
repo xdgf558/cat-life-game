@@ -398,6 +398,7 @@ public enum GameEngine {
         let previousDay = state.tasks.dailyDayKey
         state.tasks.advanceDay(to: timestamp)
         if state.tasks.dailyDayKey != previousDay { state.community.startNewDay() }
+        state.community.events.advance(to: state.tasks.dailyDayKey)
         if let work = state.player.activeWork, let progress = workProgress {
             let levelBefore = state.player.level
             // The wallet has a storage cap; a completed shift still advances time,
@@ -595,6 +596,7 @@ extension GameSnapshot {
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid,
               tasks.isValid, community.isValid, inventory.validGifts,
+              community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),
               [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter].allSatisfy({ (0...Self.maximumStock).contains($0) }),
               (0...100).contains(home.comfortScore),

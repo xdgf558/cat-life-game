@@ -45,20 +45,34 @@ final class NewFurnitureGeometryTests: XCTestCase {
         }
     }
 
-    func testNewWallArtOnlyBlocksOtherWallArt() {
-        let item = FurnitureItem(id: "sunrise", kind: .wallSunrise)
-        let spec = RoomFurnitureSpec.forItem(item)
-        XCTAssertTrue(spec.isWall)
-        let world = RoomFurnitureWorld(transform: .init(sceneSize: .init(width: 402, height: 776),
-            artworkSize: .init(width: 1024, height: 1536)), catWidth: 56, bowlSize: .init(width: 48, height: 32),
-            bowlPosition: .init(x: 300, y: 150), items: [item],
-            placements: [.init(itemID: item.id, position: .init(x: 0.7, y: 0.3))])
-        XCTAssertTrue(world.floorObstacles().isEmpty)
-        XCTAssertEqual(world.placementNavigator(for: item.id, catAt: .init(x: 150, y: 120)).floor, world.wallPolygon)
+    func testNewWallArtOnlyBlocksOtherWallArt() throws {
+        for viewport in [CGSize(width: 375, height: 436), CGSize(width: 402, height: 776)] {
+            for room in HomeCatalog.all {
+                for floor in room.floors {
+                    let scale = CGFloat(try XCTUnwrap(room.worldScale(on: floor)))
+                    let size = CGSize(width: viewport.width * scale, height: viewport.height * scale)
+                    for kind in [FurnitureKind.wallSunrise, .wallTownMemory] {
+                        let item = FurnitureItem(id: "wall", kind: kind)
+                        XCTAssertTrue(RoomFurnitureSpec.forItem(item).isWall)
+                        XCTAssertFalse(kind.supportsMirroring)
+                        let world = RoomFurnitureWorld(transform: .init(sceneSize: size,
+                            artworkSize: .init(width: 1024, height: 1536), viewportSize: viewport),
+                            catWidth: viewport.width * 0.14, bowlSize: .init(width: 48, height: 32),
+                            bowlPosition: .init(x: size.width * 0.76, y: size.height * 0.21), items: [item], placements: [])
+                        let cat = CGPoint(x: size.width * 0.43, y: size.height * 0.18)
+                        let navigation = world.placementNavigator(for: item.id, catAt: cat)
+                        XCTAssertEqual(navigation.floor, world.wallPolygon)
+                        let resolved = try XCTUnwrap(world.resolve(id: item.id,
+                            near: world.transform.point(.init(x: 0.7, y: 0.3)), catAt: cat, placement: navigation))
+                        XCTAssertTrue(world.replacing(item.id, with: resolved.center).floorObstacles().isEmpty)
+                    }
+                }
+            }
+        }
     }
 
     @MainActor func testNewFurnitureSpritesHaveRealTransparencyAndTrilingualNames() throws {
-        for kind in [FurnitureKind.bookcase, .rattanChair, .sideTable, .wallSunrise] {
+        for kind in [FurnitureKind.bookcase, .rattanChair, .sideTable, .wallSunrise, .wallTownMemory] {
             let metadata = FurnitureCatalog.metadata(for: kind)
             let cg = try XCTUnwrap(UIImage(named: metadata.assetName)?.cgImage)
             XCTAssertGreaterThan(cg.width, 100)

@@ -19,10 +19,10 @@ enum TownPlace: String, CaseIterable, Identifiable {
     case street, hospital, cafe, work, plaza, shop, home, board, market, adoption, lot1, lot2
     var id: String { rawValue }
     var isEmpty: Bool { self == .lot1 || self == .lot2 }
-    var isFuture: Bool { [.cafe, .plaza, .board].contains(self) }
+    var isFuture: Bool { self == .cafe }
     var layer: TownLayer {
         if self == .street || self == .market { return .neighbors }
-        return isFuture ? .community : .life
+        return [.cafe, .plaza, .board].contains(self) ? .community : .life
     }
     var titleKey: String {
         switch self {
@@ -33,7 +33,11 @@ enum TownPlace: String, CaseIterable, Identifiable {
         default: "town.place.\(rawValue)"
         }
     }
-    var descriptionKey: String { isEmpty ? "town.description.empty" : "town.description.\(rawValue)" }
+    var descriptionKey: String {
+        if self == .board { return "townEvents.mapDescription" }
+        if self == .plaza { return "townEvents.mapPlazaDescription" }
+        return isEmpty ? "town.description.empty" : "town.description.\(rawValue)"
+    }
     var asset: String {
         switch self {
         case .street: "town-street-cartoon"
@@ -93,6 +97,7 @@ enum TownPlace: String, CaseIterable, Identifiable {
     var actionKey: String {
         if isFuture || isEmpty { return "town.comingSoon" }
         switch self {
+        case .plaza, .board: return "townEvents.enter"
         case .street: return "community.enter"
         case .hospital: return "town.enterHospital"
         case .work: return "town.goWork"
