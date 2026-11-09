@@ -65,7 +65,7 @@ struct RoomHomeHUD: View {
             }
         }
         .overlay {
-            if !store.isDecorating && !controlsHidden && !catNeedPresentation.isInspectingResident {
+            if !store.isDecorating && !controlsHidden && !catNeedPresentation.isInspectingResident && !catNeedPresentation.showsWholeRoom {
                 RoomCatStatusCard(store: store, presentation: catNeedPresentation)
             }
         }
@@ -150,20 +150,17 @@ struct RoomHomeHUD: View {
     }
 
     private var caringContext: some View {
-        HStack(spacing: 5) {
-            GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
-                     symbol: "cat.fill", size: 21).accessibilityHidden(true)
-            Text(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
-                .font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
-        }
-        .foregroundStyle(RoomTheme.darkMint).padding(.horizontal, 8).padding(.vertical, 6)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(RoomTheme.paleMint, in: Capsule())
-        .overlay(Capsule().strokeBorder(RoomTheme.mint.opacity(0.4), lineWidth: 1.5))
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
-        .accessibilityValue(TownEventAccessibility.value(store.catStatus, diagnostic: store.cat?.id ?? ""))
-        .accessibilityIdentifier("homeCaringContext")
+        let primary = catNeedPresentation.showsWholeRoom || catNeedPresentation.isInspectingResident
+        return RoomCatStatusCard(store: store, presentation: catNeedPresentation)
+            .identity(compact: true, accessible: primary, inline: true)
+            .foregroundStyle(RoomTheme.darkMint).padding(.horizontal, 8).padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 20))
+            .overlay(RoundedRectangle(cornerRadius: 20).strokeBorder(RoomTheme.mint.opacity(0.4), lineWidth: 1.5))
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
+            .accessibilityValue(TownEventAccessibility.value(store.catStatus, diagnostic: store.cat?.id ?? ""))
+            .accessibilityIdentifier("homeCaringContext")
     }
 
     private var floorSelector: some View {

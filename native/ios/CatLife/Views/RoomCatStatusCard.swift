@@ -88,7 +88,7 @@ struct RoomCatStatusCard: View {
         }
     }
 
-    private func identity(compact: Bool) -> some View {
+    func identity(compact: Bool, accessible: Bool = true, inline: Bool = false) -> some View {
         HStack(spacing: 9) {
             Button { store.inspectCat() } label: {
                 GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
@@ -102,20 +102,24 @@ struct RoomCatStatusCard: View {
                     }
             }
             .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catProfile.title"))
-            .accessibilityIdentifier("homeCatProfileButton")
+            .accessibilityIdentifier(accessible ? "homeCatProfileButton" : "")
             VStack(alignment: .leading, spacing: 3) {
                 Text(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
-                    .font(.system(size: compact ? 14 : 18, weight: .heavy)).lineLimit(2).minimumScaleFactor(0.8)
-                    .accessibilityIdentifier("homeCatName")
+                    .font(.system(size: compact ? 14 : 18, weight: .heavy))
+                    .lineLimit(inline && (store.cat.map(GameStrings.catName)?.count ?? 0) <= 8 ? 1 : 2).minimumScaleFactor(0.8)
+                    .accessibilityIdentifier(accessible ? "homeCatName" : "")
                     .accessibilityValue(Text(verbatim: store.cat.map(GameStrings.catName) ?? ""))
                     .accessibilityHint(GameStrings.text("room.switchHint"))
                 Text(store.catStatus).font(.system(size: 12, weight: .bold))
                     .foregroundStyle(store.cat?.healthState?.illness != nil || (store.cat?.satiety ?? 100) < 50
                                      ? RoomTheme.coral : RoomTheme.secondary)
                     .lineLimit(1).minimumScaleFactor(0.7)
-                    .accessibilityIdentifier("catSatiety").accessibilityLabel(GameStrings.text("stat.satiety"))
+                    .accessibilityIdentifier(accessible ? "catSatiety" : "").accessibilityLabel(GameStrings.text("stat.satiety"))
                     .accessibilityValue("\(store.cat?.satiety ?? 0)")
             }
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier(inline && accessible ? "homeCatInfo" : "")
+            .accessibilityValue("compact")
             Spacer(minLength: 0)
             if let illness = store.cat?.healthState?.illness {
                 Button { store.openHospital(catID: store.cat?.id) } label: {
@@ -136,7 +140,7 @@ struct RoomCatStatusCard: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel(GameStrings.text("health.illness.\(illness.rawValue).name"))
                 .accessibilityHint(GameStrings.text("hospital.healthDetails"))
-                .accessibilityIdentifier("homeCatIllnessButton")
+                .accessibilityIdentifier(accessible ? "homeCatIllnessButton" : "")
             }
         }
     }

@@ -264,7 +264,7 @@ final class RoomSceneDiagnostics {
                     "screenWidth": frame?.width ?? 0, "screenHeight": frame?.height ?? 0]
         }
         let payload: [String: Any] = [
-            "companionLabelText": (state.presentation.root.childNode(withName: "//companion-name")?.children.first as? SKLabelNode)?.text ?? "",
+            "companionLabelText": (state.presentation.root.childNode(withName: "*/companion-name")?.children.first as? SKLabelNode)?.text ?? "",
             "viewAngle": state.viewAngle.rawValue, "wholeRoom": state.presentation.camera.isWholeRoom,
             "fitScale": state.presentation.camera.fitScale,
             "residentCollisions": residentCollisionViolations, "residentCats": residentCats, "residentsBusy": residents.isBusy, "bowlHasFood": bowlHasFood,

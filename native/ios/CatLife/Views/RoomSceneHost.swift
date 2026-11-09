@@ -148,11 +148,11 @@ struct RoomSceneHost: View {
         .overlay {
             residentPreview(geometry: geometry, below: max(controlsLayout.controlsTop + viewControlsSize.height, controlsLayout.stairFrame.maxY) + 12)
         }
-        .overlay(alignment: store.visibleHomeFloor == .upper ? .topTrailing : .topLeading) {
-            cameraControls(width: controlsLayout.width, top: controlsLayout.controlsTop)
+        .overlay(alignment: .topLeading) {
+            cameraControls(width: controlsLayout.width, left: controlsLayout.controlsLeft, top: controlsLayout.controlsTop)
         }
-        .overlay(alignment: store.visibleHomeFloor == .upper ? .topLeading : .topTrailing) {
-            stairLanding(isVisible: showsStairs, top: controlsLayout.stairTop)
+        .overlay(alignment: .topLeading) {
+            stairLanding(isVisible: showsStairs, frame: controlsLayout.stairFrame)
         }
         .onChange(of: controlsLayout.usableRect, initial: true) { _, rect in updateRoomViewUsableRect(rect) }
         .onChange(of: isActive) { _, active in
@@ -172,17 +172,18 @@ struct RoomSceneHost: View {
             let right = (catNeedPresentation.careActionsFrame?.minX ?? geometry.frame(in: .global).maxX) - origin.x - 12
             let minimumX = 12 + halfWidth
             let maximumX = max(minimumX, right - halfWidth)
-            RoomResidentPreviewCard(store: store, cat: cat, close: closePreview)
-                .frame(width: cardWidth)
-                .background {
-                    GeometryReader { card in
+            let availableHeight = max(44, geometry.size.height - top - 14)
+            ScrollView {
+                RoomResidentPreviewCard(store: store, cat: cat, close: closePreview)
+                    .background { GeometryReader { card in
                         Color.clear.onAppear { previewHeight = card.size.height }
                             .onChange(of: card.size.height) { _, value in previewHeight = value }
-                    }.allowsHitTesting(false)
-                }
+                    }.allowsHitTesting(false) }
+            }.scrollBounceBehavior(.basedOnSize)
+                .frame(width: cardWidth, height: min(previewHeight, availableHeight))
                 .position(x: min(maximumX, max(minimumX, frame.midX)),
-                          y: min(geometry.size.height - previewHeight / 2 - 14,
-                                 max(top + previewHeight / 2, frame.minY - previewHeight / 2 - 12)))
+                          y: min(geometry.size.height - min(previewHeight, availableHeight) / 2 - 14,
+                                 max(top + min(previewHeight, availableHeight) / 2, frame.minY - min(previewHeight, availableHeight) / 2 - 12)))
         }
     }
 
@@ -319,21 +320,25 @@ struct RoomSceneHost: View {
     }
 
     private func cameraControlsLayout(geometry: GeometryProxy, showsStairs: Bool)
-        -> (width: CGFloat, controlsTop: CGFloat, stairTop: CGFloat, stairFrame: CGRect, usableRect: CGRect) {
+        -> (width: CGFloat, controlsLeft: CGFloat, controlsTop: CGFloat, stairTop: CGFloat, stairFrame: CGRect, usableRect: CGRect) {
         let size = geometry.size
         let origin = geometry.frame(in: .global).origin
-        let card = (catNeedPresentation.statusCardFrame ?? previewReservedStatusFrame)?.offsetBy(dx: -origin.x, dy: -origin.y)
+        let card = catNeedPresentation.showsWholeRoom ? nil
+            : (catNeedPresentation.statusCardFrame ?? previewReservedStatusFrame)?.offsetBy(dx: -origin.x, dy: -origin.y)
         let care = catNeedPresentation.careActionsFrame?.offsetBy(dx: -origin.x, dy: -origin.y)
         let cardAtTop = catNeedPresentation.statusCardFrame != nil
             ? catNeedPresentation.statusCardIsCompact : previewReservedStatusIsCompact
         let headerBottom = catNeedPresentation.headerFrame.map { $0.maxY - origin.y } ?? 0
-        let controlsTop = max(max(RoomStairLandingLayout.topInset, headerBottom + 12),
+        let controlsTop = max(max(12, headerBottom + 12),
                               cardAtTop ? (card?.maxY ?? 0) + 12 : 0)
-        let besideStairsWidth = size.width - 36 - max(76, stairSize.width)
+        let right = min(size.width - 12, care.map { $0.minX - 12 } ?? size.width - 12)
+        let besideStairsWidth = right - 24 - max(76, stairSize.width)
         let stacksStairs = showsStairs && !store.isDecorating && besideStairsWidth < 160
-        let width = min(244, max(0, showsStairs && !stacksStairs ? besideStairsWidth : size.width - 24))
+        let width = min(244, max(132, showsStairs && !stacksStairs ? besideStairsWidth : right - 12))
+        let controlsLeft: CGFloat = showsStairs && store.visibleHomeFloor == .upper && !stacksStairs
+            ? max(76, stairSize.width) + 24 : 12
         let top = controlsTop + (stacksStairs ? viewControlsSize.height + 12 : 0)
-        let frame = showsStairs ? RoomStairLandingLayout.frame(size: stairSize, canvas: size, floor: store.visibleHomeFloor, top: top) : .zero
+        let frame = showsStairs ? RoomStairLandingLayout.frame(size: stairSize, canvas: CGSize(width: right + 12, height: size.height), floor: store.visibleHomeFloor, top: top) : .zero
         let controlsBottom = store.isDecorating ? 0 : controlsTop + viewControlsSize.height
         let desiredTop = store.isDecorating ? CGFloat(160) : max(controlsBottom, frame.maxY) + 12
         var bottom = size.height - 20
@@ -346,7 +351,7 @@ struct RoomSceneHost: View {
         let rightInset: CGFloat = !store.isDecorating ? max(12, care.map { size.width - $0.minX + 12 } ?? 12) : 12
         let usableRect = CGRect(x: 12, y: usableTop, width: max(1, size.width - 12 - rightInset),
                                 height: max(80, bottom - usableTop))
-        return (width, controlsTop, top, frame, usableRect)
+        return (width, controlsLeft, controlsTop, top, frame, usableRect)
     }
 
     private func updateRoomViewUsableRect(_ rect: CGRect) {
@@ -355,7 +360,7 @@ struct RoomSceneHost: View {
     }
 
     @ViewBuilder
-    private func cameraControls(width: CGFloat, top: CGFloat) -> some View {
+    private func cameraControls(width: CGFloat, left: CGFloat, top: CGFloat) -> some View {
         if isActive, ownsPresentation, !store.isDecorating {
             RoomViewControls(angle: roomViewAngle, isWholeRoomView: isWholeRoomView,
                              canChangeView: canChangeRoomView && !store.isSavingLayout && !store.isChangingHomeFloor,
@@ -370,12 +375,12 @@ struct RoomSceneHost: View {
                             .onChange(of: controls.size) { _, size in viewControlsSize = size }
                     }.allowsHitTesting(false)
                 }
-                .padding(.horizontal, 12).padding(.top, top)
+                .padding(.leading, left).padding(.top, top)
         }
     }
 
     @ViewBuilder
-    private func stairLanding(isVisible: Bool, top: CGFloat) -> some View {
+    private func stairLanding(isVisible: Bool, frame: CGRect) -> some View {
         if isVisible {
             HomeStairLanding(store: store, roomReady: canTravelFloors)
                 .background {
@@ -384,8 +389,8 @@ struct RoomSceneHost: View {
                             .onChange(of: landing.size) { _, size in stairSize = size }
                     }.allowsHitTesting(false)
                 }
-                .padding(.horizontal, RoomStairLandingLayout.trailingInset)
-                .padding(.top, top)
+                .padding(.leading, frame.minX)
+                .padding(.top, frame.minY)
         }
     }
 

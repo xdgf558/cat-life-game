@@ -220,7 +220,7 @@ private final class RoomNodeMirror {
             b.color = a.color; b.colorBlendFactor = a.colorBlendFactor; b.blendMode = a.blendMode
             b.centerRect = a.centerRect; b.warpGeometry = a.warpGeometry
         } else if let a = source as? SKShapeNode, let b = node as? SKShapeNode {
-            if b.path !== a.path { b.path = a.path }
+            if b.path != a.path { b.path = a.path }
             b.fillColor = a.fillColor; b.strokeColor = a.strokeColor
             b.lineWidth = a.lineWidth; b.glowWidth = a.glowWidth
         } else if let a = source as? SKLabelNode, let b = node as? SKLabelNode {

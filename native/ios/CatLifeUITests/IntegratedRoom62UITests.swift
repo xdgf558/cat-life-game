@@ -158,6 +158,13 @@ extension RoomHomeUITests {
         for control in controls {
             XCTAssertTrue(control.exists && control.isHittable, "Care controls must remain reachable.", file: file, line: line)
         }
+        for id in ["roomViewControls", "homeStairsButton"] {
+            let tool = integrated62Element(id, in: app)
+            XCTAssertTrue(tool.exists && tool.isHittable, "Room tools must remain reachable.", file: file, line: line)
+            for control in controls {
+                XCTAssertFalse(tool.frame.intersects(control.frame), "Room tool \(id) covers a care action.", file: file, line: line)
+            }
+        }
         for resident in state.residentCats {
             let frame = resident.frame(in: roomFrame)
             XCTAssertTrue(app.frame.contains(frame), "The whole-room view must contain the real frame of \(resident.id): \(frame).", file: file, line: line)
@@ -191,7 +198,7 @@ extension RoomHomeUITests {
         waitForObservedValue("roomResidentPreview", targetID, in: app, file: file, line: line)
         let preview = integrated62Element("roomResidentPreview", in: app)
         XCTAssertTrue(app.frame.contains(preview.frame), "The resident preview must fit on screen.", file: file, line: line)
-        let obstacles = ["playButton", "cleanButton", "feedButton", "homeCaringContext"].map { integrated62Element($0, in: app) }
+        let obstacles = ["playButton", "cleanButton", "feedButton", "homeCaringContext", "roomViewControls", "homeStairsButton"].map { integrated62Element($0, in: app) }
         for obstacle in obstacles {
             XCTAssertFalse(preview.frame.intersects(obstacle.frame),
                            "Preview \(preview.frame) covers \(obstacle.identifier) \(obstacle.frame).", file: file, line: line)
