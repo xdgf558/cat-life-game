@@ -19,11 +19,13 @@ struct CatVisualFrameSampler {
 }
 
 enum RoomCatStatusLayout {
-    static func frame(in size: CGSize, compact: Bool, guideVisible: Bool = false, sharedControls: Bool = false) -> CGRect {
+    static func frame(in size: CGSize, compact: Bool, guideVisible: Bool = false, sharedControls: Bool = false,
+                      headerBottom: CGFloat = 0) -> CGRect {
         if compact {
             // The home plaque and 44-point daily-goal entry occupy the first
             // 122 points. Keep the compact cat card below both touch targets.
-            return CGRect(x: 14, y: (guideVisible ? 186 : 134) + (sharedControls ? 88 : 0), width: min(260, max(160, size.width - 130)), height: 72)
+            return CGRect(x: 14, y: max((guideVisible ? 186 : 134) + (sharedControls ? 88 : 0), headerBottom + 12),
+                          width: min(260, max(160, size.width - 130)), height: 72)
         }
         return CGRect(x: 14, y: max(0, size.height - 172), width: max(180, size.width - 116), height: 154)
     }
@@ -50,7 +52,8 @@ struct RoomCatStatusCard: View {
                 fullCard: full.offsetBy(dx: origin.x, dy: origin.y), wasCompact: wasCompact)
             let rect = RoomCatStatusLayout.frame(in: geometry.size, compact: compact,
                 guideVisible: store.onboarding.isActive && !store.onboarding.isPresented,
-                sharedControls: (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2)
+                sharedControls: (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2,
+                headerBottom: (presentation.headerFrame?.maxY ?? origin.y) - origin.y)
                 .offsetBy(dx: 0, dy: compact && store.sharedRoomHasLimitedSpace ? 68 : 0)
             VStack(spacing: compact ? 0 : 12) {
                 identity(compact: compact)

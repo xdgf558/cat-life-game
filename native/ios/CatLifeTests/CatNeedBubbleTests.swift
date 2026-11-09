@@ -2,6 +2,16 @@ import XCTest
 @testable import CatLife
 
 final class CatNeedBubbleTests: XCTestCase {
+    func testCompactStatusCardClearsTheMeasuredHeaderWithoutChangingItsWidth() {
+        for size in [CGSize(width: 375, height: 603), CGSize(width: 402, height: 800)] {
+            let original = RoomCatStatusLayout.frame(in: size, compact: true, sharedControls: true)
+            let measured = RoomCatStatusLayout.frame(in: size, compact: true, sharedControls: true, headerBottom: 260)
+            XCTAssertGreaterThanOrEqual(measured.minY, 272)
+            XCTAssertEqual(measured.width, original.width)
+            XCTAssertTrue(CGRect(origin: .zero, size: size).contains(measured))
+        }
+    }
+
     func testNeedsUseExactThresholdsAndFoodHasPriority() {
         XCTAssertEqual(CatNeed.current(satiety: 49, cleanliness: 0, mood: 0, hasFood: true), .food)
         XCTAssertEqual(CatNeed.current(satiety: 49, cleanliness: 0, mood: 0, hasFood: false), .buyFood)

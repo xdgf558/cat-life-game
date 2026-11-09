@@ -2,6 +2,33 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testCaringContextStaysVisibleWhilePreviewingAnotherCatOnBothFloors() throws {
+        continueAfterFailure = false
+        let app = try launchSharedHome(upperFloorUnlocked: true)
+        let context = element("homeCaringContext", in: app)
+        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        let contextFrame = context.frame
+        waitForElement("homeCatSwitchHint", in: app)
+        let before = try sharedHomeState(in: app)
+        let resident = try XCTUnwrap(before.residentCats.first { $0.id == "cat_004" })
+        element("roomScene", in: app).coordinate(withNormalizedOffset: CGVector(dx: resident.x, dy: resident.y)).tap()
+        waitForObservedValue("roomResidentPreview", "cat_004", in: app)
+        XCTAssertTrue(context.exists && context.isHittable)
+        XCTAssertEqual(context.frame.midY, contextFrame.midY, accuracy: 1)
+        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        attachScreenshot(app, named: "Repair — preview retains the fixed current care recipient")
+        tapAnimationControl("roomResidentCompanionButton", in: app)
+        waitForObservedValue("homeCaringContext", "cat_004", in: app)
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        waitForElement("homeCatSwitchHint", in: app)
+        waitForObservedValue("homeCaringContext", "cat_004", in: app)
+        attachScreenshot(app, named: "Repair — upstairs keeps care recipient and visible switching hint")
+        waitForObservedValue("foodCount", "12", in: app)
+        waitForObservedValue("goldCount", "27,000", in: app)
+    }
+
+    @MainActor
     func testSharedHomeDirectoryFloorTabsAndGrowthEntryDoNotSpendSupplies() throws {
         let app = try launchSharedHome(upperFloorUnlocked: true)
         tapAnimationControl("homeMyCatsButton", in: app)

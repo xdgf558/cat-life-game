@@ -121,8 +121,9 @@ struct CatGrowthView: View {
 
     private func bondCard(_ cat: CatState) -> some View {
         let stage = CatBondStage.stage(for: cat.intimacy)
-        return section("catGrowth.bond", symbol: "heart.fill", tint: RoomTheme.friendshipDeep) {
-            field("stat.bond", value: "\(cat.intimacy) / 100", identifier: "catGrowthBondValue")
+        return section("catGrowth.bond", symbol: "heart.fill", tint: RoomTheme.friendshipDeep,
+                       trailing: GameStrings.format("catGrowth.bondSummary", cat.intimacy),
+                       trailingAccessibility: (GameStrings.text("stat.bond"), "\(cat.intimacy) / 100", "catGrowthBondValue")) {
             HStack(alignment: .top, spacing: 5) {
                 ForEach(CatBondStage.allCases, id: \.self) { item in
                     VStack(spacing: 7) {
@@ -179,16 +180,46 @@ struct CatGrowthView: View {
     }
 
     private func section<Content: View>(_ title: String, symbol: String, tint: Color = RoomTheme.darkMint,
-                                       trailing: String? = nil, @ViewBuilder content: () -> Content) -> some View {
+                                       trailing: String? = nil,
+                                       trailingAccessibility: (label: String, value: String, identifier: String)? = nil,
+                                       @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 14) {
-            HStack(alignment: .firstTextBaseline) {
-                Label(GameStrings.text(title), systemImage: symbol).font(.headline.weight(.heavy)).foregroundStyle(tint)
-                    .accessibilityAddTraits(.isHeader)
-                if let trailing { Spacer(minLength: 4); Text(trailing).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary) }
-            }
+            sectionHeading(title, symbol: symbol, tint: tint, trailing: trailing, accessibility: trailingAccessibility)
             content()
         }.padding(18).frame(maxWidth: .infinity, alignment: .leading)
             .gameCard(cornerRadius: 26)
+    }
+
+    private func sectionHeading(_ title: String, symbol: String, tint: Color, trailing: String?,
+                                accessibility: (label: String, value: String, identifier: String)?) -> some View {
+        let heading = Label(GameStrings.text(title), systemImage: symbol)
+            .font(.headline.weight(.heavy)).foregroundStyle(tint).accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("\(title)Heading")
+        return Group {
+            if dynamicTypeSize.isAccessibilitySize, let trailing {
+                VStack(alignment: .leading, spacing: 8) {
+                    heading
+                    sectionSummary(trailing, tint: tint, accessibility: accessibility)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                }
+            } else {
+                HStack(alignment: .firstTextBaseline) {
+                    heading
+                    if let trailing {
+                        Spacer(minLength: 4)
+                        sectionSummary(trailing, tint: tint, accessibility: accessibility)
+                    }
+                }
+            }
+        }
+    }
+
+    private func sectionSummary(_ text: String, tint: Color,
+                                accessibility: (label: String, value: String, identifier: String)?) -> some View {
+        Text(text).font(.caption.weight(.bold)).foregroundStyle(accessibility == nil ? RoomTheme.secondary : tint)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityLabel(accessibility?.label ?? text).accessibilityValue(accessibility?.value ?? "")
+            .accessibilityIdentifier(accessibility?.identifier ?? "catGrowthGameAgeHeading")
     }
 
     private func field(_ title: String, value: String, identifier: String) -> some View {
@@ -231,7 +262,7 @@ struct CatGrowthTimeline: View {
     let age: Int
     let stage: CatGrowthStage
     var body: some View {
-        HStack(alignment: .top, spacing: 0) {
+        CatGrowthTimelineNodes {
             ForEach(CatGrowthStage.allCases, id: \.self) { item in
                 VStack(spacing: 7) {
                     Image(systemName: item == .kitten ? "drop.fill" : item == .junior ? "pawprint.fill" : "crown.fill")
@@ -242,19 +273,48 @@ struct CatGrowthTimeline: View {
                         .font(.caption2.weight(.heavy)).multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .foregroundStyle(stage == item ? RoomTheme.darkMint : RoomTheme.secondary)
                     Text("\(item.minimumAgeDays)").font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                }.frame(maxWidth: .infinity)
+                }
             }
         }
         .background(alignment: .top) {
             GeometryReader { geometry in
-                let progress = CGFloat(min(max(0, age), CatGrowthStage.adult.minimumAgeDays)) / CGFloat(CatGrowthStage.adult.minimumAgeDays)
+                let axis = CatGrowthTimelineGeometry(width: geometry.size.width)
                 Capsule().fill(RoomTheme.track).overlay(alignment: .leading) {
-                    Capsule().fill(RoomTheme.mint.gradient).frame(width: geometry.size.width * progress)
+                    Capsule().fill(RoomTheme.mint.gradient).frame(width: axis.x(forAge: age) - axis.startX)
                 }
+                .frame(width: axis.length).offset(x: axis.startX)
                 Image(systemName: "arrowtriangle.down.fill").font(.system(size: 10)).foregroundStyle(RoomTheme.gold)
-                    .position(x: geometry.size.width * progress, y: -10)
-            }.frame(height: 7).padding(.horizontal, 22).padding(.top, 12)
+                    .position(x: axis.x(forAge: age), y: -10)
+            }.frame(height: 7).padding(.top, 12)
         }.padding(.top, 12).accessibilityHidden(true)
+    }
+}
+
+struct CatGrowthTimelineGeometry {
+    let width: CGFloat
+    var columnWidth: CGFloat { max(0, width) / CGFloat(CatGrowthStage.allCases.count) }
+    var startX: CGFloat { columnWidth / 2 }
+    var length: CGFloat { columnWidth * CGFloat(CatGrowthStage.allCases.count - 1) }
+    func x(forAge age: Int) -> CGFloat {
+        let last = CatGrowthStage.adult.minimumAgeDays
+        return startX + length * CGFloat(min(max(0, age), last)) / CGFloat(last)
+    }
+}
+
+private struct CatGrowthTimelineNodes: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = max(0, proposal.width ?? subviews.reduce(0) { $0 + $1.sizeThatFits(.unspecified).width })
+        let axis = CatGrowthTimelineGeometry(width: width)
+        let height = subviews.map { $0.sizeThatFits(ProposedViewSize(width: axis.columnWidth, height: nil)).height }.max() ?? 0
+        return CGSize(width: width, height: height)
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let axis = CatGrowthTimelineGeometry(width: bounds.width)
+        for (subview, stage) in zip(subviews, CatGrowthStage.allCases) {
+            subview.place(at: CGPoint(x: bounds.minX + axis.x(forAge: stage.minimumAgeDays), y: bounds.minY),
+                          anchor: .top, proposal: ProposedViewSize(width: axis.columnWidth, height: nil))
+        }
     }
 }
 

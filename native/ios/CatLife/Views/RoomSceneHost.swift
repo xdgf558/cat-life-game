@@ -140,8 +140,7 @@ struct RoomSceneHost: View {
                     }
                     scene.onFurnitureNotice = {
                         guard acceptsSceneUpdates() else { return }
-                        if $0 == "room.sharedHomeNoSpace" { store.showSharedHomeSpaceNotice() }
-                        else { store.showFurnitureNotice($0) }
+                        if $0 != "room.sharedHomeNoSpace" { store.showFurnitureNotice($0) }
                     }
                     refreshScene()
                     scene.setPresentationActive(isActive)

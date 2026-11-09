@@ -80,14 +80,22 @@ struct WorkCareerCard: View {
                                     .accessibilityHidden(true)
                             }
                         }
+                        .overlay(alignment: .topTrailing) {
+                            if selected, WorkJobPresentation.isNew(job.id) {
+                                Image(systemName: "checkmark.circle.fill").foregroundStyle(RoomTheme.mint)
+                                    .font(.system(size: 19, weight: .bold)).background(RoomTheme.paper, in: Circle())
+                                    .offset(x: 5, y: -5).accessibilityHidden(true)
+                            }
+                        }
                     Spacer(minLength: 0)
-                    if selected {
+                    if selected, !WorkJobPresentation.isNew(job.id) {
                         Image(systemName: "checkmark.circle.fill").foregroundStyle(RoomTheme.mint)
                             .font(.system(size: 19, weight: .bold)).accessibilityHidden(true)
                     }
                     else if WorkJobPresentation.isNew(job.id) {
                         Text(GameStrings.text("jobs.newBadge")).font(.caption2.weight(.heavy)).foregroundStyle(.white)
                             .padding(.horizontal, 8).padding(.vertical, 4).background(RoomTheme.friendship, in: Capsule())
+                            .accessibilityIdentifier("careerNewBadge_\(job.id)")
                     }
                 }
                 Text(WorkJobPresentation.name(job.id)).font(.system(size: 16, weight: .heavy))

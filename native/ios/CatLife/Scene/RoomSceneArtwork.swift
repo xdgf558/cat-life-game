@@ -17,6 +17,8 @@ final class RoomSceneArtwork {
     private let companionRing = SKShapeNode()
     private let companionPlaque = SKShapeNode()
     private let companionName = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+    private var companionRingWidth: CGFloat?
+    private var companionLabelSize: CGSize?
     private let upperWall = SKNode()
     private(set) var furnitureNodes: [String: SKSpriteNode] = [:]
     private var furnitureScales: [String: CGFloat] = [:]
@@ -81,16 +83,26 @@ final class RoomSceneArtwork {
     func updateCompanionMarker(cat: CatActor, name: String, hidden: Bool, reducedMotion: Bool) {
         companionRing.isHidden = hidden
         companionPlaque.isHidden = hidden
-        let width = cat.visualFrame.width
-        companionRing.path = CGPath(ellipseIn: CGRect(x: -width * 0.44, y: -width * 0.12, width: width * 0.88, height: width * 0.24), transform: nil)
+        let frame = cat.visualFrame
+        let width = frame.width
+        // Ignore rounding from world movement; only a visible size change needs a new path.
+        if companionRingWidth.map({ abs($0 - width) > 0.01 }) ?? true {
+            companionRing.path = CGPath(ellipseIn: CGRect(x: -width * 0.44, y: -width * 0.12, width: width * 0.88, height: width * 0.24), transform: nil)
+            companionRingWidth = width
+        }
         companionRing.position = cat.position
         companionRing.zPosition = cat.zPosition - 0.5
-        if companionName.text != "♥ " + name {
+        let nameChanged = companionName.text != "♥ " + name
+        if nameChanged {
             companionName.text = "♥ " + name
+        }
+        let labelSize = companionName.frame.size
+        if nameChanged || companionLabelSize != labelSize {
             companionPlaque.path = CGPath(roundedRect: CGRect(x: -companionName.frame.width / 2 - 10, y: -12,
                 width: companionName.frame.width + 20, height: 24), cornerWidth: 12, cornerHeight: 12, transform: nil)
+            companionLabelSize = labelSize
         }
-        companionPlaque.position = CGPoint(x: cat.visualFrame.midX, y: cat.visualFrame.maxY + 17)
+        companionPlaque.position = CGPoint(x: frame.midX, y: frame.maxY + 17)
         if reducedMotion {
             companionRing.removeAction(forKey: "breathe"); companionRing.alpha = 1
         } else if companionRing.action(forKey: "breathe") == nil {

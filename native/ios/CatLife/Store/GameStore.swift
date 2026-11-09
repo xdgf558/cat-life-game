@@ -171,6 +171,7 @@ final class GameStore {
             reminderDefaults.removeObject(forKey: GameAdoptionReminderCenter.presentedIDsKey)
             reminderDefaults.removeObject(forKey: GameOnboardingCenter.progressKey)
             reminderDefaults.removeObject(forKey: Self.sharedHomeSpaceNoticesKey)
+            reminderDefaults.removeObject(forKey: "catlife.home.upperHintSeen.v1")
         }
         let saveDirectory = directory ?? base.appendingPathComponent(testing ? "CatLife-UITests" : "CatLife", isDirectory: true)
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)

@@ -84,10 +84,14 @@ struct RoomHomeHUD: View {
             headerContents
             if !store.isDecorating, (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2 {
                 HStack(spacing: 8) {
-                    if store.snapshot?.home.availableFloors.count == 2 { floorSelector }
+                    if store.snapshot?.home.availableFloors.count == 2 {
+                        VStack(alignment: .leading, spacing: 3) {
+                            floorSelector
+                            switchHint
+                        }
+                    }
                     else if !dynamicTypeSize.isAccessibilitySize {
-                        Text(GameStrings.text("room.switchHint")).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
+                        switchHint
                     }
                     if store.snapshot?.home.availableFloors.count != 2 { Spacer(minLength: 0) }
                     Button { catNeedPresentation.focusRoom?() } label: {
@@ -120,6 +124,39 @@ struct RoomHomeHUD: View {
                 }
             }
         }.padding(.horizontal, 14).padding(.top, 8)
+            .background {
+                GeometryReader { geometry in
+                    Color.clear.onAppear { catNeedPresentation.headerFrame = geometry.frame(in: .global) }
+                        .onChange(of: geometry.frame(in: .global)) { _, frame in catNeedPresentation.headerFrame = frame }
+                }.allowsHitTesting(false)
+            }
+            .onDisappear { catNeedPresentation.headerFrame = nil }
+    }
+
+    private var switchHint: some View {
+        Text(GameStrings.text("room.switchHint"))
+            .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 6).padding(.vertical, 3)
+            .background(RoomTheme.paper.opacity(0.95), in: RoundedRectangle(cornerRadius: 8))
+            .accessibilityIdentifier("homeCatSwitchHint")
+    }
+
+    private var caringContext: some View {
+        HStack(spacing: 5) {
+            GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
+                     symbol: "cat.fill", size: 21).accessibilityHidden(true)
+            Text(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
+                .font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
+        }
+        .foregroundStyle(RoomTheme.darkMint).padding(.horizontal, 8).padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoomTheme.paleMint, in: Capsule())
+        .overlay(Capsule().strokeBorder(RoomTheme.mint.opacity(0.4), lineWidth: 1.5))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
+        .accessibilityValue(store.cat?.id ?? "")
+        .accessibilityIdentifier("homeCaringContext")
     }
 
     private var floorSelector: some View {
@@ -163,6 +200,7 @@ struct RoomHomeHUD: View {
                     if !controlsHidden || store.onboarding.isPresented {
                         HomeTaskEntry(store: store).onboardingTarget(.tasks)
                     }
+                    if !controlsHidden { caringContext }
                     if store.onboarding.isActive && !store.onboarding.isPresented
                         && store.activeSheet == nil && !store.isShowingSettings {
                         GuideResumeBar(store: store)

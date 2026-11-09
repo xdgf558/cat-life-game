@@ -108,7 +108,9 @@ struct HomeUpgradeCelebrationView: View {
                             Image(systemName: "stairs").font(.title)
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(GameStrings.text("homeUpgrade.upperOpened")).font(.headline.weight(.heavy))
-                                Text(GameStrings.text("homeUpgrade.upperUnlocked")).font(.caption.weight(.bold))
+                                    .accessibilityIdentifier("homeUpgradeUpperOpenedTitle")
+                                Text(GameStrings.text("homeUpgrade.upperOpenedBody")).font(.caption.weight(.bold))
+                                    .accessibilityIdentifier("homeUpgradeUpperOpenedBody")
                             }.fixedSize(horizontal: false, vertical: true)
                         }.foregroundStyle(RoomTheme.friendshipDeep).padding(14).frame(maxWidth: .infinity, alignment: .leading)
                             .background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 20))

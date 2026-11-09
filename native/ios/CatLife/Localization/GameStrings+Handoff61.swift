@@ -16,7 +16,9 @@ extension GameStrings {
         "shop.browse.empty": "这个分类还没有商品", "shop.browse.emptyHint": "试试其他筛选；这里只展示当前可购买的家具。",
         "shop.browse.wallTag": "墙面", "shop.browse.floorTag": "地面", "shop.browse.buyAgain": "再买一件 · %d",
         "jobs.expPill": "EXP +%d", "jobs.unlockRemaining": "Lv%d 解锁 · 还差 %d 级", "jobs.newBadge": "NEW",
+        "catGrowth.bondSummary": "亲密 %d / 100",
         "homeUpgrade.upperOpened": "二楼开放啦！",
+        "homeUpgrade.upperOpenedBody": "点击楼梯前往二楼，两层可以分别布置。",
         "releases.61.title": "小小心意，温暖相伴",
         "releases.61.body": "留言板换上软木板与邀请便条：先选方案、确认后参与，信纸回信只列实际到账回礼；七次纪念可直达布置。房间新增陪伴标记、点猫小卡、我的猫咪与楼层分段；成长时间轴、分段亲密、家具筛选和职业卡更清楚。保留原有玩法、商品、数值与存档。"
     ]
@@ -37,7 +39,9 @@ extension GameStrings {
         "shop.browse.empty": "這個分類還沒有商品", "shop.browse.emptyHint": "試試其他篩選；這裡只展示目前可購買的家具。",
         "shop.browse.wallTag": "牆面", "shop.browse.floorTag": "地面", "shop.browse.buyAgain": "再買一件 · %d",
         "jobs.expPill": "EXP +%d", "jobs.unlockRemaining": "Lv%d 解鎖 · 還差 %d 級", "jobs.newBadge": "NEW",
+        "catGrowth.bondSummary": "親密 %d / 100",
         "homeUpgrade.upperOpened": "二樓開放啦！",
+        "homeUpgrade.upperOpenedBody": "點擊樓梯前往二樓，兩層可以分別布置。",
         "releases.61.title": "小小心意，溫暖相伴",
         "releases.61.body": "留言板換上軟木板與邀請便條：先選方案、確認後參與，信紙回信只列實際到帳回禮；七次紀念可直達布置。房間新增陪伴標記、點貓小卡、我的貓咪與樓層分段；成長時間軸、分段親密、家具篩選和職業卡更清楚。保留原有玩法、商品、數值與存檔。"
     ]
@@ -58,7 +62,9 @@ extension GameStrings {
         "shop.browse.empty": "No items in this category yet", "shop.browse.emptyHint": "Try another filter. Only furniture available in the current catalog is shown.",
         "shop.browse.wallTag": "Wall", "shop.browse.floorTag": "Floor", "shop.browse.buyAgain": "Buy another · %d",
         "jobs.expPill": "EXP +%d", "jobs.unlockRemaining": "Unlock at Lv%d · %d levels to go", "jobs.newBadge": "NEW",
+        "catGrowth.bondSummary": "Bond %d / 100",
         "homeUpgrade.upperOpened": "Upstairs is open!",
+        "homeUpgrade.upperOpenedBody": "Use the stairs to go upstairs and decorate each floor separately.",
         "releases.61.title": "Little kindnesses, closer companions",
         "releases.61.body": "A cork noticeboard with pinned invitations, deliberate choice confirmation and handwritten-style replies showing only delivered gifts. Decorate directly with your seven-visit keepsake. Companion markers, cat preview cards, My cats and floor tabs make home clearer, alongside growth timelines, bond segments, furniture filters and career cards. Existing gameplay, products, values and saves are preserved."
     ]
