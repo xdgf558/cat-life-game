@@ -48,6 +48,7 @@ final class GameStore {
                 adoptionCatID = nil
                 isShowingNeighbors = false
                 isShowingMarket = false
+                isShowingTownBoard = false
                 isPresentingExchange = false
                 supplyPicker = nil
                 furniturePurchaseNotice = nil
@@ -82,6 +83,7 @@ final class GameStore {
     var isPresentingAdoptionConfirmation = false
     var isShowingNeighbors = false { didSet { if oldValue != isShowingNeighbors { syncAudio() } } }
     var isShowingMarket = false { didSet { if oldValue != isShowingMarket { syncAudio() } } }
+    var isShowingTownBoard = false { didSet { if oldValue != isShowingTownBoard { syncAudio() } } }
     var isPresentingExchange = false
     var isPresentingCommunityGift = false
     var isShowingCommunityGiftShop = false
@@ -198,7 +200,7 @@ final class GameStore {
         else if activeSheet == .hospital || isInspectingHealth { track = .hospital }
         else if activeSheet == .shop { track = .shop }
         else if activeSheet == .town {
-            track = isShowingNeighbors || isShowingMarket || catCollectionFilter != nil ? .town : .promenade
+            track = isShowingNeighbors || isShowingMarket || isShowingTownBoard || catCollectionFilter != nil ? .town : .promenade
         }
         else if snapshot?.player.activeSleep != nil { track = .sleep }
         else if activeSheet == .work { track = .work }
@@ -363,6 +365,7 @@ final class GameStore {
         activeSheet = .town
         isShowingNeighbors = false
         isShowingMarket = false
+        isShowingTownBoard = false
         catCollectionFilter = filter
         adoptionCatID = adoptionID
     }
@@ -620,6 +623,7 @@ final class GameStore {
         isShowingCommunityGiftShop = false
         isShowingNeighbors = false
         isShowingMarket = false
+        isShowingTownBoard = false
         adoptionReminders.clearPending()
         isPresentingExchange = false
         supplyPicker = nil
@@ -1226,6 +1230,7 @@ final class GameStore {
         catCollectionFilter = nil
         adoptionCatID = nil
         isShowingMarket = false
+        isShowingTownBoard = false
         isShowingNeighbors = true
     }
 
@@ -1489,7 +1494,8 @@ final class GameStore {
                    userInitiated: true)
     }
 
-    private func showNotice(_ message: String) { notices.show(message, ready: hasEnteredHome) }
+    func showNotice(_ message: String) { notices.show(message, ready: hasEnteredHome) }
+    var canPresentTownEventResult: Bool { foreground && hasEnteredHome }
 
     private func message(for outcome: ActionOutcome) -> String {
         GameActionNotice.message(for: outcome, snapshot: snapshot)

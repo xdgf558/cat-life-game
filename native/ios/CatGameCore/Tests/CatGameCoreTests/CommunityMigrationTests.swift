@@ -13,23 +13,23 @@ struct CommunityMigrationTests {
         try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
-    @Test func schema10HomeMigrationKeepsReviewedCommunityLedgers() throws {
+    @Test func schema11EventMigrationKeepsReviewedCommunityLedgers() throws {
         // Freeze the v7 ledger independently of the catalog and fresh-save defaults.
         let schema7IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
-        #expect(GameSnapshot.currentSchemaVersion == 10,
-                "Review the v10 migration before updating this schema guard; preserve the independent v7/v8 ledgers below.")
+        #expect(GameSnapshot.currentSchemaVersion == 11,
+                "Review the v11 migration before updating this schema guard; preserve the independent v7/v8/v10 ledgers below.")
         #expect(CommunityCatalog.neighbors.map(\.id).sorted() == schema7IDs,
                 "Changing neighbors requires a schema/migration review, not just a new catalog entry.")
         let recordedRelationship: [String: Any] = [
             "friendship": 28, "visitedToday": true, "giftsGivenToday": 1,
             "totalVisitCount": 3, "totalGiftCount": 2, "rewardedStageLevels": [2]
         ]
-        for schema in [7, 8] {
+        for schema in [7, 8, 10] {
             var saved = try object(GameSnapshot.fresh(now: now))
             saved["schemaVersion"] = schema
             var ledger: [String: Any] = ["relationships": Dictionary(uniqueKeysWithValues:
                 schema7IDs.map { ($0, recordedRelationship) })]
-            if schema == 8 { ledger["exchangeCounts"] = ["neighbor_mira": ["today": 1, "total": 7]] }
+            if schema >= 8 { ledger["exchangeCounts"] = ["neighbor_mira": ["today": 1, "total": 7]] }
             saved["community"] = ledger
             let loaded = try decode(saved)
             #expect(loaded.isValid)
@@ -39,7 +39,9 @@ struct CommunityMigrationTests {
                     totalVisitCount: 3, totalGiftCount: 2, rewardedStageLevels: [2]))
             }
             #expect(loaded.community.exchangeCount(for: "neighbor_mira") ==
-                    (schema == 8 ? NeighborExchangeCount(today: 1, total: 7) : NeighborExchangeCount()))
+                    (schema >= 8 ? NeighborExchangeCount(today: 1, total: 7) : NeighborExchangeCount()))
+            #expect(loaded.community.events.dayKey == loaded.tasks.dailyDayKey)
+            #expect(loaded.community.events.totalCompleted == 0 && loaded.community.events.letters.isEmpty)
         }
     }
 

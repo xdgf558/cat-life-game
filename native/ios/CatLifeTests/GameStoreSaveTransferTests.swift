@@ -31,6 +31,8 @@ final class GameStoreSaveTransferTests: XCTestCase {
         let store = makeStore(repository)
         await store.load()
         store.enterHome()
+        store.openTownBoard()
+        XCTAssertTrue(store.isShowingTownBoard)
         let original = try XCTUnwrap(store.snapshot)
         let generation = store.saveSceneGeneration
         var incoming = seed()
@@ -56,6 +58,7 @@ final class GameStoreSaveTransferTests: XCTestCase {
         XCTAssertNil(store.restingFurnitureID)
         XCTAssertNotEqual(store.saveSceneGeneration, generation)
         XCTAssertFalse(store.saveTransferInProgress)
+        XCTAssertFalse(store.isShowingTownBoard)
         let recovery = try await store.importRecoveryPreview()
         XCTAssertEqual(recovery?.snapshot, try archive(original).snapshot)
         let durable = await repository.saved
@@ -69,6 +72,7 @@ final class GameStoreSaveTransferTests: XCTestCase {
         let store = makeStore(repository)
         await store.load()
         store.enterHome()
+        store.openTownBoard()
         let original = try XCTUnwrap(store.snapshot)
         let generation = store.saveSceneGeneration
         var incoming = seed()
@@ -80,6 +84,7 @@ final class GameStoreSaveTransferTests: XCTestCase {
         } catch { XCTAssertEqual(error as? SaveTransferError, .writeFailed) }
         XCTAssertEqual(store.snapshot, original)
         XCTAssertEqual(store.saveSceneGeneration, generation)
+        XCTAssertTrue(store.isShowingTownBoard)
         XCTAssertFalse(store.isBusy || store.saveTransferInProgress)
         XCTAssertFalse(store.hasSaveFailure, "Do not schedule an unconfirmed automatic import retry")
         let recovery = try await store.importRecoveryPreview()

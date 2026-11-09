@@ -111,7 +111,7 @@ extension RoomHomeUITests {
             XCTAssertEqual(frame.minY, frames[index].minY, accuracy: 1, "Filtering must not rearrange map positions.")
         }
         tapAnimationControl("townLayer_all", in: app)
-        for id in ["cafe", "plaza", "board", "lot1", "lot2"] {
+        for id in ["cafe", "lot1", "lot2"] {
             scrollCareerPage("townMapScroll", to: "townPlot_\(id)", in: app)
             tapAnimationControl("townPlot_\(id)", in: app)
             waitForObservedValue("townPlaceDetail", id, in: app)

@@ -129,10 +129,10 @@ struct RoomHomeView: View {
                             .allowsHitTesting(false)
                     }
                     else if !store.hasSaveFailure, !store.onboarding.isPresented,
-                            !store.isShowingNeighbors, !store.isShowingMarket,
+                            !store.isShowingNeighbors, !store.isShowingMarket, !store.isShowingTownBoard,
                             !moreVisible, store.inspectedCatID == nil,
                             !store.isPresentingAdoptionConfirmation, !store.isDecorating,
-                            (homeVisible || store.activeSheet == .upgrade || store.activeSheet == .town),
+                            (homeVisible || store.activeSheet == .upgrade),
                             let offer = store.adoptionReminders.pendingOffer {
                         AdoptionAvailableBanner(store: store, offer: offer)
                             .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)

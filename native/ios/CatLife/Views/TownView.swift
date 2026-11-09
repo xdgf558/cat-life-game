@@ -31,7 +31,9 @@ struct TownView: View {
 
     var body: some View {
         Group {
-            if store.isShowingMarket {
+            if store.isShowingTownBoard {
+                TownNoticeBoardView(store: store) { store.isShowingTownBoard = false }
+            } else if store.isShowingMarket {
                 NavigationStack { ExchangeMarketView(store: store, onClose: { store.isShowingMarket = false }) }
             } else if store.isShowingNeighbors {
                 CommunityView(store: store) { store.isShowingNeighbors = false }
@@ -111,12 +113,13 @@ struct TownView: View {
                 .buttonStyle(.plain).accessibilityIdentifier("townCollectionButton")
                 .accessibilityLabel(GameStrings.text("town.myCats"))
                 .accessibilityValue(GameStrings.format("catDirectory.count", store.snapshot?.cats.count ?? 0))
-                Button { choose(.plaza, proxy: proxy) } label: {
+                Button { store.openTownBoard() } label: {
                     Image(systemName: "bell.fill").font(.system(size: 19)).frame(width: 44, height: 44)
                         .foregroundStyle(RoomTheme.lilac).background(RoomTheme.paper, in: Circle())
                 }
-                .buttonStyle(.plain).accessibilityLabel(GameStrings.text("town.communityPreview"))
+                .buttonStyle(.plain).accessibilityLabel(GameStrings.text("townEvents.title"))
                 .accessibilityIdentifier("townCommunityPreviewButton")
+                .disabled(store.isBusy)
             }
             HStack(spacing: 5) {
                 ForEach(TownLayer.allCases) { item in
@@ -199,6 +202,7 @@ struct TownView: View {
     }
     private func enterPlace() {
         switch selectedPlace {
+        case .plaza, .board: store.openTownBoard()
         case .street: store.playNavigationSound(); store.isShowingNeighbors = true
         case .hospital: store.openHospital()
         case .market: store.openExchangeMarket()

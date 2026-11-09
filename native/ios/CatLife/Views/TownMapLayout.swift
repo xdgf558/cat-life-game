@@ -58,6 +58,10 @@ struct TownMapStatus {
     func badge(for place: TownPlace, now: Date) -> String? {
         if place.isFuture { return GameStrings.text("town.comingSoon") }
         switch place {
+        case .plaza, .board:
+            guard let snapshot else { return nil }
+            if snapshot.community.events.todayReceipt != nil { return GameStrings.text("townEvents.completed") }
+            return TownEventCatalog.current(in: snapshot) == nil ? nil : GameStrings.text("townEvents.available")
         case .hospital where sickCount > 0: return GameStrings.format("town.sickCount", sickCount)
         case .street where !unvisitedNeighbors.isEmpty: return GameStrings.format("townMap.visitCount", unvisitedNeighbors.count)
         case .adoption where !availableAdoptions.isEmpty: return GameStrings.format("townMap.adoptionCount", availableAdoptions.count)

@@ -2,9 +2,9 @@ import Foundation
 
 public enum FurnitureKind: String, Codable, CaseIterable, Hashable, Sendable {
     case cabinet, catTree, catBed, wallFlower, wallCat, plant, floorCushion, flowerStool
-    case bookcase, rattanChair, sideTable, wallSunrise
+    case bookcase, rattanChair, sideTable, wallSunrise, wallTownMemory
 
-    public var supportsMirroring: Bool { ![.wallFlower, .wallCat, .wallSunrise].contains(self) }
+    public var supportsMirroring: Bool { ![.wallFlower, .wallCat, .wallSunrise, .wallTownMemory].contains(self) }
 }
 
 public enum FurnitureOrientation: String, Codable, CaseIterable, Hashable, Sendable {
@@ -92,8 +92,9 @@ public enum FurnitureCatalog {
         case .rattanChair: asset = "furniture-rattan-chair"
         case .sideTable: asset = "furniture-side-table"
         case .wallSunrise: asset = "furniture-wall-sunrise"
+        case .wallTownMemory: asset = "furniture-town-memory-frame"
         }
-        return FurnitureMetadata(kind: kind, isWall: [.wallFlower, .wallCat, .wallSunrise].contains(kind),
+        return FurnitureMetadata(kind: kind, isWall: [.wallFlower, .wallCat, .wallSunrise, .wallTownMemory].contains(kind),
                                  assetName: asset, nameKey: "furniture.\(kind.rawValue)")
     }
 

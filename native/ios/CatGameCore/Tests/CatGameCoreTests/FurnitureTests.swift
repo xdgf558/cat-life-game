@@ -14,7 +14,7 @@ struct FurnitureTests {
         #expect(Set(state.inventory.furniture.map(\.id)) == Set(state.home.furniture.map(\.itemID)))
         #expect(state.inventory.furniture.filter { $0.kind == .plant }.map(\.id) == ["plantLarge", "plantSmall"])
         #expect(FurnitureCatalog.all.count == FurnitureKind.allCases.count)
-        #expect(Set(FurnitureCatalog.all.filter(\.isWall).map(\.kind)) == [.wallFlower, .wallCat, .wallSunrise])
+        #expect(Set(FurnitureCatalog.all.filter(\.isWall).map(\.kind)) == [.wallFlower, .wallCat, .wallSunrise, .wallTownMemory])
         #expect(FurnitureCatalog.all.allSatisfy { !$0.assetName.isEmpty && $0.nameKey == "furniture.\($0.kind.rawValue)" })
         #expect(!state.inventory.furniture.contains { $0.id == "bowl" })
     }

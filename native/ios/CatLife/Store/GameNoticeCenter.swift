@@ -69,7 +69,8 @@ enum GameActionNotice {
             case .exchanged:
                 return outcome.amount > 0 ? GameStrings.format("market.completedWithFriendship", outcome.amount)
                     : GameStrings.text(success.rawValue)
-            case .neighborChatted, .communityGiftPurchased: return GameStrings.text(success.rawValue)
+            case .neighborChatted, .communityGiftPurchased, .townEventCompleted, .townMilestoneClaimed:
+                return GameStrings.text(success.rawValue)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
@@ -82,7 +83,9 @@ enum GameActionNotice {
              .catAdoptionMissing, .catAlreadyOwned, .hospitalHealthy,
              .neighborMissing, .communityGiftMissing, .communityGiftRequired, .communityGiftLimit,
              .exchangeMissing, .exchangeStageRequired, .exchangeDailyLimit, .exchangeMaterialsRequired,
-             .careSupplyInvalid, .carePremiumFoodRequired, .carePremiumLitterRequired:
+             .careSupplyInvalid, .carePremiumFoodRequired, .carePremiumLitterRequired,
+             .townEventMissing, .townEventDayChanged, .townEventCompleted, .townEventStaminaRequired,
+             .townEventSuppliesRequired, .townMilestoneClaimed, .townMilestoneIncomplete, .townEventBusy:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:

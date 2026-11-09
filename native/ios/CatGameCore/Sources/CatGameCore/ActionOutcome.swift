@@ -6,6 +6,14 @@ public enum ActionKind: String, Codable, Sendable {
 }
 
 public enum ActionFailure: String, Equatable, Sendable {
+    case townEventMissing = "townEvents.error.missing"
+    case townEventDayChanged = "townEvents.error.dayChanged"
+    case townEventCompleted = "townEvents.error.completed"
+    case townEventStaminaRequired = "townEvents.error.stamina"
+    case townEventBusy = "townEvents.error.busy"
+    case townEventSuppliesRequired = "townEvents.error.supplies"
+    case townMilestoneClaimed = "townEvents.error.milestoneClaimed"
+    case townMilestoneIncomplete = "townEvents.error.milestoneIncomplete"
     case exchangeMissing = "market.error.missing"
     case exchangeStageRequired = "market.error.stage"
     case exchangeDailyLimit = "market.error.limit"
@@ -61,6 +69,8 @@ public enum ActionFailure: String, Equatable, Sendable {
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
+    case townEventCompleted = "townEvents.completedNotice"
+    case townMilestoneClaimed = "townEvents.milestoneClaimedNotice"
     case exchanged = "market.exchanged"
     case supplyPurchased = "shop.supplyPurchased"
     case neighborVisited = "community.visited"
@@ -97,7 +107,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
         case .catAdopted, .equipmentPurchased, .furniturePurchased, .homeUpgraded,
              .foodPurchased, .litterPurchased, .toyPurchased, .communityGiftPurchased, .supplyPurchased, .exchanged: return .purchase
         case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
-             .taskClaimed, .catTreated, .neighborVisited, .neighborChatted, .neighborGifted: return .none
+             .taskClaimed, .catTreated, .neighborVisited, .neighborChatted, .neighborGifted,
+             .townEventCompleted, .townMilestoneClaimed: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted
