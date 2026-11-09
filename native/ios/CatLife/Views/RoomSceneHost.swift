@@ -256,7 +256,7 @@ struct RoomSceneHost: View {
                         }
                         .position(x: min(geometry.size.width - 125, max(125, frame.midX)),
                                   y: min(geometry.size.height - previewHeight / 2 - 14,
-                                         max(190 + previewHeight / 2, frame.minY - previewHeight / 2 - 12)))
+                                         max(max(190, (catNeedPresentation.headerFrame?.maxY ?? geometry.frame(in: .global).minY) - geometry.frame(in: .global).minY + 12) + previewHeight / 2, frame.minY - previewHeight / 2 - 12)))
                 }
             }
         }
