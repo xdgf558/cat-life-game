@@ -9,13 +9,13 @@ final class RoomSceneArtwork {
     private weak var scene: SKScene?
     let room = SKSpriteNode(imageNamed: "room-empty")
     let bowl = SKSpriteNode(imageNamed: "bowl-empty")
-    private let bowlFront = SKSpriteNode()
+    let bowlFront = SKSpriteNode()
     let toy = SKSpriteNode(imageNamed: "icon-play")
     let restFront = SKSpriteNode()
     let selection = SKShapeNode(ellipseOf: CGSize(width: 105, height: 52))
     let thought = SKNode()
-    private let companionRing = SKShapeNode()
-    private let companionPlaque = SKShapeNode()
+    let companionRing = SKShapeNode()
+    let companionPlaque = SKShapeNode()
     private let companionName = SKLabelNode(fontNamed: "AvenirNext-Heavy")
     private var companionRingWidth: CGFloat?
     private var companionLabelSize: CGSize?

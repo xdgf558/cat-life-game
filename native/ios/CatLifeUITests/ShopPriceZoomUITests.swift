@@ -49,20 +49,21 @@ extension RoomHomeUITests {
         launchAndEnterHome(app)
         _ = waitForFurniture(in: app, description: "expanded room ready for pinch", matching: { $0.phase == "idle" && !$0.pending })
         let room = element("roomScene", in: app)
-        let original = try zoomState(in: app)
-        XCTAssertEqual(original.scale, 1, accuracy: 0.001)
+        let original = try waitForZoom(wholeRoom: true, in: app)
+        XCTAssertEqual(original.scale, original.fitScale, accuracy: 0.001)
         tapAnimationControl("homeCareVisibilityButton", in: app)
         waitForObservedValue("homeCareVisibilityButton", "hidden", in: app)
         element("roomPinchSurface", in: app).pinch(withScale: 2, velocity: 1)
-        let magnified = try waitForZoom(0.625, in: app)
+        let magnified = try waitForZoom(in: app, description: "pinch magnifies the whole-room view") {
+            !$0.wholeRoom && $0.scale < original.scale
+        }
         XCTAssertEqual(magnified.layout, original.layout)
         XCTAssertEqual(magnified.number("catVisualWidth"), original.number("catVisualWidth"))
         XCTAssertEqual(magnified.number("worldWidth"), original.number("worldWidth"))
-        attachScreenshot(app, named: "Room — two-finger zoom in at its upper limit")
+        attachScreenshot(app, named: "Room — two-finger zoom shows a closer view")
         element("roomPinchSurface", in: app).pinch(withScale: 0.35, velocity: -1)
-        let overview = try waitForZoom(1.5, in: app)
-        XCTAssertEqual(overview.number("cameraX"), overview.number("worldWidth") / 2, accuracy: 0.5)
-        XCTAssertEqual(overview.number("cameraY"), overview.number("worldHeight") / 2, accuracy: 0.5)
+        let overview = try waitForZoom(wholeRoom: true, in: app)
+        XCTAssertEqual(overview.scale, overview.fitScale, accuracy: 0.001)
         XCTAssertEqual(overview.layout, original.layout)
         tapAnimationControl("homeCareVisibilityButton", in: app)
         waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
@@ -73,10 +74,14 @@ extension RoomHomeUITests {
         tapAnimationControl("homeDecorateButton", in: app)
         tapAnimationControl("layoutTrayToggle", in: app)
         waitForObservedValue("layoutTrayToggle", "collapsed", in: app)
+        let editingOverview = try waitForZoom(wholeRoom: true, in: app)
         element("roomPinchSurface", in: app).pinch(withScale: 2, velocity: 1)
-        _ = try waitForZoom(0.75, in: app)
+        _ = try waitForZoom(in: app, description: "pinch magnifies the resized editing canvas") {
+            !$0.wholeRoom && $0.scale < editingOverview.scale
+        }
         element("roomPinchSurface", in: app).pinch(withScale: 0.4, velocity: -1)
-        let editing = try waitForZoom(1.5, in: app)
+        let editing = try waitForZoom(wholeRoom: true, in: app)
+        XCTAssertEqual(editing.scale, editing.fitScale, accuracy: 0.001)
         _ = waitForFurniture(in: app, description: "pinch releases the arrangement gesture", matching: { $0.phase == "editing" && !$0.pending })
         XCTAssertEqual(editing.layout, original.layout, "A second finger must not commit a furniture drag.")
         let before = furnitureState(in: app)
@@ -102,36 +107,49 @@ extension RoomHomeUITests {
         XCTAssertEqual(fed.foodContactViolations, 0)
         waitForObservedValue("foodCount", "2", in: app)
         tapAnimationControl("focusCatButton", in: app)
-        _ = try waitForZoom(1, in: app)
-        attachScreenshot(app, named: "Room — Find Cat restores normal zoom after a real meal")
+        _ = try waitForZoom(in: app, description: "Find Cat focuses within the current whole-room scale") {
+            !$0.wholeRoom && abs($0.scale - $0.fitScale / 1.6) < 0.025
+        }
+        attachScreenshot(app, named: "Room — Find Cat shows a close view after a real meal")
         app.terminate()
         app.launchArguments = arguments(reset: false) + ["--furniture-test"]
         launchAndEnterHome(app)
         _ = waitForFurniture(in: app, description: "zoomed furniture layout reopens", matching: { $0.phase == "idle" && !$0.pending })
-        let reopened = try zoomState(in: app)
-        XCTAssertEqual(reopened.scale, 1, accuracy: 0.001)
+        let reopened = try waitForZoom(wholeRoom: true, in: app)
+        XCTAssertEqual(reopened.scale, reopened.fitScale, accuracy: 0.001)
         XCTAssertEqual(reopened.layout, saved.layout)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("goldCount", "5,000", in: app)
     }
 
     @MainActor
-    func testInitialRoomIgnoresPinchWithoutAccidentalCareActions() throws {
+    func testInitialRoomAllowsZoomWithoutAccidentalCareActions() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = arguments(reset: true) + ["--furniture-test"]
         launchAndEnterHome(app)
         _ = waitForFurniture(in: app, description: "initial room ready", matching: { $0.phase == "idle" && !$0.pending })
-        let before = try zoomState(in: app)
+        let before = try waitForZoom(wholeRoom: true, in: app)
         element("roomPinchSurface", in: app).pinch(withScale: 2, velocity: 1)
-        let after = try waitForZoom(1, in: app)
+        let after = try waitForZoom(in: app, description: "the initial room supports a real pinch zoom") {
+            !$0.wholeRoom && $0.scale < before.scale
+        }
         XCTAssertEqual(after.layout, before.layout)
+        tapAnimationControl("roomOverviewButton", in: app)
+        XCTAssertEqual(try waitForZoom(wholeRoom: true, in: app).layout, before.layout)
+        tapAnimationControl("roomOverviewButton", in: app)
+        _ = try waitForZoom(wholeRoom: false, in: app)
+        element("roomPinchSurface", in: app).pinch(withScale: 0.35, velocity: -1)
+        XCTAssertEqual(try waitForZoom(wholeRoom: true, in: app).layout, before.layout)
+        let untouched = furnitureState(in: app)
+        XCTAssertEqual(untouched.completedMeals, 0, "Zooming must not feed the cat.")
+        XCTAssertEqual(untouched.completedPounces, 0, "Zooming must not start a play action.")
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "200", in: app)
         XCTAssertFalse(element("destinationScroll", in: app).exists)
         tapAnimationControl("feedButton", in: app)
-        _ = waitForFurniture(in: app, timeout: 40, description: "normal feeding remains available after ignored pinch", matching: {
-            $0.phase == "idle" && $0.completedMeals == 1
+        _ = waitForFurniture(in: app, timeout: 40, description: "normal feeding remains available after zooming", matching: {
+            $0.phase == "idle" && $0.completedMeals == 1 && $0.foodContactSamples > 0
         })
         waitForObservedValue("foodCount", "2", in: app)
     }
@@ -139,6 +157,8 @@ extension RoomHomeUITests {
     private struct ZoomState {
         let values: [String: Any]
         var scale: Double { number("cameraScale") }
+        var fitScale: Double { number("fitScale") }
+        var wholeRoom: Bool { values["wholeRoom"] as? Bool ?? false }
         func number(_ key: String) -> Double { values[key] as? Double ?? -1 }
         var layout: String {
             let data = try? JSONSerialization.data(withJSONObject: ["bowl": values["savedBowl"] ?? [:],
@@ -152,20 +172,32 @@ extension RoomHomeUITests {
         let text = try XCTUnwrap(element("roomScene", in: app).value as? String)
         let values = try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
         XCTAssertNotNil(values["cameraScale"])
-        return ZoomState(values: values)
+        XCTAssertNotNil(values["wholeRoom"])
+        let state = ZoomState(values: values)
+        XCTAssertTrue(state.scale.isFinite && state.scale > 0)
+        XCTAssertTrue(state.fitScale.isFinite && state.fitScale > 0)
+        XCTAssertLessThanOrEqual(state.scale, state.fitScale + 0.001)
+        return state
     }
 
     @MainActor
-    private func waitForZoom(_ expected: Double, in app: XCUIApplication) throws -> ZoomState {
+    private func waitForZoom(wholeRoom: Bool, in app: XCUIApplication) throws -> ZoomState {
+        try waitForZoom(in: app, description: wholeRoom ? "complete room at its fitted scale" : "closer room view") {
+            $0.wholeRoom == wholeRoom && (!wholeRoom || abs($0.scale - $0.fitScale) < 0.001)
+        }
+    }
+
+    @MainActor
+    private func waitForZoom(in app: XCUIApplication, description: String,
+                             matching condition: @escaping (ZoomState) -> Bool) throws -> ZoomState {
         let room = element("roomScene", in: app)
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             guard let text = room.value as? String,
-                  let value = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any],
-                  let scale = value["cameraScale"] as? Double else { return false }
-            return abs(scale - expected) < 0.025
+                  let value = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any] else { return false }
+            return condition(ZoomState(values: value))
         }, object: nil)
         let result = XCTWaiter.wait(for: [ready], timeout: 8)
-        XCTAssertEqual(result, .completed, "Pinch should reach camera scale \(expected); actual: \(room.value ?? "missing").")
+        XCTAssertEqual(result, .completed, "Expected \(description); actual: \(room.value ?? "missing").")
         return try zoomState(in: app)
     }
 }

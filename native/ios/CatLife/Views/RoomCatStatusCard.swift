@@ -48,13 +48,16 @@ struct RoomCatStatusCard: View {
         GeometryReader { geometry in
             let origin = geometry.frame(in: .global).origin
             let full = RoomCatStatusLayout.frame(in: geometry.size, compact: false)
-            let compact = RoomCatStatusLayout.shouldCompact(catFrame: presentation.catFrame,
+            let compact = presentation.showsWholeRoom || RoomCatStatusLayout.shouldCompact(catFrame: presentation.catFrame,
                 fullCard: full.offsetBy(dx: origin.x, dy: origin.y), wasCompact: wasCompact)
             let rect = RoomCatStatusLayout.frame(in: geometry.size, compact: compact,
                 guideVisible: store.onboarding.isActive && !store.onboarding.isPresented,
                 sharedControls: (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2,
                 headerBottom: (presentation.headerFrame?.maxY ?? origin.y) - origin.y)
                 .offsetBy(dx: 0, dy: compact && store.sharedRoomHasLimitedSpace && presentation.headerFrame == nil ? 68 : 0)
+            let globalCardFrame = rect.offsetBy(dx: origin.x, dy: origin.y)
+            let globalCardFrame = rect.offsetBy(dx: origin.x, dy: origin.y)
+            let globalCardFrame = rect.offsetBy(dx: origin.x, dy: origin.y)
             VStack(spacing: compact ? 0 : 12) {
                 identity(compact: compact)
                 if !compact {
@@ -80,6 +83,9 @@ struct RoomCatStatusCard: View {
             .accessibilityValue(compact ? "compact" : "expanded")
             .position(x: rect.midX, y: rect.midY)
             .onChange(of: compact, initial: true) { _, value in wasCompact = value }
+            .onAppear { presentation.statusCardFrame = globalCardFrame }
+            .onChange(of: globalCardFrame) { _, frame in presentation.statusCardFrame = frame }
+            .onDisappear { presentation.statusCardFrame = nil }
         }
     }
 

@@ -52,6 +52,13 @@ struct RoomHomeHUD: View {
                             }
                     }
                     .frame(width: 78).disabled(store.isBusy)
+                    .background {
+                        GeometryReader { geometry in
+                            Color.clear.onAppear { catNeedPresentation.careActionsFrame = geometry.frame(in: .global) }
+                                .onChange(of: geometry.frame(in: .global)) { _, frame in catNeedPresentation.careActionsFrame = frame }
+                        }.allowsHitTesting(false)
+                    }
+                    .onDisappear { catNeedPresentation.careActionsFrame = nil }
                     .onboardingTarget(.care)
                 }
                 .padding(.horizontal, 14).padding(.bottom, 18)

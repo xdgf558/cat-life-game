@@ -32,6 +32,7 @@ struct HomeStairLanding: View {
                 GameIcon(asset: "room-stairs-cartoon", symbol: "stairs", size: 52, tint: RoomTheme.darkMint)
             }
             .padding(4).frame(minWidth: 76).contentShape(Rectangle())
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         }
         .buttonStyle(.plain)
         .disabled(store.isBusy || store.isChangingHomeFloor)
