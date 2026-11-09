@@ -155,7 +155,7 @@ struct RoomHomeHUD: View {
         .overlay(Capsule().strokeBorder(RoomTheme.mint.opacity(0.4), lineWidth: 1.5))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
-        .accessibilityValue(store.cat?.id ?? "")
+        .accessibilityValue(TownEventAccessibility.value(store.catStatus, diagnostic: store.cat?.id ?? ""))
         .accessibilityIdentifier("homeCaringContext")
     }
 

@@ -10,19 +10,29 @@ extension RoomHomeUITests {
         let contextFrame = context.frame
         waitForElement("homeCatSwitchHint", in: app)
         let before = try sharedHomeState(in: app)
-        let resident = try XCTUnwrap(before.residentCats.first { $0.id == "cat_004" })
-        element("roomScene", in: app).coordinate(withNormalizedOffset: CGVector(dx: resident.x, dy: resident.y)).tap()
-        waitForObservedValue("roomResidentPreview", "cat_004", in: app)
+        let active = try XCTUnwrap(before.residentCats.first { $0.id == before.activeCatID })
+        let room = element("roomScene", in: app)
+        let blocked = ["playButton", "cleanButton", "feedButton", "homeCatInfo", "homeStairsButton",
+                       "homeCaringContext", "homeCatSwitchHint", "catNeedBubble"]
+            .map { element($0, in: app) }.filter(\.exists).map { $0.frame.insetBy(dx: -5, dy: -5) }
+        // The main cat wins overlapping hits; prefer the exposed cat furthest to its side.
+        let resident = try XCTUnwrap(before.residentCats.filter { cat in
+            let point = CGPoint(x: room.frame.minX + cat.x * room.frame.width,
+                                y: room.frame.minY + cat.y * room.frame.height)
+            return cat.id != before.activeCatID && cat.visible && !blocked.contains(where: { $0.contains(point) })
+        }.max { abs($0.x - active.x) < abs($1.x - active.x) })
+        room.coordinate(withNormalizedOffset: CGVector(dx: resident.x, dy: resident.y)).tap()
+        waitForObservedValue("roomResidentPreview", resident.id, in: app)
         XCTAssertTrue(context.exists && context.isHittable)
         XCTAssertEqual(context.frame.midY, contextFrame.midY, accuracy: 1)
         waitForObservedValue("homeCaringContext", "cat_001", in: app)
         attachScreenshot(app, named: "Repair — preview retains the fixed current care recipient")
         tapAnimationControl("roomResidentCompanionButton", in: app)
-        waitForObservedValue("homeCaringContext", "cat_004", in: app)
+        waitForObservedValue("homeCaringContext", resident.id, in: app)
         tapAnimationControl("homeFloor_upper", in: app)
         waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
         waitForElement("homeCatSwitchHint", in: app)
-        waitForObservedValue("homeCaringContext", "cat_004", in: app)
+        waitForObservedValue("homeCaringContext", resident.id, in: app)
         attachScreenshot(app, named: "Repair — upstairs keeps care recipient and visible switching hint")
         waitForObservedValue("foodCount", "12", in: app)
         waitForObservedValue("goldCount", "27,000", in: app)

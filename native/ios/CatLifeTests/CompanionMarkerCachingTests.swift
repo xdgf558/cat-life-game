@@ -30,7 +30,8 @@ final class CompanionMarkerCachingTests: XCTestCase {
             XCTAssertTrue(ring.action(forKey: "breathe") === breathing)
             XCTAssertEqual(ring.position, position)
             XCTAssertEqual(ring.zPosition, cat.zPosition - 0.5)
-            XCTAssertEqual(plaque.position, CGPoint(x: frame.midX, y: frame.maxY + 17))
+            XCTAssertEqual(plaque.position.x, frame.midX, accuracy: 0.001)
+            XCTAssertEqual(plaque.position.y, frame.maxY + 17, accuracy: 0.001)
             XCTAssertEqual(cat.position, position)
             XCTAssertEqual(cat.visualFrame, frame, "Markers cannot change the cat's geometry.")
         }

@@ -54,7 +54,7 @@ struct RoomCatStatusCard: View {
                 guideVisible: store.onboarding.isActive && !store.onboarding.isPresented,
                 sharedControls: (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2,
                 headerBottom: (presentation.headerFrame?.maxY ?? origin.y) - origin.y)
-                .offsetBy(dx: 0, dy: compact && store.sharedRoomHasLimitedSpace ? 68 : 0)
+                .offsetBy(dx: 0, dy: compact && store.sharedRoomHasLimitedSpace && presentation.headerFrame == nil ? 68 : 0)
             VStack(spacing: compact ? 0 : 12) {
                 identity(compact: compact)
                 if !compact {
