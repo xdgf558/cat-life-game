@@ -87,6 +87,7 @@ final class CatNeedPresentation {
     var isInspectingResident = false
     var anchor: CGPoint?
     var localCatFrame: CGRect?
+    var statusCardIsCompact = false
     var statusCardFrame: CGRect?
     var showsWholeRoom = true
     var canvasOrigin = CGPoint.zero

@@ -56,8 +56,6 @@ struct RoomCatStatusCard: View {
                 headerBottom: (presentation.headerFrame?.maxY ?? origin.y) - origin.y)
                 .offsetBy(dx: 0, dy: compact && store.sharedRoomHasLimitedSpace && presentation.headerFrame == nil ? 68 : 0)
             let globalCardFrame = rect.offsetBy(dx: origin.x, dy: origin.y)
-            let globalCardFrame = rect.offsetBy(dx: origin.x, dy: origin.y)
-            let globalCardFrame = rect.offsetBy(dx: origin.x, dy: origin.y)
             VStack(spacing: compact ? 0 : 12) {
                 identity(compact: compact)
                 if !compact {
@@ -83,8 +81,9 @@ struct RoomCatStatusCard: View {
             .accessibilityValue(compact ? "compact" : "expanded")
             .position(x: rect.midX, y: rect.midY)
             .onChange(of: compact, initial: true) { _, value in wasCompact = value }
-            .onAppear { presentation.statusCardFrame = globalCardFrame }
-            .onChange(of: globalCardFrame) { _, frame in presentation.statusCardFrame = frame }
+            .onAppear { presentation.statusCardFrame = globalCardFrame; presentation.statusCardIsCompact = compact }
+            .onChange(of: globalCardFrame) { _, frame in presentation.statusCardFrame = frame; presentation.statusCardIsCompact = compact }
+            .onChange(of: compact) { _, value in presentation.statusCardIsCompact = value }
             .onDisappear { presentation.statusCardFrame = nil }
         }
     }

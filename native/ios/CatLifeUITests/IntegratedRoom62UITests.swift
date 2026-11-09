@@ -59,6 +59,52 @@ extension RoomHomeUITests {
     }
 
     @MainActor
+    func testChangingFloorsWithResidentPreviewOpenRestoresTheNewFloorsStatusCard() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true)
+            + ["--shared-home-test", "--shared-home-upper-test", "--furniture-test"]
+        launchAndEnterHome(app)
+        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        waitForElement("homeCatInfo", in: app)
+        let original = try integrated62Wait(in: app, angle: 0, whole: true)
+        let contextFrame = integrated62Element("homeCaringContext", in: app).frame
+        let resources = try ["foodCount", "goldCount", "staminaCount"].map { identifier in
+            (identifier, try XCTUnwrap(integrated62Element(identifier, in: app).value as? String))
+        }
+        let targetID = try integrated62OpenResident(from: original, in: app)
+        integrated62AssertPreview(targetID, contextFrame: contextFrame, in: app)
+
+        // Do not dismiss first: the outgoing host must relinquish this preview to the new floor owner.
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        let upstairs = try integrated62Wait(in: app, angle: 0, whole: true)
+        let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            let status = self.integrated62Element("homeCatInfo", in: app)
+            return !self.integrated62Element("roomResidentPreview", in: app).exists
+                && status.exists && status.isHittable
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 10), .completed,
+                       "The upstairs host must clear the old preview and restore its cat status card.")
+        XCTAssertEqual(upstairs.activeCatID, original.activeCatID)
+        XCTAssertEqual(upstairs.companionLabelText, original.companionLabelText)
+        XCTAssertEqual(upstairs.completedMeals, original.completedMeals)
+        XCTAssertEqual(upstairs.completedPounces, original.completedPounces)
+        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        XCTAssertEqual(integrated62Element("homeCaringContext", in: app).frame, contextFrame)
+        for (identifier, value) in resources { waitForObservedValue(identifier, value, in: app) }
+        integrated62Screenshot("Integrated 62 — switching floors closes a resident preview and restores status", in: app)
+
+        tapAnimationControl("homeFloor_ground", in: app)
+        waitForObservedValue("homeStairsButton", "1F · 一楼", in: app)
+        let downstairs = try integrated62Wait(in: app, angle: 0, whole: true)
+        XCTAssertFalse(integrated62Element("roomResidentPreview", in: app).exists)
+        XCTAssertTrue(integrated62Element("homeCatInfo", in: app).exists)
+        integrated62AssertIdentityAndSave(downstairs, original: original, contextFrame: contextFrame, in: app)
+        for (identifier, value) in resources { waitForObservedValue(identifier, value, in: app) }
+    }
+
+    @MainActor
     private func integrated62Element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }

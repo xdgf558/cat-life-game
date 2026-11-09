@@ -23,6 +23,7 @@ struct RoomSceneHost: View {
     @State private var previewCatID: String?
     @State private var previewFrame: CGRect?
     @State private var previewReservedStatusFrame: CGRect?
+    @State private var previewReservedStatusIsCompact = false
     @State private var previewHeight: CGFloat = 200
     @State private var accessibleGrowthID: String?
     @State private var isSavingGrowth = false
@@ -166,15 +167,20 @@ struct RoomSceneHost: View {
            let cat = store.snapshot?.cats.first(where: { $0.id == id }) {
             let origin = geometry.frame(in: .global).origin
             let top = max(toolsBottom, (catNeedPresentation.headerFrame?.maxY ?? origin.y) - origin.y + 12)
+            let cardWidth = min(230, max(200, geometry.size.width - 140))
+            let halfWidth = cardWidth / 2
+            let right = (catNeedPresentation.careActionsFrame?.minX ?? geometry.frame(in: .global).maxX) - origin.x - 12
+            let minimumX = 12 + halfWidth
+            let maximumX = max(minimumX, right - halfWidth)
             RoomResidentPreviewCard(store: store, cat: cat, close: closePreview)
-                .frame(width: min(230, max(200, geometry.size.width - 140)))
+                .frame(width: cardWidth)
                 .background {
                     GeometryReader { card in
                         Color.clear.onAppear { previewHeight = card.size.height }
                             .onChange(of: card.size.height) { _, value in previewHeight = value }
                     }.allowsHitTesting(false)
                 }
-                .position(x: min(geometry.size.width - 112 - 115, max(127, frame.midX)),
+                .position(x: min(maximumX, max(minimumX, frame.midX)),
                           y: min(geometry.size.height - previewHeight / 2 - 14,
                                  max(top + previewHeight / 2, frame.minY - previewHeight / 2 - 12)))
         }
@@ -184,6 +190,7 @@ struct RoomSceneHost: View {
         guard scene.canInspectResidents, !store.isBusy, !store.isDecorating,
               let frame = scene.residentFrame(id: id) else { return }
         previewReservedStatusFrame = catNeedPresentation.statusCardFrame
+        previewReservedStatusIsCompact = catNeedPresentation.statusCardIsCompact
         previewCatID = id; previewFrame = frame
         scene.inspectedResidentID = id
         catNeedPresentation.isInspectingResident = true
@@ -258,6 +265,8 @@ struct RoomSceneHost: View {
         let generation = store.saveSceneGeneration
         attachedGeneration = generation
         let sourceFloor = store.visibleHomeFloor
+        // Only the new floor/save owner resets inspection after the old host has relinquished ownership.
+        catNeedPresentation.isInspectingResident = false
         let acceptsSceneUpdates = {
             store.saveSceneGeneration == generation && store.visibleHomeFloor == sourceFloor
                 && !store.isChangingHomeFloor
@@ -315,7 +324,8 @@ struct RoomSceneHost: View {
         let origin = geometry.frame(in: .global).origin
         let card = (catNeedPresentation.statusCardFrame ?? previewReservedStatusFrame)?.offsetBy(dx: -origin.x, dy: -origin.y)
         let care = catNeedPresentation.careActionsFrame?.offsetBy(dx: -origin.x, dy: -origin.y)
-        let cardAtTop = card.map { $0.midY < size.height / 2 } ?? false
+        let cardAtTop = catNeedPresentation.statusCardFrame != nil
+            ? catNeedPresentation.statusCardIsCompact : previewReservedStatusIsCompact
         let headerBottom = catNeedPresentation.headerFrame.map { $0.maxY - origin.y } ?? 0
         let controlsTop = max(max(RoomStairLandingLayout.topInset, headerBottom + 12),
                               cardAtTop ? (card?.maxY ?? 0) + 12 : 0)
