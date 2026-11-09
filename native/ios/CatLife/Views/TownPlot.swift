@@ -6,6 +6,7 @@ struct TownPlot: View {
     let inLayer: Bool
     let badge: String?
     let badgeTint: Color
+    var showsActivityDot = false
     let animates: Bool
     let action: () -> Void
     @State private var lift: CGFloat = 0
@@ -37,7 +38,13 @@ struct TownPlot: View {
                     .shadow(color: TownPalette.woodEdge.opacity(0.5), radius: 0, y: 3)
                     .padding(.horizontal, 2)
                 if let badge {
-                    Text(badge).font(.system(size: 11, weight: .heavy, design: .rounded))
+                    HStack(spacing: 4) {
+                        if showsActivityDot {
+                            Circle().fill(RoomTheme.coralDeep).frame(width: 7, height: 7)
+                                .overlay(Circle().stroke(.white, lineWidth: 1.5)).accessibilityHidden(true)
+                        }
+                        Text(badge)
+                    }.font(.system(size: 11, weight: .heavy, design: .rounded))
                         .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
                         .foregroundStyle(.white).padding(.horizontal, 8).padding(.vertical, 5)
                         .background(badgeTint, in: Capsule())

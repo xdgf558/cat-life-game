@@ -14,6 +14,10 @@ final class RoomSceneArtwork {
     let restFront = SKSpriteNode()
     let selection = SKShapeNode(ellipseOf: CGSize(width: 105, height: 52))
     let thought = SKNode()
+    private let companionRing = SKShapeNode()
+    private let companionPlaque = SKShapeNode()
+    private let companionName = SKLabelNode(fontNamed: "AvenirNext-Heavy")
+    private let upperWall = SKNode()
     private(set) var furnitureNodes: [String: SKSpriteNode] = [:]
     private var furnitureScales: [String: CGFloat] = [:]
 
@@ -21,6 +25,23 @@ final class RoomSceneArtwork {
         self.scene = scene
         room.zPosition = 0
         scene.addChild(room)
+        upperWall.zPosition = 0.1
+        scene.addChild(upperWall)
+        companionRing.fillColor = UIColor(red: 0.2, green: 0.68, blue: 0.54, alpha: 0.1)
+        companionRing.name = "companion-ring"
+        companionPlaque.name = "companion-name"
+        companionRing.strokeColor = UIColor(red: 0.2, green: 0.68, blue: 0.54, alpha: 1)
+        companionRing.lineWidth = 3
+        scene.addChild(companionRing)
+        companionPlaque.fillColor = UIColor(white: 1, alpha: 0.96)
+        companionPlaque.strokeColor = companionRing.strokeColor
+        companionPlaque.lineWidth = 2
+        companionPlaque.zPosition = 2_001
+        companionName.fontSize = 12
+        companionName.fontColor = UIColor(red: 0.08, green: 0.48, blue: 0.37, alpha: 1)
+        companionName.verticalAlignmentMode = .center
+        companionPlaque.addChild(companionName)
+        scene.addChild(companionPlaque)
         bowl.name = "bowl"
         bowl.zPosition = 25
         scene.addChild(bowl)
@@ -55,6 +76,48 @@ final class RoomSceneArtwork {
         }
         thought.zPosition = 30
         scene.addChild(thought)
+    }
+
+    func updateCompanionMarker(cat: CatActor, name: String, hidden: Bool, reducedMotion: Bool) {
+        companionRing.isHidden = hidden
+        companionPlaque.isHidden = hidden
+        let width = cat.visualFrame.width
+        companionRing.path = CGPath(ellipseIn: CGRect(x: -width * 0.44, y: -width * 0.12, width: width * 0.88, height: width * 0.24), transform: nil)
+        companionRing.position = cat.position
+        companionRing.zPosition = cat.zPosition - 0.5
+        if companionName.text != "♥ " + name {
+            companionName.text = "♥ " + name
+            companionPlaque.path = CGPath(roundedRect: CGRect(x: -companionName.frame.width / 2 - 10, y: -12,
+                width: companionName.frame.width + 20, height: 24), cornerWidth: 12, cornerHeight: 12, transform: nil)
+        }
+        companionPlaque.position = CGPoint(x: cat.visualFrame.midX, y: cat.visualFrame.maxY + 17)
+        if reducedMotion {
+            companionRing.removeAction(forKey: "breathe"); companionRing.alpha = 1
+        } else if companionRing.action(forKey: "breathe") == nil {
+            companionRing.run(.repeatForever(.sequence([.fadeAlpha(to: 0.5, duration: 0.8), .fadeAlpha(to: 1, duration: 0.8)])), withKey: "breathe")
+        }
+    }
+
+    func updateFloorAmbience(upper: Bool, transform: RoomArtworkTransform) {
+        upperWall.removeAllChildren()
+        room.color = UIColor(red: 0.67, green: 0.59, blue: 0.78, alpha: 1)
+        room.colorBlendFactor = upper ? 0.12 : 0
+        guard upper else { return }
+        // Tint the existing wall without mirroring the asymmetric floor or changing collision geometry.
+        let wall = SKShapeNode()
+        let points = [(0.435, 0.067), (1.0, 0.267), (1.0, 0.506), (0.435, 0.310)]
+            .map { transform.point(NormalizedPoint(x: $0.0, y: $0.1)) }
+        let path = CGMutablePath(); path.addLines(between: points); path.closeSubpath()
+        wall.path = path; wall.fillColor = UIColor(red: 0.77, green: 0.70, blue: 0.89, alpha: 0.55); wall.strokeColor = .clear
+        upperWall.addChild(wall)
+        for x in stride(from: 0.46, to: 1.0, by: 0.045) {
+            let fraction = (x - 0.435) / (1 - 0.435)
+            let top = transform.point(.init(x: x, y: 0.067 + 0.2 * fraction))
+            let bottom = transform.point(.init(x: x, y: 0.310 + 0.196 * fraction))
+            let line = SKShapeNode(); let stripe = CGMutablePath(); stripe.move(to: top); stripe.addLine(to: bottom)
+            line.path = stripe; line.strokeColor = UIColor(white: 1, alpha: 0.16); line.lineWidth = 9
+            upperWall.addChild(line)
+        }
     }
 
     func synchronizeFurniture(items ownedFurniture: [FurnitureItem], placements renderedFurniture: [FurniturePlacement],

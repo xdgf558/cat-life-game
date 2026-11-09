@@ -45,8 +45,10 @@ final class ShopBrowserTests: XCTestCase {
             XCTAssertEqual(products.map(\.id), all.filter { products.contains($0) }.map(\.id))
         }
         XCTAssertEqual(all.prefix(4).map(\.id), ["oak_bookcase", "rattan_chair", "round_side_table", "sunrise_art"])
-        XCTAssertEqual(ShopBrowser.products(in: .furniture, filter: .premium), all,
-                       "A stale filter from another category must not hide the catalog.")
+        XCTAssertEqual(ShopBrowser.products(in: .furniture, filter: .standard), all)
+        XCTAssertTrue(ShopBrowser.products(in: .furniture, filter: .premium).isEmpty,
+                      "The design prototype must not invent premium furniture absent from Core.")
+        XCTAssertEqual(ShopBrowser.filters(for: .furniture), [.all, .floor, .wall, .standard, .premium])
     }
 
     @MainActor

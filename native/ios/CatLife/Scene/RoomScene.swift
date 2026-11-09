@@ -53,6 +53,13 @@ final class RoomScene: SKScene {
 
     var onCatTapped: (() -> Void)?
     var onResidentTapped: ((String) -> Void)?
+    var onBackgroundTapped: (() -> Void)?
+    var onVisibleResidentsChanged: ((Set<String>) -> Void)?
+    private var lastVisibleResidents: Set<String>?
+    var inspectedResidentID: String?
+    var onInspectedResidentFrameChanged: ((CGRect?) -> Void)?
+    private var inspectionFrameSampler = CatVisualFrameSampler()
+    var homeFloor: HomeFloor = .ground
     let residents = RoomResidentCats()
     var onFloorTravelAvailabilityChanged: ((Bool) -> Void)?
     private var lastFloorTravelAvailability: Bool?
@@ -71,6 +78,16 @@ final class RoomScene: SKScene {
     var canShowCatNeed: Bool {
         presentationActive && !editing && !presentationBusy && (!cat.isPerforming || residents.isStrolling)
             && !cat.isHidden && bowlPlanningRequest == nil && !residents.isPreparing
+    }
+    var canInspectResidents: Bool { canShowCatNeed && activeRest == nil && !floorTravelCareActive }
+
+    func residentFrame(id: String) -> CGRect? {
+        let actor = id == renderedCatID ? cat : residents.actors[id]
+        guard let actor, !actor.isHidden, view != nil else { return nil }
+        let frame = actor.visualFrame
+        let top = convertPoint(toView: CGPoint(x: frame.minX, y: frame.maxY))
+        let bottom = convertPoint(toView: CGPoint(x: frame.maxX, y: frame.minY))
+        return CGRect(x: min(top.x, bottom.x), y: min(top.y, bottom.y), width: abs(bottom.x - top.x), height: abs(bottom.y - top.y))
     }
     var onFurnitureSelected: ((String?) -> Void)?
     var onFurnitureMoved: ((String, NormalizedPoint) -> Void)?
@@ -253,6 +270,16 @@ final class RoomScene: SKScene {
         // not the center of its tall texture.
         cat.zPosition = 1_000 - cat.position.y
         residents.updateDepths()
+        artwork.updateCompanionMarker(cat: cat, name: latest?.activeCat.map(GameStrings.catName) ?? "",
+                                      hidden: editing || cat.isHidden, reducedMotion: reducedMotion)
+        if let onInspectedResidentFrameChanged {
+            let frame = canInspectResidents ? inspectedResidentID.flatMap { residentFrame(id: $0) } : nil
+            if inspectionFrameSampler.sample(frame, at: currentTime) { onInspectedResidentFrameChanged(frame) }
+        }
+        if !editing, bowlPlanningRequest == nil, !residents.isPreparing, !cat.isHidden, let renderedCatID {
+            let visible = Set(residents.actors.filter { !$0.value.isHidden }.keys).union([renderedCatID])
+            if visible != lastVisibleResidents { lastVisibleResidents = visible; onVisibleResidentsChanged?(visible) }
+        }
         updateBowlLayers()
         updateFurnitureLayers()
         toy.zPosition = 1_001 - toy.position.y
@@ -260,7 +287,7 @@ final class RoomScene: SKScene {
         if let onCatNeedAnchorChanged {
             // SpriteKit conversion includes camera pan, zoom and scene resize.
             let anchor = canShowCatNeed && view != nil
-                ? convertPoint(toView: CGPoint(x: frame.midX, y: frame.maxY)) : nil
+                ? convertPoint(toView: CGPoint(x: frame.midX, y: frame.maxY + 34)) : nil
             if needAnchorSampler.sample(anchor, at: currentTime) { onCatNeedAnchorChanged(anchor) }
         }
         if let onCatVisualFrameChanged {
@@ -1045,6 +1072,7 @@ final class RoomScene: SKScene {
         let fill = max(worldSize.width / proposal.artworkSize.width, worldSize.height / proposal.artworkSize.height)
         room.size = CGSize(width: proposal.artworkSize.width * fill, height: proposal.artworkSize.height * fill)
         room.position = CGPoint(x: worldSize.width / 2, y: worldSize.height / 2)
+        artwork.updateFloorAmbience(upper: homeFloor == .upper, transform: artworkTransform)
         catWidth = proposal.catWidth
         cat.setVisualWidth(catWidth)
         cat.reducedMotion = reducedMotion

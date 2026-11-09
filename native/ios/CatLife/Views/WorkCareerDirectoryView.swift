@@ -11,6 +11,7 @@ struct WorkCareerDirectoryView: View {
     @Binding var careerPage: Int
     let onSelect: (String) -> Void
     @FocusState private var careerSearchFocused: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var filteredJobs: [WorkJob] {
         CareerDirectory.matching(WorkCatalog.all, level: playerLevel, query: careerSearch, filter: careerFilter,
@@ -65,7 +66,7 @@ struct WorkCareerDirectoryView: View {
                     .foregroundStyle(RoomTheme.secondary).padding(24).frame(maxWidth: .infinity)
                     .accessibilityElement(children: .combine).accessibilityIdentifier("careerEmptyState")
                 } else {
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
                         ForEach(Array(jobs[CareerDirectory.pageRange(careerPage, count: jobs.count)])) { job in
                             careerRow(job)
                         }
@@ -108,7 +109,7 @@ struct WorkCareerDirectoryView: View {
     }
 
     private func careerRow(_ job: WorkJob) -> some View {
-        WorkCareerCard(job: job, selected: selectedJobID == job.id, unlocked: playerLevel >= job.unlockLevel) {
+        WorkCareerCard(job: job, selected: selectedJobID == job.id, unlocked: playerLevel >= job.unlockLevel, playerLevel: playerLevel) {
             careerSearchFocused = false
             onSelect(job.id)
         }

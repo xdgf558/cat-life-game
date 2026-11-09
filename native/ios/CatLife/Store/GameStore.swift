@@ -76,6 +76,12 @@ final class GameStore {
     var isFurnitureTrayExpanded = true
     var shopCategory: ShopCategory = .supplies
     var inspectedCatID: String?
+    var inspectedCatShowsGrowth = false
+    var visibleRoomCatIDs: Set<String>?
+    var sharedRoomHasLimitedSpace: Bool {
+        guard let snapshot, snapshot.home.roomLevel >= RoomResidentCats.unlockLevel, let visibleRoomCatIDs else { return false }
+        return snapshot.cats.contains { !visibleRoomCatIDs.contains($0.id) }
+    }
     var catCollectionFilter: CatCollectionView.Filter? {
         didSet { if oldValue != catCollectionFilter { syncAudio() } }
     }
@@ -616,6 +622,8 @@ final class GameStore {
         pendingWorkResultID = nil
         inspectedCatID = nil
         hospitalCatID = nil
+        inspectedCatShowsGrowth = false
+        visibleRoomCatIDs = nil
         isInspectingHealth = false
         adoptionCatID = nil
         isPresentingAdoptionConfirmation = false
@@ -897,6 +905,9 @@ final class GameStore {
     }
 
     func changeHomeFloor(to floor: HomeFloor) async {
+        guard floor != visibleHomeFloor else { return }
+        if isDecorating { showFurnitureNotice("homeFloor.finishLayout"); return }
+        if !roomFloorTravelReady { showFurnitureNotice("homeFloor.waitCare"); return }
         guard canChangeHomeFloor, floor != visibleHomeFloor,
               snapshot?.home.availableFloors.contains(floor) == true else { return }
         isChangingHomeFloor = true
@@ -914,8 +925,13 @@ final class GameStore {
         restingFurnitureID = nil
         presentedRestSessionID = nil
         feedback = nil
+        visibleRoomCatIDs = nil
         visibleHomeFloor = floor
         playNavigationSound()
+        if floor == .upper, !sharedHomeNoticeDefaults.bool(forKey: "catlife.home.upperHintSeen.v1") {
+            sharedHomeNoticeDefaults.set(true, forKey: "catlife.home.upperHintSeen.v1")
+            showFurnitureNotice("homeFloor.hint")
+        }
     }
     func openHomeUpgrade() {
         guard !isBusy, !isSavingLayout, !isResolvingLayout, placingFurnitureID == nil else { return }
@@ -1205,12 +1221,13 @@ final class GameStore {
         }
     }
 
-    func inspectCat(catID: String? = nil) {
+    func inspectCat(catID: String? = nil, showGrowth: Bool = false) {
         guard !isDecorating else { return }
         let inspected = catID.flatMap { id in snapshot?.cats.first { $0.id == id } } ?? cat
         let voice: GameSoundEffect = inspected?.healthState?.illness != nil ? .catUnwell
             : ((inspected?.satiety ?? 100) < 50 ? .catHungry : .catHappy)
         audio.play(voice, userInitiated: true)
+        inspectedCatShowsGrowth = showGrowth
         inspectedCatID = inspected?.id
     }
 

@@ -33,6 +33,10 @@ enum TownMapLayout {
 @MainActor
 struct TownMapStatus {
     let snapshot: GameSnapshot?
+    var hasNewTownActivity: Bool {
+        guard let snapshot else { return false }
+        return snapshot.community.events.todayReceipt == nil && TownEventCatalog.current(in: snapshot) != nil
+    }
     var sickCount: Int { snapshot?.cats.filter { $0.healthState?.illness != nil }.count ?? 0 }
     var availableAdoptions: [CatAdoptionOffer] {
         guard let snapshot else { return [] }
@@ -79,6 +83,7 @@ struct TownMapStatus {
     func badgeTint(for place: TownPlace) -> Color {
         if place.isFuture { return RoomTheme.lilac }
         switch place {
+        case .plaza, .board: return snapshot?.community.events.todayReceipt == nil ? RoomTheme.friendship : RoomTheme.secondary
         case .hospital: return RoomTheme.coral
         case .street: return RoomTheme.friendship
         case .work: return RoomTheme.gold

@@ -1,141 +1,189 @@
 import SwiftUI
 import CatGameCore
 
+/// The board owns navigation; a choice is only committed by the fixed confirmation button.
 @MainActor
 struct TownEventDetailView: View {
     @Bindable var store: GameStore
     let eventID: String
     let dayKey: String
-    @Environment(\.dismiss) private var dismiss
+    let showMemento: () -> Void
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var selectedChoiceID: String?
     @State private var isVisible = false
     @State private var isWorking = false
     @State private var failed = false
-    @State private var result: TownEventReceipt?
+    @State private var letter: TownEventReceipt?
+    @State private var opensEnvelope = false
     private var event: TownEventDefinition? { TownEventCatalog.event(id: eventID) }
-    private var receipt: TownEventReceipt? {
-        result ?? store.snapshot?.community.events.letters.first { $0.dayKey == dayKey && $0.eventID == eventID }
-    }
+    private var receipt: TownEventReceipt? { store.snapshot?.community.events.todayReceipt }
+    private var selectedChoice: TownEventChoice? { event?.choices.first { $0.id == selectedChoiceID } }
 
     var body: some View {
-        ScrollViewReader { proxy in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    Color.clear.frame(height: 1).id("eventTop")
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                if let event, let snapshot = store.snapshot {
+                    TownEventInvitation(event: event, date: snapshot.meta.lastSyncAt, completed: receipt != nil)
                     if let receipt {
-                        Label(GameStrings.text("townEvents.resultTitle"), systemImage: "envelope.open.fill")
-                            .font(.headline.weight(.heavy)).foregroundStyle(RoomTheme.darkMint)
-                            .accessibilityAddTraits(.isHeader)
-                        TownEventLetterView(receipt: receipt)
-                        Text(GameStrings.text("townEvents.refreshHint")).font(.caption.weight(.semibold))
-                            .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
-                    } else if let event {
-                        introduction(event)
-                        Text(GameStrings.text("townEvents.choiceHint")).font(.subheadline.weight(.bold))
-                            .foregroundStyle(RoomTheme.secondary)
+                        Button { opensEnvelope = false; letter = receipt } label: {
+                            completedRow("townEvents.letterKept", detail: GameStrings.text("townEvents.reread"), symbol: "envelope.fill")
+                        }.buttonStyle(.plain).accessibilityIdentifier("townEventTodayLetter")
+                        Button(action: showMemento) {
+                            completedRow("townEvents.memento", detail: GameStrings.format("townEvents.progress",
+                                min(snapshot.community.events.totalCompleted, TownEventCatalog.milestones[0].target),
+                                TownEventCatalog.milestones[0].target), symbol: "photo.artframe")
+                        }.buttonStyle(.plain).accessibilityIdentifier("townEventMementoProgress")
+                    } else {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(alignment: .firstTextBaseline, spacing: 6) { choiceHeading }.fixedSize()
+                            VStack(alignment: .leading, spacing: 5) { choiceHeading }
+                        }.fixedSize(horizontal: false, vertical: true)
                         if failed {
                             Label(GameStrings.text("townEvents.saveFailed"), systemImage: "exclamationmark.triangle.fill")
                                 .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.coralDeep)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .accessibilityIdentifier("townEventSaveFailed")
+                                .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("townEventSaveFailed")
                         }
-                        ForEach(event.choices) { choice in choiceCard(choice, event: event) }
-                    } else {
-                        ContentUnavailableView(GameStrings.text("townEvents.empty"), systemImage: "envelope")
+                        if dynamicTypeSize.isAccessibilitySize {
+                            VStack(spacing: 14) { ForEach(event.choices) { choiceCard($0, snapshot: snapshot) } }
+                        } else {
+                            HStack(alignment: .top, spacing: 12) { ForEach(event.choices) { choiceCard($0, snapshot: snapshot) } }
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     }
-                }
-                .padding(16).frame(maxWidth: 560).frame(maxWidth: .infinity)
+                    Text(GameStrings.text("townEvents.refreshHint")).font(.caption.weight(.semibold))
+                        .foregroundStyle(RoomTheme.secondary).fixedSize(horizontal: false, vertical: true)
+                } else { ContentUnavailableView(GameStrings.text("townEvents.empty"), systemImage: "envelope") }
+            }.padding(.horizontal, 16).padding(.top, 8).padding(.bottom, 16)
+                .frame(maxWidth: 560).frame(maxWidth: .infinity)
+        }
+        .scrollBounceBehavior(.basedOnSize).accessibilityIdentifier("townEventDetail")
+        .safeAreaInset(edge: .bottom, spacing: 0) { if receipt == nil { confirmationBar } }
+        .overlay {
+            if isWorking {
+                ZStack { RoomTheme.ink.opacity(0.3).ignoresSafeArea(); TownEventSavingView() }
+                    .accessibilityAddTraits(.isModal)
             }
-            .scrollBounceBehavior(.basedOnSize).background(RoomTheme.cream)
-            .accessibilityIdentifier("townEventDetail")
-            .onChange(of: result?.id) { _, _ in proxy.scrollTo("eventTop", anchor: .top) }
         }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            CommunityHeader(title: GameStrings.text("townEvents.detailTitle"), backTitle: "common.back",
-                            gold: store.snapshot?.player.gold ?? 0, symbol: "envelope.open.fill",
-                            backID: "townEventBackButton") { dismiss() }
+        .sheet(item: $letter) { TownEventLetterSheet(receipt: $0, opensEnvelope: opensEnvelope) }
+        .onAppear { isVisible = true }.onDisappear { isVisible = false }
+        .onChange(of: store.saveSceneGeneration) { _, _ in selectedChoiceID = nil; letter = nil; failed = false }
+        .onChange(of: store.snapshot) { _, snapshot in
+            if let choice = selectedChoice, let snapshot,
+               TownEventPresentation.failure(choice, day: dayKey, in: snapshot) != nil { selectedChoiceID = nil }
         }
-        .navigationBarBackButtonHidden(true).toolbar(.hidden, for: .navigationBar)
-        .onAppear { isVisible = true }
-        .onDisappear { isVisible = false }
-        .onChange(of: store.saveSceneGeneration) { _, _ in result = nil; failed = false; dismiss() }
     }
 
-    private func introduction(_ event: TownEventDefinition) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 12) {
-                if let neighbor = CommunityCatalog.neighbor(id: event.neighborID) {
-                    CommunityPortrait(neighbor: neighbor, size: 72)
-                }
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(TownEventPresentation.sender(event.neighborID)).font(.subheadline.weight(.heavy))
-                        .foregroundStyle(RoomTheme.secondary)
-                    Text(GameStrings.text(event.titleKey)).font(.title2.weight(.heavy))
-                        .accessibilityAddTraits(.isHeader).accessibilityIdentifier("townEventTitle")
-                }
-            }
-            Text(GameStrings.text(event.bodyKey)).font(.body.weight(.medium)).lineSpacing(5)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .padding(18).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 26)
+    @ViewBuilder private var choiceHeading: some View {
+        Text(GameStrings.text("townEvents.chooseWay")).font(.headline.weight(.heavy))
+        Text(GameStrings.text("townEvents.choiceHint")).font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.secondary)
     }
 
-    private func choiceCard(_ choice: TownEventChoice, event: TownEventDefinition) -> some View {
-        let friendship = store.snapshot?.community.relationship(for: event.neighborID).friendship ?? 0
-        let friendshipGain = min(choice.friendshipReward, max(0, 100 - friendship))
-        let failure = store.snapshot.flatMap {
-            TownEventCatalog.eligibility(eventID: event.id, choiceID: choice.id, dayKey: dayKey, in: $0)
-        }
-        return Button { participate(choice) } label: {
+    private func choiceCard(_ choice: TownEventChoice, snapshot: GameSnapshot) -> some View {
+        let failure = TownEventPresentation.failure(choice, day: dayKey, in: snapshot)
+        let selected = selectedChoiceID == choice.id && failure == nil
+        let gain = min(choice.friendshipReward, max(0, 100 - snapshot.community.relationship(for: event?.neighborID ?? "").friendship))
+        return Button {
+            if let failure {
+                store.playFeedback(.softError)
+                store.showNotice(GameActionNotice.message(for: ActionOutcome(failure: failure), snapshot: snapshot))
+            } else { selectedChoiceID = choice.id; store.playNavigationSound() }
+        } label: {
             VStack(alignment: .leading, spacing: 10) {
-                HStack(alignment: .top, spacing: 10) {
-                    Image(systemName: choice.id == "help" ? "hands.sparkles.fill" : "gift.fill")
-                        .font(.title2).foregroundStyle(RoomTheme.darkMint)
-                        .frame(width: 44, height: 44).background(RoomTheme.paleMint, in: RoundedRectangle(cornerRadius: 14))
-                        .accessibilityHidden(true)
-                    Text(GameStrings.text(choice.titleKey)).font(.headline.weight(.heavy))
-                        .frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
-                    Image(systemName: "chevron.right").font(.subheadline.weight(.heavy)).accessibilityHidden(true)
-                }
+                GameIconTile(symbol: choice.staminaCost > 0 ? "hand.thumbsup.fill" : "shippingbox.fill",
+                             tint: choice.staminaCost > 0 ? RoomTheme.darkMint : RoomTheme.gold,
+                             background: choice.staminaCost > 0 ? RoomTheme.paleMint : RoomTheme.gold.opacity(0.2), size: 42)
+                Text(GameStrings.text(choice.staminaCost > 0 ? "townEvents.helpType" : "townEvents.supplyType"))
+                    .font(.caption.weight(.heavy)).foregroundStyle(RoomTheme.secondary)
+                Text(GameStrings.text(choice.titleKey)).font(.subheadline.weight(.heavy))
+                    .fixedSize(horizontal: false, vertical: true).frame(minHeight: 38, alignment: .topLeading)
                 VStack(alignment: .leading, spacing: 4) {
-                    ForEach(TownEventPresentation.costs(choice), id: \.self) { cost in
-                        Text(GameStrings.text("townEvents.cost") + " · " + cost)
+                    Text(GameStrings.text("townEvents.cost")).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 7) { choiceCost(choice, snapshot: snapshot) }.fixedSize()
+                        VStack(alignment: .leading, spacing: 4) { choiceCost(choice, snapshot: snapshot) }
                     }
-                    Text(friendshipGain > 0 ? GameStrings.format("townEvents.friendshipGain", friendshipGain)
-                         : GameStrings.text("community.closestShort"))
-                        .foregroundStyle(RoomTheme.friendshipDeep)
-                    Text(GameStrings.text("townEvents.rewards") + " · " + TownEventPresentation.rewards(choice.rewards))
-                }
-                .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                if isWorking {
-                    Label(GameStrings.text("townEvents.working"), systemImage: "hourglass")
-                        .font(.caption.weight(.heavy)).foregroundStyle(RoomTheme.darkMint)
-                } else if let failure {
-                    Text(GameActionNotice.message(for: ActionOutcome(failure: failure), snapshot: store.snapshot))
-                        .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.coralDeep)
-                        .fixedSize(horizontal: false, vertical: true)
+                }.foregroundStyle(failure == nil ? RoomTheme.ink : RoomTheme.coralDeep)
+                    .padding(8).frame(maxWidth: .infinity, alignment: .leading).background(RoomTheme.cream, in: RoundedRectangle(cornerRadius: 13))
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 4) { choiceRewards(choice, gain: gain) }.fixedSize()
+                    VStack(alignment: .leading, spacing: 6) { choiceRewards(choice, gain: gain) }
+                }.font(.caption2.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
+                if let failure {
+                    Text(GameActionNotice.message(for: ActionOutcome(failure: failure), snapshot: snapshot))
+                        .font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.coralDeep).fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(16).frame(maxWidth: .infinity, minHeight: 100, alignment: .leading)
-            .gameCard(cornerRadius: 24)
-            .overlay(RoundedRectangle(cornerRadius: 24).strokeBorder(RoomTheme.mint.opacity(0.3), lineWidth: 2))
-            .opacity(failure == nil ? 1 : 0.65)
-            .contentShape(RoundedRectangle(cornerRadius: 24))
+            .padding(12).padding(.top, 6).frame(maxWidth: .infinity, minHeight: 220,
+                maxHeight: dynamicTypeSize.isAccessibilitySize ? nil : .infinity, alignment: .topLeading)
+            .gameCard(cornerRadius: 25)
+            .overlay(RoundedRectangle(cornerRadius: 25).strokeBorder(selected ? RoomTheme.mint : .clear, lineWidth: 3))
+            .overlay(alignment: .topTrailing) {
+                if selected {
+                    Image(systemName: "checkmark.circle.fill").foregroundStyle(RoomTheme.mint, RoomTheme.paper)
+                        .font(.title3).padding(9).accessibilityHidden(true)
+                } else if choice.friendshipReward == event?.choices.map(\.friendshipReward).max(), choice.staminaCost == 0 {
+                    Text(GameStrings.text("townEvents.moreFriendship")).font(.caption2.weight(.heavy)).foregroundStyle(.white)
+                        .padding(.horizontal, 8).padding(.vertical, 4).background(RoomTheme.friendship, in: Capsule())
+                        .overlay(Capsule().strokeBorder(.white, lineWidth: 2)).offset(y: -8).padding(.trailing, 9)
+                }
+            }.opacity(failure == nil ? 1 : 0.6).contentShape(RoundedRectangle(cornerRadius: 25))
         }
-        .buttonStyle(.plain).disabled(isWorking || store.isBusy || failure != nil || store.snapshot == nil)
+        .buttonStyle(.plain).disabled(isWorking || store.isBusy)
         .accessibilityElement(children: .combine).accessibilityIdentifier("townEventChoice_\(choice.id)")
+        .accessibilityAddTraits(selected ? .isSelected : [])
+        .accessibilityValue(failure == nil ? GameStrings.text(selected ? "townEvents.selected" : "townEvents.notSelected")
+                            : GameStrings.text("townEvents.choiceUnavailable"))
     }
 
-    private func participate(_ choice: TownEventChoice) {
-        guard !isWorking, !store.isBusy else { return }
+    @ViewBuilder private func choiceCost(_ choice: TownEventChoice, snapshot: GameSnapshot) -> some View {
+        Text(TownEventPresentation.costs(choice).joined(separator: " · ")).font(.caption.weight(.heavy))
+        Text(TownEventPresentation.available(choice, in: snapshot)).font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+    }
+
+    @ViewBuilder private func choiceRewards(_ choice: TownEventChoice, gain: Int) -> some View {
+        Label(gain > 0 ? GameStrings.format("townEvents.friendshipGain", gain) : GameStrings.text("community.closestShort"), systemImage: "heart.fill")
+            .foregroundStyle(RoomTheme.friendshipDeep).padding(6).background(RoomTheme.friendshipPaper, in: Capsule())
+        Text(TownEventPresentation.rewards(choice.rewards)).foregroundStyle(RoomTheme.ink)
+            .padding(6).background(RoomTheme.gold.opacity(0.2), in: Capsule())
+    }
+
+    private var confirmationBar: some View {
+        Button { participate() } label: {
+            Label(selectedChoice.map { GameStrings.format("townEvents.confirmChoice", GameStrings.text($0.titleKey)) }
+                  ?? GameStrings.text("townEvents.selectFirst"), systemImage: "paperplane.fill")
+                .font(.headline.weight(.heavy)).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
+        }
+        .buttonStyle(MintButtonStyle())
+        .disabled(isWorking || store.isBusy || selectedChoice == nil || store.snapshot == nil)
+        .padding(16).background(RoomTheme.cream).accessibilityIdentifier("townEventConfirmButton")
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+    }
+
+    private func completedRow(_ key: String, detail: String, symbol: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).font(.title3).foregroundStyle(RoomTheme.darkMint)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(GameStrings.text(key)).font(.subheadline.weight(.heavy))
+                Text(detail).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+            }.fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0); Image(systemName: "chevron.right").font(.caption.weight(.heavy))
+        }.padding(16).frame(maxWidth: .infinity, minHeight: 72).gameCard(cornerRadius: 22)
+    }
+
+    private func participate() {
+        guard !isWorking, !store.isBusy, let choice = selectedChoice, let snapshot = store.snapshot else { return }
+        if let failure = TownEventPresentation.failure(choice, day: dayKey, in: snapshot) {
+            store.showNotice(GameActionNotice.message(for: ActionOutcome(failure: failure), snapshot: snapshot)); selectedChoiceID = nil
+            return
+        }
         isWorking = true; failed = false
         let generation = store.saveSceneGeneration
         Task {
             let saved = await store.resolveTownEvent(eventID: eventID, choiceID: choice.id, dayKey: dayKey) { receipt in
                 guard isVisible, scenePhase == .active, store.activeSheet == .town, store.isShowingTownBoard,
                       store.saveSceneGeneration == generation, receipt.eventID == eventID, receipt.dayKey == dayKey else { return false }
-                result = receipt
+                opensEnvelope = true; letter = receipt
                 return true
             }
             isWorking = false

@@ -2,6 +2,46 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testSharedHomeDirectoryFloorTabsAndGrowthEntryDoNotSpendSupplies() throws {
+        let app = try launchSharedHome(upperFloorUnlocked: true)
+        tapAnimationControl("homeMyCatsButton", in: app)
+        waitForElement("sharedHomeDirectory", in: app)
+        attachScreenshot(app, named: "Handoff H4 — my cats drawer uses real resident locations")
+        scrollCareerPage("sharedHomeDirectory", to: "sharedHomeSelect_cat_005", in: app)
+        tapAnimationControl("sharedHomeSelect_cat_005", in: app)
+        _ = try waitForSharedHome(in: app, description: "drawer selects the silver companion") {
+            $0.activeCatID == "cat_005" && $0.phase == "idle" && !$0.residentsBusy
+        }
+        waitForObservedValue("homeCatName", "霜糖", in: app)
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        let upstairs = try waitForSharedHome(in: app, description: "floor tabs carry the selected cat upstairs") {
+            $0.activeCatID == "cat_005" && $0.phase == "idle" && !$0.residentsBusy && $0.visibleCount == 5
+        }
+        assertAllSharedResidents(upstairs)
+        attachScreenshot(app, named: "Handoff H5 — floor selector and upstairs wallpaper preserve the room geometry")
+        let resident = try XCTUnwrap(upstairs.residentCats.first { $0.id == "cat_002" })
+        element("roomScene", in: app).coordinate(withNormalizedOffset: CGVector(dx: resident.x, dy: resident.y)).tap()
+        waitForObservedValue("roomResidentPreview", "cat_002", in: app)
+        tapAnimationControl("roomResidentGrowthButton", in: app)
+        waitForObservedValue("catGrowthScroll", "cat_002", in: app)
+        let switcher = element("catGrowthSwitcher", in: app)
+        let silver = element("catGrowthSwitch_cat_005", in: app)
+        for _ in 0..<3 {
+            if switcher.frame.contains(silver.frame) && silver.isHittable { break }
+            switcher.swipeLeft()
+        }
+        XCTAssertTrue(switcher.frame.contains(silver.frame), "Reveal the actual horizontal pill before tapping it.")
+        tapAnimationControl("catGrowthSwitch_cat_005", in: app)
+        waitForObservedValue("catGrowthScroll", "cat_005", in: app)
+        attachScreenshot(app, named: "Handoff G — adopted-cat switcher opens growth without selecting a companion")
+        scrollCareerPage("catGrowthScroll", to: "catGrowthGoHome", in: app)
+        tapAnimationControl("catGrowthGoHome", in: app)
+        waitForObservedValue("homeCatName", "霜糖", in: app)
+        waitForObservedValue("foodCount", "12", in: app); waitForObservedValue("goldCount", "27,000", in: app)
+    }
+
+    @MainActor
     func testLevelFourResidentsCanSelectCompanionAndEatWithoutDuplicateCosts() throws {
         let app = try launchSharedHome()
         waitForObservedValue("foodCount", "12", in: app)
@@ -103,11 +143,9 @@ extension RoomHomeUITests {
         XCTAssertTrue((0...1).contains(resident.x) && (0...1).contains(resident.y))
         element("roomScene", in: app)
             .coordinate(withNormalizedOffset: CGVector(dx: resident.x, dy: resident.y)).tap()
-        waitForObservedValue("catProfileScroll", id, in: app)
-        scrollCareerPage("catProfileScroll", to: "catCompanionButton", in: app)
-        tapAnimationControl("catCompanionButton", in: app)
-        waitForObservedValue("catCompanionButton", "active", in: app)
-        tapAnimationControl("closeSheetButton", in: app)
+        waitForObservedValue("roomResidentPreview", id, in: app)
+        attachScreenshot(app, named: "Shared home — native resident preview above the tapped cat")
+        tapAnimationControl("roomResidentCompanionButton", in: app)
         let selected = try waitForSharedHome(in: app, description: "selected resident becomes the care companion") {
             $0.activeCatID == id && $0.phase == "idle" && !$0.residentsBusy && $0.visibleCount == 5
         }

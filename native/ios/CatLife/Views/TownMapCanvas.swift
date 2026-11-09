@@ -24,8 +24,9 @@ struct TownMapCanvas: View {
                 let frame = TownMapLayout.frame(for: place)
                 TownPlot(place: place, selected: selected == place,
                          inLayer: layer == .all || place.layer == layer || place.isEmpty,
-                         badge: status.badge(for: place, now: now), badgeTint: status.badgeTint(for: place),
-                         animates: animates) { choose(place) }
+                          badge: status.badge(for: place, now: now), badgeTint: status.badgeTint(for: place),
+                          showsActivityDot: (place == .board || place == .plaza) && status.hasNewTownActivity,
+                          animates: animates) { choose(place) }
                     .position(x: frame.midX, y: frame.midY)
                     .zIndex(selected == place ? 3 : place == .home ? 2 : 1)
                     .accessibilitySortPriority(Double(TownMapLayout.readingOrder.count - (TownMapLayout.readingOrder.firstIndex(of: place) ?? 0)))

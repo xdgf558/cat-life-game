@@ -19,11 +19,11 @@ struct CatVisualFrameSampler {
 }
 
 enum RoomCatStatusLayout {
-    static func frame(in size: CGSize, compact: Bool, guideVisible: Bool = false) -> CGRect {
+    static func frame(in size: CGSize, compact: Bool, guideVisible: Bool = false, sharedControls: Bool = false) -> CGRect {
         if compact {
             // The home plaque and 44-point daily-goal entry occupy the first
             // 122 points. Keep the compact cat card below both touch targets.
-            return CGRect(x: 14, y: guideVisible ? 186 : 134, width: min(260, max(160, size.width - 130)), height: 64)
+            return CGRect(x: 14, y: (guideVisible ? 186 : 134) + (sharedControls ? 88 : 0), width: min(260, max(160, size.width - 130)), height: 72)
         }
         return CGRect(x: 14, y: max(0, size.height - 172), width: max(180, size.width - 116), height: 154)
     }
@@ -49,7 +49,9 @@ struct RoomCatStatusCard: View {
             let compact = RoomCatStatusLayout.shouldCompact(catFrame: presentation.catFrame,
                 fullCard: full.offsetBy(dx: origin.x, dy: origin.y), wasCompact: wasCompact)
             let rect = RoomCatStatusLayout.frame(in: geometry.size, compact: compact,
-                guideVisible: store.onboarding.isActive && !store.onboarding.isPresented)
+                guideVisible: store.onboarding.isActive && !store.onboarding.isPresented,
+                sharedControls: (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2)
+                .offsetBy(dx: 0, dy: compact && store.sharedRoomHasLimitedSpace ? 68 : 0)
             VStack(spacing: compact ? 0 : 12) {
                 identity(compact: compact)
                 if !compact {
@@ -94,10 +96,11 @@ struct RoomCatStatusCard: View {
             .buttonStyle(.plain).accessibilityLabel(GameStrings.text("catProfile.title"))
             .accessibilityIdentifier("homeCatProfileButton")
             VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: store.cat.map(GameStrings.catName) ?? "")
-                    .font(.system(size: compact ? 16 : 20, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
+                Text(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
+                    .font(.system(size: compact ? 14 : 18, weight: .heavy)).lineLimit(2).minimumScaleFactor(0.8)
                     .accessibilityIdentifier("homeCatName")
                     .accessibilityValue(Text(verbatim: store.cat.map(GameStrings.catName) ?? ""))
+                    .accessibilityHint(GameStrings.text("room.switchHint"))
                 Text(store.catStatus).font(.system(size: 12, weight: .bold))
                     .foregroundStyle(store.cat?.healthState?.illness != nil || (store.cat?.satiety ?? 100) < 50
                                      ? RoomTheme.coral : RoomTheme.secondary)

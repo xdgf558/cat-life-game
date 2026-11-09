@@ -1059,4 +1059,5 @@ extension GameStrings {
         "action.full": "猫咪已经吃饱啦。", "accessibility.cat": "猫咪，点击查看档案",
         "accessibility.decorate": "布置房间，选择并移动家具和食盆", "accessibility.food": "猫粮库存",
     ].merging(careers57Chinese) { _, new in new }.merging(design55Chinese) { _, new in new }.merging(marketDesign55Chinese) { _, new in new }.merging(supplyDesign55Chinese) { _, new in new }.merging(shopDesign55Chinese) { _, new in new }.merging(marketChinese) { _, new in new }.merging(furniture54Chinese) { _, new in new }.merging(suppliesChinese) { _, new in new }.merging(catGrowth57Chinese) { _, new in new }.merging(shopBrowseChinese) { _, new in new }.merging(homeExpansion58Chinese) { _, new in new }.merging(homeInventory58Chinese) { _, new in new }.merging(townMap58Chinese) { _, new in new }.merging(townMusic58Chinese) { _, new in new }.merging(sharedHome59Chinese) { _, new in new }.merging(townEvents60Chinese) { _, new in new }
+        .merging(handoff61Chinese) { _, new in new }
 }

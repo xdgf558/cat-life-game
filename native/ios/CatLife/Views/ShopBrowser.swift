@@ -8,7 +8,7 @@ enum ShopBrowser {
     static func filters(for category: ShopCategory) -> [Filter] {
         switch category {
         case .supplies: [.all, .standard, .premium]
-        case .furniture: [.all, .floor, .wall]
+        case .furniture: [.all, .floor, .wall, .standard, .premium]
         case .equipment: []
         }
     }
@@ -29,8 +29,10 @@ enum ShopBrowser {
             }
             return filter == .premium ? premium : filter == .standard ? standard : premium + standard
         case .furniture:
+            // The shipped catalog has no premium tier; do not invent products or price-based rarity.
+            if filter == .premium { return [] }
             let matching = products.filter { product in
-                guard filter != .all else { return true }
+                guard filter == .floor || filter == .wall else { return true }
                 guard let offer = ShopCatalog.furnitureOffer(id: product.id) else { return false }
                 return FurnitureCatalog.metadata(for: offer.kind).isWall == (filter == .wall)
             }

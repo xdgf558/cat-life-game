@@ -6,9 +6,11 @@ enum RoomStairLandingLayout {
     static let topInset: CGFloat = 240
     static let trailingInset: CGFloat = 12
 
-    static func frame(size: CGSize, canvas: CGSize) -> CGRect {
+    static func frame(size: CGSize, canvas: CGSize, floor: HomeFloor = .ground) -> CGRect {
         guard size.width > 0, size.height > 0 else { return .zero }
-        return CGRect(x: canvas.width - trailingInset - size.width, y: topInset,
+        let compact = canvas.height < 700
+        return CGRect(x: floor == .upper ? trailingInset : canvas.width - trailingInset - size.width,
+                      y: floor == .upper ? (compact ? 326 : 368) : (compact ? topInset : 284),
                       width: size.width, height: size.height)
     }
 }
@@ -18,10 +20,17 @@ struct RoomSceneHost: View {
     let store: GameStore
     let isActive: Bool
     let reducedMotion: Bool
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var scene = RoomScene(size: CGSize(width: 390, height: 480))
+    @State private var attachedGeneration: UUID?
     @State private var arrangementFrame: CGRect?
     @State private var canTravelFloors = false
     @State private var stairSize = CGSize.zero
+    @State private var previewCatID: String?
+    @State private var previewFrame: CGRect?
+    @State private var previewHeight: CGFloat = 200
+    @State private var accessibleGrowthID: String?
+    @State private var isSavingGrowth = false
     let catNeedPresentation: CatNeedPresentation
     var arrangementBottomInset: CGFloat = 0
     #if DEBUG
@@ -60,12 +69,15 @@ struct RoomSceneHost: View {
         reducedMotion
         #endif
     }
+    private var ownsPresentation: Bool {
+        attachedGeneration == store.saveSceneGeneration && scene.homeFloor == store.visibleHomeFloor
+    }
 
     var body: some View {
         GeometryReader { geometry in
-            let showsStairs = isActive && store.snapshot?.home.availableFloors.count == 2
-            let stairFrame = showsStairs ? RoomStairLandingLayout.frame(size: stairSize, canvas: geometry.size) : .zero
-            let canvas = NativeRoomCanvas(scene: scene, isActive: isActive, canvasSize: geometry.size)
+            let showsStairs = isActive && ownsPresentation && store.snapshot?.home.availableFloors.count == 2
+            let stairFrame = showsStairs ? RoomStairLandingLayout.frame(size: stairSize, canvas: geometry.size, floor: store.visibleHomeFloor) : .zero
+            let canvas = NativeRoomCanvas(scene: scene, isActive: isActive && ownsPresentation, canvasSize: geometry.size)
                 .allowsHitTesting(!store.isSavingLayout && !store.isChangingHomeFloor)
                 .onAppear {
                     scene.scaleMode = .resizeFill
@@ -81,6 +93,7 @@ struct RoomSceneHost: View {
                     animationPhase = scene.presentationPhase
                     #endif
                     let generation = store.saveSceneGeneration
+                    attachedGeneration = generation
                     let sourceFloor = store.visibleHomeFloor
                     let acceptsSceneUpdates = {
                         store.saveSceneGeneration == generation && store.visibleHomeFloor == sourceFloor
@@ -88,20 +101,33 @@ struct RoomSceneHost: View {
                     }
                     scene.onPlacementPendingChanged = { if acceptsSceneUpdates() { store.setLayoutResolving($0) } }
                     scene.reducedMotion = effectiveReducedMotion
-                    scene.onCatTapped = { if acceptsSceneUpdates() { store.inspectCat() } }
-                    scene.onResidentTapped = { if acceptsSceneUpdates() { store.inspectCat(catID: $0) } }
+                    scene.homeFloor = sourceFloor
+                    scene.onCatTapped = { if acceptsSceneUpdates(), let id = store.cat?.id { inspectResident(id) } }
+                    scene.onResidentTapped = { if acceptsSceneUpdates() { inspectResident($0) } }
+                    scene.onBackgroundTapped = { closePreview() }
+                    scene.onVisibleResidentsChanged = { if acceptsSceneUpdates() { store.visibleRoomCatIDs = $0 } }
+                    scene.onInspectedResidentFrameChanged = { frame in
+                        guard acceptsSceneUpdates() else { return }
+                        previewFrame = frame
+                        if frame == nil { closePreview() }
+                    }
                     scene.onFloorTravelAvailabilityChanged = {
                         guard acceptsSceneUpdates() else { return }
                         canTravelFloors = $0
                         store.roomFloorTravelReady = $0
                     }
                     let presentation = catNeedPresentation
+                    presentation.focusRoom = { [weak roomScene = scene] in roomScene?.resetCamera() }
                     presentation.canvasOrigin = geometry.frame(in: .global).origin
-                    scene.onCatNeedAnchorChanged = { [weak presentation] point in presentation?.anchor = point }
-                    scene.onCatVisualFrameChanged = { [weak presentation] frame in presentation?.localCatFrame = frame }
+                    scene.onCatNeedAnchorChanged = { [weak presentation] point in
+                        if acceptsSceneUpdates() { presentation?.anchor = point }
+                    }
+                    scene.onCatVisualFrameChanged = { [weak presentation] frame in
+                        if acceptsSceneUpdates() { presentation?.localCatFrame = frame }
+                    }
                     scene.onArrangementFrameChanged = { arrangementFrame = $0 }
                     scene.onSound = { store.playSceneSound($0) }
-                    scene.onBowlTapped = { store.feed() }
+                    scene.onBowlTapped = { if acceptsSceneUpdates() { store.feed() } }
                     scene.onBowlMoved = { if acceptsSceneUpdates() { store.moveBowl(to: $0) } }
                     scene.onFurnitureSelected = { if acceptsSceneUpdates() { store.selectFurniture(id: $0) } }
                     scene.onFurnitureMoved = { if acceptsSceneUpdates() { store.moveFurniture(id: $0, to: $1) } }
@@ -122,9 +148,10 @@ struct RoomSceneHost: View {
                 }
                 .onChange(of: isActive) { _, active in
                     scene.setPresentationActive(active)
+                    if active && ownsPresentation { catNeedPresentation.focusRoom = { [weak roomScene = scene] in roomScene?.resetCamera() } }
                     if !active {
-                        catNeedPresentation.anchor = nil
-                        catNeedPresentation.localCatFrame = nil
+                        closePreview()
+                        if ownsPresentation { catNeedPresentation.anchor = nil; catNeedPresentation.localCatFrame = nil }
                         arrangementFrame = nil
                         scene.cancelPlacementPreview()
                     }
@@ -135,15 +162,25 @@ struct RoomSceneHost: View {
                     scene.onCatVisualFrameChanged = nil
                     scene.onArrangementFrameChanged = nil
                     scene.onFloorTravelAvailabilityChanged = nil
+                    scene.onBackgroundTapped = nil
+                    scene.onVisibleResidentsChanged = nil
+                    scene.onInspectedResidentFrameChanged = nil
+                    closePreview()
                     arrangementFrame = nil
-                    catNeedPresentation.anchor = nil
-                    catNeedPresentation.localCatFrame = nil
+                    // A departing floor must not clear the new scene's sampled HUD anchors.
+                    if ownsPresentation {
+                        catNeedPresentation.anchor = nil; catNeedPresentation.localCatFrame = nil
+                        catNeedPresentation.focusRoom = nil
+                    }
                     scene.cancelPlacementPreview()
                 }
                 .onChange(of: geometry.size) { _, size in scene.size = size }
-                .onChange(of: geometry.frame(in: .global).origin) { _, origin in catNeedPresentation.canvasOrigin = origin }
+                .onChange(of: geometry.frame(in: .global).origin) { _, origin in
+                    if ownsPresentation { catNeedPresentation.canvasOrigin = origin }
+                }
                 .onChange(of: effectiveReducedMotion) { _, value in scene.reducedMotion = value }
                 .onChange(of: store.sceneSnapshot) { _, _ in refreshScene() }
+                .onChange(of: store.cat?.id) { _, _ in closePreview() }
                 .onChange(of: store.isDecorating) { _, _ in refreshScene() }
                 .onChange(of: store.selectedFurnitureID) { _, _ in refreshScene() }
                 .onChange(of: store.placingFurnitureID) { _, _ in refreshScene() }
@@ -154,7 +191,7 @@ struct RoomSceneHost: View {
             ZStack {
                 canvas.accessibilityHidden(true)
                 // Keep only the active SwiftUI surface in the accessibility tree.
-                if isActive { accessibleRoom }
+                 if isActive && ownsPresentation { accessibleRoom }
             }
             #if DEBUG
             .overlay {
@@ -171,7 +208,7 @@ struct RoomSceneHost: View {
             #endif
             .overlay {
                 CatNeedBubble(store: store, presentation: catNeedPresentation,
-                              canvasSize: geometry.size, isActive: isActive,
+                              canvasSize: geometry.size, isActive: isActive && ownsPresentation && previewCatID == nil,
                               canAct: { scene.canShowCatNeed }, avoidingFrame: stairFrame)
             }
             .overlay {
@@ -181,7 +218,8 @@ struct RoomSceneHost: View {
                 }
             }
             .overlay(alignment: .topLeading) {
-                if isActive, (store.snapshot?.home.roomLevel ?? 1) > 1, !store.isDecorating {
+                if isActive, (store.snapshot?.home.roomLevel ?? 1) > 1, !store.isDecorating,
+                   (store.snapshot?.cats.count ?? 0) <= 1, store.snapshot?.home.availableFloors.count != 2 {
                     Button { scene.resetCamera() } label: {
                         Label(GameStrings.text("homeUpgrade.focusCat"), systemImage: "scope")
                             .font(.caption.weight(.semibold))
@@ -194,7 +232,7 @@ struct RoomSceneHost: View {
                     .padding(.leading, 12).padding(.top, 240)
                 }
             }
-            .overlay(alignment: .topTrailing) {
+            .overlay(alignment: .topLeading) {
                 if showsStairs {
                     HomeStairLanding(store: store, roomReady: canTravelFloors)
                         .background {
@@ -203,11 +241,65 @@ struct RoomSceneHost: View {
                                     .onChange(of: landing.size) { _, size in stairSize = size }
                             }.allowsHitTesting(false)
                         }
-                        .padding(.trailing, RoomStairLandingLayout.trailingInset)
-                        .padding(.top, RoomStairLandingLayout.topInset)
+                        .position(x: stairFrame.midX, y: stairFrame.midY)
+                }
+            }
+            .overlay {
+                if isActive, !dynamicTypeSize.isAccessibilitySize, let id = previewCatID, let frame = previewFrame,
+                   let cat = store.snapshot?.cats.first(where: { $0.id == id }) {
+                    RoomResidentPreviewCard(store: store, cat: cat, close: closePreview)
+                        .frame(width: min(230, max(200, geometry.size.width - 40)))
+                        .background {
+                            GeometryReader { card in
+                                Color.clear.onAppear { previewHeight = card.size.height }
+                                    .onChange(of: card.size.height) { _, value in previewHeight = value }
+                            }.allowsHitTesting(false)
+                        }
+                        .position(x: min(geometry.size.width - 125, max(125, frame.midX)),
+                                  y: min(geometry.size.height - previewHeight / 2 - 14,
+                                         max(190 + previewHeight / 2, frame.minY - previewHeight / 2 - 12)))
                 }
             }
         }
+        .sheet(isPresented: Binding(get: { dynamicTypeSize.isAccessibilitySize && previewCatID != nil },
+                                    set: { if !$0 { closePreview() } })) {
+            if let cat = store.snapshot?.cats.first(where: { $0.id == previewCatID }) {
+                NavigationStack {
+                    Group {
+                        if let id = accessibleGrowthID {
+                            CatGrowthView(store: store, catID: id, isSaving: $isSavingGrowth, home: closePreview)
+                        } else {
+                            ScrollView {
+                                RoomResidentPreviewCard(store: store, cat: cat, close: closePreview,
+                                    openGrowth: { accessibleGrowthID = cat.id }).padding(20)
+                            }
+                        }
+                    }.toolbar {
+                        if accessibleGrowthID != nil {
+                            ToolbarItem(placement: .topBarLeading) {
+                                Button(GameStrings.text("common.back")) { accessibleGrowthID = nil }.disabled(isSavingGrowth)
+                            }
+                        }
+                    }
+                }.presentationBackground(RoomTheme.cream).presentationDetents([.large]).presentationDragIndicator(.visible)
+                    .interactiveDismissDisabled(store.isBusy || isSavingGrowth)
+            }
+        }
+    }
+
+    private func inspectResident(_ id: String) {
+        guard scene.canInspectResidents, !store.isBusy, !store.isDecorating,
+              let frame = scene.residentFrame(id: id) else { return }
+        previewCatID = id; previewFrame = frame
+        scene.inspectedResidentID = id
+        catNeedPresentation.isInspectingResident = true
+    }
+
+    private func closePreview() {
+        previewCatID = nil; previewFrame = nil
+        scene.inspectedResidentID = nil
+        accessibleGrowthID = nil
+        if ownsPresentation { catNeedPresentation.isInspectingResident = false }
     }
 
     private var accessibleRoom: some View {
@@ -229,7 +321,7 @@ struct RoomSceneHost: View {
                 if (store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel {
                     ForEach(store.snapshot?.cats ?? []) { cat in
                         Button(GameStrings.format("room.inspectResident", GameStrings.catName(cat))) {
-                            store.inspectCat(catID: cat.id)
+                            store.inspectCat(catID: cat.id, showGrowth: true)
                         }
                     }
                 }
@@ -249,6 +341,7 @@ struct RoomSceneHost: View {
     }
 
     private func refreshScene() {
+        guard ownsPresentation else { return }
         if let value = store.sceneSnapshot {
             scene.apply(snapshot: value, editing: store.isDecorating,
                         selectedFurnitureID: store.selectedFurnitureID,

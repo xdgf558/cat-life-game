@@ -62,7 +62,7 @@ struct RoomHomeView: View {
             townLayer = .all
         }
         .sheet(isPresented: catSheetVisible) {
-            CatCollectionView(store: store, initialCatID: store.inspectedCatID)
+            CatCollectionView(store: store, initialCatID: store.inspectedCatID, initialGrowth: store.inspectedCatShowsGrowth)
         }
         .sheet(isPresented: Binding(get: { store.supplyPicker != nil }, set: { if !$0 { store.supplyPicker = nil } })) {
             if let kind = store.supplyPicker {
@@ -244,6 +244,9 @@ struct RoomHomeView: View {
                           reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
                           arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
                 .id("\(store.saveSceneGeneration)-\(store.visibleHomeFloor.rawValue)")
+                .transition(reduceMotion ? .opacity : .asymmetric(
+                    insertion: .move(edge: store.visibleHomeFloor == .upper ? .bottom : .top).combined(with: .opacity),
+                    removal: .opacity))
                 .ignoresSafeArea(.container, edges: .top)
             RoomHomeHUD(store: store, catNeedPresentation: catNeedPresentation)
             if store.isDecorating {
@@ -251,6 +254,7 @@ struct RoomHomeView: View {
                     .onPreferenceChange(ArrangementPanelHeightKey.self) { arrangementPanelHeight = $0 }
             }
         }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: store.visibleHomeFloor)
     }
 }
 
