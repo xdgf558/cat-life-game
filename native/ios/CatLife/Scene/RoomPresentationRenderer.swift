@@ -6,7 +6,7 @@ import CatGameCore
 final class RoomPresentationRenderer {
     let root = SKNode()
     let camera = RoomViewCamera()
-    private let backdrop = SKSpriteNode(color: UIColor(red: 0.91, green: 0.94, blue: 0.86, alpha: 1), size: .zero)
+    private let backdrop = SKSpriteNode(color: UIColor(red: 0.97, green: 0.93, blue: 0.84, alpha: 1), size: .zero)
     private let content = SKNode()
     private let shell = RoomShellArtwork()
     private var mirrors: [String: RoomNodeMirror] = [:]
@@ -25,6 +25,16 @@ final class RoomPresentationRenderer {
         root.name = "room-presentation"
         root.zPosition = 100_000
         backdrop.zPosition = -1_000
+        // Opaque stage paper also hides the simulation-only nodes beneath this renderer.
+        let paper = UIGraphicsImageRenderer(size: CGSize(width: 256, height: 256)).image { context in
+            let colors = [UIColor(red: 1, green: 0.98, blue: 0.92, alpha: 1).cgColor,
+                          UIColor(red: 0.96, green: 0.91, blue: 0.80, alpha: 1).cgColor] as CFArray
+            if let gradient = CGGradient(colorsSpace: CGColorSpaceCreateDeviceRGB(), colors: colors, locations: [0, 1]) {
+                context.cgContext.drawRadialGradient(gradient, startCenter: CGPoint(x: 128, y: 128), startRadius: 0,
+                    endCenter: CGPoint(x: 128, y: 128), endRadius: 190, options: [.drawsAfterEndLocation])
+            }
+        }
+        backdrop.texture = SKTexture(image: paper)
         root.addChild(backdrop)
         root.addChild(content)
         content.addChild(shell)

@@ -18,7 +18,7 @@ extension RoomHomeUITests {
         XCTAssertTrue(app.staticTexts["这一层已满，二楼还有 24 个家具位置。"].exists)
         attachScreenshot(app, named: "Purchase — downstairs full offers free upstairs space")
         tapAnimationControl("shopDecoratePurchaseButton", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        XCTAssertFalse(element("homeFloor_ground", in: app).exists, "Floor travel is unavailable while arranging the purchase.")
         waitForLabel("selectedFurnitureName", "橡木矮书架", in: app, contains: true)
         let stored = element("layoutStored_shop_oak_bookcase_1", in: app)
         XCTAssertTrue(stored.isSelected)
@@ -30,8 +30,8 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Purchase — upstairs tray focuses new furniture")
         tapAnimationControl("layoutCancelButton", in: app)
         _ = waitForFurniture(in: app, description: "cancel upstairs purchase draft") { $0.phase == "idle" && !$0.pending }
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "1F · 一楼", in: app)
+        tapAnimationControl("homeFloor_ground", in: app)
+        waitForHomeFloor("ground", in: app)
         let ground = waitForFurniture(in: app, description: "original full downstairs preserved") { $0.phase == "idle" && !$0.pending }
         XCTAssertEqual(ground.items.count, 24)
     }
@@ -43,7 +43,7 @@ extension RoomHomeUITests {
         app.launchArguments = arguments(reset: true) + ["--home-floors-fixture", "--furniture-test"]
         launchAndEnterHome(app)
         _ = waitForFurniture(in: app, description: "expanded room ready") { $0.phase == "idle" && !$0.pending }
-        XCTAssertFalse(element("homeStairsButton", in: app).exists)
+        XCTAssertFalse(element("homeFloor_upper", in: app).exists)
         tapAnimationControl("decorateButton", in: app)
         tapAnimationControl("homeUpgradeButton", in: app)
         scrollCareerPage("homeUpgradeScroll", to: "homeUpgradeAction", in: app)
@@ -53,12 +53,12 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Home 58 — level 6 opens upstairs")
         tapAnimationControl("homeUpgradeCelebrationDone", in: app)
         tapAnimationControl("layoutCancelButton", in: app)
-        waitForElement("homeStairsButton", in: app)
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        waitForElement("homeFloor_upper", in: app)
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForHomeFloor("upper", in: app)
         _ = waitForFurniture(in: app, description: "upstairs ready") { $0.phase == "idle" && !$0.pending }
         let needBubble = element("catNeedBubble", in: app)
-        let stairs = element("homeStairsButton", in: app)
+        let stairs = element("homeFloor_upper", in: app)
         let separated = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
             needBubble.exists && stairs.exists && needBubble.isHittable && stairs.isHittable
                 && needBubble.frame.width > 0 && needBubble.frame.height > 0
@@ -68,9 +68,8 @@ extension RoomHomeUITests {
                        "The visible cat need bubble must stay clear of the stair button. Bubble: \(needBubble.frame), stairs: \(stairs.frame)")
         attachScreenshot(app, named: "Home 58 — separate empty upstairs and stair landing")
         tapAnimationControl("decorateButton", in: app)
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
-        XCTAssertTrue(app.staticTexts["先完成或取消当前楼层的布置，再使用楼梯。"].firstMatch.exists)
+        XCTAssertFalse(element("homeFloor_ground", in: app).exists, "Floor travel must leave the accessibility tree while a layout draft is open.")
+        XCTAssertFalse(element("homeFloor_upper", in: app).exists)
         tapAnimationControl("layoutStored_upstairsPlant", in: app)
         _ = waitForFurniture(in: app, description: "upstairs plant placed") { !$0.pending && $0.items.contains { $0.id == "upstairsPlant" } }
         tapAnimationControl("layoutDoneButton", in: app)
@@ -82,14 +81,14 @@ extension RoomHomeUITests {
         }
         XCTAssertEqual(fed.foodContactViolations, 0)
         XCTAssertEqual(fed.violations, 0)
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "1F · 一楼", in: app)
+        tapAnimationControl("homeFloor_ground", in: app)
+        waitForHomeFloor("ground", in: app)
         _ = waitForFurniture(in: app, description: "downstairs preserved") { $0.phase == "idle" && !$0.pending }
         app.terminate()
         app.launchArguments = arguments(reset: false) + ["--furniture-test"]
         launchAndEnterHome(app)
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForHomeFloor("upper", in: app)
         _ = waitForFurniture(in: app, description: "upstairs cold launch") { $0.phase == "idle" && !$0.pending && $0.items.contains { $0.id == "upstairsPlant" } }
         attachScreenshot(app, named: "Home 58 — upstairs after cold launch")
         tapAnimationControl("tabTown", in: app)

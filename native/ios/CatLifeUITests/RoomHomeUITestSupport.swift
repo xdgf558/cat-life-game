@@ -239,7 +239,7 @@ extension RoomHomeUITests {
     func assertHomeControlRows(in app: XCUIApplication, stage: String,
                                        file: StaticString = #filePath, line: UInt = #line) {
         waitForElement("homeResourceCapsule", in: app, file: file, line: line)
-        waitForElement("homeCatInfo", in: app, file: file, line: line)
+        waitForElement("homeMyCatsButton", in: app, file: file, line: line)
         let resources = element("homeResourceCapsule", in: app)
         let gold = element("goldCount", in: app).frame
         let stamina = element("staminaCount", in: app).frame
@@ -252,28 +252,33 @@ extension RoomHomeUITests {
         XCTAssertTrue(resources.frame.insetBy(dx: -1, dy: -1).contains(gold), file: file, line: line)
         XCTAssertTrue(resources.frame.insetBy(dx: -1, dy: -1).contains(stamina), file: file, line: line)
 
-        let card = element("homeCatInfo", in: app)
-        let catInfo = card.frame
-        XCTAssertTrue(["compact", "expanded"].contains(card.value as? String ?? ""),
-                      "The cat status card may relocate while avoiding the visible cat.", file: file, line: line)
-        XCTAssertTrue(app.frame.contains(catInfo), "The adaptive cat card must remain on screen.", file: file, line: line)
+        let plaque = element("homeNamePlaque", in: app).frame
+        let caring = element("homeMyCatsButton", in: app).frame
+        let decorate = element("homeDecorateButton", in: app).frame
+        let roomStage = element("roomStage63", in: app).frame
+        let careBar = element("homeCareBar63", in: app).frame
+        XCTAssertTrue(app.frame.contains(caring), "The current care recipient must stay visible.", file: file, line: line)
+        XCTAssertEqual(plaque.midY, resources.frame.midY, accuracy: 2, file: file, line: line)
+        XCTAssertEqual(caring.midY, decorate.midY, accuracy: 2, file: file, line: line)
+        XCTAssertLessThanOrEqual(max(plaque.maxY, resources.frame.maxY), caring.minY + 1, file: file, line: line)
+        XCTAssertLessThanOrEqual(caring.maxY, roomStage.minY + 1, file: file, line: line)
+        XCTAssertLessThanOrEqual(roomStage.maxY, careBar.minY + 1, file: file, line: line)
         let food = element("foodCount", in: app).frame
         let feed = element("feedButton", in: app).frame
-        XCTAssertTrue(feed.insetBy(dx: -24, dy: -24).intersects(food),
-                      "Food stock belongs to the floating feed action.", file: file, line: line)
-        XCTAssertLessThanOrEqual(catInfo.maxX, feed.minX + 1,
-                                 "The compact cat card must leave the right-side actions clear.", file: file, line: line)
-        let careIDs = ["playButton", "cleanButton", "feedButton"]
+        XCTAssertTrue(feed.insetBy(dx: -1, dy: -1).contains(food),
+                      "Food stock belongs to the real feed action.", file: file, line: line)
+        let careIDs = ["feedButton", "cleanButton", "playButton"]
         let care = careIDs.map { element($0, in: app).frame }
         for (index, identifier) in careIDs.enumerated() {
             let control = element(identifier, in: app)
             XCTAssertTrue(control.isHittable, "\(identifier) must remain reachable.", file: file, line: line)
             XCTAssertGreaterThanOrEqual(care[index].width, 44, file: file, line: line)
             XCTAssertGreaterThanOrEqual(care[index].height, 44, file: file, line: line)
-            XCTAssertEqual(care[index].midX, care[0].midX, accuracy: 1,
-                           "Care actions must align in the right-side column.", file: file, line: line)
+            XCTAssertEqual(care[index].midY, care[0].midY, accuracy: 1,
+                           "Care actions must share one horizontal row.", file: file, line: line)
+            XCTAssertTrue(careBar.insetBy(dx: -1, dy: -1).contains(care[index]), file: file, line: line)
             if index > 0 {
-                XCTAssertLessThanOrEqual(care[index - 1].maxY, care[index].minY + 1,
+                XCTAssertLessThanOrEqual(care[index - 1].maxX, care[index].minX + 1,
                                          "Care button hit areas must not overlap.", file: file, line: line)
             }
         }
@@ -301,7 +306,7 @@ extension RoomHomeUITests {
             }
             tabMeasurements.append("\(identifier)=\(frame); bar=\(bar.frame)")
         }
-        let identifiers = ["roomScene", "homeResourceCapsule", "goldCount", "staminaCount", "homeCatInfo", "foodCount"] + careIDs
+        let identifiers = ["roomScene", "homeResourceCapsule", "goldCount", "staminaCount", "homeMyCatsButton", "roomStage63", "homeCareBar63", "foodCount"] + careIDs
         let measurements = (identifiers.map { "\($0)=\(element($0, in: app).frame)" } + tabMeasurements).joined(separator: "\n")
         let attachment = XCTAttachment(string: "stage=\(stage)\nwindow=\(app.frame)\n\(measurements)")
         attachment.name = "Home layout — \(stage)"
@@ -328,7 +333,8 @@ extension RoomHomeUITests {
         assertRoomFrame(roomFrame, in: app, context: "returning from Cats", file: file, line: line)
         tapAnimationControl("decorateButton", in: app, file: file, line: line)
         waitForElement("layoutCancelButton", in: app, file: file, line: line)
-        assertRoomFrame(roomFrame, in: app, context: "entering arrangement from the bottom bar", file: file, line: line)
+        XCTAssertTrue(app.frame.contains(element("roomScene", in: app).frame),
+                      "The arrangement viewport must fit on screen.", file: file, line: line)
         tapAnimationControl("layoutCancelButton", in: app, file: file, line: line)
         assertRoomFrame(roomFrame, in: app, context: "cancelling arrangement from the bottom bar", file: file, line: line)
         tapAnimationControl("decorateButton", in: app, file: file, line: line)
@@ -432,8 +438,9 @@ extension RoomHomeUITests {
     func waitForObservedValue(_ identifier: String, _ expected: String, in app: XCUIApplication,
                                       timeout: TimeInterval = 8,
                                       file: StaticString = #filePath, line: UInt = #line) {
-        let target = element(identifier, in: app)
-        let predicate = NSPredicate(format: "exists == true AND value == %@", expected)
+        let observesCareState = identifier == "catSatiety" || identifier == "homeCatName"
+        let target = element(observesCareState ? "homeCareState63" : identifier, in: app)
+        let predicate = NSPredicate { _, _ in target.exists && self.observedHomeValue(identifier, in: app) == expected }
         let expectation = XCTNSPredicateExpectation(predicate: predicate, object: target)
         let result = XCTWaiter.wait(for: [expectation], timeout: timeout)
         if result != .completed {
@@ -444,8 +451,75 @@ extension RoomHomeUITests {
             attachScreenshot(app, named: "Observed value failure — \(identifier)")
         }
         XCTAssertEqual(result, .completed,
-                       "\(identifier) should become \(expected); got \(String(describing: target.value))",
+                       "\(identifier) should become \(expected); got \(String(describing: observedHomeValue(identifier, in: app)))",
                        file: file, line: line)
+        if identifier == "homeCatName", result == .completed {
+            XCTAssertTrue(element("homeMyCatsButton", in: app).label.contains(expected),
+                          "The visible care button must name the same cat as the saved state.", file: file, line: line)
+        }
+    }
+
+    @MainActor
+    func observedHomeValue(_ identifier: String, in app: XCUIApplication) -> String? {
+        if identifier == "catSatiety" || identifier == "homeCatName" {
+            guard let text = element("homeCareState63", in: app).value as? String,
+                  let values = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any] else { return nil }
+            if identifier == "homeCatName" { return values["name"] as? String }
+            return (values["satiety"] as? NSNumber)?.stringValue
+        }
+        return element(identifier, in: app).value as? String
+    }
+
+    @MainActor
+    func waitForHomeFloor(_ floor: String, in app: XCUIApplication,
+                          file: StaticString = #filePath, line: UInt = #line) {
+        waitForObservedValue("homeFloor_" + floor, "selected", in: app, file: file, line: line)
+        XCTAssertTrue(element("homeFloor_" + floor, in: app).isSelected, file: file, line: line)
+        let other = floor == "ground" ? "upper" : "ground"
+        waitForObservedValue("homeFloor_" + other, "unselected", in: app, file: file, line: line)
+        XCTAssertFalse(element("homeFloor_" + other, in: app).isSelected, file: file, line: line)
+    }
+
+    @MainActor
+    func homeCareState63(in app: XCUIApplication) throws -> [String: Any] {
+        let text = try XCTUnwrap(element("homeCareState63", in: app).value as? String)
+        return try XCTUnwrap(JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any])
+    }
+
+    @MainActor
+    func openCurrentCatProfile(in app: XCUIApplication) throws {
+        let id = try XCTUnwrap(try homeCareState63(in: app)["id"] as? String)
+        let measured = element("homeCareState63", in: app)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            guard let values = try? self.homeCareState63(in: app),
+                  let frame = values["catFrame"] as? [String: Double],
+                  let x = frame["x"], let y = frame["y"], let width = frame["width"], let height = frame["height"] else { return false }
+            let rect = CGRect(x: x, y: y, width: width, height: height)
+            return width > 0 && height > 0 && self.element("roomStage63", in: app).frame.contains(rect)
+        }, object: measured)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed,
+                       "The real projected companion frame must be visible before tapping its body.")
+        let frame = try XCTUnwrap(try homeCareState63(in: app)["catFrame"] as? [String: Double])
+        let x = try XCTUnwrap(frame["x"]), y = try XCTUnwrap(frame["y"])
+        let width = try XCTUnwrap(frame["width"]), height = try XCTUnwrap(frame["height"])
+        let origin = app.coordinate(withNormalizedOffset: .zero)
+        origin.withOffset(CGVector(dx: x + width / 2 - app.frame.minX,
+                                   dy: y + height * 0.65 - app.frame.minY)).tap()
+        waitForObservedValue("roomResidentPreview", id, in: app)
+        tapAnimationControl("roomResidentGrowthButton", in: app)
+        waitForObservedValue("catGrowthScroll", id, in: app)
+        tapAnimationControl("catGrowthBackButton", in: app)
+        scrollCareerPage("catCollectionScroll", to: "catFilter_owned", in: app)
+        tapAnimationControl("catFilter_owned", in: app)
+        let profile = "catProfile_" + id
+        for _ in 0..<3 {
+            if element(profile, in: app).exists { break }
+            scrollCareerPage("catCollectionScroll", to: "catPageNext", in: app)
+            tapAnimationControl("catPageNext", in: app)
+        }
+        scrollCareerPage("catCollectionScroll", to: profile, in: app)
+        tapAnimationControl(profile, in: app)
+        waitForObservedValue("catProfileScroll", id, in: app)
     }
 
     private var homeNavigationIdentifiers: [String] {
@@ -539,14 +613,7 @@ extension RoomHomeUITests {
     func waitForValue(_ identifier: String, _ expected: String, in app: XCUIApplication,
                               timeout: TimeInterval = 15,
                               file: StaticString = #filePath, line: UInt = #line) {
-        let target = element(identifier, in: app)
-        XCTAssertTrue(target.waitForExistence(timeout: timeout),
-                      "Expected value element: \(identifier)", file: file, line: line)
-        let predicate = NSPredicate(format: "value == %@", expected)
-        let expectation = XCTNSPredicateExpectation(predicate: predicate, object: target)
-        XCTAssertEqual(XCTWaiter.wait(for: [expectation], timeout: timeout), .completed,
-                       "\(identifier) should have value \(expected); got \(String(describing: target.value))",
-                       file: file, line: line)
+        waitForObservedValue(identifier, expected, in: app, timeout: timeout, file: file, line: line)
     }
 
     @MainActor

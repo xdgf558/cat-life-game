@@ -21,7 +21,7 @@ struct GameBottomBar: View {
                 selected: moreVisible || store.isShowingSettings || [.inventory, .player, .upgrade, .tasks].contains(store.activeSheet)) {
                 store.playFeedback(moreVisible ? .back : .sheet)
                 withAnimation(.easeOut(duration: 0.18)) { moreVisible.toggle() }
-            }
+            }.onboardingTarget(.tasks)
         }
         .padding(.horizontal, 8).padding(.vertical, 4)
         .background(RoomTheme.paper, in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))

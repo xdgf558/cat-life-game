@@ -218,7 +218,7 @@ extension RoomHomeUITests {
         let beforeData = try XCTUnwrap(beforeValue.data(using: .utf8))
         let beforeJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: beforeData) as? [String: Any])
         let supplyIDs = ["foodCount", "goldCount", "staminaCount", "catSatiety"]
-        let originalSupplies = try supplyIDs.map { try XCTUnwrap(element($0, in: app).value as? String) }
+        let originalSupplies = try supplyIDs.map { try XCTUnwrap(observedHomeValue($0, in: app)) }
         let bedTouch = room.coordinate(withNormalizedOffset: restFurnitureTouchPoint(bed))
         bedTouch.tap()
 
@@ -242,7 +242,7 @@ extension RoomHomeUITests {
            state.catEnergy == originalEnergy,
            NSDictionary(dictionary: beforeJSON.filter { $0.key != "lastRestInput" })
                .isEqual(to: json.filter { $0.key != "lastRestInput" }),
-           supplyIDs.enumerated().allSatisfy({ element($0.element, in: app).value as? String == originalSupplies[$0.offset] }),
+           supplyIDs.enumerated().allSatisfy({ observedHomeValue($0.element, in: app) == originalSupplies[$0.offset] }),
            room.isHittable, app.alerts.count == 0 {
             let evidence = XCTAttachment(string: "One retry of a cancelled initial bed touch. All scene fields except lastRestInput and all visible resources are unchanged.\nBefore: \(beforeValue)\nAfter: \(value)\nSupplies: \(originalSupplies)")
             evidence.name = "Recovery — cancelled initial touch before one bounded retry"

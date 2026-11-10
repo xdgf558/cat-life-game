@@ -5,15 +5,14 @@ extension RoomHomeUITests {
     func testCaringContextStaysVisibleWhilePreviewingAnotherCatOnBothFloors() throws {
         continueAfterFailure = false
         let app = try launchSharedHome(upperFloorUnlocked: true)
-        let context = element("homeCaringContext", in: app)
-        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        let context = element("homeMyCatsButton", in: app)
+        waitForObservedValue("homeMyCatsButton", "cat_001", in: app)
         let contextFrame = context.frame
-        waitForElement("homeCatSwitchHint", in: app)
+        waitForElement("homeMyCatsButton", in: app)
         let before = try sharedHomeState(in: app)
         let active = try XCTUnwrap(before.residentCats.first { $0.id == before.activeCatID })
         let room = element("roomScene", in: app)
-        let blocked = ["playButton", "cleanButton", "feedButton", "homeCatInfo", "homeStairsButton",
-                       "homeCaringContext", "homeCatSwitchHint", "catNeedBubble"]
+        let blocked = ["playButton", "cleanButton", "feedButton", "homeMyCatsButton", "homeFloor_upper", "catNeedBubble"]
             .map { element($0, in: app) }.filter(\.exists).map { $0.frame.insetBy(dx: -5, dy: -5) }
         // The main cat wins overlapping hits; prefer the exposed cat furthest to its side.
         let resident = try XCTUnwrap(before.residentCats.filter { cat in
@@ -24,18 +23,19 @@ extension RoomHomeUITests {
         room.coordinate(withNormalizedOffset: CGVector(dx: resident.x, dy: resident.y)).tap()
         waitForObservedValue("roomResidentPreview", resident.id, in: app)
         let preview = element("roomResidentPreview", in: app)
-        XCTAssertGreaterThanOrEqual(preview.frame.minY, element("homeCatSwitchHint", in: app).frame.maxY + 8)
+        XCTAssertTrue(element("roomStage63", in: app).frame.contains(preview.frame), "The resident preview belongs inside the room stage.")
+        XCTAssertFalse(preview.frame.intersects(element("roomViewControls", in: app).frame))
         XCTAssertTrue(element("roomResidentGrowthButton", in: app).isHittable)
         XCTAssertTrue(context.exists && context.isHittable)
         XCTAssertEqual(context.frame.midY, contextFrame.midY, accuracy: 1)
-        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        waitForObservedValue("homeMyCatsButton", "cat_001", in: app)
         attachScreenshot(app, named: "Repair — preview retains the fixed current care recipient")
         tapAnimationControl("roomResidentCompanionButton", in: app)
-        waitForObservedValue("homeCaringContext", resident.id, in: app)
+        waitForObservedValue("homeMyCatsButton", resident.id, in: app)
         tapAnimationControl("homeFloor_upper", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
-        waitForElement("homeCatSwitchHint", in: app)
-        waitForObservedValue("homeCaringContext", resident.id, in: app)
+        waitForHomeFloor("upper", in: app)
+        waitForElement("homeMyCatsButton", in: app)
+        waitForObservedValue("homeMyCatsButton", resident.id, in: app)
         attachScreenshot(app, named: "Repair — upstairs keeps care recipient and visible switching hint")
         waitForObservedValue("foodCount", "12", in: app)
         waitForObservedValue("goldCount", "27,000", in: app)
@@ -54,7 +54,7 @@ extension RoomHomeUITests {
         }
         waitForObservedValue("homeCatName", "霜糖", in: app)
         tapAnimationControl("homeFloor_upper", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        waitForHomeFloor("upper", in: app)
         let upstairs = try waitForSharedHome(in: app, description: "floor tabs carry the selected cat upstairs") {
             $0.activeCatID == "cat_005" && $0.phase == "idle" && !$0.residentsBusy && $0.visibleCount == 5
         }
@@ -124,9 +124,9 @@ extension RoomHomeUITests {
     @MainActor
     func testFiveResidentsSurviveFloorTravelAndCancelledArrangement() throws {
         let app = try launchSharedHome(upperFloorUnlocked: true)
-        for floor in ["2F · 二楼", "1F · 一楼"] {
-            tapAnimationControl("homeStairsButton", in: app)
-            waitForObservedValue("homeStairsButton", floor, in: app)
+        for floor in ["upper", "ground"] {
+            tapAnimationControl("homeFloor_" + floor, in: app)
+            waitForHomeFloor(floor, in: app)
             let arrived = try waitForSharedHome(in: app, description: "all cats arrive on \(floor)") {
                 $0.phase == "idle" && !$0.residentsBusy && $0.visibleCount == 5
             }

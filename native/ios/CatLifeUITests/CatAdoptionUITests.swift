@@ -425,10 +425,9 @@ extension RoomHomeUITests {
         let viewportHeight = try XCTUnwrap(played.viewportHeight)
         XCTAssertGreaterThan(viewportWidth, 0)
         XCTAssertGreaterThan(viewportHeight, 0)
-        let fullRoomScale = max(worldWidth / viewportWidth, worldHeight / viewportHeight)
-        XCTAssertGreaterThan(fullRoomScale, 1, "All companion fixtures use an expanded room.")
-        tapAnimationControl("homeCareVisibilityButton", in: app)
-        waitForObservedValue("homeCareVisibilityButton", "hidden", in: app)
+        let fullRoomScale = try XCTUnwrap(played.fitScale)
+        XCTAssertTrue(fullRoomScale.isFinite && fullRoomScale > 0, "Use the room projection fitted to the actual stage viewport.")
+        XCTAssertTrue(element("homeCareBar63", in: app).isHittable)
         element("roomPinchSurface", in: app).pinch(withScale: 0.35, velocity: -1)
         let overview = waitForFurniture(in: app, description: "\(appearance) cat's expanded room fits on screen") {
             abs(($0.cameraScale ?? 1) - fullRoomScale) < 0.025 && $0.phase == "idle" && !$0.pending
@@ -463,8 +462,7 @@ extension RoomHomeUITests {
             XCTAssertEqual(awake.completedMeals, fed.completedMeals)
             attachScreenshot(app, named: "\(appearance) cat — safely back on the floor after \(id)")
         }
-        tapAnimationControl("homeCareVisibilityButton", in: app)
-        waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
+        XCTAssertTrue(element("homeCareBar63", in: app).isHittable)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("goldCount", expectedGold, in: app)
         tapAnimationControl("tabInventory", in: app)

@@ -29,7 +29,7 @@ final class RoomSceneArtwork {
         scene.addChild(room)
         upperWall.zPosition = 0.1
         scene.addChild(upperWall)
-        companionRing.fillColor = UIColor(red: 0.2, green: 0.68, blue: 0.54, alpha: 0.1)
+        companionRing.fillColor = UIColor(red: 0.2, green: 0.68, blue: 0.54, alpha: 0.18)
         companionRing.name = "companion-ring"
         companionPlaque.name = "companion-name"
         companionRing.strokeColor = UIColor(red: 0.2, green: 0.68, blue: 0.54, alpha: 1)
@@ -80,9 +80,9 @@ final class RoomSceneArtwork {
         scene.addChild(thought)
     }
 
-    func updateCompanionMarker(cat: CatActor, name: String, hidden: Bool, reducedMotion: Bool) {
+    func updateCompanionMarker(cat: CatActor, name: String, hidden: Bool, reducedMotion: Bool, hidesName: Bool = false) {
         companionRing.isHidden = hidden
-        companionPlaque.isHidden = hidden
+        companionPlaque.isHidden = hidden || hidesName
         let frame = cat.visualFrame
         let width = frame.width
         // Ignore rounding from world movement; only a visible size change needs a new path.

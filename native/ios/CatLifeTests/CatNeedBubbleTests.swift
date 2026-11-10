@@ -41,20 +41,20 @@ final class CatNeedBubbleTests: XCTestCase {
         XCTAssertEqual(sampler.point, CGPoint(x: 110, y: 100))
     }
 
-    func testBubbleAvoidsHeaderAndLowerHUDWhileKeepingItsHeadOffset() {
+    func testBubbleFitsTheStageAndLeavesTheBottomViewControlsClear() {
         let size = CGSize(width: 390, height: 758)
         XCTAssertEqual(CatNeedBubbleLayout.position(above: CGPoint(x: 195, y: 350), in: size),
-                       CGPoint(x: 195, y: 314))
+                       CGPoint(x: 195, y: 322))
         XCTAssertEqual(CatNeedBubbleLayout.position(above: CGPoint(x: -10, y: -10), in: size),
-                       CGPoint(x: 100, y: 100))
+                       CGPoint(x: 103, y: 30))
         XCTAssertEqual(CatNeedBubbleLayout.position(above: CGPoint(x: 900, y: 900), in: size),
-                       CGPoint(x: 290, y: 558))
+                       CGPoint(x: 287, y: 652))
     }
 
     func testBubbleBoundsRemainValidDuringTinyLayoutTransitions() {
         XCTAssertEqual(CatNeedBubbleLayout.position(above: CGPoint(x: 500, y: 500),
                                                     in: CGSize(width: 120, height: 160)),
-                       CGPoint(x: 60, y: 80))
+                       CGPoint(x: 60, y: 54))
         XCTAssertEqual(CatNeedBubbleLayout.position(above: .zero, in: .zero), .zero)
     }
 
@@ -73,7 +73,7 @@ final class CatNeedBubbleTests: XCTestCase {
                 XCTAssertFalse(frame.intersects(stairs.insetBy(dx: -7, dy: -7)))
                 XCTAssertTrue(CGRect(origin: .zero, size: canvas).contains(frame))
                 XCTAssertLessThan(result.x, stairs.minX)
-                XCTAssertEqual(result.y, anchor.y - 36, "Sideways avoidance keeps the bubble above its cat.")
+                XCTAssertEqual(result.y, anchor.y - height / 2 - 6, "Sideways avoidance keeps the bubble tail near its cat head.")
             }
         }
     }

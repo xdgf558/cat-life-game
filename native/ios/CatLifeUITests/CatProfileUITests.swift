@@ -64,7 +64,7 @@ extension RoomHomeUITests {
         waitForLabel("catProfile_cat_006", "团子🐾", in: app)
         tapAnimationControl("closeSheetButton", in: app)
         tapAnimationControl("tabHome", in: app)
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         waitForObservedValue("catProfileScroll", "cat_001", in: app)
         waitForObservedValue("catProfileName", "小橘", in: app)
     }
@@ -73,7 +73,7 @@ extension RoomHomeUITests {
     func testCatRenameValidationCancellationLanguagesAndResetPersist() throws {
         continueAfterFailure = false
         let app = launchFreshHome()
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         waitForObservedValue("catProfileScroll", "cat_001", in: app)
         tapAnimationControl("catRenameButton", in: app)
         let name = "橘子的午后与星光伙伴🐾🏡"
@@ -88,7 +88,7 @@ extension RoomHomeUITests {
         waitForObservedValue("homeCatName", name, in: app)
         relaunchPreservingSave(app)
         waitForObservedValue("homeCatName", name, in: app)
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         tapAnimationControl("catRenameButton", in: app)
         replaceCatName("ABCDEFGHIJKLM", replacing: name, in: app)
         waitForObservedValue("catNameValidation", "invalid", in: app)
@@ -108,7 +108,7 @@ extension RoomHomeUITests {
         for (code, title) in [("zh-Hant", "貓咪名字"), ("en", "Cat name")] {
             selectCatTestLanguage(code, in: app)
             waitForObservedValue("homeCatName", "小橘", in: app)
-            tapAnimationControl("homeCatProfileButton", in: app)
+            try openCurrentCatProfile(in: app)
             waitForObservedValue("catProfileName", "小橘", in: app)
             tapAnimationControl("catRenameButton", in: app)
             XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 8))
@@ -116,7 +116,7 @@ extension RoomHomeUITests {
             attachScreenshot(app, named: "Cat name — custom default spelling stays literal in \(code)")
             tapAnimationControl("closeSheetButton", in: app)
         }
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         tapAnimationControl("catRenameButton", in: app)
         replaceCatName("Unsaved🐈", replacing: "小橘", in: app)
         tapAnimationControl("catNameBackButton", in: app)
@@ -141,7 +141,7 @@ extension RoomHomeUITests {
         let app = XCUIApplication()
         app.launchArguments = arguments(reset: true) + ["--cat-name-save-failure-once"]
         launchAndEnterHome(app)
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         tapAnimationControl("catRenameButton", in: app)
         replaceCatName("Mochi🐈", replacing: "", in: app)
         saveCatName(in: app)

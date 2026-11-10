@@ -20,6 +20,16 @@ struct RoomHomeView: View {
     }
     #endif
 
+    private var usesReducedMotion: Bool {
+        #if DEBUG
+        let arguments = ProcessInfo.processInfo.arguments
+        return reduceMotion || (arguments.contains("--ui-testing") && arguments.contains("--animation-test")
+                                && arguments.contains("--reduce-motion-test"))
+        #else
+        return reduceMotion
+        #endif
+    }
+
     private var homeVisible: Bool { store.activeSheet == nil && !store.isShowingSettings }
     private var catSheetVisible: Binding<Bool> {
         Binding(get: { store.inspectedCatID != nil }, set: { if !$0 { store.inspectedCatID = nil } })
@@ -123,7 +133,7 @@ struct RoomHomeView: View {
                             .multilineTextAlignment(.center).accessibilityLabel(toast)
                             .padding(.horizontal, 16).padding(.vertical, 10)
                             .gameCard(cornerRadius: 24).padding(.horizontal, 16)
-                            .padding(.top, homeVisible ? 92 : 4)
+                            .padding(.top, homeVisible ? homeNoticeTop : 4)
                             .accessibilityIdentifier(homeVisible ? "actionToast" : "sheetToast")
                             .accessibilityAddTraits(.updatesFrequently)
                             .allowsHitTesting(false)
@@ -135,7 +145,7 @@ struct RoomHomeView: View {
                             (homeVisible || store.activeSheet == .upgrade),
                             let offer = store.adoptionReminders.pendingOffer {
                         AdoptionAvailableBanner(store: store, offer: offer)
-                            .padding(.horizontal, 16).padding(.top, homeVisible ? 92 : 4)
+                            .padding(.horizontal, 16).padding(.top, homeVisible ? homeNoticeTop : 4)
                     }
                 }
                 if store.onboarding.isActive && !homeVisible && !moreVisible && !store.isDecorating {
@@ -236,26 +246,57 @@ struct RoomHomeView: View {
         store.activeSheet = destination
     }
 
-    private func room(_ snapshot: GameSnapshot) -> some View {
-        ZStack(alignment: .top) {
-            RoomSceneHost(store: store,
-                          isActive: scenePhase == .active && homeVisible && !moreVisible
-                              && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
-                          reducedMotion: reduceMotion, catNeedPresentation: catNeedPresentation,
-                          arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
-                .id("\(store.saveSceneGeneration)-\(store.visibleHomeFloor.rawValue)")
-                .transition(reduceMotion ? .opacity : .asymmetric(
-                    insertion: .move(edge: store.visibleHomeFloor == .upper ? .bottom : .top).combined(with: .opacity),
-                    removal: .opacity))
-                .ignoresSafeArea(.container, edges: .top)
-            RoomHomeHUD(store: store, catNeedPresentation: catNeedPresentation)
-            if store.isDecorating {
-                VStack { Spacer(minLength: 0); RoomArrangementPanel(store: store) }
-                    .onPreferenceChange(ArrangementPanelHeightKey.self) { arrangementPanelHeight = $0 }
-            }
-        }
-        .animation(reduceMotion ? nil : .easeInOut(duration: 0.3), value: store.visibleHomeFloor)
+    private var homeNoticeTop: CGFloat {
+        guard let stage = catNeedPresentation.stageFrame, let header = catNeedPresentation.headerFrame else { return 116 }
+        return max(0, stage.minY - header.minY + 10)
     }
+
+    private func room(_ snapshot: GameSnapshot) -> some View {
+        GeometryReader { geometry in
+            let headerHeight = catNeedPresentation.headerFrame?.height ?? 100
+            let stage = HomeRoomLayout.stageFrame(in: geometry.size, headerHeight: headerHeight, editing: store.isDecorating)
+            let careHeight = HomeRoomLayout.careHeight(in: geometry.size)
+            ZStack(alignment: .topLeading) {
+                RoomSceneHost(store: store,
+                              isActive: scenePhase == .active && homeVisible && !moreVisible
+                                  && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
+                              reducedMotion: usesReducedMotion, catNeedPresentation: catNeedPresentation,
+                              arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
+                    .id("\(store.saveSceneGeneration)-\(store.visibleHomeFloor.rawValue)")
+                    .frame(width: stage.width, height: stage.height)
+                    .background {
+                        RoundedRectangle(cornerRadius: store.isDecorating ? 0 : 30)
+                            .fill(RoomTheme.rewardPaper)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: store.isDecorating ? 0 : 30))
+                    .overlay {
+                        if !store.isDecorating { RoundedRectangle(cornerRadius: 30).strokeBorder(.white, lineWidth: 3).allowsHitTesting(false) }
+                    }
+                    .background {
+                        GeometryReader { bounds in
+                            Color.clear.onAppear { catNeedPresentation.stageFrame = bounds.frame(in: .global) }
+                                .onChange(of: bounds.frame(in: .global)) { _, frame in catNeedPresentation.stageFrame = frame }
+                        }.allowsHitTesting(false)
+                    }
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier("roomStage63")
+                    .position(x: stage.midX, y: stage.midY)
+                RoomHomeHUD(store: store, catNeedPresentation: catNeedPresentation)
+                    .frame(width: geometry.size.width)
+                if store.isDecorating {
+                    VStack { Spacer(minLength: 0); RoomArrangementPanel(store: store) }
+                        .onPreferenceChange(ArrangementPanelHeightKey.self) { arrangementPanelHeight = $0 }
+                } else {
+                    RoomCareBar63(store: store, presentation: catNeedPresentation, reducedMotion: usesReducedMotion)
+                        .frame(width: max(1, geometry.size.width - 20), height: careHeight)
+                        .position(x: geometry.size.width / 2, y: geometry.size.height - 8 - careHeight / 2)
+                }
+            }
+            .background(RoomTheme.paleMint.opacity(0.28))
+            .onDisappear { catNeedPresentation.stageFrame = nil }
+        }
+    }
+
 }
 
 #if DEBUG

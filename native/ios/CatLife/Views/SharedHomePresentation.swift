@@ -16,36 +16,57 @@ struct RoomResidentPreviewCard: View {
     let cat: CatState
     let close: () -> Void
     var openGrowth: (() -> Void)? = nil
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var saving = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 8) {
                 GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: cat.appearance), symbol: "cat.fill", size: 36)
+                    .frame(width: 44, height: 44)
+                    .background(RoomTheme.wood.opacity(0.18), in: RoundedRectangle(cornerRadius: 14))
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: GameStrings.catName(cat)).font(.subheadline.weight(.heavy))
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1).minimumScaleFactor(0.8)
                     Text(GameStrings.text("hospital.coat.\(cat.appearance.rawValue)") + " · " + GameStrings.text("catGrowth.bond.\(CatBondStage.stage(for: cat.intimacy).rawValue)"))
                         .font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.secondary)
-                }.fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1).minimumScaleFactor(0.8)
+                }.frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
             }
-            Button {
-                if let openGrowth { openGrowth() }
-                else { close(); store.inspectCat(catID: cat.id, showGrowth: true) }
-            } label: {
-                Label(GameStrings.format("room.inspectResident", GameStrings.catName(cat)), systemImage: "person.text.rectangle.fill")
-                    .font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, minHeight: 44)
-            }.buttonStyle(SoftButtonStyle()).disabled(saving || store.isBusy).accessibilityIdentifier("roomResidentGrowthButton")
-            Button { select() } label: {
-                Label(GameStrings.text(cat.id == store.cat?.id ? "room.companionNow" : "room.setCompanion"), systemImage: "heart.fill")
-                    .font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
-            }.buttonStyle(MintButtonStyle()).disabled(saving || store.isBusy || cat.id == store.cat?.id)
-                .accessibilityIdentifier("roomResidentCompanionButton")
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(spacing: 8) { profileButton; companionButton }
+            } else {
+                HStack(spacing: 8) { profileButton; companionButton }
+            }
         }.padding(12).gameCard(cornerRadius: 23)
             .shadow(color: RoomTheme.ink.opacity(0.2), radius: 14, y: 6)
             .accessibilityElement(children: .contain).accessibilityIdentifier("roomResidentPreview")
             .accessibilityValue(TownEventAccessibility.value(GameStrings.catName(cat), diagnostic: cat.id))
             .accessibilityAction(.escape) { if !saving && !store.isBusy { close() } }
     }
+
+    private var profileButton: some View {
+        Button {
+            if let openGrowth { openGrowth() }
+            else { close(); store.inspectCat(catID: cat.id, showGrowth: true) }
+        } label: {
+            Label(GameStrings.text("home63.profileAction"), systemImage: "person.text.rectangle.fill")
+                .font(.caption2.weight(.heavy)).lineLimit(2).minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+        }.buttonStyle(SoftButtonStyle()).disabled(saving || store.isBusy)
+            .accessibilityLabel(GameStrings.format("room.inspectResident", GameStrings.catName(cat)))
+            .accessibilityIdentifier("roomResidentGrowthButton")
+    }
+
+    private var companionButton: some View {
+        Button { select() } label: {
+            Text(GameStrings.text(cat.id == store.cat?.id ? "room.companionNow" : "room.setCompanion"))
+                .font(.caption2.weight(.heavy)).lineLimit(2).minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity)
+        }.buttonStyle(MintButtonStyle()).disabled(saving || store.isBusy || cat.id == store.cat?.id)
+            .accessibilityIdentifier("roomResidentCompanionButton")
+    }
+
     private func select() {
         guard !saving, !store.isBusy else { return }
         saving = true

@@ -1061,4 +1061,5 @@ extension GameStrings {
     ].merging(careers57TraditionalChinese) { _, new in new }.merging(design55TraditionalChinese) { _, new in new }.merging(marketDesign55TraditionalChinese) { _, new in new }.merging(supplyDesign55TraditionalChinese) { _, new in new }.merging(shopDesign55TraditionalChinese) { _, new in new }.merging(marketTraditionalChinese) { _, new in new }.merging(furniture54TraditionalChinese) { _, new in new }.merging(suppliesTraditionalChinese) { _, new in new }.merging(catGrowth57Traditional) { _, new in new }.merging(shopBrowseTraditionalChinese) { _, new in new }.merging(homeExpansion58Traditional) { _, new in new }.merging(homeInventory58Traditional) { _, new in new }.merging(townMap58Traditional) { _, new in new }.merging(townMusic58Traditional) { _, new in new }.merging(sharedHome59Traditional) { _, new in new }.merging(townEvents60Traditional) { _, new in new }
         .merging(handoff61Traditional) { _, new in new }
         .merging(roomViews62Traditional) { _, new in new }
+        .merging(homeHUD63Traditional) { _, new in new }
 }

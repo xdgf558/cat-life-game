@@ -325,7 +325,7 @@ final class RoomScene: SKScene {
 
     func updateRoomPresentation() {
         artwork.updateCompanionMarker(cat: cat, name: latest?.activeCat.map(GameStrings.catName) ?? "",
-                                      hidden: editing || cat.isHidden, reducedMotion: reducedMotion)
+                                      hidden: editing || cat.isHidden, reducedMotion: reducedMotion, hidesName: onCatNeedAnchorChanged != nil)
         if followsPresentedCat && presentationBusy && !editing {
             roomPresentation.camera.follow(roomPresentation.projection.project(cat.position))
         }

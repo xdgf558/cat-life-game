@@ -10,7 +10,7 @@ extension RoomHomeUITests {
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("goldCount", "200", in: app)
 
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksDailySummary", "1/5", in: app)
         waitForObservedValue("tasksClaimableSummary", "2", in: app)
         openTaskCard("daily_feed", category: "daily", in: app)
@@ -38,9 +38,9 @@ extension RoomHomeUITests {
         relaunchPreservingSave(app)
         waitForObservedValue("goldCount", "235", in: app)
         waitForObservedValue("foodCount", "2", in: app)
-        XCTAssertFalse(element("homeTasksButton", in: app).frame.intersects(element("homeCatInfo", in: app).frame),
-                       "The compact cat status card must not cover the daily-goal entry after relaunch.")
-        tapAnimationControl("homeTasksButton", in: app)
+        XCTAssertFalse(element("tabMore", in: app).frame.intersects(element("homeCareBar63", in: app).frame),
+                       "The care bar must leave the More entry reachable after relaunch.")
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksDailySummary", "1/5", in: app)
         waitForObservedValue("tasksClaimableSummary", "0", in: app)
         assertClaimedTaskIsHidden("daily_feed", in: app)
@@ -57,7 +57,7 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchFreshHome()
         tapAnimationControl("cleanButton", in: app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksDailySummary", "1/5", in: app)
         waitForObservedValue("tasksClaimableSummary", "2", in: app)
         for (id, category) in [("daily_clean", "daily"), ("tutorial_clean", "tutorial")] {
@@ -76,7 +76,7 @@ extension RoomHomeUITests {
         waitForObservedValue("goldCount", "235", in: app)
         relaunchPreservingSave(app)
         waitForObservedValue("goldCount", "235", in: app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksClaimableSummary", "0", in: app)
         for category in ["daily", "tutorial"] {
             selectTaskCategory(category, in: app)
@@ -92,7 +92,7 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchFreshHome()
         let roomFrame = element("roomScene", in: app).frame
-        let entry = element("homeTasksButton", in: app)
+        let entry = element("tabMore", in: app)
         XCTAssertTrue(entry.isHittable)
         XCTAssertGreaterThanOrEqual(entry.frame.height, 44)
         XCTAssertGreaterThanOrEqual(entry.frame.width, 44)
@@ -162,7 +162,7 @@ extension RoomHomeUITests {
         launchAndEnterHome(app)
         tapAnimationControl("feedButton", in: app)
         waitForObservedValue("foodCount", "2", in: app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         openTaskCard("daily_feed", category: "daily", in: app)
         tapAnimationControl("taskClaim_daily_feed", in: app)
 
@@ -182,7 +182,7 @@ extension RoomHomeUITests {
         waitForObservedValue("foodCount", "2", in: app)
         XCTAssertFalse(app.alerts.firstMatch.exists, "Returning home must not reveal a duplicate alert.")
 
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksClaimableSummary", "2", in: app)
         openTaskCard("daily_feed", category: "daily", in: app)
         tapAnimationControl("taskClaim_daily_feed", in: app)
@@ -195,7 +195,7 @@ extension RoomHomeUITests {
         relaunchPreservingSave(app)
         waitForObservedValue("goldCount", "215", in: app)
         waitForObservedValue("foodCount", "2", in: app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         assertClaimedTaskIsHidden("daily_feed", in: app)
     }
 
@@ -205,7 +205,7 @@ extension RoomHomeUITests {
         let app = XCUIApplication()
         app.launchArguments = arguments(reset: true) + ["--tasks-level10-fixture"]
         launchAndEnterHome(app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksDailySummary", "10/10", in: app)
         waitForObservedValue("tasksPageIndicator", "1/4", in: app)
         XCTAssertFalse(element("tasksPreviousPage", in: app).isEnabled)
@@ -277,7 +277,7 @@ extension RoomHomeUITests {
 
         relaunchPreservingSave(app)
         waitForObservedValue("goldCount", "415", in: app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForElement("tasksEmptyState", in: app)
         waitForObservedValue("tasksDailySummary", "10/10", in: app)
         assertTaskCardCount(0, in: app)
@@ -290,7 +290,7 @@ extension RoomHomeUITests {
         let app = XCUIApplication()
         app.launchArguments = arguments(reset: true) + ["--tasks-level-up-fixture"]
         launchAndEnterHome(app)
-        tapAnimationControl("homeTasksButton", in: app)
+        tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksDailySummary", "2/5", in: app)
         waitForObservedValue("tasksNextUnlock", "2", in: app)
         assertTaskCardCount(3, in: app)
