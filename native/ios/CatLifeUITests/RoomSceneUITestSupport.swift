@@ -121,12 +121,20 @@ extension RoomHomeUITests {
                                 matching: { $0.phase == "idle" && !$0.pending && $0.restPhase == "none" })
     }
 
-    func restFurnitureTouchPoint(_ item: FurnitureItemState, cameraScale: Double = 1) -> CGVector {
-        // The cat can return in front of the bed after eating; its visible head
-        // overlaps the center. The exposed left rear mattress remains tappable.
-        let isBed = item.id == "catBed"
-        return CGVector(dx: item.x - (isBed ? 0.065 : 0) / cameraScale,
-                        dy: item.y - (isBed ? 0.055 : 0.02) / cameraScale)
+    @MainActor
+    func restFurnitureCoordinate(_ item: FurnitureItemState, in app: XCUIApplication,
+                                 file: StaticString = #filePath, line: UInt = #line) throws -> XCUICoordinate {
+        let canvas = element("roomScene", in: app).frame
+        let expected = CGPoint(x: canvas.minX + item.x * canvas.width, y: canvas.minY + item.y * canvas.height)
+        let frames = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "furniture-" + item.id))
+            .allElementsBoundByIndex.map(\.frame).filter { $0.intersects(canvas) && !$0.isEmpty }
+        // The logical source and displayed proxy share names; use the live visible frame, not a cached camera anchor.
+        let frame = try XCTUnwrap(frames.min {
+            hypot($0.midX - expected.x, $0.midY - expected.y) < hypot($1.midX - expected.x, $1.midY - expected.y)
+        }, "Expected displayed furniture \(item.id)", file: file, line: line)
+        let visible = frame.intersection(canvas)
+        let point = CGVector(dx: visible.minX + visible.width * 0.25, dy: visible.minY + visible.height * 0.12)
+        return app.coordinate(withNormalizedOffset: .zero).withOffset(point)
     }
 
     @MainActor
@@ -134,8 +142,7 @@ extension RoomHomeUITests {
                                     file: StaticString = #filePath, line: UInt = #line) throws -> FurnitureState {
         let before = furnitureState(in: app, file: file, line: line)
         let item = try XCTUnwrap(before.items.first { $0.id == id }, file: file, line: line)
-        element("roomScene", in: app)
-            .coordinate(withNormalizedOffset: restFurnitureTouchPoint(item, cameraScale: before.cameraScale ?? 1)).tap()
+        try restFurnitureCoordinate(item, in: app, file: file, line: line).tap()
         let resting = waitForFurniture(in: app, timeout: 60, description: "cat walks to and settles on \(id)",
                                        matching: { $0.phase == "resting" && $0.restFurniture == id && $0.restPhase == "resting"
                                            && ($0.restContactSamples ?? -1) > (before.restContactSamples ?? -1) },

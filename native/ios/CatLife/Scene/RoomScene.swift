@@ -97,6 +97,10 @@ final class RoomScene: SKScene {
     private var lastPlacingRequest: String?
     var placementPrepared = false
     var onRestingFurnitureChanged: ((String?, String, String) -> Void)?
+    private(set) var currentRestObservation: CatRestObservation?
+    var habitOfferItemID: String?
+    var onHabitOfferFrameChanged: ((CGRect?) -> Void)?
+    private var habitOfferFrameSampler = CatVisualFrameSampler()
     var onFurnitureNotice: ((String) -> Void)?
     var activeRest: RoomFurnitureRest?
     // A visual visit starts on approach, but recovery starts only after all
@@ -110,6 +114,7 @@ final class RoomScene: SKScene {
     private var restPlanningTask: Task<RoomFurnitureRest?, Never>?
     private var restExiting = false
     var pendingRestID: String?
+    private var pendingRestIsPlayerInitiated = false
     private var requestedSelectionID: String?
     private var requestedPlacementID: String?
     private var lastRestFinished = Date.distantPast
@@ -263,6 +268,10 @@ final class RoomScene: SKScene {
         if pendingItem != nil { lastPlacingRequest = nil }
     }
     override func update(_ currentTime: TimeInterval) {
+        if let onHabitOfferFrameChanged {
+            let frame = presentationActive && !editing ? habitOfferItemID.flatMap { roomPresentation.frame("furniture-" + $0) } : nil
+            if habitOfferFrameSampler.sample(frame, at: currentTime) { onHabitOfferFrameChanged(frame) }
+        }
         publishFloorTravelAvailability()
         let viewDelta = currentTime - (lastRoomViewTick ?? currentTime)
         lastRoomViewTick = currentTime
@@ -502,16 +511,24 @@ final class RoomScene: SKScene {
         diagnostics.lastRestInput = "requested:" + id
 #endif
         guard !editing, let item = ownedFurniture.first(where: { $0.id == id }),
-              [.catBed, .floorCushion].contains(item.kind),
-              renderedFurniture.contains(where: { $0.itemID == id }) else { return }
-        if bowlPlanningRequest != nil || residents.isBusy { pendingRestID = id; return }
+              [.catBed, .floorCushion].contains(item.kind) else { return }
+        guard renderedFurniture.contains(where: { $0.itemID == id }) else {
+            if notify { onFurnitureNotice?("rest.noFurniture") }; return
+        }
+        if bowlPlanningRequest != nil || residents.isBusy {
+            if notify { onFurnitureNotice?("catHabits.rest.preparing") }
+            pendingRestID = id; pendingRestIsPlayerInitiated = notify; return
+        }
         if let occupied = activeRest {
             pendingRestID = occupied.item.id == id ? nil : id
+            pendingRestIsPlayerInitiated = notify
             leaveFurnitureRest()
             return
         }
         if presentationBusy && presentationPhase != "strolling" && restPlanningTask == nil {
+            if notify { onFurnitureNotice?(presentationPhase == "feeding" ? "catHabits.rest.eating" : "catHabits.rest.waitCare") }
             pendingRestID = id
+            pendingRestIsPlayerInitiated = notify
             return
         }
         cancelPresentation(at: cat.position)
@@ -556,11 +573,16 @@ final class RoomScene: SKScene {
             if notify { self.onFurnitureNotice?(item.kind == .catBed ? "rest.goBed" : "rest.goCushion") }
             self.cat.rest(approach: visit.plan.approach, entry: visit.plan.entry,
                           facing: visit.plan.facing, duration: item.kind == .catBed ? 12 : 9,
-                          elevation: visit.elevation, contactProgress: visit.entryContactProgress,
+                           elevation: visit.elevation, contactProgress: visit.entryContactProgress,
+                           habitMatched: self.renderedCatID.flatMap(CatHabitCatalog.definition(for:)).map { $0.rest.furnitureKind == item.kind },
                           onSettled: { [weak self] in
                 guard let self, self.revision == ticket, !self.restExiting else { return }
                 let sessionID = UUID().uuidString
                 self.restSessionID = sessionID
+                if notify, self.presentationActive,
+                   let placement = self.renderedFurniture.first(where: { $0.itemID == id }) {
+                    self.currentRestObservation = CatRestObservation(floor: self.homeFloor, position: placement.position)
+                }
                 // The committed save supplies the authoritative deadline. This
                 // fallback only ends a visual stay if its start cannot be saved.
                 self.restDeadline = Date().addingTimeInterval(item.kind == .catBed ? 12 : 9)
@@ -670,6 +692,7 @@ final class RoomScene: SKScene {
     }
 
     private func resetRestSession() {
+        currentRestObservation = nil
         restDeadlineTask?.cancel()
         restDeadlineTask = nil
         restSessionID = nil
@@ -716,6 +739,7 @@ final class RoomScene: SKScene {
             self.cat.reducedMotion = self.reducedMotion
             let nextCare = self.pendingFeedback
             let nextRest = self.pendingRestID
+            let nextRestIsPlayerInitiated = self.pendingRestIsPlayerInitiated
             self.pendingFeedback = nil
             self.pendingRestID = nil
             self.setPlacementPending(false)
@@ -733,7 +757,7 @@ final class RoomScene: SKScene {
             self.updateFurnitureLayers()
             if !self.editing {
                 if let nextCare { self.playFeedback(kind: nextCare) }
-                else if let nextRest { self.visitFurniture(nextRest) }
+                else if let nextRest { self.visitFurniture(nextRest, notify: nextRestIsPlayerInitiated) }
                 else { self.resumeIdle() }
             }
 #if DEBUG
@@ -916,8 +940,9 @@ final class RoomScene: SKScene {
             pendingFeedback = nil
             playFeedback(kind: next)
         } else if let id = pendingRestID, !editing {
+            let initiated = pendingRestIsPlayerInitiated
             pendingRestID = nil
-            visitFurniture(id)
+            visitFurniture(id, notify: initiated)
         } else {
             pendingFeedback = nil
             resumeIdle()
@@ -936,6 +961,7 @@ final class RoomScene: SKScene {
         restPlanningTask?.cancel()
         restPlanningTask = nil
         pendingRestID = nil
+        pendingRestIsPlayerInitiated = false
         pendingFeedback = nil
         removeAction(forKey: "ambient-walk")
         // Editing/reduced-motion can interrupt a bite. Restore the known-safe
@@ -1058,12 +1084,14 @@ final class RoomScene: SKScene {
         let suspended = suspendedCareKind ?? planningCareKind
         let feedback = pendingFeedback
         let rest = pendingRestID
+        let restIsPlayerInitiated = pendingRestIsPlayerInitiated
         cancelBowlPlanning(keepingRequest: false)
         cancelPresentation(at: cat.position)
         cancelPlacementPreview(reportAbandonedItem: !preservingNewPlacement)
         suspendedCareKind = suspended
         pendingFeedback = feedback
         pendingRestID = rest
+        pendingRestIsPlayerInitiated = restIsPlayerInitiated
         let proposal = RoomLayoutProposal(viewport: size, roomLevel: latest?.home.roomLevel ?? renderedRoomLevel,
             artworkSize: room.texture?.size() ?? CGSize(width: 1024, height: 1536),
             bowlAspect: bowl.texture.map { $0.size().height / $0.size().width } ?? 0.83,

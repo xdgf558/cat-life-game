@@ -24,7 +24,7 @@ struct TownEventMigrationTests {
         community.removeValue(forKey: "events")
         saved["community"] = community
         let loaded = try decode(saved)
-        #expect(loaded == state && loaded.schemaVersion == 11)
+        #expect(loaded == state && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
         #expect(loaded.community.events.todayReceipt == nil && loaded.community.events.totalCompleted == 0)
         #expect(loaded.community.events.eventID != nil)
         #expect(try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: loaded)).snapshot == loaded)

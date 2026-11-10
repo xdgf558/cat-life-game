@@ -111,7 +111,7 @@ extension RoomHomeUITests {
         XCTAssertEqual(originalEnergy, 80)
         let bed = try XCTUnwrap(before.items.first { $0.id == "catBed" })
         let feedTouch = element("feedButton", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        element("roomScene", in: app).coordinate(withNormalizedOffset: restFurnitureTouchPoint(bed)).tap()
+        try restFurnitureCoordinate(bed, in: app).tap()
         let approach = waitForFurniture(in: app, timeout: 20, description: "approaching the bed before recovery starts",
                                          matching: { $0.phase == "rest-approach" })
         XCTAssertEqual(approach.catEnergy, originalEnergy)
@@ -176,7 +176,7 @@ extension RoomHomeUITests {
         let before = furnitureState(in: app)
         let originalEnergy = try XCTUnwrap(before.catEnergy)
         let bed = try XCTUnwrap(before.items.first { $0.id == "catBed" })
-        element("roomScene", in: app).coordinate(withNormalizedOffset: restFurnitureTouchPoint(bed)).tap()
+        try restFurnitureCoordinate(bed, in: app).tap()
         let committed = waitForCommittedBedRest(in: app, atLeastSeconds: 3)
         XCTAssertNotNil(committed.savedRestSession)
         let session = try XCTUnwrap(committed.restSession)
@@ -219,7 +219,7 @@ extension RoomHomeUITests {
         let beforeJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: beforeData) as? [String: Any])
         let supplyIDs = ["foodCount", "goldCount", "staminaCount", "catSatiety"]
         let originalSupplies = try supplyIDs.map { try XCTUnwrap(observedHomeValue($0, in: app)) }
-        let bedTouch = room.coordinate(withNormalizedOffset: restFurnitureTouchPoint(bed))
+        let bedTouch = try restFurnitureCoordinate(bed, in: app)
         bedTouch.tap()
 
         // The first SE run recorded began;cancelled at the visible bed, without

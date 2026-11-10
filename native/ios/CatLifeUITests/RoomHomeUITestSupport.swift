@@ -160,7 +160,7 @@ extension RoomHomeUITests {
             }
         }
         for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar",
-                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail", "townEventConfirmButton"] {
+                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail", "townEventConfirmButton", "playTogetherActionBar"] {
             let bar = element(identifier, in: app)
             // A presented sheet covers the home bar even while its AX node remains present.
             if bar.exists, bar.isHittable, bar.frame.intersects(viewport), bar.frame.minY > contentTop {
@@ -382,7 +382,7 @@ extension RoomHomeUITests {
     }
 
     @MainActor
-    func launchAndEnterHome(_ app: XCUIApplication,
+    func launchAndEnterHome(_ app: XCUIApplication, keepsHabitIntro: Bool = false,
                                      file: StaticString = #filePath, line: UInt = #line) {
         app.launch()
         waitForWelcomeEntryReady(in: app, file: file, line: line)
@@ -410,6 +410,15 @@ extension RoomHomeUITests {
             }
         }
         waitForElement("feedButton", in: app, file: file, line: line)
+        if !keepsHabitIntro, element("habitIntroLater", in: app).exists {
+            if !element("habitIntroLater", in: app).isHittable {
+                scrollCareerPage("habitRoomPromptScroll", to: "habitIntroLater", in: app, file: file, line: line)
+            }
+            tapAnimationControl("habitIntroLater", in: app, file: file, line: line)
+            let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                      object: element("habitIntroBanner", in: app))
+            XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, file: file, line: line)
+        }
     }
 
     @MainActor
@@ -571,6 +580,15 @@ extension RoomHomeUITests {
                            "\(identifier) did not become tappable", file: file, line: line)
         }
         target.tap()
+    }
+
+    @MainActor
+    func tapQuickPlay(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        tapAnimationControl("playButton", in: app, file: file, line: line)
+        let choice = app.buttons.matching(NSPredicate(format: "identifier == %@ OR label IN %@",
+            "quickPlayChoice", ["快速陪玩", "Quick Play"])).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 5), file: file, line: line)
+        choice.tap()
     }
 
     @MainActor
