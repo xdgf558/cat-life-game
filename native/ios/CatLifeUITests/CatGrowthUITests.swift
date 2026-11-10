@@ -63,6 +63,52 @@ extension RoomHomeUITests {
     }
 
     @MainActor
+    func testCatGrowthTimelineAndBondHeadersStayVisibleForBothFixtureCats() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--cat-growth-fixture"]
+        launchAndEnterHome(app)
+        let food = element("foodCount", in: app).value as? String
+        let gold = element("goldCount", in: app).value as? String
+        tapAnimationControl("homeCatProfileButton", in: app)
+        scrollCareerPage("catProfileScroll", to: "catGrowthEntry", in: app)
+        tapAnimationControl("catGrowthEntry", in: app)
+
+        for (catID, age, stage, bond) in [
+            ("cat_001", "4 个月 0 天", "幼猫期", "24 / 100"),
+            ("cat_002", "6 个月 20 天", "少年期", "75 / 100")
+        ] {
+            scrollCareerPage("catGrowthScroll", to: "catGrowthSwitch_\(catID)", in: app)
+            tapAnimationControl("catGrowthSwitch_\(catID)", in: app)
+            waitForObservedValue("catGrowthScroll", catID, in: app)
+            waitForObservedValue("catGrowthAge", age, in: app)
+            waitForObservedValue("catGrowthStage", stage, in: app)
+            scrollCareerPage("catGrowthScroll", to: "catGrowthNextStage", in: app)
+            scrollCareerPage("catGrowthScroll", to: "catGrowth.growthHeading", in: app)
+            let growthViewport = unobscuredScrollViewport(element("catGrowthScroll", in: app), in: app)
+            for identifier in ["catGrowth.growthHeading", "catGrowthAge", "catGrowthNextStage"] {
+                XCTAssertTrue(growthViewport.contains(element(identifier, in: app).frame), "\(catID): \(identifier)")
+            }
+            attachScreenshot(app, named: "Growth repair — \(catID) timeline and age share the visible section")
+
+            scrollCareerPage("catGrowthScroll", to: "catGrowthNextBond", in: app)
+            scrollCareerPage("catGrowthScroll", to: "catGrowth.bondHeading", in: app)
+            waitForObservedValue("catGrowthBondValue", bond, in: app)
+            let bondViewport = unobscuredScrollViewport(element("catGrowthScroll", in: app), in: app)
+            for identifier in ["catGrowth.bondHeading", "catGrowthBondValue", "catGrowthNextBond"] {
+                XCTAssertTrue(bondViewport.contains(element(identifier, in: app).frame), "\(catID): \(identifier)")
+            }
+            attachScreenshot(app, named: "Growth repair — \(catID) bond value remains beside its heading")
+        }
+
+        scrollCareerPage("catGrowthScroll", to: "catGrowthGoHome", in: app)
+        tapAnimationControl("catGrowthGoHome", in: app)
+        waitForObservedValue("homeCatName", "牛奶", in: app)
+        XCTAssertEqual(element("foodCount", in: app).value as? String, food)
+        XCTAssertEqual(element("goldCount", in: app).value as? String, gold)
+    }
+
+    @MainActor
     func testCatGrowthEnglishLargestTextKeepsRecordsAndReturnActionReachable() throws {
         continueAfterFailure = false
         let app = XCUIApplication()

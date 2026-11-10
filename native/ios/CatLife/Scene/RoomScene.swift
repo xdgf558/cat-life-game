@@ -18,7 +18,7 @@ final class RoomScene: SKScene {
 #if DEBUG
             welcomePreloadPassCount += 1
 #endif
-            let names = ["room-empty", "bowl-empty", "bowl-full", "icon-play"]
+            let names = ["room-empty", "room-floor-wood", "room-wall-plaster", "room-window-arched", "bowl-empty", "bowl-full", "icon-play"]
                 + CatAppearance.allCases.flatMap { appearance in
                     (["cat-idle"] + CatClip.allCases.map(\.rawValue)).map {
                         CatArtwork.asset($0, appearance: appearance)
@@ -84,10 +84,7 @@ final class RoomScene: SKScene {
     func residentFrame(id: String) -> CGRect? {
         let actor = id == renderedCatID ? cat : residents.actors[id]
         guard let actor, !actor.isHidden, view != nil else { return nil }
-        let frame = actor.visualFrame
-        let top = convertPoint(toView: CGPoint(x: frame.minX, y: frame.maxY))
-        let bottom = convertPoint(toView: CGPoint(x: frame.maxX, y: frame.minY))
-        return CGRect(x: min(top.x, bottom.x), y: min(top.y, bottom.y), width: abs(bottom.x - top.x), height: abs(bottom.y - top.y))
+        return roomPresentation.frame(id == renderedCatID ? "cat" : "resident-" + id)
     }
     var onFurnitureSelected: ((String?) -> Void)?
     var onFurnitureMoved: ((String, NormalizedPoint) -> Void)?
@@ -118,7 +115,12 @@ final class RoomScene: SKScene {
     private var lastRestFinished = Date.distantPast
     var deferredRoomLayoutFromSize: CGSize?
     var renderedRoomLevel = 1
-    let roomCamera = RoomCameraController()
+    private let roomCameraNode = SKCameraNode()
+    let roomPresentation = RoomPresentationRenderer()
+    var onRoomViewChanged: (() -> Void)?
+    private var lastRoomViewState = ""
+    private var lastRoomViewTick: TimeInterval?
+    private var followsPresentedCat = false
     var dragScreenPoint: CGPoint?
     weak var sceneTouch: UITouch?
     var blockedTouchSequence = false
@@ -211,8 +213,9 @@ final class RoomScene: SKScene {
         scaleMode = .resizeFill
         backgroundColor = UIColor(red: 0.98, green: 0.95, blue: 0.89, alpha: 1)
         artwork.install(in: self)
-        addChild(roomCamera.node)
-        camera = roomCamera.node
+        addChild(roomCameraNode)
+        camera = roomCameraNode
+        roomCameraNode.addChild(roomPresentation.root)
         cat.name = "cat"
         cat.zPosition = 20
         addChild(cat)
@@ -240,6 +243,10 @@ final class RoomScene: SKScene {
             if carePlanningTask != nil || suspendedCareKind != nil { cancelPresentation(at: cat.position) }
             return
         }
+        if let floor {
+            roomPresentation.configure(world: worldGeometry.worldSize, viewport: size,
+                floor: floor.polygon, angle: roomViewAngle, level: renderedRoomLevel, homeFloor: homeFloor)
+        }
         if activeRest != nil {
             // Nodes and navigation still use the old canvas. Walk out in that
             // world first, then remap the complete room together.
@@ -257,25 +264,15 @@ final class RoomScene: SKScene {
     }
     override func update(_ currentTime: TimeInterval) {
         publishFloorTravelAvailability()
-        if roomCamera.update(at: currentTime, target: presentationBusy && !editing ? cat.position : nil,
-                             draggingAt: dragging ? dragScreenPoint : nil), dragging, let point = dragScreenPoint {
-            let worldPoint = worldGeometry.worldPoint(point, camera: roomCamera.node.position,
-                                                     cameraScale: roomCamera.scale)
-            selectedNode.position = previewFloorPoint(CGPoint(x: worldPoint.x + dragOffset.x, y: worldPoint.y + dragOffset.y))
-            updateSelection()
-        }
+        let viewDelta = currentTime - (lastRoomViewTick ?? currentTime)
+        lastRoomViewTick = currentTime
+        updateRoomEdgeScrolling(delta: viewDelta)
         let frame = cat.visualFrame
         thought.position = CGPoint(x: frame.midX + catWidth * 0.30, y: frame.maxY + 30)
         // A smaller y is nearer the camera. The bowl is anchored at its base,
         // not the center of its tall texture.
         cat.zPosition = 1_000 - cat.position.y
         residents.updateDepths()
-        artwork.updateCompanionMarker(cat: cat, name: latest?.activeCat.map(GameStrings.catName) ?? "",
-                                      hidden: editing || cat.isHidden, reducedMotion: reducedMotion)
-        if let onInspectedResidentFrameChanged {
-            let frame = canInspectResidents ? inspectedResidentID.flatMap { residentFrame(id: $0) } : nil
-            if inspectionFrameSampler.sample(frame, at: currentTime) { onInspectedResidentFrameChanged(frame) }
-        }
         if !editing, bowlPlanningRequest == nil, !residents.isPreparing, !cat.isHidden, let renderedCatID {
             let visible = Set(residents.actors.filter { !$0.value.isHidden }.keys).union([renderedCatID])
             if visible != lastVisibleResidents { lastVisibleResidents = visible; onVisibleResidentsChanged?(visible) }
@@ -286,28 +283,22 @@ final class RoomScene: SKScene {
         thought.zPosition = 2_000
         if let onCatNeedAnchorChanged {
             // SpriteKit conversion includes camera pan, zoom and scene resize.
+            let displayed = roomPresentation.frame("cat")
             let anchor = canShowCatNeed && view != nil
-                ? convertPoint(toView: CGPoint(x: frame.midX, y: frame.maxY + 34)) : nil
+                ? displayed.map { CGPoint(x: $0.midX, y: $0.minY) } : nil
             if needAnchorSampler.sample(anchor, at: currentTime) { onCatNeedAnchorChanged(anchor) }
         }
         if let onCatVisualFrameChanged {
             var projected: CGRect?
             if presentationActive, !cat.isHidden, view != nil {
-                let topLeft = convertPoint(toView: CGPoint(x: frame.minX, y: frame.maxY))
-                let bottomRight = convertPoint(toView: CGPoint(x: frame.maxX, y: frame.minY))
-                projected = CGRect(x: min(topLeft.x, bottomRight.x), y: min(topLeft.y, bottomRight.y),
-                                   width: abs(bottomRight.x - topLeft.x), height: abs(bottomRight.y - topLeft.y))
+                projected = roomPresentation.frame("cat")
             }
             if visualFrameSampler.sample(projected, at: currentTime) { onCatVisualFrameChanged(projected) }
         }
         if let onArrangementFrameChanged {
             var projected: CGRect?
             if editing, presentationActive, !dragging, !isPlacementPending, view != nil {
-                let selectedFrame = selectedNode.frame
-                let topLeft = convertPoint(toView: CGPoint(x: selectedFrame.minX, y: selectedFrame.maxY))
-                let bottomRight = convertPoint(toView: CGPoint(x: selectedFrame.maxX, y: selectedFrame.minY))
-                projected = CGRect(x: min(topLeft.x, bottomRight.x), y: min(topLeft.y, bottomRight.y),
-                                   width: abs(bottomRight.x - topLeft.x), height: abs(bottomRight.y - topLeft.y))
+                projected = roomPresentation.frame(selectedFurnitureID.map { "furniture-" + $0 } ?? "bowl")
             }
             if arrangementFrameSampler.sample(projected, at: currentTime) { onArrangementFrameChanged(projected) }
         }
@@ -327,6 +318,36 @@ final class RoomScene: SKScene {
         }
 #endif
     }
+    override func didFinishUpdate() {
+        super.didFinishUpdate()
+        updateRoomPresentation()
+    }
+
+    func updateRoomPresentation() {
+        artwork.updateCompanionMarker(cat: cat, name: latest?.activeCat.map(GameStrings.catName) ?? "",
+                                      hidden: editing || cat.isHidden, reducedMotion: reducedMotion)
+        if followsPresentedCat && presentationBusy && !editing {
+            roomPresentation.camera.follow(roomPresentation.projection.project(cat.position))
+        }
+        roomPresentation.update(cat: cat, residents: residents, furniture: furnitureNodes,
+            items: ownedFurniture, bowl: bowl, bowlFront: artwork.bowlFront, restFront: restFront,
+            selection: artwork.selection, toy: toy, feeding: presentationPhase == "feeding", rest: activeRest,
+            selectedID: selectedFurnitureID, particles: children.filter { $0.name == "care-particle" },
+            companionRing: artwork.companionRing, companionPlaque: artwork.companionPlaque)
+        let state = "\(roomViewAngle.rawValue)|\(isWholeRoomView)|\(canChangeRoomView)"
+        if state != lastRoomViewState {
+            lastRoomViewState = state
+            inspectionFrameSampler = CatVisualFrameSampler()
+            onRoomViewChanged?()
+        }
+        if let onInspectedResidentFrameChanged {
+            let frame = canInspectResidents ? inspectedResidentID.flatMap { residentFrame(id: $0) } : nil
+            if inspectionFrameSampler.sample(frame, at: lastRoomViewTick ?? 0) { onInspectedResidentFrameChanged(frame) }
+        }
+    }
+
+    func beginRoomFollowing() { followsPresentedCat = true }
+    func suspendRoomFollowing() { followsPresentedCat = false }
     func apply(snapshot: GameSnapshot, editing: Bool, selectedFurnitureID selected: String? = nil,
                placingFurnitureID placing: String? = nil) {
         let companionChanged = renderedCatID != snapshot.activeCatID
@@ -456,7 +477,11 @@ final class RoomScene: SKScene {
         selectedFurnitureID = id
         let node = furnitureNode(for: item)
         let preferred = FurnitureCatalog.defaultPlacements.first { $0.itemID == id }?.position ?? .init(x: 0.62, y: 0.65)
-        node.position = worldGeometry.worldScale > 1 ? roomCamera.node.position : artworkTransform.point(preferred)
+        node.position = worldGeometry.worldScale > 1
+            ? (RoomFurnitureSpec.forItem(item).isWall
+                ? roomPresentation.projection.unprojectWallPoint(roomPresentation.camera.center)
+                : roomPresentation.projection.unproject(roomPresentation.camera.center))
+            : artworkTransform.point(preferred)
         node.alpha = 0.75
         placementPrepared = false
         preparePlacementNavigation()
@@ -490,7 +515,7 @@ final class RoomScene: SKScene {
             return
         }
         cancelPresentation(at: cat.position)
-        roomCamera.beginFollowing(cat.position, animated: !reducedMotion)
+        beginRoomFollowing()
         cat.setIdleEnabled(false)
         presentationBusy = true
         setPhase("rest-approach")
@@ -761,7 +786,7 @@ final class RoomScene: SKScene {
         removeAction(forKey: "ambient-walk")
         floorTravelCareActive = true
         presentationBusy = true
-        roomCamera.beginFollowing(cat.position, animated: !reducedMotion)
+        beginRoomFollowing()
         cat.setIdleEnabled(false)
         revision += 1
         let ticket = revision
@@ -1067,10 +1092,12 @@ final class RoomScene: SKScene {
     private func applyLayoutArtwork(_ proposal: RoomLayoutProposal) {
         renderedRoomLevel = proposal.roomLevel
         renderedViewportSize = proposal.geometry.viewportSize
-        roomCamera.configure(proposal.geometry)
+        roomPresentation.configure(world: proposal.geometry.worldSize, viewport: size,
+            floor: proposal.planner.floor.polygon, angle: roomViewAngle, level: proposal.roomLevel, homeFloor: homeFloor)
         let worldSize = proposal.geometry.worldSize
         let fill = max(worldSize.width / proposal.artworkSize.width, worldSize.height / proposal.artworkSize.height)
         room.size = CGSize(width: proposal.artworkSize.width * fill, height: proposal.artworkSize.height * fill)
+        room.isHidden = true
         room.position = CGPoint(x: worldSize.width / 2, y: worldSize.height / 2)
         artwork.updateFloorAmbience(upper: homeFloor == .upper, transform: artworkTransform)
         catWidth = proposal.catWidth
@@ -1123,7 +1150,7 @@ final class RoomScene: SKScene {
         placementTask = nil
         dragging = false
         dragScreenPoint = nil
-        _ = roomCamera.endTouch()
+        _ = roomPresentation.camera.endPan()
         touchOrigin = nil
         let abandoned = newPlacementID
         newPlacementID = nil
@@ -1272,20 +1299,22 @@ final class RoomScene: SKScene {
     private func noteRoute(_ path: [CGPoint]) { diagnostics.noteRoute(path, navigation: navigation) }
     func publishNavigationStatus() {
         diagnostics.publishNavigationStatus(phase: presentationPhase, cat: cat, bowl: bowl.position,
-                                            geometry: worldGeometry, camera: roomCamera.node.position, cameraScale: roomCamera.scale)
+                                            geometry: worldGeometry, presentation: roomPresentation)
     }
     func publishDragMetrics() {
         diagnostics.publishDragMetrics(pending: isPlacementPending, bowl: bowl.position,
-                                       geometry: worldGeometry, camera: roomCamera.node.position, cameraScale: roomCamera.scale)
+                                       geometry: worldGeometry, presentation: roomPresentation)
     }
     func publishFurnitureStatus() {
-        diagnostics.publishFurnitureStatus(.init(geometry: worldGeometry, cameraPosition: roomCamera.node.position, cameraScale: roomCamera.scale,
+        updateRoomPresentation()
+        diagnostics.publishFurnitureStatus(.init(geometry: worldGeometry, cameraPosition: roomPresentation.camera.center, cameraScale: roomPresentation.camera.scale,
             roomLevel: renderedRoomLevel, catWidth: catWidth, bowlWidth: bowl.size.width,
             furnitureWorld: furnitureWorld, renderedFurniture: renderedFurniture,
             ownedFurniture: ownedFurniture, furnitureNodes: furnitureNodes, selectedFurnitureID: selectedFurnitureID,
             isPlacementPending: isPlacementPending, presentationPhase: presentationPhase, activeRest: activeRest,
             restSessionID: restSessionID, restSessionWasCommitted: restSessionWasCommitted,
-            restEndReported: restEndReported, restDeadline: restDeadline, latest: latest), cat: cat, bowl: bowl.position, residents: residents, bowlHasFood: bowlHasFood)
+            restEndReported: restEndReported, restDeadline: restDeadline, latest: latest,
+            presentation: roomPresentation, viewAngle: roomViewAngle), cat: cat, bowl: bowl.position, residents: residents, bowlHasFood: bowlHasFood)
     }
 #endif
 

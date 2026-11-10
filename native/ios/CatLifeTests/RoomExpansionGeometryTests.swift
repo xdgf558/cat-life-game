@@ -261,29 +261,6 @@ final class RoomExpansionGeometryTests: XCTestCase {
         }
     }
 
-    func testCameraClampsAndProjectsWithoutChangingWorldPositions() throws {
-        for viewport in viewports {
-            for level in 1...3 {
-                let scale = CGFloat(try XCTUnwrap(HomeCatalog.level(level)).worldScale)
-                let geometry = RoomWorldGeometry(viewportSize: viewport, worldScale: scale)
-                let near = geometry.clampedCameraPosition(CGPoint(x: -1_000, y: -1_000))
-                let far = geometry.clampedCameraPosition(CGPoint(x: 10_000, y: 10_000))
-                XCTAssertEqual(near, CGPoint(x: viewport.width / 2, y: viewport.height / 2))
-                XCTAssertEqual(far, CGPoint(x: geometry.worldSize.width - viewport.width / 2,
-                                           y: geometry.worldSize.height - viewport.height / 2))
-                let point = CGPoint(x: geometry.worldSize.width * 0.76, y: geometry.worldSize.height * 0.21)
-                for camera in [near, far] {
-                    let screen = geometry.screenPoint(point, camera: camera)
-                    let restored = geometry.worldPoint(screen, camera: camera)
-                    XCTAssertEqual(restored.x, point.x, accuracy: 0.0001)
-                    XCTAssertEqual(restored.y, point.y, accuracy: 0.0001)
-                }
-                if level == 1 { XCTAssertEqual(near, far) }
-                else { XCTAssertNotEqual(geometry.screenPoint(point, camera: near), geometry.screenPoint(point, camera: far)) }
-            }
-        }
-    }
-
 #if DEBUG
     @MainActor
     func testStoredFurniturePurchasePreservesPendingAndActiveFeeding() async throws {

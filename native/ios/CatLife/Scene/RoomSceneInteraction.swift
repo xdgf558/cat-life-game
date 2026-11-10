@@ -7,11 +7,13 @@ import CatGameCore
 extension RoomScene {
     func resetCamera() {
         cancelSingleTouchSequence()
-        roomCamera.focus(on: cat.position, animated: !reducedMotion, resetScale: true)
+        beginRoomFollowing()
+        roomPresentation.camera.focus(on: roomPresentation.projection.project(cat.position))
+        updateRoomPresentation()
     }
 
     var canZoomCamera: Bool {
-        renderedRoomLevel > 1 && presentationActive && deferredRoomLayoutFromSize == nil
+        presentationActive && deferredRoomLayoutFromSize == nil
             && bowlPlanningRequest == nil && size.width > 0 && size.height > 0
     }
 
@@ -21,15 +23,17 @@ extension RoomScene {
         case .began:
             guard canZoomCamera else { return }
             cancelSingleTouchSequence()
-            roomCamera.beginPinch(at: location)
+            suspendRoomFollowing()
+            roomPresentation.camera.beginPinch(at: location)
         case .changed:
-            guard canZoomCamera else { roomCamera.endPinch(); return }
-            roomCamera.changePinch(factor: scale, at: location)
+            guard canZoomCamera else { roomPresentation.camera.endPinch(); return }
+            roomPresentation.camera.changePinch(factor: scale, at: location)
         case .ended, .cancelled, .failed:
             // The last remaining finger must not replace the two-finger center.
-            roomCamera.endPinch()
+            roomPresentation.camera.endPinch()
         default: break
         }
+        updateRoomPresentation()
 #if DEBUG
         publishNavigationStatus()
         publishDragMetrics()
@@ -43,7 +47,9 @@ extension RoomScene {
     private func zoomCamera(by factor: CGFloat) {
         guard canZoomCamera else { return }
         cancelSingleTouchSequence()
-        roomCamera.zoom(by: factor)
+        suspendRoomFollowing()
+        roomPresentation.camera.zoom(by: factor)
+        updateRoomPresentation()
 #if DEBUG
         publishNavigationStatus()
         publishDragMetrics()
@@ -55,14 +61,14 @@ extension RoomScene {
         blockedTouchSequence = true
         sceneTouch = nil
         if dragging { cancelPlacementPreview() }
-        _ = roomCamera.endTouch()
+        _ = roomPresentation.camera.endPan()
         touchOrigin = nil
         dragScreenPoint = nil
     }
 
     func cancelCameraInteraction() {
         cancelSingleTouchSequence()
-        roomCamera.cancelGestures()
+        roomPresentation.camera.cancelGestures()
     }
     func previewFloorPoint(_ point: CGPoint) -> CGPoint {
         guard let floor, let placementNavigation else { return selectedNode.position }
@@ -78,24 +84,22 @@ extension RoomScene {
             cancelSingleTouchSequence()
             return
         }
-        guard !roomCamera.isPinching else { return }
+        guard !roomPresentation.camera.isPinching else { return }
         guard bowlPlanningRequest == nil else { return }
         guard let touch = touches.first else { return }
         blockedTouchSequence = false
         sceneTouch = touch
-        let point = touch.location(in: self)
-        touchOrigin = point
-        if let view { roomCamera.beginTouch(at: touch.location(in: view), canPan: true) }
+        guard let view else { return }
+        let screen = touch.location(in: view)
+        let point = roomPresentation.worldPoint(screen: screen)
+        touchOrigin = screen
+        roomPresentation.camera.beginPan(at: screen)
 #if DEBUG
         if diagnostics.furnitureTesting { diagnostics.lastRestInput = "began:\(point.x),\(point.y)" }
 #endif
         guard editing, activeRest == nil else { return }
-        let hits = furnitureNodes.filter { $0.value.frame.contains(point) }
-            .sorted { $0.value.zPosition > $1.value.zPosition }
-        let hit = hits.first
-        let bowlHit = bowl.frame.insetBy(dx: -8, dy: -8).contains(point)
-        guard hit != nil || bowlHit else { return }
-        let chosenID: String? = bowlHit && (hit == nil || bowl.zPosition >= hit!.value.zPosition) ? nil : hit?.key
+        guard let hit = roomPresentation.hit(screen: screen, editing: true) else { return }
+        let chosenID: String? = hit == "bowl" ? nil : String(hit.dropFirst("furniture-".count))
         // A pending new item can be grabbed again, but a second item must wait
         // for its placement or be reached after cancelling the current preview.
         if newPlacementID != nil && chosenID != selectedFurnitureID { return }
@@ -114,10 +118,11 @@ extension RoomScene {
         diagnostics.furnitureDragPreviewSamples = 0
         diagnostics.furnitureDragPreviewPoint = nil
 #endif
-        dragScreenPoint = view.map { touch.location(in: $0) }
-        if let point = dragScreenPoint { roomCamera.beginTouch(at: point, canPan: false) }
+        dragScreenPoint = touch.location(in: view)
+        _ = roomPresentation.camera.endPan()
         setPlacementPending(true)
-        dragOffset = CGPoint(x: selectedNode.position.x - point.x, y: selectedNode.position.y - point.y)
+        let input = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall)
+        dragOffset = CGPoint(x: selectedNode.position.x - input.x, y: selectedNode.position.y - input.y)
         updateSelection()
 #if DEBUG
         publishFurnitureStatus()
@@ -129,17 +134,21 @@ extension RoomScene {
             cancelSingleTouchSequence()
             return
         }
-        guard !blockedTouchSequence, !roomCamera.isPinching,
+        guard !blockedTouchSequence, !roomPresentation.camera.isPinching,
               let touch = sceneTouch, touches.contains(touch) else { return }
         if !dragging {
-            if let view { roomCamera.moveTouch(to: touch.location(in: view)) }
+            if let view {
+                if roomPresentation.camera.changePan(to: touch.location(in: view)) { suspendRoomFollowing() }
+                updateRoomPresentation()
+            }
             return
         }
         dragScreenPoint = view.map { touch.location(in: $0) }
 #if DEBUG
         let started = CACurrentMediaTime()
 #endif
-        let point = touch.location(in: self)
+        guard let view else { return }
+        let point = roomPresentation.worldPoint(screen: touch.location(in: view), wall: selectedIsWall)
         selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
 #if DEBUG
         diagnostics.furnitureDragPreviewSamples += 1
@@ -148,6 +157,7 @@ extension RoomScene {
         updateSelection()
         updateBowlLayers()
         updateFurnitureLayers()
+        updateRoomPresentation()
 #if DEBUG
         if diagnostics.dragTesting {
             diagnostics.dragMoveSamples += 1
@@ -157,20 +167,22 @@ extension RoomScene {
     }
 
     func endTouches(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard !blockedTouchSequence, !roomCamera.isPinching,
+        guard !blockedTouchSequence, !roomPresentation.camera.isPinching,
               let touch = sceneTouch, touches.contains(touch) else { return }
 #if DEBUG
         if diagnostics.furnitureTesting { diagnostics.lastRestInput += ";ended" }
 #endif
-        let wasPanning = roomCamera.endTouch()
+        let wasPanning = roomPresentation.camera.endPan()
         defer { dragging = false; touchOrigin = nil; dragScreenPoint = nil; sceneTouch = nil }
         if wasPanning { return }
         if dragging {
-            let point = touch.location(in: self)
+            guard let view else { return }
+            let screen = touch.location(in: view)
+            let point = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall)
             selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
             // A tap selects without doing an expensive route search.
             if let origin = touchOrigin,
-               hypot(touch.location(in: self).x - origin.x, touch.location(in: self).y - origin.y) < 3 * roomCamera.scale,
+               hypot(screen.x - origin.x, screen.y - origin.y) < 3,
                newPlacementID == nil {
                 selectedNode.position = selectedFurnitureID.flatMap { furnitureWorld.center($0) } ?? committedBowlPosition
                 setPlacementPending(false)
@@ -188,20 +200,19 @@ extension RoomScene {
             return
         }
         guard !editing, let origin = touchOrigin else { return }
-        let point = touch.location(in: self)
-        guard hypot(point.x - origin.x, point.y - origin.y) < 12 * roomCamera.scale else { return }
-        if bowl.frame.contains(point) { onBowlTapped?() }
-        else if cat.visualFrame.insetBy(dx: -8, dy: -8).contains(point) {
+        guard let view else { return }
+        let point = touch.location(in: view)
+        guard hypot(point.x - origin.x, point.y - origin.y) < 12 else { return }
+        let hit = roomPresentation.hit(screen: point, editing: false)
+        if hit == "bowl" { onBowlTapped?() }
+        else if hit == "cat" {
             if activeRest != nil { pendingRestID = nil; leaveFurnitureRest() }
             else if canInspectResidents { onCatTapped?() }
-        } else if let residentID = residents.hit(at: point) {
-            if canInspectResidents { onResidentTapped?(residentID) }
+        } else if let hit, hit.hasPrefix("resident-") {
+            if canInspectResidents { onResidentTapped?(String(hit.dropFirst("resident-".count))) }
         } else {
             onBackgroundTapped?()
-            if let hit = furnitureNodes.filter({ $0.value.frame.contains(point) })
-            .sorted(by: { $0.value.zPosition > $1.value.zPosition }).first {
-                visitFurniture(hit.key)
-            }
+            if let hit, hit.hasPrefix("furniture-") { visitFurniture(String(hit.dropFirst("furniture-".count))) }
         }
     }
 
@@ -215,5 +226,17 @@ extension RoomScene {
     private func hasMultipleActiveTouches(_ touches: Set<UITouch>, event: UIEvent?) -> Bool {
         let active = event?.allTouches?.filter { $0.phase != .ended && $0.phase != .cancelled }
         return (active?.count ?? touches.count) > 1
+    }
+
+    private var selectedIsWall: Bool {
+        selectedFurnitureID.flatMap { furnitureWorld.item($0) }.map { RoomFurnitureSpec.forItem($0).isWall } ?? false
+    }
+
+    func updateRoomEdgeScrolling(delta: TimeInterval) {
+        guard dragging, let screen = dragScreenPoint,
+              roomPresentation.camera.scrollNearEdge(at: screen, delta: delta) else { return }
+        let point = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall)
+        selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
+        updateSelection()
     }
 }

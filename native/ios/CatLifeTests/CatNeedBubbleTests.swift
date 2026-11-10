@@ -62,7 +62,7 @@ final class CatNeedBubbleTests: XCTestCase {
         for canvas in [CGSize(width: 375, height: 603), CGSize(width: 430, height: 850)] {
             let stairs = RoomStairLandingLayout.frame(size: CGSize(width: 76, height: 106), canvas: canvas)
             XCTAssertEqual(stairs.minX, canvas.width - 88)
-            XCTAssertEqual(stairs.minY, canvas.height < 700 ? 240 : 284)
+            XCTAssertEqual(stairs.minY, RoomStairLandingLayout.topInset)
             let anchor = CGPoint(x: canvas.width - 75, y: 344)
             for height: CGFloat in [44, 80, 140] {
                 let bubble = CGSize(width: 190, height: height)
@@ -125,7 +125,7 @@ final class CatNeedBubbleTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(card.minY, 218)
         XCTAssertGreaterThanOrEqual(card.height, 72, "The explicit care target can wrap a long cat name onto two lines.")
         XCTAssertFalse(card.intersects(CGRect(x: 14, y: 160, width: 347, height: 50)))
-        let upstairs = RoomStairLandingLayout.frame(size: CGSize(width: 76, height: 88), canvas: viewport, floor: .upper)
+        let upstairs = RoomStairLandingLayout.frame(size: CGSize(width: 76, height: 88), canvas: viewport, floor: .upper, top: card.maxY + 28)
         XCTAssertEqual(upstairs.minX, 12)
         XCTAssertGreaterThanOrEqual(upstairs.minY, card.maxY + 20 + 8)
     }

@@ -4,114 +4,49 @@ import CatGameCore
 @testable import CatLife
 
 final class RoomCameraZoomTests: XCTestCase {
-    func testZoomProjectionRoundTripsAndKeepsVisibleWorldInsideBounds() throws {
-        for viewport in [CGSize(width: 375, height: 436), CGSize(width: 402, height: 567)] {
+    @MainActor
+    func testZoomProjectionRoundTripsAndKeepsCompleteRoomsInsideOverview() throws {
+        for viewport in [CGSize(width: 375, height: 436), CGSize(width: 402, height: 776)] {
             for room in HomeCatalog.all {
                 for floor in room.floors {
-                    let context = "room level \(room.level), \(floor.rawValue), \(viewport)"
-                    let expansion = CGFloat(try XCTUnwrap(room.worldScale(on: floor), context))
-                    let geometry = RoomWorldGeometry(viewportSize: viewport, worldScale: expansion)
-                    for scale: CGFloat in expansion > 1 ? [0.625, 1, expansion] : [1] {
-                        for proposed in [CGPoint(x: -1_000, y: -1_000), CGPoint(x: 10_000, y: 10_000)] {
-                            let sample = "\(context), camera scale \(scale), proposed \(proposed)"
-                            let camera = geometry.clampedCameraPosition(proposed, cameraScale: scale)
-                            let topLeft = geometry.worldPoint(.zero, camera: camera, cameraScale: scale)
-                            let bottomRight = geometry.worldPoint(CGPoint(x: viewport.width, y: viewport.height),
-                                                                  camera: camera, cameraScale: scale)
-                            XCTAssertGreaterThanOrEqual(topLeft.x, -0.0001, sample)
-                            XCTAssertLessThanOrEqual(topLeft.y, geometry.worldSize.height + 0.0001, sample)
-                            XCTAssertLessThanOrEqual(bottomRight.x, geometry.worldSize.width + 0.0001, sample)
-                            XCTAssertGreaterThanOrEqual(bottomRight.y, -0.0001, sample)
-                            let savedWorldPoint = CGPoint(x: geometry.worldSize.width * 0.76, y: geometry.worldSize.height * 0.21)
-                            let projected = geometry.screenPoint(savedWorldPoint, camera: camera, cameraScale: scale)
-                            let restored = geometry.worldPoint(projected, camera: camera, cameraScale: scale)
-                            XCTAssertEqual(restored.x, savedWorldPoint.x, accuracy: 0.0001, sample)
-                            XCTAssertEqual(restored.y, savedWorldPoint.y, accuracy: 0.0001, sample)
-                            if scale == expansion {
-                                XCTAssertEqual(topLeft.x, 0, accuracy: 0.0001, sample)
-                                XCTAssertEqual(topLeft.y, geometry.worldSize.height, accuracy: 0.0001, sample)
-                                XCTAssertEqual(bottomRight.x, geometry.worldSize.width, accuracy: 0.0001, sample)
-                                XCTAssertEqual(bottomRight.y, 0, accuracy: 0.0001, sample)
-                            }
+                    let expansion = CGFloat(try XCTUnwrap(room.worldScale(on: floor)))
+                    let world = RoomWorldGeometry(viewportSize: viewport, worldScale: expansion).worldSize
+                    let floorShape = RoomFloor(sceneSize: world, artworkSize: CGSize(width: 1024, height: 1536),
+                                               catWidth: 50, bowlSize: CGSize(width: 58, height: 48))
+                    for angle in RoomViewAngle.allCases {
+                        let context = "level \(room.level), \(floor), \(angle), \(viewport)"
+                        let projection = RoomViewProjection(worldSize: world, angle: angle)
+                        let shell = RoomShellArtwork()
+                        shell.configure(projection: projection, floorPolygon: floorShape.polygon, worldSize: world)
+                        let bounds = shell.contentBounds
+                        let usable = CGRect(x: 12, y: 40, width: viewport.width - 24, height: viewport.height - 80)
+                        let camera = RoomViewCamera()
+                        camera.configure(bounds: bounds, viewport: viewport, usableRect: usable, worldScale: expansion, reset: true)
+                        for corner in [CGPoint(x: bounds.minX, y: bounds.minY), CGPoint(x: bounds.maxX, y: bounds.maxY)] {
+                            XCTAssertTrue(usable.insetBy(dx: -0.001, dy: -0.001).contains(camera.viewPoint(projectedWorld: corner)), context)
+                        }
+                        let saved = CGPoint(x: world.width * 0.76, y: world.height * 0.21)
+                        for focus in [CGPoint(x: -10_000, y: -10_000), CGPoint(x: 10_000, y: 10_000)] {
+                            camera.focus(on: focus)
+                            camera.zoom(by: 1.25)
+                            let screen = camera.viewPoint(projectedWorld: projection.project(saved))
+                            let restored = projection.unproject(camera.worldPoint(viewPoint: screen))
+                            XCTAssertEqual(restored.x, saved.x, accuracy: 0.0001, context)
+                            XCTAssertEqual(restored.y, saved.y, accuracy: 0.0001, context)
+                            let visible = camera.visibleRect
+                            if visible.width <= bounds.width {
+                                XCTAssertGreaterThanOrEqual(visible.minX, bounds.minX - 0.001, context)
+                                XCTAssertLessThanOrEqual(visible.maxX, bounds.maxX + 0.001, context)
+                            } else { XCTAssertEqual(camera.center.x, bounds.midX, accuracy: 0.001, context) }
+                            if visible.height <= bounds.height {
+                                XCTAssertGreaterThanOrEqual(visible.minY, bounds.minY - 0.001, context)
+                                XCTAssertLessThanOrEqual(visible.maxY, bounds.maxY + 0.001, context)
+                            } else { XCTAssertEqual(camera.center.y, bounds.midY, accuracy: 0.001, context) }
                         }
                     }
                 }
             }
         }
-    }
-
-    @MainActor
-    func testPinchKeepsWorldAnchorUnderMovingMidpointAndRejectsInvalidInput() {
-        let camera = makeCamera()
-        let geometry = camera.geometry
-        let origin = CGPoint(x: 150, y: 196)
-        let moved = CGPoint(x: 162, y: 218)
-        let anchor = geometry.worldPoint(origin, camera: camera.node.position, cameraScale: camera.scale)
-        let before = camera.node.position
-        camera.beginPinch(at: origin)
-        XCTAssertEqual(camera.node.position, before, "Beginning a pinch cannot jump the camera.")
-        camera.changePinch(factor: 1.6, at: moved)
-        XCTAssertEqual(camera.scale, 0.625, accuracy: 0.0001)
-        let projected = geometry.screenPoint(anchor, camera: camera.node.position, cameraScale: camera.scale)
-        XCTAssertEqual(projected.x, moved.x, accuracy: 0.0001)
-        XCTAssertEqual(projected.y, moved.y, accuracy: 0.0001)
-        let zoomed = camera.node.position
-        for invalid: CGFloat in [0, -1, .nan, .infinity] {
-            camera.changePinch(factor: invalid, at: moved)
-            XCTAssertEqual(camera.node.position, zoomed)
-            XCTAssertEqual(camera.scale, 0.625, accuracy: 0.0001)
-        }
-        camera.endPinch()
-        camera.changePinch(factor: 0.2, at: .zero)
-        XCTAssertEqual(camera.node.position, zoomed)
-        XCTAssertEqual(camera.scale, 0.625, accuracy: 0.0001)
-    }
-
-    @MainActor
-    func testPanAndEdgeScrollingFollowScreenDistanceAtZoomedScale() {
-        let camera = makeCamera()
-        camera.zoom(by: 1.25)
-        XCTAssertEqual(camera.scale, 0.8, accuracy: 0.0001)
-        let original = camera.node.position
-        camera.beginTouch(at: CGPoint(x: 160, y: 200), canPan: true)
-        XCTAssertTrue(camera.moveTouch(to: CGPoint(x: 180, y: 215)))
-        XCTAssertEqual(camera.node.position.x, original.x - 20 * camera.scale, accuracy: 0.0001)
-        XCTAssertEqual(camera.node.position.y, original.y + 15 * camera.scale, accuracy: 0.0001)
-        XCTAssertTrue(camera.endTouch())
-        let beforeEdge = camera.node.position
-        _ = camera.update(at: 1, target: nil, draggingAt: CGPoint(x: 375, y: 218))
-        XCTAssertTrue(camera.update(at: 1.05, target: nil, draggingAt: CGPoint(x: 375, y: 218)))
-        XCTAssertEqual(camera.node.position.x, beforeEdge.x + 100 * 0.05 * camera.scale, accuracy: 0.0001)
-        XCTAssertEqual(camera.node.position.y, beforeEdge.y)
-        camera.beginPinch(at: CGPoint(x: 180, y: 218))
-        let pinching = camera.node.position
-        XCTAssertFalse(camera.update(at: 1.1, target: .zero, draggingAt: .zero))
-        XCTAssertEqual(camera.node.position, pinching)
-    }
-
-    @MainActor
-    func testZoomLimitsAndGeometryChangesKeepCameraValidAndLevelOneLocked() {
-        let camera = makeCamera()
-        camera.zoom(by: 0.01)
-        XCTAssertEqual(camera.scale, 1.5)
-        XCTAssertEqual(camera.node.position, CGPoint(x: 375 * 1.5 / 2, y: 436 * 1.5 / 2))
-        camera.beginPinch(at: CGPoint(x: 180, y: 218))
-        camera.configure(RoomWorldGeometry(viewportSize: CGSize(width: 402, height: 567), worldScale: 1.25))
-        XCTAssertFalse(camera.isPinching)
-        XCTAssertEqual(camera.scale, 1.25)
-        XCTAssertEqual(camera.node.position, CGPoint(x: 402 * 1.25 / 2, y: 567 * 1.25 / 2))
-        camera.zoom(by: 100)
-        XCTAssertEqual(camera.scale, 0.625)
-        camera.focus(on: .zero, animated: false, resetScale: true)
-        XCTAssertEqual(camera.scale, 1)
-        XCTAssertEqual(camera.node.position, CGPoint(x: 201, y: 283.5))
-        camera.configure(RoomWorldGeometry(viewportSize: CGSize(width: 375, height: 436), worldScale: 1))
-        camera.beginPinch(at: CGPoint(x: 180, y: 218))
-        camera.changePinch(factor: 1.6, at: .zero)
-        camera.zoom(by: 0.2)
-        XCTAssertFalse(camera.isPinching)
-        XCTAssertEqual(camera.scale, 1)
-        XCTAssertEqual(camera.node.position, CGPoint(x: 187.5, y: 218))
     }
 
 #if DEBUG
@@ -140,14 +75,15 @@ final class RoomCameraZoomTests: XCTestCase {
         }
         let cat = try XCTUnwrap(scene.childNode(withName: "cat") as? CatActor)
         XCTAssertTrue(cat.isPerforming)
-        let camera = try XCTUnwrap(scene.camera)
+        let camera = scene.roomPresentation.camera
+        let fitScale = camera.fitScale
         let bowlCompletions = scene.diagnostics.bowlPlanCompletions
         let careCompletions = scene.diagnostics.carePlanCompletions
         let careCancellations = scene.diagnostics.carePlanCancelled
         let midpoint = CGPoint(x: 187.5, y: 218)
         scene.handlePinch(state: .began, scale: 1, location: midpoint)
         scene.handlePinch(state: .changed, scale: 1.25, location: midpoint)
-        XCTAssertEqual(camera.xScale, 0.8, accuracy: 0.0001)
+        XCTAssertEqual(camera.scale, fitScale * 0.8, accuracy: 0.0001)
         XCTAssertTrue(cat.isPerforming)
         XCTAssertEqual(scene.presentationPhase, "feeding")
         XCTAssertEqual(scene.diagnostics.bowlPlanCompletions, bowlCompletions)
@@ -157,21 +93,14 @@ final class RoomCameraZoomTests: XCTestCase {
         XCTAssertFalse(scene.canZoomCamera)
         scene.handlePinch(state: .changed, scale: 2, location: .zero)
         scene.handlePinch(state: .ended, scale: 2, location: .zero)
-        XCTAssertEqual(camera.xScale, 0.8, accuracy: 0.0001)
+        XCTAssertEqual(camera.scale, fitScale * 0.8, accuracy: 0.0001)
         scene.setPresentationActive(true)
         scene.zoomIn()
-        XCTAssertEqual(camera.xScale, 0.64, accuracy: 0.0001)
+        XCTAssertEqual(camera.scale, fitScale * 0.64, accuracy: 0.0001)
         scene.resetCamera()
-        XCTAssertEqual(camera.xScale, 1)
+        XCTAssertEqual(camera.scale, fitScale / 1.6, accuracy: 0.0001)
         XCTAssertEqual(gameCallbacks, 0)
     }
 #endif
 
-    @MainActor
-    private func makeCamera() -> RoomCameraController {
-        let camera = RoomCameraController()
-        camera.configure(RoomWorldGeometry(viewportSize: CGSize(width: 375, height: 436), worldScale: 1.5))
-        camera.node.position = CGPoint(x: 375 * 1.5 / 2, y: 436 * 1.5 / 2)
-        return camera
-    }
 }

@@ -82,10 +82,14 @@ enum CatNeedBubbleLayout {
 @MainActor @Observable
 final class CatNeedPresentation {
     var headerFrame: CGRect?
+    var careActionsFrame: CGRect?
     var focusRoom: (() -> Void)?
     var isInspectingResident = false
     var anchor: CGPoint?
     var localCatFrame: CGRect?
+    var statusCardIsCompact = false
+    var statusCardFrame: CGRect?
+    var showsWholeRoom = true
     var canvasOrigin = CGPoint.zero
     var catFrame: CGRect? { localCatFrame?.offsetBy(dx: canvasOrigin.x, dy: canvasOrigin.y) }
 }
@@ -134,11 +138,17 @@ struct CatNeedBubble: View {
                 case .hospital: store.openHospital(catID: store.cat?.id)
                 }
             } label: {
-                Label(GameStrings.text(titleKey(need)), systemImage: need.symbol)
+                Group {
+                    if presentation.showsWholeRoom {
+                        Image(systemName: need.symbol).font(.system(size: 18, weight: .heavy))
+                    } else {
+                        Label(GameStrings.text(titleKey(need)), systemImage: need.symbol)
+                    }
+                }
                     .font(.system(.footnote, design: .rounded, weight: .heavy))
                     .lineLimit(premiumChoice(need) ? 3 : 2).multilineTextAlignment(.center)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .frame(minHeight: 44).frame(maxWidth: 190)
+                    .padding(.horizontal, presentation.showsWholeRoom ? 10 : 14).padding(.vertical, 10)
+                    .frame(minWidth: 44, minHeight: 44).frame(maxWidth: presentation.showsWholeRoom ? 44 : 190)
                     .foregroundStyle(premiumChoice(need) ? PremiumSupplyStyle.effectText : (need == .hospital ? RoomTheme.coralDeep : (need == .clean ? RoomTheme.sky : RoomTheme.ink)))
                     .background(RoomTheme.paper, in: Capsule())
                     .overlay(Capsule().strokeBorder(premiumChoice(need) ? PremiumSupplyStyle.border : (need == .hospital ? RoomTheme.coralBorder : .white), lineWidth: 2))
