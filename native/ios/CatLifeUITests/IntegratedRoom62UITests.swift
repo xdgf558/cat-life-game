@@ -105,6 +105,55 @@ extension RoomHomeUITests {
     }
 
     @MainActor
+    func testOpeningResidentPreviewAfterFocusingTheCatKeepsItBelowRoomTools() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true)
+            + ["--shared-home-test", "--shared-home-upper-test", "--furniture-test"]
+        launchAndEnterHome(app)
+        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        let original = try integrated62Wait(in: app, angle: 0, whole: true)
+        let contextFrame = integrated62Element("homeCaringContext", in: app).frame
+        let resources = try ["foodCount", "goldCount", "staminaCount"].map { identifier in
+            (identifier, try XCTUnwrap(integrated62Element(identifier, in: app).value as? String))
+        }
+
+        tapAnimationControl("focusCatButton", in: app)
+        let near = try integrated62Wait(in: app, angle: 0, whole: false)
+        waitForObservedValue("homeCatInfo", "compact", in: app)
+        XCTAssertFalse(integrated62Element("roomResidentPreview", in: app).exists)
+        let targetID = try integrated62OpenResident(from: near, in: app)
+        let preview = integrated62Element("roomResidentPreview", in: app)
+        waitForObservedValue("roomResidentPreview", targetID, in: app)
+        let tools = ["roomViewControls", "homeStairsButton"].map { integrated62Element($0, in: app) }
+        let settled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            preview.exists && app.frame.contains(preview.frame)
+                && tools.allSatisfy { $0.exists && $0.isHittable && $0.frame.maxY <= preview.frame.minY }
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 10), .completed,
+                       "Opening from near view must release the hidden top card and leave the preview entirely below room tools.")
+        for obstacle in ["playButton", "cleanButton", "feedButton", "homeCaringContext"] {
+            let control = integrated62Element(obstacle, in: app)
+            XCTAssertTrue(control.exists && control.isHittable)
+            XCTAssertFalse(preview.frame.intersects(control.frame), "Preview covers \(obstacle).")
+        }
+        for identifier in ["roomResidentGrowthButton", "roomResidentCompanionButton"] {
+            let button = integrated62Element(identifier, in: app)
+            if !button.isHittable || !app.frame.contains(button.frame) {
+                let scroll = app.scrollViews.containing(.any, identifier: "roomResidentPreview").firstMatch
+                XCTAssertTrue(scroll.exists, "A clipped preview action must be reachable by scrolling its card.")
+                scroll.swipeUp()
+            }
+            XCTAssertTrue(button.exists && button.isEnabled && button.isHittable)
+            XCTAssertTrue(app.frame.contains(button.frame))
+        }
+        let previewed = try integrated62Wait(in: app, angle: 0, whole: false)
+        integrated62AssertIdentityAndSave(previewed, original: original, contextFrame: contextFrame, in: app)
+        for (identifier, value) in resources { waitForObservedValue(identifier, value, in: app) }
+        integrated62Screenshot("Integrated 62 — opening a resident preview directly from near view", in: app)
+    }
+
+    @MainActor
     private func integrated62Element(_ identifier: String, in app: XCUIApplication) -> XCUIElement {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
@@ -207,6 +256,12 @@ extension RoomHomeUITests {
         XCTAssertEqual(integrated62Element("homeCaringContext", in: app).frame, contextFrame, file: file, line: line)
         for id in ["roomResidentGrowthButton", "roomResidentCompanionButton"] {
             let button = integrated62Element(id, in: app)
+            if !(button.exists && button.isEnabled && button.isHittable) {
+                integrated62Screenshot("Blocked preview — " + id, in: app)
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "Blocked preview hierarchy"; hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+            }
             XCTAssertTrue(button.exists && button.isEnabled && button.isHittable,
                           "Resident preview action \(id) is blocked.", file: file, line: line)
             XCTAssertTrue(app.frame.contains(button.frame), "Resident preview action \(id) must fit on screen.", file: file, line: line)

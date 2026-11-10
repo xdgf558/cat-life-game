@@ -23,7 +23,6 @@ struct RoomSceneHost: View {
     @State private var previewCatID: String?
     @State private var previewFrame: CGRect?
     @State private var previewReservedStatusFrame: CGRect?
-    @State private var previewReservedStatusIsCompact = false
     @State private var previewHeight: CGFloat = 200
     @State private var accessibleGrowthID: String?
     @State private var isSavingGrowth = false
@@ -120,7 +119,7 @@ struct RoomSceneHost: View {
         }
         #if DEBUG
         .overlay {
-            if furnitureTesting, isActive {
+            if furnitureTesting, isActive, previewCatID == nil {
                 // Keep the test-only pinch target behind buttons in the accessibility hit order.
                 let target = pinchTestRect(in: controlsLayout.usableRect, canvas: geometry.size)
                 Color.clear
@@ -190,8 +189,7 @@ struct RoomSceneHost: View {
     private func inspectResident(_ id: String) {
         guard scene.canInspectResidents, !store.isBusy, !store.isDecorating,
               let frame = scene.residentFrame(id: id) else { return }
-        previewReservedStatusFrame = catNeedPresentation.statusCardFrame
-        previewReservedStatusIsCompact = catNeedPresentation.statusCardIsCompact
+        previewReservedStatusFrame = catNeedPresentation.statusCardIsCompact ? nil : catNeedPresentation.statusCardFrame
         previewCatID = id; previewFrame = frame
         scene.inspectedResidentID = id
         catNeedPresentation.isInspectingResident = true
@@ -326,8 +324,7 @@ struct RoomSceneHost: View {
         let card = catNeedPresentation.showsWholeRoom ? nil
             : (catNeedPresentation.statusCardFrame ?? previewReservedStatusFrame)?.offsetBy(dx: -origin.x, dy: -origin.y)
         let care = catNeedPresentation.careActionsFrame?.offsetBy(dx: -origin.x, dy: -origin.y)
-        let cardAtTop = catNeedPresentation.statusCardFrame != nil
-            ? catNeedPresentation.statusCardIsCompact : previewReservedStatusIsCompact
+        let cardAtTop = catNeedPresentation.statusCardFrame != nil && catNeedPresentation.statusCardIsCompact
         let headerBottom = catNeedPresentation.headerFrame.map { $0.maxY - origin.y } ?? 0
         let controlsTop = max(max(12, headerBottom + 12),
                               cardAtTop ? (card?.maxY ?? 0) + 12 : 0)

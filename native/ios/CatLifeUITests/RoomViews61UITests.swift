@@ -177,6 +177,12 @@ extension RoomHomeUITests {
         let viewport = app.frame.insetBy(dx: -0.5, dy: -0.5)
         let tabs = element("homeNavigationBar", in: app).frame
         for (identifier, control) in zip(identifiers, controls) {
+            if !(control.exists && control.isHittable) {
+                attachScreenshot(app, named: "Blocked room control — " + identifier)
+                let hierarchy = XCTAttachment(string: app.debugDescription)
+                hierarchy.name = "Blocked room control hierarchy"; hierarchy.lifetime = .keepAlways
+                add(hierarchy)
+            }
             XCTAssertTrue(control.exists && control.isHittable, "\(identifier) must remain reachable.", file: file, line: line)
             if atFront { XCTAssertTrue(control.isEnabled, "\(identifier) must be enabled at the front view.", file: file, line: line) }
             XCTAssertGreaterThanOrEqual(control.frame.width, 44 - 0.001, "\(identifier) touch width", file: file, line: line)

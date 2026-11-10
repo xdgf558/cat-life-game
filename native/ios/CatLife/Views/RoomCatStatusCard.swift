@@ -78,7 +78,7 @@ struct RoomCatStatusCard: View {
             .gameCard(cornerRadius: compact ? 22 : 26)
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier("homeCatInfo")
-            .accessibilityValue(compact ? "compact" : "expanded")
+            .accessibilityValue(TownEventAccessibility.value(store.catStatus, diagnostic: compact ? "compact" : "expanded"))
             .position(x: rect.midX, y: rect.midY)
             .onChange(of: compact, initial: true) { _, value in wasCompact = value }
             .onAppear { presentation.statusCardFrame = globalCardFrame; presentation.statusCardIsCompact = compact }
@@ -119,7 +119,7 @@ struct RoomCatStatusCard: View {
             }
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(inline && accessible ? "homeCatInfo" : "")
-            .accessibilityValue("compact")
+            .accessibilityValue(TownEventAccessibility.value(store.catStatus, diagnostic: "compact"))
             Spacer(minLength: 0)
             if let illness = store.cat?.healthState?.illness {
                 Button { store.openHospital(catID: store.cat?.id) } label: {

@@ -1,3 +1,5 @@
+> These materials were authored for the original build-61 candidate. The reviewed integration uses them in 0.20.0 (62); the original provenance paths and hashes below are retained.
+
 # Build 61 room materials
 
 `room-floor-wood` is a new opaque, straight-down honey oak floor material for the projected 2.5D room plane. `room-empty.png` was inspected for palette only; no existing artwork was changed. Generated with the built-in `image_gen` tool, then resampled from 1254×1254 to 1024×1024 with macOS `sips`.
