@@ -28,6 +28,17 @@ struct ShopDetailView: View {
                 }.frame(maxWidth: .infinity)
                 Text(GameStrings.text(product.detailKey)).font(.body).foregroundStyle(RoomTheme.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                if let goal = CompanionshipPresentation.shopGoal(for: product, cat: store.cat) {
+                    VStack(alignment: .leading, spacing: 7) {
+                        Label(GameStrings.text("habit67.shop.goalTitle"), systemImage: "heart.fill")
+                            .font(.subheadline.weight(.heavy)).foregroundStyle(RoomTheme.darkMint)
+                        Text(goal).font(.subheadline).foregroundStyle(RoomTheme.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(14).frame(maxWidth: .infinity, alignment: .leading)
+                    .background(RoomTheme.paleMint.opacity(0.45), in: RoundedRectangle(cornerRadius: 20))
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("shopHabitGoal")
+                }
                 VStack(alignment: .leading, spacing: 14) {
                     detail("shop.price", value: GameStrings.format("shop.buy", product.price), id: "shopDetailPrice")
                     detail("shop.requirements", value: GameStrings.format("career.unlock", product.unlockLevel), id: "shopDetailRequirement")

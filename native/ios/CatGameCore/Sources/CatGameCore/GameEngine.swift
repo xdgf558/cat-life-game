@@ -28,6 +28,7 @@ public enum GameEngine {
         candidate.cats.append(CatState(id: offer.id, name: offer.name,
             satiety: 70, cleanliness: 85, mood: 80, intimacy: 10, energy: 85, health: 100,
             now: effectiveTime(state, now: now), appearance: offer.appearance))
+        candidate.cats[candidate.cats.count - 1].habits.seedRestLocations(home: candidate.home, inventory: candidate.inventory)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(success: .catAdopted, amount: offer.price)
@@ -158,6 +159,8 @@ public enum GameEngine {
             startedAt: timestamp, endsAt: timestamp.addingTimeInterval(duration),
             energyReward: 20 + candidate.home.comfortScore / 20, observation: observation)
         candidate.cats[index].lastRestSessionID = sessionID
+        candidate.cats[index].habits.seedRestLocations(home: candidate.home, inventory: candidate.inventory)
+        CatHabitEngine.rememberUnderstanding(&candidate.cats[index], at: timestamp)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(success: .catRestStarted)
@@ -199,6 +202,7 @@ public enum GameEngine {
         state.cats[index].decayTracker.satiety = max(state.cats[index].decayTracker.satiety, timestamp)
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.tasks.recordFeed()
+        CatHabitEngine.rememberUnderstanding(&state.cats[index], at: timestamp)
         return ActionOutcome(success: .fed, amount: units)
     }
 
@@ -223,6 +227,7 @@ public enum GameEngine {
         state.cats[index].decayTracker.cleanliness = max(
             state.cats[index].decayTracker.cleanliness, timestamp)
         state.tasks.recordClean()
+        CatHabitEngine.rememberUnderstanding(&state.cats[index], at: timestamp)
         return ActionOutcome(success: .cleaned, amount: 1)
     }
 
@@ -243,6 +248,7 @@ public enum GameEngine {
         candidate.cats[index].healthState = CatHealthState(now: timestamp)
         candidate.cats[index].health = max(CatHealthCatalog.treatedHealth, candidate.cats[index].health)
         candidate.cats[index].mood = cap(candidate.cats[index].mood + 6)
+        CatHabitEngine.rememberUnderstanding(&candidate.cats[index], at: timestamp)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(success: .catTreated, amount: cost)
@@ -274,6 +280,7 @@ public enum GameEngine {
         state.cats[index].decayTracker.mood = max(state.cats[index].decayTracker.mood, timestamp)
         state.cats[index].decayTracker.energy = max(state.cats[index].decayTracker.energy, timestamp)
         state.tasks.recordPlay()
+        CatHabitEngine.rememberUnderstanding(&state.cats[index], at: timestamp)
         return ActionOutcome(success: .played, amount: 1)
     }
 
@@ -396,6 +403,9 @@ public enum GameEngine {
             }
             CatHealthEngine.synchronize(&cat, now: timestamp)
             settleCatNeeds(&cat, now: timestamp)
+            if let legacy = cat.habits.legacyRestSessionID, cat.activeRest?.id != legacy {
+                cat.habits.legacyRestSessionID = nil
+            }
             state.cats[index] = cat
         }
 
@@ -497,6 +507,7 @@ public enum GameEngine {
         state.home.furniture = merged
         state.inventory.furniture = owned
         for index in state.cats.indices {
+            state.cats[index].habits.seedRestLocations(home: state.home, inventory: state.inventory)
             if let corner = state.cats[index].habits.cornerFurnitureID, !merged.contains(where: { $0.itemID == corner }) {
                 state.cats[index].habits.cornerFurnitureID = nil
             }
@@ -569,6 +580,7 @@ public enum GameEngine {
         var cat = state.cats[index]
         settleCatEnergy(&cat, now: now)
         cat.activeRest = nil
+        cat.habits.legacyRestSessionID = nil
         decay(&cat.energy, tracker: &cat.decayTracker.energy, interval: 300, now: now)
         state.cats[index] = cat
         state.meta.lastSyncAt = max(state.meta.lastSyncAt, now)

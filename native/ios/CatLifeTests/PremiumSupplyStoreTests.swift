@@ -62,9 +62,9 @@ final class PremiumSupplyStoreTests: XCTestCase {
                 XCTAssertNotNil(dictionary[key], "Each language must register \(key) without relying on a fallback.")
             }
         }
-        XCTAssertEqual(AppVersion.current.version, "0.21.1")
-        XCTAssertEqual(AppVersion.current.build, "66")
-        XCTAssertEqual(AppRelease.recent.map(\.build), [66, 65, 64])
+        XCTAssertEqual(AppVersion.current.version, "0.22.0")
+        XCTAssertEqual(AppVersion.current.build, "67")
+        XCTAssertEqual(AppRelease.recent.map(\.build), [67, 66, 65])
     }
 
     @MainActor

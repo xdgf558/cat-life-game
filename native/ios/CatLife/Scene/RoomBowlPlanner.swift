@@ -6,6 +6,7 @@ struct RoomBowlResolution: Sendable {
     let center: CGPoint
     let catPosition: CGPoint?
     let navigation: RoomNavigation
+    var openingPosition: CGPoint? = nil
 #if DEBUG
     let ranOnMainThread: Bool
 #endif

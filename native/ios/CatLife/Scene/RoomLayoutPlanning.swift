@@ -13,10 +13,14 @@ struct RoomLayoutProposal: Sendable {
     let catWidth: CGFloat
     let bowlSize: CGSize
     let planner: RoomBowlPlanner
+    let opening: RoomHabitOpening?
+    let snapshotCatID: String?
 
     init(viewport: CGSize, roomLevel: Int, artworkSize: CGSize, bowlAspect: CGFloat,
          items: [FurnitureItem], placements: [FurniturePlacement], bowl: NormalizedPoint,
-         previousCat: CGPoint?, previousWorld: CGSize) {
+         previousCat: CGPoint?, previousWorld: CGSize, opening: RoomHabitOpening? = nil, snapshotCatID: String? = nil) {
+        self.opening = opening
+        self.snapshotCatID = snapshotCatID
         self.geometry = RoomWorldGeometry(viewportSize: viewport,
             worldScale: CGFloat(HomeCatalog.level(roomLevel)?.worldScale ?? 1))
         self.roomLevel = roomLevel
@@ -36,6 +40,16 @@ struct RoomLayoutProposal: Sendable {
             viewportSize: viewport), catWidth: catWidth, bowlSize: bowlSize,
             bowlPosition: bowlPoint, items: items, placements: placements)
         planner = RoomBowlPlanner(floor: world.roomFloor, requested: bowlPoint, catPosition: catPoint)
+    }
+
+    func resolve() -> RoomBowlResolution? {
+        guard var result = planner.resolve() else { return nil }
+        guard let opening, let origin = result.catPosition else { return result }
+        let world = RoomFurnitureWorld(transform: .init(sceneSize: geometry.worldSize, artworkSize: artworkSize,
+            viewportSize: geometry.viewportSize), catWidth: catWidth, bowlSize: bowlSize,
+            bowlPosition: result.center, items: items, placements: placements)
+        result.openingPosition = RoomHabitBehavior.openingPoint(opening, world: world, origin: origin, navigation: result.navigation)
+        return result
     }
 }
 
@@ -74,7 +88,7 @@ final class RoomLayoutPlanning {
 #if DEBUG
             if delay > .zero { try? await Task.sleep(for: delay) }
 #endif
-            return proposal.planner.resolve()
+            return proposal.resolve()
         }
         worker = task
         Task { [weak self] in

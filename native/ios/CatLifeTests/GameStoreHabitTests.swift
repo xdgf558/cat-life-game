@@ -173,6 +173,7 @@ final class GameStoreHabitTests: XCTestCase {
     @MainActor
     func testRestArrivalMetadataIsAcceptedOnlyFromAVisiblePlayerRoom() async throws {
         let (store, _) = try await makeStore(seed: fresh())
+        let originalHabits = try XCTUnwrap(store.cat?.habits)
         let point = try XCTUnwrap(store.snapshot?.home.furniture.first { $0.itemID == "floorCushion" }?.position)
         let observation = CatRestObservation(floor: .ground, position: point)
         for (index, visible) in [false, true].enumerated() {
@@ -184,7 +185,7 @@ final class GameStoreHabitTests: XCTestCase {
             store.setRestingFurniture(id: nil, sessionID: id)
             try await eventually { !store.isBusy && store.cat?.activeRest == nil }
         }
-        XCTAssertEqual(store.cat?.habits, CatHabitState(), "Interrupted or invisible rests cannot create clues.")
+        XCTAssertEqual(store.cat?.habits, originalHabits, "Interrupted or invisible rests must preserve the actual location references without creating clues.")
         store.setForeground(false)
     }
 
@@ -229,6 +230,81 @@ final class GameStoreHabitTests: XCTestCase {
         XCTAssertEqual(durable, store.snapshot)
         let savedJSON = String(decoding: try JSONEncoder().encode(durable), as: UTF8.self)
         XCTAssertFalse(savedJSON.contains("firstHabitAction"))
+    }
+
+    @MainActor
+    func testPinnedCompanionHintPublishesAfterSaveAndSurvivesReopeningAndReplacement() async throws {
+        let (store, repository) = try await makeStore(seed: fresh())
+        let catID = try XCTUnwrap(store.cat?.id)
+        let before = try XCTUnwrap(store.snapshot)
+        await repository.setFailing(true)
+        let failed = await store.pinHabitMemory(catID: catID, memory: .littleCorner)
+        XCTAssertFalse(failed)
+        XCTAssertNil(store.cat?.habits.pinnedMemory)
+        XCTAssertTrue(store.hasSaveFailure)
+        await repository.setFailing(false)
+        let pinned = await store.pinHabitMemory(catID: catID, memory: .littleCorner)
+        XCTAssertTrue(pinned)
+        let folded = await store.setPinnedHabitHintCollapsed(catID: catID, collapsed: true)
+        XCTAssertTrue(folded)
+        XCTAssertEqual(store.cat?.habits.pinnedMemory, .littleCorner)
+        XCTAssertEqual(store.cat?.habits.pinnedHintCollapsed, true)
+        store.setForeground(false)
+        try await eventually { !store.isBusy }
+        let reopened = GameStore(repository: repository)
+        await reopened.load()
+        XCTAssertEqual(reopened.cat?.habits.pinnedMemory, .littleCorner)
+        XCTAssertEqual(reopened.cat?.habits.pinnedHintCollapsed, true)
+        let replaced = await reopened.pinHabitMemory(catID: catID, memory: .settledAfterMove)
+        XCTAssertTrue(replaced)
+        XCTAssertEqual(reopened.cat?.habits.pinnedMemory, .settledAfterMove)
+        XCTAssertEqual(reopened.cat?.habits.pinnedHintCollapsed, false)
+        let invalid = await reopened.pinHabitMemory(catID: catID, memory: .firstResponse)
+        XCTAssertFalse(invalid)
+        XCTAssertEqual(reopened.cat?.habits.pinnedMemory, .settledAfterMove)
+        let removed = await reopened.pinHabitMemory(catID: catID, memory: nil)
+        XCTAssertTrue(removed)
+        XCTAssertNil(reopened.cat?.habits.pinnedMemory)
+        XCTAssertEqual(reopened.cat?.habits.pinnedHintCollapsed, false)
+        XCTAssertEqual(reopened.snapshot?.player.gold, before.player.gold)
+        XCTAssertEqual(reopened.snapshot?.inventory, before.inventory)
+        XCTAssertEqual(reopened.snapshot?.tasks, before.tasks)
+        XCTAssertEqual(reopened.cat?.habits.memories, before.activeCat?.habits.memories)
+        reopened.setForeground(false)
+    }
+
+    @MainActor
+    func testPinnedCompanionHintYieldsToCareNeedsLowEnergyAndSceneWork() async throws {
+        for needs in [(100, 100, 100, 100), (49, 100, 100, 100), (100, 39, 100, 100),
+                      (100, 100, 44, 100), (100, 100, 100, 29)] {
+            var seed = fresh()
+            seed.cats[0].satiety = needs.0; seed.cats[0].cleanliness = needs.1
+            seed.cats[0].mood = needs.2; seed.cats[0].energy = needs.3
+            XCTAssertTrue(CatHabitEngine.pinMemory(&seed, catID: seed.activeCatID, memory: .littleCorner).succeeded)
+            let (store, _) = try await makeStore(seed: seed)
+            XCTAssertEqual(store.canShowPinnedHabitHint, needs == (100, 100, 100, 100))
+            store.roomFloorTravelReady = false
+            XCTAssertFalse(store.canShowPinnedHabitHint)
+            store.setForeground(false)
+        }
+    }
+
+    @MainActor
+    func testPinnedCompanionHintYieldsToAdoptionBannersAndReturnsAfterTheirDismissal() async throws {
+        var seed = fresh()
+        seed.player.level = 8; seed.player.gold = 5_000; seed.home.roomLevel = 3
+        seed.cats[0].satiety = 80
+        XCTAssertTrue(CatHabitEngine.pinMemory(&seed, catID: seed.activeCatID, memory: .settledAfterMove).succeeded)
+        let (store, _) = try await makeStore(seed: seed)
+        store.adoptionReminders.consider(seed)
+        XCTAssertNotNil(store.adoptionReminders.pendingOffer)
+        XCTAssertFalse(store.canShowPinnedHabitHint, "The two prompts must not cover one another.")
+        while let offer = store.adoptionReminders.pendingOffer {
+            store.adoptionReminders.dismiss(offer.id)
+        }
+        XCTAssertTrue(store.canShowPinnedHabitHint)
+        XCTAssertEqual(store.cat?.habits.pinnedMemory, .settledAfterMove)
+        store.setForeground(false)
     }
 
     private func fresh(now: Date = Date()) -> GameSnapshot {

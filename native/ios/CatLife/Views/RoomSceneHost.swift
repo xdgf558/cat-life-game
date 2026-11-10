@@ -207,22 +207,35 @@ struct RoomSceneHost: View {
         return play.tutorialID == nil && !play.introDismissed
     }
 
+    private var showsHabitCornerOffer: Bool {
+        store.habitCornerOffer != nil && habitOfferFrame != nil
+    }
+
     private var showsHabitPrompt: Bool {
         isActive && ownsPresentation && !store.isDecorating && previewCatID == nil
             && !isTransitioning && !store.hasSaveFailure && store.toast == nil
             && store.cat?.healthState?.illness == nil
-            && (showsHabitIntro || (store.habitCornerOffer != nil && habitOfferFrame != nil))
+            && (showsHabitIntro || showsHabitCornerOffer || store.canShowPinnedHabitHint)
+    }
+
+    private var habitPromptIdentity: String {
+        let catID = store.cat?.id ?? ""
+        if showsHabitIntro { return catID + "-intro" }
+        if showsHabitCornerOffer { return catID + "-corner-" + (store.habitCornerOffer?.id ?? "") }
+        return "\(catID)-\(store.cat?.habits.pinnedMemory?.rawValue ?? "")-\(store.cat?.habits.pinnedHintCollapsed ?? false)"
     }
 
     @ViewBuilder private func habitPrompt(in bounds: CGRect) -> some View {
         if showsHabitPrompt, bounds.width >= 150, bounds.height >= 90 {
-            let anchor = showsHabitIntro ? catNeedPresentation.localCatFrame : habitOfferFrame
+            let anchor = showsHabitCornerOffer && !showsHabitIntro ? habitOfferFrame : catNeedPresentation.localCatFrame
             let frame = HabitRoomPromptLayout.frame(above: anchor ?? bounds, within: bounds, height: habitPromptHeight)
             ScrollView {
                 Group {
                     if showsHabitIntro { HabitIntroBanner(store: store) }
-                    else if let receipt = store.habitCornerOffer, let cat = store.cat {
+                    else if showsHabitCornerOffer, let receipt = store.habitCornerOffer, let cat = store.cat {
                         HabitCornerOfferView(store: store, catID: cat.id, receipt: receipt)
+                    } else if store.canShowPinnedHabitHint, let cat = store.cat, let memory = cat.habits.pinnedMemory {
+                        PinnedHabitPrompt(store: store, cat: cat, memory: memory)
                     }
                 }
                 .background { GeometryReader { prompt in
@@ -231,6 +244,7 @@ struct RoomSceneHost: View {
                 }.allowsHitTesting(false) }
             }
             .scrollBounceBehavior(.basedOnSize)
+            .id(habitPromptIdentity)
             .accessibilityIdentifier("habitRoomPromptScroll")
             .frame(width: frame.width, height: frame.height).position(x: frame.midX, y: frame.midY)
         }

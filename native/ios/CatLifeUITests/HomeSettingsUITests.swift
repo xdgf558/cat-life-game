@@ -216,12 +216,12 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("settingsBackButton", in: app).exists,
                        "The settings root stays within the fixed bottom navigation.")
         tapSettingsRootControl("settingsUpdatesRow", in: app)
-        waitForObservedValue("currentAppVersion", "0.21.1 (66)", in: app)
+        waitForObservedValue("currentAppVersion", "0.22.0 (67)", in: app)
         waitForLabel("currentAppVersion", "当前版本", in: app)
         waitForLabel("settingsBackButton", "返回", in: app)
         XCTAssertTrue(app.navigationBars["版本更新"].waitForExistence(timeout: 8))
         attachScreenshot(app, named: "Settings — version page at the top before scrolling")
-        for (release, version) in [(66, "0.21.1"), (65, "0.21.0"), (64, "0.20.1")] {
+        for (release, version) in [(67, "0.22.0"), (66, "0.21.1"), (65, "0.21.0")] {
             let identifier = "releaseNote_\(release)"
             bringIntoView(identifier, in: app)
             waitForElement(identifier, in: app)
@@ -229,7 +229,7 @@ extension RoomHomeUITests {
             XCTAssertTrue(element(identifier, in: app).isHittable,
                           "Release \(release) must be readable by scrolling on a small screen.")
         }
-        XCTAssertFalse(element("releaseNote_62", in: app).exists,
+        XCTAssertFalse(element("releaseNote_64", in: app).exists,
                        "Older history may remain in data, but only the latest three entries belong on this page.")
         attachScreenshot(app, named: "Settings — the third recent release is reachable; older history is hidden")
 
@@ -290,7 +290,7 @@ extension RoomHomeUITests {
         waitForLabel("homeNameStatus", "Home name saved", in: app)
         tapAnimationControl("settingsBackButton", in: app)
         tapSettingsRootControl("settingsUpdatesRow", in: app)
-        waitForObservedValue("currentAppVersion", "0.21.1 (66)", in: app)
+        waitForObservedValue("currentAppVersion", "0.22.0 (67)", in: app)
         attachScreenshot(app, named: "Settings — English updates before scrolling")
         bringIntoView("releaseNote_64", in: app)
         XCTAssertTrue(element("releaseNote_64", in: app).isHittable)

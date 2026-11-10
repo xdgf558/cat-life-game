@@ -171,6 +171,7 @@ final class RoomScene: SKScene {
     private var suspendedCareKind: ActionKind?
     private var revision = 0
     private var hasCommittedLayout = false
+    private var hasCommittedSnapshotLayout = false
     private var renderedViewportSize: CGSize?
     private var referenceViewportSize: CGSize?
     var floor: RoomFloor?
@@ -189,6 +190,7 @@ final class RoomScene: SKScene {
     private var dockingNavigation: RoomNavigation?
 #if DEBUG
     let diagnostics = RoomSceneDiagnostics()
+    var openingRollForTesting: Double?
     private var bowlHasFood = false
 #endif
 
@@ -447,6 +449,10 @@ final class RoomScene: SKScene {
             setPhase(editing ? "editing" : "idle")
             placementPrepared = false
         }
+        // The constructor's placeholder is not a real entry, even if its geometry matches this save.
+        if !hasCommittedSnapshotLayout, layoutPlanning.proposal?.snapshotCatID != snapshot.activeCatID {
+            layoutRoom(preservingPositionFrom: worldGeometry.worldSize)
+        }
         if applyPendingRoomExpansion() { return }
         if !isPlacementPending || bowlPlanningRequest != nil {
             // Buying or changing a stored item cannot interrupt committed care.
@@ -609,9 +615,14 @@ final class RoomScene: SKScene {
                 self.restFront.texture = SKTexture(rect: CGRect(x: 0, y: 0, width: 1, height: 0.22), in: texture)
             }
             if notify { self.onFurnitureNotice?(item.kind == .catBed ? "rest.goBed" : "rest.goCushion") }
+            let introduction = notify && self.renderedFurniture.first(where: { $0.itemID == id }).map { placement in
+                self.latest?.activeCat?.habits.needsRestIntroduction(furnitureID: id,
+                    location: .init(floor: self.homeFloor, position: placement.position)) == true
+            } == true ? self.renderedCatID.flatMap(CatHabitCatalog.definition(for:))?.style : nil
             self.cat.rest(approach: visit.plan.approach, entry: visit.plan.entry,
                           facing: visit.plan.facing, duration: item.kind == .catBed ? 12 : 9,
                            elevation: visit.elevation, contactProgress: visit.entryContactProgress,
+                           introductionStyle: introduction,
                            habitMatched: self.renderedCatID.flatMap(CatHabitCatalog.definition(for:)).map { $0.rest.furnitureKind == item.kind },
                           onSettled: { [weak self] in
                 guard let self, self.revision == ticket, !self.restExiting else { return }
@@ -1062,9 +1073,10 @@ final class RoomScene: SKScene {
         guard presentationActive, bowlPlanningRequest == nil, !editing, !presentationBusy,
               !cat.isPerforming, !reducedMotion, !residents.isBusy else { resumeIdle(); return }
         if now.timeIntervalSince(lastRestFinished) > 40, restRoll == 0,
-           let destination = renderedFurniture.filter({ placement in
-               ownedFurniture.contains { $0.id == placement.itemID && [.catBed, .floorCushion].contains($0.kind) }
-           }).randomElement() {
+           let destination = RoomHabitBehavior.restingFurniture(placements: renderedFurniture, items: ownedFurniture,
+               floor: homeFloor, preference: latest?.activeCat.flatMap { CatHabitCatalog.definition(for: $0.id)?.rest },
+               cornerID: latest?.activeCat?.habits.cornerFurnitureID,
+               kindRoll: Double.random(in: 0..<1), instanceRoll: Double.random(in: 0..<1)) {
             visitFurniture(destination.itemID, notify: false)
             return
         }
@@ -1130,6 +1142,16 @@ final class RoomScene: SKScene {
         pendingFeedback = feedback
         pendingRestID = rest
         pendingRestIsPlayerInitiated = restIsPlayerInitiated
+#if DEBUG
+        let openingRoll = openingRollForTesting ?? Double.random(in: 0..<1)
+#else
+        let openingRoll = Double.random(in: 0..<1)
+#endif
+        let opening = !hasCommittedSnapshotLayout && !editing && suspendedCareKind == nil && planningCareKind == nil
+            && pendingFeedback == nil && pendingRestID == nil ? latest?.activeCat.flatMap {
+                RoomHabitBehavior.openingRequest(cat: $0, floor: homeFloor, roll: openingRoll,
+                    kindRoll: Double.random(in: 0..<1), instanceRoll: Double.random(in: 0..<1))
+            } : nil
         let proposal = RoomLayoutProposal(viewport: referenceViewportSize ?? size, roomLevel: latest?.home.roomLevel ?? renderedRoomLevel,
             artworkSize: room.texture?.size() ?? CGSize(width: 1024, height: 1536),
             bowlAspect: bowl.texture.map { $0.size().height / $0.size().width } ?? 0.83,
@@ -1137,7 +1159,7 @@ final class RoomScene: SKScene {
             placements: latest?.home.furniture ?? FurnitureCatalog.defaultPlacements,
             bowl: latest?.home.bowlPosition ?? .init(x: 0.76, y: 0.79),
             previousCat: hasCommittedLayout ? cat.position : nil,
-            previousWorld: oldSize ?? worldGeometry.worldSize)
+            previousWorld: oldSize ?? worldGeometry.worldSize, opening: opening, snapshotCatID: latest?.activeCatID)
         layoutPlanning.prepare(proposal)
         placementNavigation = nil
         placementPrepared = false
@@ -1317,14 +1339,21 @@ final class RoomScene: SKScene {
 #endif
         layoutPlanning.start { [weak self] proposal, result in
             guard let self, self.presentationActive else { return }
+            let initialSnapshot = !self.hasCommittedSnapshotLayout && proposal.snapshotCatID != nil
+                && proposal.snapshotCatID == self.latest?.activeCatID
+            let useOpening = initialSnapshot && !self.editing && self.suspendedCareKind == nil
+                && self.pendingFeedback == nil && self.pendingRestID == nil
+                && proposal.opening?.catID == self.latest?.activeCatID
+                && self.latest?.activeCat.map(RoomHabitBehavior.canUseOpening) == true
             self.applyLayoutArtwork(proposal)
             self.hasCommittedLayout = true
+            if initialSnapshot { self.hasCommittedSnapshotLayout = true }
             self.floor = proposal.planner.floor
             self.navigation = result.navigation
             self.lastRequestedBowlPoint = proposal.planner.requested
             self.bowl.position = result.center
             self.committedBowlPosition = result.center
-            self.cat.cancelAndSettle(at: result.catPosition ?? proposal.planner.catPosition)
+            self.cat.cancelAndSettle(at: (useOpening ? result.openingPosition : nil) ?? result.catPosition ?? proposal.planner.catPosition)
             self.cat.isHidden = false
             self.bowl.isHidden = false
             self.placementPrepared = false

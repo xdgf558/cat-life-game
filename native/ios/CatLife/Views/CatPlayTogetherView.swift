@@ -56,7 +56,7 @@ private struct CatPlayTogetherContent: View {
                 } else {
                     stage
                     if !store.habitStudyMode || effectiveReducedMotion {
-                        Text(GameStrings.text("catHabits.motion.\(controller.phase)"))
+                        Text(GameStrings.text(controller.motionKey))
                             .font(.subheadline.weight(.bold)).foregroundStyle(RoomTheme.darkMint)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("playTogetherReaction")
                     }
@@ -117,8 +117,8 @@ private struct CatPlayTogetherContent: View {
         .onChange(of: scenePhase) { _, phase in controller.setVisible(phase == .active) }
         .onChange(of: effectiveReducedMotion) { _, value in controller.scene.reducedMotion = value }
         .onChange(of: controller.phase) { _, value in
-            if UIAccessibility.isVoiceOverRunning && ["pouncing", "waiting", "tooFast"].contains(value) {
-                UIAccessibility.post(notification: .announcement, argument: GameStrings.text("catHabits.motion.\(value)"))
+            if UIAccessibility.isVoiceOverRunning && ["pouncing", "waiting", "tooFast", "satisfied"].contains(value) {
+                UIAccessibility.post(notification: .announcement, argument: GameStrings.text(controller.motionKey))
             }
         }
         .onDisappear { controller.finish() }
@@ -140,7 +140,7 @@ private struct CatPlayTogetherContent: View {
         .background(RoomTheme.paper, in: RoundedRectangle(cornerRadius: 28)).clipShape(RoundedRectangle(cornerRadius: 28))
         .overlay(RoundedRectangle(cornerRadius: 28).strokeBorder(.white, lineWidth: 3))
         .accessibilityElement(children: .ignore).accessibilityLabel(GameStrings.text("catHabits.stageAccessibility"))
-        .accessibilityValue(TownEventAccessibility.value(GameStrings.text("catHabits.motion.\(controller.phase)"),
+        .accessibilityValue(TownEventAccessibility.value(GameStrings.text(controller.motionKey),
             diagnostic: "\(controller.phase)|\(controller.scene.pounces)|\(controller.current.effects.toysSpent)|\(controller.current.observedRhythms.count)"))
         .accessibilityIdentifier("playTogetherStage")
         .accessibilityAction(named: Text(GameStrings.text("catHabits.control.slowMove"))) { controller.control(.slowMove) }

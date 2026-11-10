@@ -16,6 +16,7 @@ struct CatHabitsSection: View {
     let store: GameStore
     let cat: CatState
     @State private var choosing = false
+    @State private var pinning = false
 
     var body: some View {
         if let definition = CatHabitCatalog.definition(for: cat.id) {
@@ -70,17 +71,68 @@ struct CatHabitsSection: View {
                         GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: cat.appearance), symbol: "cat.fill", size: 36)
                         VStack(alignment: .leading, spacing: 6) {
                             Text(GameStrings.text(memory.kind.titleKey)).font(.subheadline.weight(.heavy))
-                            Text(GameStrings.text(memory.kind.bodyKey)).font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.secondary)
+                            Text(CompanionshipPresentation.memoryBody(for: memory.kind, cat: cat)).font(.caption.weight(.semibold)).foregroundStyle(RoomTheme.secondary)
                             Text(CatGrowthPresentation.date(memory.createdAt)).font(.caption2).foregroundStyle(RoomTheme.secondary)
+                            if memory.kind.isPinnable {
+                                Button { pin(cat.habits.pinnedMemory == memory.kind ? nil : memory.kind) } label: {
+                                    Label(GameStrings.text(cat.habits.pinnedMemory == memory.kind ? "habit67.unpin" : "habit67.pin"),
+                                          systemImage: cat.habits.pinnedMemory == memory.kind ? "pin.slash" : "pin")
+                                        .font(.caption.weight(.bold)).frame(minHeight: 44)
+                                }
+                                .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint).disabled(pinning || store.isBusy)
+                                .accessibilityIdentifier("habitMemoryPin_\(memory.kind.rawValue)")
+                            }
                         }.fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity, alignment: .leading)
                         Image(systemName: "heart.fill").font(.caption).foregroundStyle(RoomTheme.friendship)
                     }.padding(12).background(RoomTheme.friendshipPaper, in: RoundedRectangle(cornerRadius: 18))
-                        .accessibilityElement(children: .combine).accessibilityIdentifier("catMemory_\(memory.id)")
+                        .accessibilityElement(children: .contain).accessibilityIdentifier("catMemory_\(memory.id)")
                 }
             }
+            pinnedGuide
         }.padding(16).frame(maxWidth: .infinity, alignment: .leading).gameCard(cornerRadius: 25)
             .accessibilityElement(children: .contain).accessibilityIdentifier("catMemoriesSection")
     }
+    private var pinnedGuide: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Divider().overlay(RoomTheme.track)
+            Text(GameStrings.text("habit67.pinTitle")).font(.subheadline.weight(.heavy))
+                .foregroundStyle(RoomTheme.darkMint)
+            if let memory = cat.habits.pinnedMemory {
+                Label(GameStrings.text(CompanionshipPresentation.guideKey(for: memory)), systemImage: "pin.fill")
+                    .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("habitPinnedGuide")
+                    .accessibilityValue(TownEventAccessibility.value(GameStrings.text(CompanionshipPresentation.guideKey(for: memory)),
+                        diagnostic: "\(memory.rawValue)|\(cat.habits.pinnedHintCollapsed ? "collapsed" : "expanded")"))
+            }
+            Text(GameStrings.text("habit67.pinHint")).font(.caption).foregroundStyle(RoomTheme.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Menu {
+                ForEach(CompanionshipPresentation.pinnableMemories, id: \.self) { memory in
+                    Button { pin(memory) } label: {
+                        Label(GameStrings.text(CompanionshipPresentation.guideKey(for: memory)),
+                              systemImage: cat.habits.pinnedMemory == memory ? "checkmark" : "pin")
+                    }.accessibilityIdentifier("habitPin_\(memory.rawValue)")
+                }
+                if cat.habits.pinnedMemory != nil {
+                    Button(GameStrings.text("habit67.unpin"), role: .destructive) { pin(nil) }
+                        .accessibilityIdentifier("habitUnpin")
+                }
+            } label: {
+                Label(GameStrings.text(cat.habits.pinnedMemory == nil ? "habit67.chooseGuide" : "habit67.changeGuide"), systemImage: "pin")
+                    .font(.subheadline.weight(.bold)).frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .buttonStyle(SoftButtonStyle()).disabled(pinning || store.isBusy)
+            .accessibilityIdentifier("habitGuideMenu")
+        }
+    }
+
+    private func pin(_ memory: CatMemoryKind?) {
+        guard !pinning else { return }
+        pinning = true
+        Task { _ = await store.pinHabitMemory(catID: cat.id, memory: memory); pinning = false }
+    }
+
     private func habitRow(_ title: String, value: String, count: Int, id: String) -> some View {
         VStack(alignment: .leading, spacing: 5) {
             Text(GameStrings.text(title)).font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)

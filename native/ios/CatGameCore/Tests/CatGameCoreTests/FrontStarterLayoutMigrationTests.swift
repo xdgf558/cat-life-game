@@ -31,13 +31,23 @@ struct FrontStarterLayoutMigrationTests {
         return try JSONDecoder().decode(GameSnapshot.self, from: JSONEncoder().encode(saved))
     }
 
+    private func companionMigrated(_ state: GameSnapshot) -> GameSnapshot {
+        var expected = state
+        for index in expected.cats.indices {
+            expected.cats[index].habits.restLocations = [:]
+            expected.cats[index].habits.seedRestLocations(home: expected.home, inventory: expected.inventory)
+            expected.cats[index].habits.legacyRestSessionID = expected.cats[index].activeRest?.id
+        }
+        return expected
+    }
+
     private func reflowed(_ state: GameSnapshot) -> GameSnapshot {
         var expected = state
         let positions = Dictionary(uniqueKeysWithValues: FurnitureCatalog.frontPlacementsV13.map { ($0.itemID, $0.position) })
         for index in expected.home.furniture.indices {
             if let position = positions[expected.home.furniture[index].itemID] { expected.home.furniture[index].position = position }
         }
-        return expected
+        return companionMigrated(expected)
     }
 
     @Test func untouchedV12StarterReflowsRegardlessOfOrderWithoutChangingProgressOrUnplacedPurchases() throws {
@@ -48,10 +58,10 @@ struct FrontStarterLayoutMigrationTests {
             if reversed { original.home.furniture.reverse() }
             let loaded = try reload(original)
             #expect(loaded == reflowed(original))
-            #expect(loaded.isValid && loaded.schemaVersion == 13)
+            #expect(loaded.isValid && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
             #expect(loaded.home.furniture.map(\.itemID) == original.home.furniture.map(\.itemID))
             #expect(loaded.inventory == original.inventory && loaded.player == original.player)
-            #expect(loaded.cats == original.cats && loaded.tasks == original.tasks && loaded.community == original.community)
+            #expect(loaded.cats == reflowed(original).cats && loaded.tasks == original.tasks && loaded.community == original.community)
             #expect(try reload(loaded, schema: 13) == loaded)
             #expect(try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: loaded, exportedAt: now), now: now).snapshot == loaded)
         }
@@ -79,7 +89,7 @@ struct FrontStarterLayoutMigrationTests {
         upstairsItem.home.furniture[0].floor = .upper
         for state in [moved, bowl, mirrored, differentKind, stored, placedExtra, upper, upstairsItem] {
             #expect(state.isValid)
-            #expect(try reload(state) == state)
+            #expect(try reload(state) == companionMigrated(state))
         }
     }
 
@@ -92,19 +102,19 @@ struct FrontStarterLayoutMigrationTests {
             #expect(GameEngine.startCatRest(&resting, catID: resting.activeCatID, furnitureID: "catBed",
                                             sessionID: "rest-\(index)", now: now).succeeded)
             resting.activeCatID = starter.activeCatID
-            #expect(try reload(resting) == resting)
+            #expect(try reload(resting) == companionMigrated(resting))
 
             var observed = starter
             observed.cats[index].habits.lastRestObservation = .init(id: "offer-\(index)", furnitureID: "catBed", kind: .bed,
                 location: .init(floor: .ground, position: try #require(observed.home.furniture.first { $0.itemID == "catBed" }?.position)),
                 completedAt: now, matched: index == 1)
             #expect(observed.isValid)
-            #expect(try reload(observed) == observed)
+            #expect(try reload(observed) == companionMigrated(observed))
 
             var corner = observed
             #expect(CatHabitEngine.chooseCorner(&corner, catID: corner.cats[index].id,
                                                 observationID: "offer-\(index)", now: now).succeeded)
-            #expect(try reload(corner) == corner)
+            #expect(try reload(corner) == companionMigrated(corner))
         }
     }
 
@@ -117,19 +127,19 @@ struct FrontStarterLayoutMigrationTests {
         original.cats[0].habits.restClueSessionIDs = ["dismissed-rest"]
         let loaded = try reload(original)
         #expect(loaded == reflowed(original) && loaded.isValid)
-        #expect(loaded.cats == original.cats)
+        #expect(loaded.cats == reflowed(original).cats)
     }
 
     @Test func activePlaySessionAndItsUnspentTutorialKeepAllOldPlacementCoordinates() throws {
         var original = try oldStarter()
         #expect(CatHabitEngine.beginPlay(&original, catID: original.activeCatID, now: now).succeeded)
         #expect(original.catPlay.activeSession != nil)
-        #expect(try reload(original) == original)
+        #expect(try reload(original) == companionMigrated(original))
     }
 
     @Test func schema13NeverReappliesReflowToAnOldLayoutThePlayerChoseAgain() throws {
         let oldChoice = try oldStarter()
-        #expect(try reload(oldChoice, schema: 13) == oldChoice)
+        #expect(try reload(oldChoice, schema: 13) == companionMigrated(oldChoice))
         #expect(try NativeSaveTransfer.decode(NativeSaveTransfer.encode(snapshot: oldChoice, exportedAt: now), now: now).snapshot == oldChoice)
     }
 
@@ -152,6 +162,6 @@ struct FrontStarterLayoutMigrationTests {
         home.removeValue(forKey: "furniture")
         object["home"] = home
         let loaded = try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
-        #expect(loaded == original)
+        #expect(loaded == companionMigrated(original))
     }
 }

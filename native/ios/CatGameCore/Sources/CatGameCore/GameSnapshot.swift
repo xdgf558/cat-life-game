@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 13
+    public static let currentSchemaVersion = 14
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -32,6 +32,9 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.community = community
         self.catPlay = catPlay
         self.community.events.advance(to: self.tasks.dailyDayKey)
+        for index in self.cats.indices {
+            self.cats[index].habits.seedRestLocations(home: home, inventory: inventory)
+        }
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -109,6 +112,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
                 for index in home.furniture.indices {
                     if let position = positions[home.furniture[index].itemID] { home.furniture[index].position = position }
                 }
+            }
+        }
+        if version < 14 {
+            for index in cats.indices {
+                cats[index].habits.seedRestLocations(home: home, inventory: inventory)
+                cats[index].habits.legacyRestSessionID = cats[index].activeRest?.id
             }
         }
         guard community.isValid, inventory.validGifts,
@@ -306,7 +315,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)
         lastRestSessionID = try values.decodeIfPresent(String.self, forKey: .lastRestSessionID)
         habits = schemaVersion < 12 && !values.contains(.habits) ? CatHabitState()
-            : try values.decode(CatHabitState.self, forKey: .habits)
+            : try CatHabitState(from: values.superDecoder(forKey: .habits), schemaVersion: schemaVersion)
     }
 }
 

@@ -22,13 +22,14 @@ final class CatActor: SKNode {
         let contactProgress: CGFloat
         let onSettled: () -> Void
         let habitMatched: Bool?
+        let introductionStyle: CatBehaviorStyle?
     }
 
     private enum Activity {
         case feed(eatingPoint: CGPoint, facing: CGFloat, approach: [CGPoint], dockingPath: [CGPoint],
                   returnPath: [CGPoint], onMealFinished: () -> Void)
         case clean(home: CGPoint)
-        case play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], prepared: Bool)
+        case play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], prepared: Bool, finishIndex: Int?)
         case stroll(path: [CGPoint])
         case rest(RestRequest)
 
@@ -36,7 +37,7 @@ final class CatActor: SKNode {
             switch self {
             case let .clean(home): home
             case .rest: origin
-            case let .feed(_, _, _, _, path, _), let .play(_, _, path, _), let .stroll(path):
+            case let .feed(_, _, _, _, path, _), let .play(_, _, path, _, _), let .stroll(path):
                 // Empty/single-point routes convey no movement. In particular,
                 // they must not turn a reduced-motion change into a teleport.
                 CatWalkRoute(path)?.destination ?? origin
@@ -90,6 +91,8 @@ final class CatActor: SKNode {
 #if DEBUG
     private(set) var completedMeals = 0
     private(set) var completedPounces = 0
+    private(set) var lastRestIntroductionStyle: CatBehaviorStyle?
+    private(set) var lastResponseFinishIndex: Int?
 #endif
     private(set) var restPhase: RestPhase = .none
     /// Covers entry, the stay, and exit until the scene's safe stage is reached.
@@ -277,8 +280,9 @@ final class CatActor: SKNode {
         submit(.clean(home: home), completion: completion)
     }
 
-    func play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], prepared: Bool = false, completion: @escaping () -> Void) {
-        submit(.play(landing: landing, facing: facing, returnPath: returnPath, prepared: prepared), completion: completion)
+    func play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], prepared: Bool = false,
+              responseFinishIndex: Int? = nil, completion: @escaping () -> Void) {
+        submit(.play(landing: landing, facing: facing, returnPath: returnPath, prepared: prepared, finishIndex: responseFinishIndex), completion: completion)
     }
 
     func stroll(along path: [CGPoint], completion: @escaping () -> Void) {
@@ -290,12 +294,13 @@ final class CatActor: SKNode {
     func rest(approach: [CGPoint], entry: [CGPoint], facing: CGFloat,
               duration: TimeInterval, elevation: CGFloat,
                contactProgress: CGFloat = CatFurnitureStepTimeline.defaultContactProgress,
+               introductionStyle: CatBehaviorStyle? = nil,
                habitMatched: Bool? = nil,
               onSettled: @escaping () -> Void,
               completion: @escaping () -> Void) {
         submit(.rest(RestRequest(approach: approach, entry: entry, facing: facing,
                                   duration: duration, elevation: elevation, contactProgress: contactProgress,
-                                  onSettled: onSettled, habitMatched: habitMatched)),
+                                  onSettled: onSettled, habitMatched: habitMatched, introductionStyle: introductionStyle)),
                completion: completion)
     }
 
@@ -449,6 +454,9 @@ final class CatActor: SKNode {
         activityGeneration += 1
         let generation = activityGeneration
         isPerforming = true
+#if DEBUG
+        if case let .play(_, _, _, _, finishIndex) = activity { lastResponseFinishIndex = finishIndex }
+#endif
         restingPoint = activity.restingPoint(from: position)
         completions = callbacks
         restorePose()
@@ -466,9 +474,12 @@ final class CatActor: SKNode {
             case .play: sound = .play
             default: sound = nil
             }
+            let calmFrame: Int
+            if case let .play(_, _, _, _, finishIndex) = activity { calmFrame = finishIndex == 1 ? 3 : 6 }
+            else { calmFrame = 6 }
             animation = .sequence([.run { [weak self] in
                 if let sound { self?.onSound?(sound) }
-            }, frame(.expressions, 6), .wait(forDuration: 0.35), .run { [weak self] in
+            }, frame(.expressions, calmFrame), .wait(forDuration: 0.35), .run { [weak self] in
                 guard let self, self.activityGeneration == generation else { return }
                 if case let .feed(_, _, _, _, _, onMealFinished) = activity { onMealFinished() }
             }])
@@ -479,8 +490,8 @@ final class CatActor: SKNode {
                                     dockingPath: dockingPath, returnPath: returnPath,
                                     generation: generation, onMealFinished: onMealFinished)
             case let .clean(home): animation = cleaning(home: home)
-            case let .play(landing, facing, returnPath, prepared):
-                animation = playing(landing: landing, facing: facing, returnPath: returnPath, prepared: prepared)
+            case let .play(landing, facing, returnPath, prepared, finishIndex):
+                animation = playing(landing: landing, facing: facing, returnPath: returnPath, prepared: prepared, finishIndex: finishIndex)
             case let .stroll(path): animation = strolling(along: path)
             case .rest: preconditionFailure("Rest is composed above")
             }
@@ -518,11 +529,22 @@ final class CatActor: SKNode {
 
         restPhase = .approaching
         var actions: [SKAction] = []
+#if DEBUG
+        lastRestIntroductionStyle = request.introductionStyle
+#endif
+        if request.introductionStyle == .quiet {
+            // A brief seated look happens before leaving the safe ground position.
+            actions.append(frame(.expressions, 4, hold: reducedMotion ? 0.12 : 0.28))
+        }
         if CatWalkRoute(request.approach) != nil {
             actions += [stand(facing: initialDirection(along: request.approach)),
-                        walk(along: request.approach, speed: 0.43, quiet: true)]
+                        walk(along: request.approach, speed: 0.43, quiet: true, arrivalHurry: request.introductionStyle == .playful)]
         } else {
             actions.append(stand(facing: initialDirection(along: request.entry)))
+        }
+        if request.introductionStyle == .curious {
+            actions.append(reducedMotion ? frame(.expressions, 4, hold: 0.12)
+                           : frames(.play, [0, 1, 0], durations: [0.08, 0.18, 0.08]))
         }
         actions += [turn(toward: request.facing), .run { [weak self] in
             guard let self, self.activityGeneration == generation else { return }
@@ -923,7 +945,7 @@ final class CatActor: SKNode {
         ])
     }
 
-    private func playing(landing: CGPoint, facing direction: CGFloat, returnPath: [CGPoint], prepared: Bool) -> SKAction {
+    private func playing(landing: CGPoint, facing direction: CGFloat, returnPath: [CGPoint], prepared: Bool, finishIndex: Int?) -> SKAction {
         let origin = position
         guard landing.x.isFinite, landing.y.isFinite else { return frame(.expressions, 6, hold: 0.35) }
         let leapHeight = visualWidth * 0.095
@@ -955,6 +977,14 @@ final class CatActor: SKNode {
             stand(facing: direction),
             frames(.play, [0, 1, 2], durations: [0.09, 0.14, 0.21])
         ]
+        var ending: [SKAction] = [turn(along: returnPath), walk(along: returnPath, speed: 0.39)]
+        if finishIndex == 1 {
+            ending.append(frames(.play, [0, 1, 0], durations: [0.12, 0.20, 0.16]))
+        }
+        ending.append(sit())
+        ending.append(finishIndex == 0
+            ? frames(.expressions, [6, 3, 6, 0], durations: [0.18, 0.12, 0.18, 0.12])
+            : .sequence([frame(.expressions, 6, hold: 0.28), frame(.expressions, 0)]))
         return .sequence(preparation + [
             leap,
             .run { [weak self] in self?.onSound?(.play) },
@@ -966,10 +996,8 @@ final class CatActor: SKNode {
 #endif
                 self?.resetModifiers()
             },
-            frame(.play, 7, hold: 0.33),
-            turn(along: returnPath), walk(along: returnPath, speed: 0.39), sit(),
-            frame(.expressions, 6, hold: 0.28), frame(.expressions, 0)
-        ])
+            frame(.play, 7, hold: 0.33)
+        ] + ending)
     }
 
     private func strolling(along path: [CGPoint]) -> SKAction {
@@ -1014,9 +1042,9 @@ final class CatActor: SKNode {
     /// Both the first and last pose are contact poses, never a suspended paw.
     private func walk(along points: [CGPoint], speed: CGFloat, facingOverride: CGFloat? = nil,
                       reverseGait: Bool = false, elevationFrom: CGFloat? = nil,
-                      elevationTo: CGFloat? = nil, quiet: Bool = false) -> SKAction {
+                      elevationTo: CGFloat? = nil, quiet: Bool = false, arrivalHurry: Bool = false) -> SKAction {
         guard let route = CatWalkRoute(points) else { return .wait(forDuration: 0.06) }
-        let duration = max(0.42, TimeInterval(route.distance / max(1, visualWidth * speed)) + 0.16)
+        let duration = max(0.42, TimeInterval(route.distance / max(1, visualWidth * speed)) + 0.16 - (arrivalHurry ? 0.12 : 0))
         let halfSteps = max(1, (route.distance / (visualWidth * 0.24)).rounded())
         let cycles = halfSteps * 0.5
         let traversal = WalkTraversal()

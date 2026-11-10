@@ -115,6 +115,7 @@ struct CatGrowthTests {
             for index in expected.cats.indices {
                 expected.cats[index].growthState = .legacy(appearance: expected.cats[index].appearance, now: migrationDate)
             }
+            expected = expectedCompanionMigration(expected)
             #expect(loaded == expected && loaded.isValid)
             for cat in loaded.cats {
                 let record = try #require(cat.growthState)
@@ -256,6 +257,7 @@ struct CatGrowthTests {
                 expected.cats[index].growthState = .legacy(appearance: expected.cats[index].appearance,
                     now: migrationDate, isPregnant: true)
             }
+            expected = expectedCompanionMigration(expected)
             #expect(loaded == expected && loaded.isValid)
             #expect(loaded.cats.allSatisfy { $0.isPregnant && $0.growthState?.sex == .female
                 && $0.growthState?.adoptedAt == nil && $0.growthState?.recordedSince == migrationDate })

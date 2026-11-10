@@ -21,7 +21,7 @@ struct AdoptionAvailableBanner: View {
             .frame(minHeight: 44).disabled(store.isBusy)
             .accessibilityIdentifier("adoptionReminderOpen")
             Button { store.adoptionReminders.dismiss(offer.id) } label: {
-                Image(systemName: "xmark").frame(width: 44, height: 44)
+                Image(systemName: "xmark").font(.system(size: 14, weight: .bold)).frame(width: 44, height: 44)
             }
             .accessibilityLabel(GameStrings.text("common.close"))
             .accessibilityIdentifier("adoptionReminderDismiss")

@@ -79,7 +79,7 @@ final class HabitPresentationTests: XCTestCase {
                 for suffix in ["match", "compare"] { XCTAssertNotNil(dictionary["catHabits.playHint.\(rhythm.rawValue).\(suffix)"]) }
             }
             for memory in CatMemoryKind.allCases {
-                XCTAssertNotNil(dictionary[memory.titleKey]); XCTAssertNotNil(dictionary[memory.bodyKey])
+                XCTAssertNotNil(registered[index][memory.titleKey]); XCTAssertNotNil(registered[index][memory.bodyKey])
             }
         }
     }

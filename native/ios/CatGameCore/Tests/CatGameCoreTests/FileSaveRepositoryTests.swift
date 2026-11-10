@@ -172,6 +172,7 @@ struct FileSaveRepositoryTests {
         legacy["schemaVersion"] = 1
         let legacyBytes = try JSONSerialization.data(withJSONObject: legacy, options: [.sortedKeys])
         try legacyBytes.write(to: repository.saveURL)
+        expected = expectedCompanionMigration(expected)
 
         let migrated = try await repository.loadOrCreate(now: now.addingTimeInterval(60))
         #expect(migrated == expected)
