@@ -11,6 +11,7 @@ struct RoomHomeView: View {
     @State private var townLayer: TownLayer = .all
     @State private var catNeedPresentation = CatNeedPresentation()
     @State private var arrangementPanelHeight: CGFloat = 0
+    @State private var normalHeaderHeight: CGFloat = 100
     @State private var saveTransferWorking = false
     #if DEBUG
     @State private var waitingForWelcomeTestRelease = false
@@ -198,6 +199,10 @@ struct RoomHomeView: View {
                 }
             }
         }
+        .onChange(of: catNeedPresentation.headerFrame?.height) { _, height in
+            guard !store.isDecorating, let height, height.isFinite, height > 0 else { return }
+            normalHeaderHeight = height
+        }
         .onChange(of: store.isDecorating) { _, editing in
             moreVisible = false
             if !editing { store.activeSheet = nil }
@@ -267,8 +272,8 @@ struct RoomHomeView: View {
 
     private func room(_ snapshot: GameSnapshot) -> some View {
         GeometryReader { geometry in
-            let headerHeight = catNeedPresentation.headerFrame?.height ?? 100
-            let stage = HomeRoomLayout.stageFrame(in: geometry.size, headerHeight: headerHeight, editing: store.isDecorating)
+            let referenceStage = HomeRoomLayout.stageFrame(in: geometry.size, headerHeight: normalHeaderHeight, editing: false)
+            let stage = store.isDecorating ? CGRect(origin: .zero, size: geometry.size) : referenceStage
             let careHeight = HomeRoomLayout.careHeight(in: geometry.size)
             ZStack(alignment: .topLeading) {
                 RoomSceneHost(store: store,
@@ -276,6 +281,7 @@ struct RoomHomeView: View {
                                   && !store.isShowingPlayTogether && !store.showsPlayChoices && !store.showSaveError
                                   && store.homeUpgradeCelebration == nil && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
                               reducedMotion: usesReducedMotion, catNeedPresentation: catNeedPresentation,
+                              referenceViewportSize: referenceStage.size,
                               arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
                     .id("\(store.saveSceneGeneration)-\(store.visibleHomeFloor.rawValue)")
                     .frame(width: stage.width, height: stage.height)

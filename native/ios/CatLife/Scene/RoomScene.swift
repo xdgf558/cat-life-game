@@ -91,7 +91,9 @@ final class RoomScene: SKScene {
     var onFurniturePlacementFinished: ((String, Bool) -> Void)?
     var furnitureNodes: [String: SKSpriteNode] { artwork.furnitureNodes }
     private var ownedFurniture = FurnitureCatalog.defaultItems
-    private var renderedFurniture = FurnitureCatalog.defaultPlacements
+    private var renderedFurniture = FurnitureCatalog.defaultPlacements {
+        didSet { if renderedFurniture != oldValue { roomPresentation.invalidateFraming() } }
+    }
     var selectedFurnitureID: String?
     var newPlacementID: String?
     private var lastPlacingRequest: String?
@@ -170,12 +172,15 @@ final class RoomScene: SKScene {
     private var revision = 0
     private var hasCommittedLayout = false
     private var renderedViewportSize: CGSize?
+    private var referenceViewportSize: CGSize?
     var floor: RoomFloor?
     private var navigation: RoomNavigation?
     var placementNavigation: RoomNavigation?
     var placementTask: Task<RoomFurnitureResolution?, Never>?
     var placementRevision = 0
-    var committedBowlPosition = CGPoint.zero
+    var committedBowlPosition = CGPoint.zero {
+        didSet { if committedBowlPosition != oldValue { roomPresentation.invalidateFraming() } }
+    }
     private var lastRequestedBowlPoint: CGPoint?
     private let layoutPlanning = RoomLayoutPlanning()
     var bowlPlanningRequest: RoomBowlPlanner? { layoutPlanning.proposal?.planner }
@@ -228,6 +233,28 @@ final class RoomScene: SKScene {
     }
     required init?(coder aDecoder: NSCoder) { fatalError("RoomScene is created in code") }
 
+    func setReferenceViewportSize(_ viewport: CGSize) {
+        guard viewport.width.isFinite, viewport.height.isFinite, viewport.width > 0, viewport.height > 0 else { return }
+        if let referenceViewportSize, Self.sameViewport(referenceViewportSize, viewport) { return }
+        referenceViewportSize = viewport
+        let plannedViewport = layoutPlanning.proposal?.geometry.viewportSize ?? renderedViewportSize ?? size
+        guard !Self.sameViewport(plannedViewport, viewport), size.width > 0, size.height > 0 else { return }
+        cancelCameraInteraction()
+        if activeRest != nil {
+            if deferredRoomLayoutFromSize == nil { deferredRoomLayoutFromSize = worldGeometry.viewportSize }
+            leaveFurnitureRest()
+            return
+        }
+        let pendingItem = newPlacementID
+        deferredRoomLayoutFromSize = nil
+        layoutRoom(preservingPositionFrom: worldGeometry.worldSize, preservingNewPlacement: pendingItem != nil)
+        if pendingItem != nil { lastPlacingRequest = nil }
+    }
+
+    private static func sameViewport(_ a: CGSize, _ b: CGSize) -> Bool {
+        abs(a.width - b.width) <= 0.001 && abs(a.height - b.height) <= 0.001
+    }
+
     override func didChangeSize(_ oldSize: CGSize) {
         super.didChangeSize(oldSize)
         // SwiftUI/SpriteKit can report the same canvas with floating-point noise;
@@ -238,6 +265,15 @@ final class RoomScene: SKScene {
         diagnostics.recordPresentationEvent("resize \(oldSize) -> \(size), active=\(presentationActive)")
 #endif
         cancelCameraInteraction()
+        if let referenceViewportSize, size.width > 0, size.height > 0, let floor,
+           Self.sameViewport(layoutPlanning.proposal?.geometry.viewportSize ?? renderedViewportSize ?? oldSize,
+                             referenceViewportSize) {
+            // Mode and panel changes move only the camera; physical space and ongoing actions stay intact.
+            roomPresentation.configure(world: worldGeometry.worldSize, viewport: size,
+                floor: floor.polygon, angle: roomViewAngle, level: renderedRoomLevel, homeFloor: homeFloor)
+            updateRoomPresentation()
+            return
+        }
         if activeRest != nil, deferredRoomLayoutFromSize == nil,
            oldSize.width > 0, oldSize.height > 0 {
             deferredRoomLayoutFromSize = oldSize
@@ -401,8 +437,10 @@ final class RoomScene: SKScene {
         if modeChanged {
             residents.invalidate(hide: editing)
             self.editing = editing
-            cancelBowlPlanning(keepingRequest: false)
-            lastRequestedBowlPoint = nil
+            if referenceViewportSize == nil {
+                cancelBowlPlanning(keepingRequest: false)
+                lastRequestedBowlPoint = nil
+            }
             cancelPlacementPreview()
             view?.preferredFramesPerSecond = editing ? 60 : 30
             cancelPresentation(at: cat.position)
@@ -1092,7 +1130,7 @@ final class RoomScene: SKScene {
         pendingFeedback = feedback
         pendingRestID = rest
         pendingRestIsPlayerInitiated = restIsPlayerInitiated
-        let proposal = RoomLayoutProposal(viewport: size, roomLevel: latest?.home.roomLevel ?? renderedRoomLevel,
+        let proposal = RoomLayoutProposal(viewport: referenceViewportSize ?? size, roomLevel: latest?.home.roomLevel ?? renderedRoomLevel,
             artworkSize: room.texture?.size() ?? CGSize(width: 1024, height: 1536),
             bowlAspect: bowl.texture.map { $0.size().height / $0.size().width } ?? 0.83,
             items: latest?.inventory.furniture ?? FurnitureCatalog.defaultItems,
@@ -1118,6 +1156,7 @@ final class RoomScene: SKScene {
     }
 
     private func applyLayoutArtwork(_ proposal: RoomLayoutProposal) {
+        roomPresentation.invalidateFraming()
         renderedRoomLevel = proposal.roomLevel
         renderedViewportSize = proposal.geometry.viewportSize
         roomPresentation.configure(world: proposal.geometry.worldSize, viewport: size,

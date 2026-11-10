@@ -88,7 +88,7 @@ final class RoomFrontPresentationTests: XCTestCase {
         }
     }
 
-    func testMovingOrStashingFurnitureRefitsOnlyAfterTheDragEnds() throws {
+    func testFramingIgnoresIdleFramesAndFadesAndRefitsLayoutChangesAfterTheDragEnds() throws {
         let viewport = CGSize(width: 355, height: 280)
         let world = viewport
         let floor = RoomFloor(sceneSize: world, artworkSize: CGSize(width: 1024, height: 1536),
@@ -120,25 +120,57 @@ final class RoomFrontPresentationTests: XCTestCase {
         update(occupied, furniture: [item.id: node])
         XCTAssertGreaterThan(occupied.camera.scale, empty.camera.scale)
         let backPosition = node.position, backScale = occupied.camera.scale
+        let backCenter = occupied.camera.center
+        #if DEBUG
+        let initialFramingUpdates = occupied.framingUpdateCount
+        #endif
+        for frame in 0..<100 {
+            node.alpha = frame.isMultiple(of: 2) ? 0 : 1
+            update(occupied, furniture: [item.id: node])
+            XCTAssertEqual(occupied.camera.scale, backScale, "Idle animation must not refit the room.")
+            XCTAssertEqual(occupied.camera.center, backCenter)
+        }
+        #if DEBUG
+        XCTAssertEqual(occupied.framingUpdateCount, initialFramingUpdates,
+                       "Idle frames and artwork fades must reuse the framing bounds.")
+        #endif
         let nearestY = try XCTUnwrap(navigation.walkablePoints.map(\.y).min())
         node.position = try XCTUnwrap(navigation.walkablePoints.filter { abs($0.y - nearestY) < 0.001 }
             .min { abs($0.x - world.width / 2) < abs($1.x - world.width / 2) })
         selection.isHidden = false
-        update(occupied, furniture: [item.id: node])
+        occupied.invalidateFraming()
+        for _ in 0..<100 { update(occupied, furniture: [item.id: node]) }
         XCTAssertEqual(occupied.camera.scale, backScale, "Dragging must not move the camera under the finger.")
+        #if DEBUG
+        XCTAssertEqual(occupied.framingUpdateCount, initialFramingUpdates,
+                       "An edited layout must wait until the selection is dismissed before refitting.")
+        #endif
         selection.isHidden = true
-        update(occupied, furniture: [item.id: node])
+        for _ in 0..<100 { update(occupied, furniture: [item.id: node]) }
         XCTAssertEqual(occupied.camera.scale, empty.camera.scale, accuracy: 0.000001)
+        #if DEBUG
+        XCTAssertEqual(occupied.framingUpdateCount, initialFramingUpdates + 1,
+                       "One committed layout change should cause one bounds calculation.")
+        #endif
         node.position = backPosition
+        occupied.invalidateFraming()
         update(occupied, furniture: [item.id: node])
         XCTAssertGreaterThan(occupied.camera.scale, empty.camera.scale)
         node.isHidden = true
+        occupied.invalidateFraming()
         update(occupied, furniture: [item.id: node])
         XCTAssertEqual(occupied.camera.scale, empty.camera.scale, accuracy: 0.000001)
         XCTAssertEqual(occupied.camera.center, empty.camera.center)
+        #if DEBUG
+        XCTAssertEqual(occupied.framingUpdateCount, initialFramingUpdates + 3)
+        #endif
         node.isHidden = false; node.alpha = 0
         update(occupied, furniture: [item.id: node])
         XCTAssertEqual(occupied.camera.scale, empty.camera.scale, accuracy: 0.000001)
+        #if DEBUG
+        XCTAssertEqual(occupied.framingUpdateCount, initialFramingUpdates + 3,
+                       "Changing visibility without a layout change must not move the camera.")
+        #endif
     }
 
     func testChangingTheSafeAreaKeepsTheSameLogicalFocusAndRelativeZoom() throws {
@@ -150,17 +182,21 @@ final class RoomFrontPresentationTests: XCTestCase {
         renderer.setUsableRect(CGRect(x: 20, y: 16, width: 342, height: 430))
         renderer.configure(world: world, viewport: viewport, floor: floor.polygon, angle: .front, level: 4)
         let map = try XCTUnwrap(renderer.projection.frontFloor)
+        let destination = map.destination
         renderer.camera.focus(on: renderer.projection.project(map.sourceCenter))
         renderer.camera.zoom(by: 1.1)
         let logicalFocus = renderer.projection.unproject(renderer.camera.center)
         let relativeZoom = renderer.camera.scale / renderer.camera.fitScale
         renderer.setUsableRect(CGRect(x: 20, y: 16, width: 342, height: 390))
+        XCTAssertEqual(renderer.projection.frontFloor?.destination, destination,
+                       "The tray changes the camera area, not the shape of the floor.")
         let restored = renderer.projection.unproject(renderer.camera.center)
         XCTAssertEqual(restored.x, logicalFocus.x, accuracy: 0.000001)
         XCTAssertEqual(restored.y, logicalFocus.y, accuracy: 0.000001)
         XCTAssertEqual(renderer.camera.scale / renderer.camera.fitScale, relativeZoom, accuracy: 0.000001)
         renderer.camera.fit()
         renderer.setUsableRect(CGRect(x: 20, y: 16, width: 342, height: 450))
+        XCTAssertEqual(renderer.projection.frontFloor?.destination, destination)
         XCTAssertTrue(renderer.camera.isWholeRoom)
     }
 }
