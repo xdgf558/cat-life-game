@@ -260,7 +260,12 @@ struct InventoryView: View {
             }
             if !store.canPlaceMoreFurniture && !store.storedFurniture.isEmpty {
                 Text(store.furnitureCapacityNotice).font(.caption).foregroundStyle(RoomTheme.secondary)
-                if store.canUpgradeHome {
+                if let floor = store.availableFurnitureFloor, floor != store.visibleHomeFloor {
+                    Button(GameStrings.text("homeInventory.arrange.\(floor.rawValue)")) {
+                        if let item = store.storedFurniture.first { Task { _ = await store.arrangeInventoryFurniture(id: item.id) } }
+                    }.buttonStyle(SoftButtonStyle()).disabled(store.isBusy || store.isDecorating || !store.canChangeHomeFloor)
+                        .accessibilityIdentifier("inventoryOtherFloorButton")
+                } else if store.canUpgradeHome {
                     Button(GameStrings.text("homeUpgrade.entry")) { store.openHomeUpgrade() }
                         .buttonStyle(SoftButtonStyle()).disabled(store.isBusy || store.isResolvingLayout)
                         .accessibilityIdentifier("inventoryUpgradeButton")

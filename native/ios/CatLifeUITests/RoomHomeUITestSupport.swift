@@ -77,14 +77,18 @@ extension RoomHomeUITests {
             let distance: CGFloat
             if target.exists {
                 let frame = target.frame
-                if frame.width > 0, frame.height > 0, viewport.contains(frame),
+                // Oversized accessibility cards scroll normally; their activation point, not the entire card, must fit.
+                let fits = frame.height > viewport.height - 16
+                    ? viewport.insetBy(dx: 8, dy: 8).contains(CGPoint(x: frame.midX, y: frame.midY))
+                    : viewport.contains(frame)
+                if frame.width > 0, frame.height > 0, fits,
                    !requiresHitPoint || (allowDisabled && !target.isEnabled) || target.isHittable { return }
                 // Move only the amount required to reveal the target, with a
                 // small margin. Full-screen swipes can repeatedly overshoot a
                 // short stat row or equipment tile in opposite directions.
-                if scrollIdentifier == "townMapScroll",
-                   identifier.hasPrefix("townPlot_") || identifier.hasSuffix("Marker"),
-                   scroll.descendants(matching: .button).matching(identifier: identifier).firstMatch.exists {
+                if frame.height > viewport.height / 2 || (scrollIdentifier == "townMapScroll"
+                   && (identifier.hasPrefix("townPlot_") || identifier.hasSuffix("Marker"))
+                   && scroll.descendants(matching: .button).matching(identifier: identifier).firstMatch.exists) {
                     // Large map buildings need a deliberate drag to their centre.
                     // Tiny edge-reveal gestures can cross touch slop and oscillate
                     // between the two fixed panels on the small-screen simulator.
@@ -132,7 +136,7 @@ extension RoomHomeUITests {
         hierarchy.name = "Scroll failure — \(identifier)"
         hierarchy.lifetime = .keepAlways
         add(hierarchy)
-        XCTFail("The real page could not scroll \(identifier) fully into view.", file: file, line: line)
+        XCTFail("The real page could not reach \(identifier) by scrolling.", file: file, line: line)
     }
 
     @MainActor
@@ -156,7 +160,7 @@ extension RoomHomeUITests {
             }
         }
         for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar",
-                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail"] {
+                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail", "townEventConfirmButton"] {
             let bar = element(identifier, in: app)
             // A presented sheet covers the home bar even while its AX node remains present.
             if bar.exists, bar.isHittable, bar.frame.intersects(viewport), bar.frame.minY > contentTop {

@@ -8,6 +8,8 @@ struct ShopView: View {
     @State private var filter: ShopBrowser.Filter = .all
     @State private var page = 0
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var movingForward = true
     private var products: [ShopListing] { ShopBrowser.products(in: store.shopCategory, filter: filter) }
     private var pageSize: Int { ShopBrowser.pageSize(accessibility: dynamicTypeSize.isAccessibilitySize) }
     private var pageCount: Int { ShopBrowser.pageCount(for: products.count, pageSize: pageSize) }
@@ -31,7 +33,14 @@ struct ShopView: View {
                             productRows(visibleProducts) { equipmentCard($0) }
                         }
                     }.id("\(store.shopCategory.rawValue)-\(filter.rawValue)-\(currentPage)")
-                    if pageCount > 1 { pagination }
+                        .transition(reduceMotion ? .identity : .asymmetric(
+                            insertion: .move(edge: movingForward ? .trailing : .leading).combined(with: .opacity),
+                            removal: .opacity))
+                        .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { value in
+                            guard abs(value.translation.width) > max(60, abs(value.translation.height) * 1.5) else { return }
+                            changePage(value.translation.width < 0 ? 1 : -1)
+                        })
+                    if store.shopCategory == .furniture || pageCount > 1 { pagination }
                     CommunityGiftEntry(store: store) { showsGifts = true }
                 }
                 .padding(16).padding(.bottom, 8).frame(maxWidth: 560).frame(maxWidth: .infinity)
@@ -121,41 +130,73 @@ struct ShopView: View {
         VStack(alignment: .leading, spacing: 6) {
             let options = ShopBrowser.filters(for: store.shopCategory)
             if !options.isEmpty {
-                HStack(spacing: 8) {
+                ScrollViewReader { filterProxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 6) {
                     ForEach(options, id: \.self) { option in
                         Button { filter = option } label: {
-                            Text(GameStrings.text("shop.browse.filter.\(option.rawValue)"))
-                                .font(.caption.weight(.heavy)).lineLimit(1).minimumScaleFactor(0.8)
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .foregroundStyle(filter == option ? RoomTheme.darkMint : RoomTheme.secondary)
-                                .background(filter == option ? RoomTheme.paleMint : RoomTheme.paper, in: Capsule())
+                            Label(GameStrings.text("shop.browse.filter.\(option.rawValue)"), systemImage: filterSymbol(option))
+                                .font(.caption.weight(.heavy)).fixedSize(horizontal: true, vertical: false)
+                                .padding(.horizontal, 10).frame(minHeight: 44)
+                                .foregroundStyle(filter == option ? .white : RoomTheme.ink)
+                                .background(filter == option ? option == .premium ? RoomTheme.gold : RoomTheme.mint : RoomTheme.paper, in: Capsule())
+                                .overlay(Capsule().strokeBorder(.white, lineWidth: 2))
                         }
                         .buttonStyle(.plain).accessibilityIdentifier("shopFilter_\(option.rawValue)")
                         .accessibilityAddTraits(filter == option ? .isSelected : [])
+                        .id(option)
                     }
-                }.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                }.padding(.vertical, 2)
+                }
+                .accessibilityIdentifier("shopBrowseFilters")
+                .onChange(of: filter) { _, value in filterProxy.scrollTo(value, anchor: .center) }
+                .onChange(of: store.shopCategory) { _, _ in filterProxy.scrollTo(ShopBrowser.Filter.all, anchor: .leading) }
+                }
             }
+            HStack(alignment: .firstTextBaseline) {
             Text(GameStrings.format("shop.browse.total", products.count))
                 .font(.caption.weight(.bold)).foregroundStyle(RoomTheme.secondary)
                 .accessibilityIdentifier("shopResultCount").accessibilityValue("\(products.count)")
+                Spacer(minLength: 4)
+                Text(GameStrings.format("shop.browse.page", currentPage + 1, pageCount))
+                    .font(.caption.weight(.heavy)).foregroundStyle(RoomTheme.secondary).monospacedDigit()
+                    .accessibilityIdentifier("shopPageSummary").accessibilityValue("\(currentPage + 1)/\(pageCount)")
+            }
         }
+    }
+
+    private func filterSymbol(_ filter: ShopBrowser.Filter) -> String {
+        switch filter { case .all: "square.grid.2x2.fill"; case .floor: "sofa.fill"; case .wall: "photo.artframe"; case .standard: "circle.fill"; case .premium: "sparkles" }
+    }
+
+    private func changePage(_ delta: Int) {
+        let next = min(pageCount - 1, max(0, currentPage + delta))
+        guard next != currentPage else { return }
+        movingForward = delta > 0
+        store.playNavigationSound()
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.25)) { page = next }
     }
 
     private var pagination: some View {
         HStack(spacing: 12) {
-            Button { page = max(0, currentPage - 1) } label: {
-                Image(systemName: "chevron.left").frame(maxWidth: .infinity, minHeight: 44)
+            Button { changePage(-1) } label: {
+                Label(GameStrings.text("shop.browse.previous"), systemImage: "chevron.left")
+                    .font(.caption.weight(.heavy)).frame(maxWidth: .infinity, minHeight: 44)
             }
-            .disabled(currentPage == 0)
+            .disabled(currentPage == 0).opacity(currentPage == 0 ? 0.4 : 1)
             .accessibilityLabel(GameStrings.text("shop.browse.previous"))
             .accessibilityIdentifier("shopPagePrevious")
-            Text(GameStrings.format("shop.browse.page", currentPage + 1, pageCount))
-                .font(.caption.weight(.heavy)).monospacedDigit().fixedSize()
-                .accessibilityIdentifier("shopPageSummary").accessibilityValue("\(currentPage + 1)/\(pageCount)")
-            Button { page = min(pageCount - 1, currentPage + 1) } label: {
-                Image(systemName: "chevron.right").frame(maxWidth: .infinity, minHeight: 44)
+            HStack(spacing: 4) {
+                ForEach(0..<pageCount, id: \.self) { index in
+                    Capsule().fill(index == currentPage ? RoomTheme.mint : RoomTheme.track)
+                        .frame(width: index == currentPage ? 16 : 6, height: 6)
+                }
+            }.accessibilityHidden(true)
+            Button { changePage(1) } label: {
+                HStack(spacing: 4) { Text(GameStrings.text("shop.browse.next")); Image(systemName: "chevron.right") }
+                    .font(.caption.weight(.heavy)).frame(maxWidth: .infinity, minHeight: 44)
             }
-            .disabled(currentPage + 1 >= pageCount)
+            .disabled(currentPage + 1 >= pageCount).opacity(currentPage + 1 >= pageCount ? 0.4 : 1)
             .accessibilityLabel(GameStrings.text("shop.browse.next"))
             .accessibilityIdentifier("shopPageNext")
         }
@@ -238,11 +279,17 @@ struct ShopView: View {
 
     private var furniture: some View {
         VStack(alignment: .leading, spacing: 12) {
+            if products.isEmpty {
+                ContentUnavailableView(GameStrings.text("shop.browse.empty"), systemImage: "shippingbox",
+                                       description: Text(GameStrings.text("shop.browse.emptyHint")))
+                    .accessibilityIdentifier("shopEmptyFilter")
+            } else {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 7) { newFurnitureHeading; Text(GameStrings.text("shop.design.storageHint")).font(.caption.weight(.bold)) }
                 VStack(alignment: .leading, spacing: 6) { newFurnitureHeading; Text(GameStrings.text("shop.design.storageHint")).font(.caption.weight(.bold)) }
             }.foregroundStyle(RoomTheme.secondary)
             productRows(visibleProducts) { furnitureCard($0, isNew: ShopBrowser.newFurnitureIDs.contains($0.id)) }
+            }
         }
     }
 
@@ -291,7 +338,12 @@ struct ShopView: View {
                         GameIcon(asset: product.asset, symbol: product.symbol, size: 80, tint: product.tint).padding(4)
                     }
                     .frame(height: 88).clipped()
-                    .overlay(alignment: .topLeading) { if isNew { newBadge.padding(8) } }
+                    .overlay(alignment: .topLeading) {
+                        Label(GameStrings.text(wall ? "shop.browse.wallTag" : "shop.browse.floorTag"), systemImage: wall ? "photo.artframe" : "sofa.fill")
+                            .font(.caption2.weight(.heavy)).foregroundStyle(wall ? RoomTheme.lilac : RoomTheme.darkMint)
+                            .padding(.horizontal, 7).padding(.vertical, 4)
+                            .background(wall ? RoomTheme.lilac.opacity(0.13) : RoomTheme.paleMint, in: Capsule()).padding(7)
+                    }
                     .overlay(alignment: .topTrailing) {
                         if hasAny { ownedPill(product).padding(8) }
                     }
@@ -306,7 +358,8 @@ struct ShopView: View {
                             .font(.caption2.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
                             .padding(.horizontal, 8).padding(.vertical, 4)
                             .foregroundStyle(wall ? RoomTheme.lilac : RoomTheme.darkMint)
-                            .background(wall ? RoomTheme.lilac.opacity(0.14) : RoomTheme.paleMint, in: Capsule())
+                             .background(wall ? RoomTheme.lilac.opacity(0.14) : RoomTheme.paleMint, in: Capsule())
+                        if isNew { newBadge }
                     }.padding(10)
                 }
             }
@@ -359,7 +412,9 @@ struct ShopView: View {
                     .accessibilityHidden(true)
                 Text(owned ? GameStrings.text("gear.owned") : locked ? GameStrings.format(
                     dynamicTypeSize.isAccessibilitySize ? "shop.design.unlock" : "shop.design.unlockShort", product.unlockLevel)
-                     : product.price.formatted())
+                     : product.kind == .furniture && product.count(in: store.snapshot) > 0
+                     ? GameStrings.format("shop.browse.buyAgain", product.price) : product.price.formatted())
+                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1).minimumScaleFactor(0.75)
             }.font(.subheadline.weight(.heavy)).fixedSize(horizontal: false, vertical: true).frame(maxWidth: .infinity)
         }
         .buttonStyle(ShopPriceButtonStyle(gold: gold))

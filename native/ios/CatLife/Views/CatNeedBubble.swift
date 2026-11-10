@@ -81,6 +81,9 @@ enum CatNeedBubbleLayout {
 /// Keeping the observed anchor in this leaf isolates motion from the room/HUD view tree.
 @MainActor @Observable
 final class CatNeedPresentation {
+    var headerFrame: CGRect?
+    var focusRoom: (() -> Void)?
+    var isInspectingResident = false
     var anchor: CGPoint?
     var localCatFrame: CGRect?
     var canvasOrigin = CGPoint.zero

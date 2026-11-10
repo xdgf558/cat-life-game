@@ -11,6 +11,7 @@ struct WorkDestinationView: View {
     @State private var careerFilter = CareerDirectory.Filter.all
     @State private var careerPage = 0
     @State private var gridPage = 0
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private enum CareerRoute: Hashable { case jobs, job(String), rest, result }
 
@@ -85,10 +86,10 @@ struct WorkDestinationView: View {
                 .buttonStyle(.plain).foregroundStyle(RoomTheme.darkMint)
                 .accessibilityIdentifier("careerChooseJobButton")
             }
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
                 ForEach(Array(WorkCatalog.all[CareerDirectory.pageRange(gridPage, count: WorkCatalog.all.count)])) { job in
                     WorkCareerCard(job: job, quote: preview(job), selected: selectedJobID == job.id,
-                                   unlocked: playerLevel >= job.unlockLevel) {
+                                   unlocked: playerLevel >= job.unlockLevel, playerLevel: playerLevel) {
                         selectedJobID = job.id
                     }
                     .disabled(playerLevel < job.unlockLevel)

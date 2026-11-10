@@ -6,6 +6,22 @@ import CatGameCore
 
 @MainActor
 final class RoomResidentCatsTests: XCTestCase {
+    func testCompanionMarkerFollowsWithoutChangingTheCatsNavigationFootprintAndHonorsReducedMotion() {
+        let scene = SKScene(size: CGSize(width: 390, height: 500))
+        let artwork = RoomSceneArtwork(); artwork.install(in: scene)
+        let cat = CatActor(); scene.addChild(cat); cat.setVisualWidth(80)
+        cat.cancelAndSettle(at: CGPoint(x: 160, y: 120))
+        let frame = cat.visualFrame
+        artwork.updateCompanionMarker(cat: cat, name: "小橘", hidden: false, reducedMotion: false)
+        XCTAssertEqual(cat.visualFrame, frame, "Decorations must not become part of hit testing or navigation geometry.")
+        let ring = scene.childNode(withName: "companion-ring")
+        XCTAssertEqual(ring?.position, cat.position); XCTAssertNotNil(ring?.action(forKey: "breathe"))
+        cat.position = CGPoint(x: 200, y: 180)
+        artwork.updateCompanionMarker(cat: cat, name: "小橘", hidden: false, reducedMotion: true)
+        XCTAssertEqual(ring?.position, cat.position); XCTAssertNil(ring?.action(forKey: "breathe"))
+        artwork.updateCompanionMarker(cat: cat, name: "小橘", hidden: true, reducedMotion: true)
+        XCTAssertEqual(ring?.isHidden, true); XCTAssertEqual(scene.childNode(withName: "companion-name")?.isHidden, true)
+    }
     func testHouseLevelFourUnlocksEveryOwnedCatWithoutDuplicatingTheCompanion() async throws {
         var snapshot = try fiveCats()
         let residents = RoomResidentCats()

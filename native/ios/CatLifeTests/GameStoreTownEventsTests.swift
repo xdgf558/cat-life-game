@@ -145,6 +145,73 @@ final class GameStoreTownEventsTests: XCTestCase {
         XCTAssertTrue(TownPlace.cafe.isFuture)
     }
 
+    func testHandoffCopyHasMatchingKeysAndNoFallbackInAllThreeLanguages() {
+        let previous = GameLocalization.shared.language
+        defer { GameLocalization.shared.language = previous }
+        for (language, dictionary) in [(GameLanguage.simplifiedChinese, GameStrings.handoff61Chinese),
+                                      (.traditionalChinese, GameStrings.handoff61Traditional), (.english, GameStrings.handoff61English)] {
+            GameLocalization.shared.language = language
+            XCTAssertEqual(Set(dictionary.keys), Set(GameStrings.handoff61Chinese.keys))
+            for (key, value) in dictionary {
+                XCTAssertFalse(value.isEmpty, key)
+                XCTAssertEqual(GameStrings.text(key), value, "The handoff dictionary must be registered, not resolved through fallback.")
+            }
+        }
+    }
+
+    func testChoicePresentationUsesCoreCostsAndInventoryWithoutSpendingAnything() throws {
+        let state = try seed()
+        let before = state
+        XCTAssertTrue(TownMapStatus(snapshot: state).hasNewTownActivity)
+        XCTAssertFalse(TownMapStatus(snapshot: nil).hasNewTownActivity)
+        for event in TownEventCatalog.all {
+            for choice in event.choices {
+                XCTAssertFalse(TownEventPresentation.costs(choice).isEmpty)
+                let expected = choice.staminaCost > 0 ? GameStrings.format("townEvents.haveStamina", state.player.stamina)
+                    : GameStrings.format("townEvents.haveStock", choice.supplyCost.map { state.inventory.count($0) }
+                        ?? choice.giftID.map { state.inventory.giftCount($0) } ?? 0)
+                XCTAssertEqual(TownEventPresentation.available(choice, in: state), expected)
+            }
+        }
+        XCTAssertEqual(state, before)
+        var exhausted = state; exhausted.player.stamina = 0
+        let event = try XCTUnwrap(TownEventCatalog.current(in: exhausted))
+        let day = try XCTUnwrap(exhausted.community.events.dayKey)
+        XCTAssertEqual(TownEventPresentation.failure(try XCTUnwrap(event.choices.first { $0.id == "help" }), day: day, in: exhausted), .townEventStaminaRequired)
+        XCTAssertNil(TownEventPresentation.failure(try XCTUnwrap(event.choices.first { $0.id == "supply" }), day: day, in: exhausted))
+        XCTAssertEqual(exhausted.community.events.totalCompleted, state.community.events.totalCompleted)
+        XCTAssertTrue(GameEngine.resolveTownEvent(&exhausted, eventID: event.id, choiceID: "supply", dayKey: day,
+                                                  now: exhausted.meta.lastSyncAt).succeeded)
+        XCTAssertFalse(TownMapStatus(snapshot: exhausted).hasNewTownActivity)
+    }
+
+    func testResidentLocationNeverInventsAVisibleCatOrAFloor() {
+        XCTAssertEqual(SharedHomePresentation.locationKey(catID: "a", activeID: "a", floor: .upper, roomLevel: 6, visibleIDs: nil), "room.location.companion.upper")
+        XCTAssertEqual(SharedHomePresentation.locationKey(catID: "b", activeID: "a", floor: .ground, roomLevel: 4, visibleIDs: ["a", "b"]), "room.location.resident.ground")
+        XCTAssertEqual(SharedHomePresentation.locationKey(catID: "b", activeID: "a", floor: .upper, roomLevel: 6, visibleIDs: ["a"]), "room.location.noSpace")
+        XCTAssertEqual(SharedHomePresentation.locationKey(catID: "b", activeID: "a", floor: .ground, roomLevel: 3, visibleIDs: ["a"]), "room.location.collection")
+        XCTAssertEqual(SharedHomePresentation.locationKey(catID: "b", activeID: "a", floor: .upper, roomLevel: 6, visibleIDs: nil), "room.location.collection")
+    }
+
+    func testRetiredLettersUseTheTownSignatureAndCompactRewardsOmitZeros() {
+        let receipt = TownEventReceipt(dayKey: "2026-11-01", eventID: "retired_event", choiceID: "help", neighborID: "neighbor_mira",
+            completedAt: Date(), friendshipGained: 0, stageBefore: 1, stageAfter: 1, rewards: .init())
+        XCTAssertEqual(TownEventPresentation.sender(receipt), GameStrings.text("townEvents.letter.fromTown"))
+        XCTAssertEqual(TownEventPresentation.title(receipt), GameStrings.text("townEvents.letter.archivedTitle"))
+        XCTAssertNil(TownEventPresentation.choice(receipt))
+        XCTAssertEqual(TownEventPresentation.rewards(.init()), "")
+        XCTAssertEqual(TownEventPresentation.rewards(.init(gold: 3, food: 1, toys: 2)),
+            [GameStrings.format("townEvents.reward.gold", 3), GameStrings.format("townEvents.reward.food", 1),
+             GameStrings.format("townEvents.reward.toys", 2)].joined(separator: " · "))
+    }
+
+    func testNewHandoffSymbolsHaveRealPlatformGlyphs() {
+        for name in ["hand.thumbsup.fill", "shippingbox.fill", "pin.fill", "photo.artframe", "envelope.fill", "envelope.open.fill",
+                     "person.text.rectangle.fill", "stairs", "crown.fill", "drop.fill", "pawprint.fill", "arrowtriangle.down.fill"] {
+            XCTAssertNotNil(UIImage(systemName: name), "The UI must not silently display an empty icon tile: \(name)")
+        }
+    }
+
     private func seed(now: Date = Date()) throws -> GameSnapshot {
         var state = GameSnapshot.fresh(now: now)
         state.inventory.food = 20

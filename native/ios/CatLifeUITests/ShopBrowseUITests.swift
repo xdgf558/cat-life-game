@@ -20,7 +20,11 @@ extension RoomHomeUITests {
         tapAnimationControl("shopCategory_furniture", in: app)
         XCTAssertTrue(element("shopFilter_all", in: app).isSelected)
         waitForObservedValue("shopResultCount", "6", in: app)
-        XCTAssertFalse(element("shopPaginationBar", in: app).exists, "One page needs no pagination controls.")
+        waitForObservedValue("shopPageSummary", "1/1", in: app)
+        scrollCareerPage("destinationScroll", to: "shopPageNext", in: app)
+        XCTAssertFalse(element("shopPagePrevious", in: app).isEnabled)
+        XCTAssertFalse(element("shopPageNext", in: app).isEnabled)
+        scrollCareerPage("destinationScroll", to: "shopFilter_wall", in: app)
         tapAnimationControl("shopFilter_wall", in: app)
         waitForObservedValue("shopResultCount", "1", in: app)
         XCTAssertFalse(element("shopItem_oak_bookcase", in: app).exists)
@@ -32,6 +36,11 @@ extension RoomHomeUITests {
         waitForObservedValue("shopResultCount", "5", in: app)
         XCTAssertFalse(element("shopItem_sunrise_art", in: app).exists)
         attachScreenshot(app, named: "Shop browser — floor furniture keeps new and owned items together")
+
+        selectBrowseFilter("premium", in: app)
+        waitForObservedValue("shopResultCount", "0", in: app)
+        waitForElement("shopEmptyFilter", in: app)
+        attachScreenshot(app, named: "Shop browser — honest premium furniture empty state, no invented products")
 
         tapAnimationControl("shopCategory_equipment", in: app)
         waitForObservedValue("shopResultCount", "4", in: app)
@@ -70,8 +79,7 @@ extension RoomHomeUITests {
         waitForObservedValue("shopPageSummary", "3/3", in: app)
         XCTAssertFalse(element("shopPageNext", in: app).isEnabled)
         attachScreenshot(app, named: "Shop browser — English largest text bounded last page")
-        scrollCareerPage("destinationScroll", to: "shopFilter_standard", in: app)
-        tapAnimationControl("shopFilter_standard", in: app)
+        selectBrowseFilter("standard", in: app)
         scrollCareerPage("destinationScroll", to: "shopPageNext", in: app)
         waitForObservedValue("shopPageSummary", "1/2", in: app)
         tapAnimationControl("shopPageNext", in: app)
@@ -82,5 +90,17 @@ extension RoomHomeUITests {
         tapAnimationControl("shopPageNext", in: app)
         scrollCareerPage("destinationScroll", to: "shopQuickBuy_advanced_sneakers", in: app)
         XCTAssertTrue(element("shopQuickBuy_advanced_sneakers", in: app).isHittable)
+    }
+
+    @MainActor
+    private func selectBrowseFilter(_ filter: String, in app: XCUIApplication) {
+        scrollCareerPage("destinationScroll", to: "shopBrowseFilters", in: app)
+        let target = element("shopFilter_\(filter)", in: app)
+        for _ in 0..<4 {
+            if app.frame.contains(target.frame) && target.isHittable { break }
+            element("shopBrowseFilters", in: app).swipeLeft()
+        }
+        XCTAssertTrue(target.isHittable)
+        target.tap()
     }
 }

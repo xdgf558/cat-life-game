@@ -67,7 +67,8 @@ struct TownMapDetail: View {
             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
     }
     private var statusChip: some View {
-        Text(GameStrings.text(place == .adoption && !status.availableAdoptions.isEmpty
+        Text((place == .board || place == .plaza) ? status.badge(for: place, now: store.now) ?? GameStrings.text("town.open")
+             : GameStrings.text(place == .adoption && !status.availableAdoptions.isEmpty
                               ? "cat.adoptionAvailable" : place.statusKey(sickCount: status.sickCount)))
             .font(.caption.weight(.heavy)).fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(place.isFuture ? RoomTheme.lilac : place == .hospital && status.sickCount > 0 ? RoomTheme.coral : RoomTheme.darkMint)

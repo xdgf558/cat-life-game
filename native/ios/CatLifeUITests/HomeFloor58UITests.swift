@@ -68,7 +68,9 @@ extension RoomHomeUITests {
                        "The visible cat need bubble must stay clear of the stair button. Bubble: \(needBubble.frame), stairs: \(stairs.frame)")
         attachScreenshot(app, named: "Home 58 — separate empty upstairs and stair landing")
         tapAnimationControl("decorateButton", in: app)
-        XCTAssertFalse(element("homeStairsButton", in: app).isEnabled)
+        tapAnimationControl("homeStairsButton", in: app)
+        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        XCTAssertTrue(app.staticTexts["先完成或取消当前楼层的布置，再使用楼梯。"].firstMatch.exists)
         tapAnimationControl("layoutStored_upstairsPlant", in: app)
         _ = waitForFurniture(in: app, description: "upstairs plant placed") { !$0.pending && $0.items.contains { $0.id == "upstairsPlant" } }
         tapAnimationControl("layoutDoneButton", in: app)

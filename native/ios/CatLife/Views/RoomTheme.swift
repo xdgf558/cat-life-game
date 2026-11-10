@@ -38,6 +38,8 @@ enum RoomTheme {
     static let friendshipDeep = Color(red: 192 / 255, green: 79 / 255, blue: 104 / 255)
     static let friendshipPaper = Color(red: 253 / 255, green: 238 / 255, blue: 241 / 255)
     static let friendshipBorder = Color(red: 245 / 255, green: 195 / 255, blue: 206 / 255)
+    static let cork = Color(red: 215 / 255, green: 180 / 255, blue: 136 / 255)
+    static let letterPaper = Color(red: 1, green: 248 / 255, blue: 230 / 255)
 }
 
 struct GameIcon: View {

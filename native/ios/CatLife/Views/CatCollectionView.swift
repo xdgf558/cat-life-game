@@ -38,11 +38,12 @@ struct CatCollectionView: View {
     private var visibleEntries: [Entry] { Array(entries.dropFirst(currentPage * pageSize).prefix(pageSize)) }
 
     init(store: GameStore, initialCatID: String? = nil, initialFilter: Filter = .all,
-         embedded: Bool = false, initialAdoptionID: String? = nil, onClose: (() -> Void)? = nil) {
+         embedded: Bool = false, initialAdoptionID: String? = nil, initialGrowth: Bool = false, onClose: (() -> Void)? = nil) {
         self.store = store
         self.embedded = embedded
         self.onClose = onClose
-        _path = State(initialValue: initialAdoptionID.map { [.adoption($0)] } ?? initialCatID.map { [.profile($0)] } ?? [])
+        _path = State(initialValue: initialAdoptionID.map { [.adoption($0)] }
+            ?? initialCatID.map { initialGrowth ? [.growth($0)] : [.profile($0)] } ?? [])
         _filter = State(initialValue: initialFilter)
     }
 
@@ -169,10 +170,11 @@ struct CatCollectionView: View {
                     .accessibilityIdentifier("catCollectionCoat_\(appearance.rawValue)")
                 }
             }
-            Text((store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel
+            Label((store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel
                  ? GameStrings.text("catDirectory.sharedHomeUnlocked")
-                 : GameStrings.format("catDirectory.sharedHomeLocked", RoomResidentCats.unlockLevel))
-                .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.darkMint)
+                 : GameStrings.format("catDirectory.sharedHomeLocked", RoomResidentCats.unlockLevel),
+                  systemImage: (store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel ? "house.fill" : "lock.fill")
+                .font(.system(size: 12, weight: .bold)).foregroundStyle((store.snapshot?.home.roomLevel ?? 1) >= RoomResidentCats.unlockLevel ? RoomTheme.darkMint : RoomTheme.secondary)
                 .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("catCollectionSharedHomeHint")
         }.padding(16).gameCard(cornerRadius: 28)

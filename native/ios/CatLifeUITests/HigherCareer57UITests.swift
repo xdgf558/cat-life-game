@@ -2,6 +2,21 @@ import XCTest
 
 extension RoomHomeUITests {
     @MainActor
+    func testNewCareerCardsExplainTheirRealRemainingUnlockLevels() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--career-level10-fixture"]
+        launchAndEnterHome(app); openCareerHome(in: app)
+        tapCareerControl("workGridNext", in: app)
+        scrollCareerPage("destinationScroll", to: "workJobTile_job_pet_photographer", in: app)
+        XCTAssertTrue(app.staticTexts["Lv15 解锁 · 还差 5 级"].exists)
+        XCTAssertFalse(element("workJobTile_job_pet_photographer", in: app).isEnabled)
+        scrollCareerPage("destinationScroll", to: "workJobTile_job_pet_brand_designer", in: app)
+        XCTAssertTrue(app.staticTexts["Lv20 解锁 · 还差 10 级"].exists)
+        attachScreenshot(app, named: "Handoff W1 — new career chips and exact level gaps come from Core")
+    }
+
+    @MainActor
     func testHigherCareersStayPagedShowRealQuotesAndPersistAnActiveShift() throws {
         continueAfterFailure = false
         let app = XCUIApplication()

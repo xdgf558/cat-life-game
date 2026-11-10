@@ -6,6 +6,8 @@ struct RoomHomeHUD: View {
     let store: GameStore
     let catNeedPresentation: CatNeedPresentation
     @State private var controlsHidden = false
+    @State private var showsResidents = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var usesPremiumFoodChoice: Bool {
         (store.snapshot?.inventory.food ?? 0) < store.foodRequired
             && (store.snapshot?.inventory.premiumFood ?? 0) >= store.foodRequired
@@ -56,13 +58,14 @@ struct RoomHomeHUD: View {
             }
         }
         .overlay {
-            if !store.isDecorating && !controlsHidden {
+            if !store.isDecorating && !controlsHidden && !catNeedPresentation.isInspectingResident {
                 RoomCatStatusCard(store: store, presentation: catNeedPresentation)
             }
         }
         .onChange(of: store.onboarding.isPresented) { _, presented in
             if presented || store.onboarding.step == .care { controlsHidden = false }
         }
+        .sheet(isPresented: $showsResidents) { SharedHomeDirectoryView(store: store) }
     }
 
     private func premiumBadge(count: Int) -> some View {
@@ -77,6 +80,103 @@ struct RoomHomeHUD: View {
     }
 
     private var header: some View {
+        VStack(spacing: 8) {
+            headerContents
+            if !store.isDecorating, (store.snapshot?.cats.count ?? 0) > 1 || store.snapshot?.home.availableFloors.count == 2 {
+                HStack(spacing: 8) {
+                    if store.snapshot?.home.availableFloors.count == 2 {
+                        VStack(alignment: .leading, spacing: 3) {
+                            floorSelector
+                            switchHint
+                        }
+                    }
+                    else if !dynamicTypeSize.isAccessibilitySize {
+                        switchHint
+                    }
+                    if store.snapshot?.home.availableFloors.count != 2 { Spacer(minLength: 0) }
+                    Button { catNeedPresentation.focusRoom?() } label: {
+                        Image(systemName: "scope").font(.body.weight(.semibold)).frame(width: 44, height: 44)
+                            .background(RoomTheme.paper, in: Circle())
+                    }.buttonStyle(.plain).accessibilityIdentifier("focusCatButton")
+                        .accessibilityLabel(GameStrings.text("homeUpgrade.focusCat"))
+                        .accessibilityHint(GameStrings.text("homeUpgrade.zoomHint")).disabled(catNeedPresentation.focusRoom == nil)
+                    Button { showsResidents = true; store.playNavigationSound() } label: {
+                        HStack(spacing: 6) {
+                            if !dynamicTypeSize.isAccessibilitySize { HStack(spacing: -8) {
+                                ForEach(Array((store.snapshot?.cats ?? []).prefix(3))) { cat in
+                                    GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: cat.appearance), symbol: "cat.fill", size: 23)
+                                        .padding(2).background(RoomTheme.paper, in: Circle()).overlay(Circle().stroke(.white, lineWidth: 2))
+                                }
+                            }.accessibilityHidden(true) }
+                            Text(GameStrings.format("room.catsCount", store.snapshot?.cats.count ?? 0)).font(.caption.weight(.heavy))
+                                .lineLimit(1).minimumScaleFactor(0.8)
+                        }.padding(.horizontal, 9).frame(minHeight: 44).gameCard(cornerRadius: 24)
+                    }.buttonStyle(.plain).frame(maxWidth: 140).accessibilityIdentifier("homeMyCatsButton").disabled(store.isBusy)
+                        .accessibilityHint(GameStrings.text("room.switchHint"))
+                }
+                if store.sharedRoomHasLimitedSpace {
+                    Label(GameStrings.text("room.sharedHomeNoSpace"), systemImage: "exclamationmark.triangle.fill")
+                        .font(.caption2.weight(.bold)).foregroundStyle(RoomTheme.ink).fixedSize(horizontal: false, vertical: true)
+                        .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoomTheme.rewardPaper, in: RoundedRectangle(cornerRadius: 15))
+                        .overlay(RoundedRectangle(cornerRadius: 15).strokeBorder(RoomTheme.gold, lineWidth: 1.5))
+                        .accessibilityIdentifier("sharedHomeSpaceBanner")
+                }
+            }
+        }.padding(.horizontal, 14).padding(.top, 8)
+            .background {
+                GeometryReader { geometry in
+                    Color.clear.onAppear { catNeedPresentation.headerFrame = geometry.frame(in: .global) }
+                        .onChange(of: geometry.frame(in: .global)) { _, frame in catNeedPresentation.headerFrame = frame }
+                }.allowsHitTesting(false)
+            }
+            .onDisappear { catNeedPresentation.headerFrame = nil }
+    }
+
+    private var switchHint: some View {
+        Text(GameStrings.text("room.switchHint"))
+            .font(.system(size: 11, weight: .bold)).foregroundStyle(RoomTheme.secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 6).padding(.vertical, 3)
+            .background(RoomTheme.paper.opacity(0.95), in: RoundedRectangle(cornerRadius: 8))
+            .accessibilityIdentifier("homeCatSwitchHint")
+    }
+
+    private var caringContext: some View {
+        HStack(spacing: 5) {
+            GameIcon(asset: CatArtwork.asset("cat-avatar", appearance: store.cat?.appearance ?? .orange),
+                     symbol: "cat.fill", size: 21).accessibilityHidden(true)
+            Text(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
+                .font(.system(size: 12, weight: .heavy)).lineLimit(1).minimumScaleFactor(0.8)
+        }
+        .foregroundStyle(RoomTheme.darkMint).padding(.horizontal, 8).padding(.vertical, 6)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(RoomTheme.paleMint, in: Capsule())
+        .overlay(Capsule().strokeBorder(RoomTheme.mint.opacity(0.4), lineWidth: 1.5))
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(GameStrings.format("room.caringFor", store.cat.map(GameStrings.catName) ?? ""))
+        .accessibilityValue(TownEventAccessibility.value(store.catStatus, diagnostic: store.cat?.id ?? ""))
+        .accessibilityIdentifier("homeCaringContext")
+    }
+
+    private var floorSelector: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+        HStack(spacing: 2) {
+            ForEach(store.snapshot?.home.availableFloors ?? [], id: \.self) { floor in
+                Button { Task { await store.changeHomeFloor(to: floor) } } label: {
+                    Text(GameStrings.text("homeFloor.\(floor.rawValue)"))
+                        .font(.caption2.weight(.heavy)).fixedSize(horizontal: true, vertical: false).multilineTextAlignment(.center)
+                        .padding(.horizontal, 10).frame(minHeight: 44)
+                        .foregroundStyle(store.visibleHomeFloor == floor ? .white : RoomTheme.secondary)
+                        .background(store.visibleHomeFloor == floor ? RoomTheme.mint : .clear, in: Capsule())
+                }.buttonStyle(.plain).disabled(store.isBusy || store.isChangingHomeFloor)
+                    .accessibilityIdentifier("homeFloor_\(floor.rawValue)").accessibilityAddTraits(store.visibleHomeFloor == floor ? .isSelected : [])
+            }
+        }.padding(3).background(RoomTheme.paper.opacity(0.95), in: Capsule())
+        }.frame(height: 50)
+    }
+
+    private var headerContents: some View {
         HStack(alignment: .top, spacing: 8) {
             if store.isDecorating {
                 VStack(alignment: .leading, spacing: 7) {
@@ -100,6 +200,7 @@ struct RoomHomeHUD: View {
                     if !controlsHidden || store.onboarding.isPresented {
                         HomeTaskEntry(store: store).onboardingTarget(.tasks)
                     }
+                    if !controlsHidden { caringContext }
                     if store.onboarding.isActive && !store.onboarding.isPresented
                         && store.activeSheet == nil && !store.isShowingSettings {
                         GuideResumeBar(store: store)
@@ -140,7 +241,6 @@ struct RoomHomeHUD: View {
             }
             .fixedSize(horizontal: true, vertical: false)
         }
-        .padding(.horizontal, 14).padding(.top, 8)
     }
 
     private func resource(symbol: String, value: Int, suffix: String, key: String, id: String, tint: Color) -> some View {

@@ -52,6 +52,7 @@ struct GameStoreFixtures {
                     dayKey: value.community.events.dayKey!, now: date).succeeded)
             }
             precondition(GameEngine.synchronize(&value, now: now).succeeded)
+            if arguments.contains("--town-events-no-stamina") { value.player.stamina = 0 }
             value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false, catEnabled: false, haptics: false)
             initialSnapshot = value
         } else if arguments.contains("--shared-home-test") || arguments.contains("--shared-home-upper-test") {

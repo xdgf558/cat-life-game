@@ -193,12 +193,15 @@ extension RoomScene {
         if bowl.frame.contains(point) { onBowlTapped?() }
         else if cat.visualFrame.insetBy(dx: -8, dy: -8).contains(point) {
             if activeRest != nil { pendingRestID = nil; leaveFurnitureRest() }
-            else { onCatTapped?() }
+            else if canInspectResidents { onCatTapped?() }
         } else if let residentID = residents.hit(at: point) {
-            onResidentTapped?(residentID)
-        } else if let hit = furnitureNodes.filter({ $0.value.frame.contains(point) })
+            if canInspectResidents { onResidentTapped?(residentID) }
+        } else {
+            onBackgroundTapped?()
+            if let hit = furnitureNodes.filter({ $0.value.frame.contains(point) })
             .sorted(by: { $0.value.zPosition > $1.value.zPosition }).first {
-            visitFurniture(hit.key)
+                visitFurniture(hit.key)
+            }
         }
     }
 

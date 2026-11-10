@@ -2,6 +2,16 @@ import XCTest
 @testable import CatLife
 
 final class CatNeedBubbleTests: XCTestCase {
+    func testCompactStatusCardClearsTheMeasuredHeaderWithoutChangingItsWidth() {
+        for size in [CGSize(width: 375, height: 603), CGSize(width: 402, height: 800)] {
+            let original = RoomCatStatusLayout.frame(in: size, compact: true, sharedControls: true)
+            let measured = RoomCatStatusLayout.frame(in: size, compact: true, sharedControls: true, headerBottom: 260)
+            XCTAssertGreaterThanOrEqual(measured.minY, 272)
+            XCTAssertEqual(measured.width, original.width)
+            XCTAssertTrue(CGRect(origin: .zero, size: size).contains(measured))
+        }
+    }
+
     func testNeedsUseExactThresholdsAndFoodHasPriority() {
         XCTAssertEqual(CatNeed.current(satiety: 49, cleanliness: 0, mood: 0, hasFood: true), .food)
         XCTAssertEqual(CatNeed.current(satiety: 49, cleanliness: 0, mood: 0, hasFood: false), .buyFood)
@@ -52,7 +62,7 @@ final class CatNeedBubbleTests: XCTestCase {
         for canvas in [CGSize(width: 375, height: 603), CGSize(width: 430, height: 850)] {
             let stairs = RoomStairLandingLayout.frame(size: CGSize(width: 76, height: 106), canvas: canvas)
             XCTAssertEqual(stairs.minX, canvas.width - 88)
-            XCTAssertEqual(stairs.minY, 240)
+            XCTAssertEqual(stairs.minY, canvas.height < 700 ? 240 : 284)
             let anchor = CGPoint(x: canvas.width - 75, y: 344)
             for height: CGFloat in [44, 80, 140] {
                 let bubble = CGSize(width: 190, height: height)
@@ -107,6 +117,17 @@ final class CatNeedBubbleTests: XCTestCase {
                                                          fullCard: full))
         XCTAssertTrue(RoomCatStatusLayout.shouldCompact(catFrame: nil, fullCard: full),
                       "An unmeasured cat must not flash behind the large card during initial layout.")
+    }
+
+    func testSharedHomeCompactCardLeavesTheFullWidthFloorControlsClear() {
+        let viewport = CGSize(width: 375, height: 583)
+        let card = RoomCatStatusLayout.frame(in: viewport, compact: true, sharedControls: true)
+        XCTAssertGreaterThanOrEqual(card.minY, 218)
+        XCTAssertGreaterThanOrEqual(card.height, 72, "The explicit care target can wrap a long cat name onto two lines.")
+        XCTAssertFalse(card.intersects(CGRect(x: 14, y: 160, width: 347, height: 50)))
+        let upstairs = RoomStairLandingLayout.frame(size: CGSize(width: 76, height: 88), canvas: viewport, floor: .upper)
+        XCTAssertEqual(upstairs.minX, 12)
+        XCTAssertGreaterThanOrEqual(upstairs.minY, card.maxY + 20 + 8)
     }
 
     func testCardAvoidanceIncludesMarginBeforeTheNextFrameSample() {
