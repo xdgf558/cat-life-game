@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 11
+    public static let currentSchemaVersion = 12
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -14,11 +14,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     public var settings: GameSettings
     public var tasks: GameTaskState
     public var community: CommunityState
+    public var catPlay: CatPlayState
 
     public init(schemaVersion: Int = Self.currentSchemaVersion, player: PlayerState,
                 cats: [CatState], inventory: InventoryState, home: HomeState,
                 meta: SaveMetadata, settings: GameSettings = GameSettings(), activeCatID: String? = nil,
-                tasks: GameTaskState? = nil, community: CommunityState = CommunityState()) {
+                tasks: GameTaskState? = nil, community: CommunityState = CommunityState(), catPlay: CatPlayState = CatPlayState()) {
         self.schemaVersion = schemaVersion
         self.player = player
         self.cats = cats
@@ -29,11 +30,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.settings = settings
         self.tasks = tasks ?? GameTaskState(dailyDayKey: GameTaskState.dayKey(for: meta.lastSyncAt))
         self.community = community
+        self.catPlay = catPlay
         self.community.events.advance(to: self.tasks.dailyDayKey)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community
+        case schemaVersion, player, cats, activeCatID, inventory, home, meta, settings, tasks, community, catPlay
     }
 
     public init(from decoder: Decoder) throws {
@@ -45,7 +47,9 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         // Older fields keep their defaults; the next durable save upgrades the header.
         schemaVersion = Self.currentSchemaVersion
         player = try values.decode(PlayerState.self, forKey: .player)
-        let decodedCats = try values.decode([CatState].self, forKey: .cats)
+        var catValues = try values.nestedUnkeyedContainer(forKey: .cats)
+        var decodedCats: [CatState] = []
+        while !catValues.isAtEnd { decodedCats.append(try CatState(from: catValues.superDecoder(), schemaVersion: version)) }
         guard version < 5 || decodedCats.allSatisfy({ $0.healthState != nil }) else {
             throw SaveRepositoryError.invalidSnapshot
         }
@@ -83,6 +87,7 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         community = version < 7 && !values.contains(.community)
             ? CommunityState() : try CommunityState(from: values.superDecoder(forKey: .community), schemaVersion: version)
         if version < 11 { community.events.advance(to: tasks.dailyDayKey) }
+        catPlay = version < 12 && !values.contains(.catPlay) ? CatPlayState() : try values.decode(CatPlayState.self, forKey: .catPlay)
         guard community.isValid, inventory.validGifts,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0)
@@ -219,13 +224,14 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
     public var activeRest: CatRest?
     /// Prevent a delayed duplicate arrival from replaying the last rest session.
     public var lastRestSessionID: String?
+    public var habits: CatHabitState
 
     public init(id: String, name: String, satiety: Int = 35, cleanliness: Int = 75,
                 mood: Int = 85, intimacy: Int = 12, energy: Int = 80,
                 health: Int = 90, isPregnant: Bool = false, now: Date,
                 activeRest: CatRest? = nil, lastRestSessionID: String? = nil,
                 customName: String? = nil, appearance: CatAppearance = .orange,
-                healthState: CatHealthState? = nil, growthState: CatGrowthState? = nil) {
+                healthState: CatHealthState? = nil, growthState: CatGrowthState? = nil, habits: CatHabitState = CatHabitState()) {
         self.id = id
         self.name = name
         self.customName = customName
@@ -242,14 +248,19 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         self.decayTracker = CatDecayTracker(now: now)
         self.activeRest = activeRest
         self.lastRestSessionID = lastRestSessionID ?? activeRest?.id
+        self.habits = habits
     }
 
     private enum CodingKeys: String, CodingKey {
         case id, name, customName, appearance, satiety, cleanliness, mood, intimacy, energy, health
-        case isPregnant, decayTracker, activeRest, lastRestSessionID, healthState, growthState
+        case isPregnant, decayTracker, activeRest, lastRestSessionID, healthState, growthState, habits
     }
 
     public init(from decoder: Decoder) throws {
+        try self.init(from: decoder, schemaVersion: GameSnapshot.currentSchemaVersion)
+    }
+
+    init(from decoder: Decoder, schemaVersion: Int) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         id = try values.decode(String.self, forKey: .id)
         name = try values.decode(String.self, forKey: .name)
@@ -271,6 +282,8 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         decayTracker = try values.decode(CatDecayTracker.self, forKey: .decayTracker)
         activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)
         lastRestSessionID = try values.decodeIfPresent(String.self, forKey: .lastRestSessionID)
+        habits = schemaVersion < 12 && !values.contains(.habits) ? CatHabitState()
+            : try values.decode(CatHabitState.self, forKey: .habits)
     }
 }
 

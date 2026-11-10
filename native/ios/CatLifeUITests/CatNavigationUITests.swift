@@ -337,13 +337,13 @@ extension RoomHomeUITests {
     @MainActor
     private func purchaseToyAndCompleteNavigationPlay(in app: XCUIApplication,
                                                        file: StaticString = #filePath, line: UInt = #line) {
-        tapAnimationControl("playButton", in: app, file: file, line: line)
+        tapQuickPlay(in: app, file: file, line: line)
         scrollCareerPage("destinationScroll", to: "buyToyButton", in: app, file: file, line: line)
         tapAnimationControl("buyToyButton", in: app, file: file, line: line)
         waitForObservedValue("shopGoldCount", "165", in: app, file: file, line: line)
         tapAnimationControl("tabHome", in: app, file: file, line: line)
         let before = waitForNavigationPhase("idle", in: app, timeout: 5, file: file, line: line)
-        tapAnimationControl("playButton", in: app, file: file, line: line)
+        tapQuickPlay(in: app, file: file, line: line)
         waitForNavigationPhase("playing", in: app, timeout: 5, file: file, line: line)
         let after = waitForNavigationPhase("idle", in: app, timeout: 35, file: file, line: line)
         XCTAssertEqual(after.completedPounces, before.completedPounces + 1,

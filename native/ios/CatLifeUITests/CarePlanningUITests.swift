@@ -25,13 +25,13 @@ extension RoomHomeUITests {
 
         // Buy a real six-use toy. Planning and rendering must not buy or
         // consume an additional item when their asynchronous result arrives.
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         scrollCareerPage("destinationScroll", to: "buyToyButton", in: app)
         tapAnimationControl("buyToyButton", in: app)
         waitForObservedValue("shopGoldCount", "165", in: app)
         tapAnimationControl("tabHome", in: app)
         _ = waitForFurniture(in: app, description: "home after buying a toy") { $0.phase == "idle" }
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         let playing = try waitForCarePlan(in: app, description: "pounce route planned off the UI thread") {
             $0.carePlanCompletions == 2 && !$0.carePlanning
         }

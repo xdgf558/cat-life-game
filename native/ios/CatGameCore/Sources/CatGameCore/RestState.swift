@@ -22,10 +22,11 @@ public struct CatRest: Codable, Equatable, Sendable, Identifiable {
     public var energyGranted: Int
     /// The end of the interval already excluded from normal energy decay.
     public var energyPausedUntil: Date
+    public var observation: CatRestObservation?
 
     public init(id: String = UUID().uuidString, furnitureID: String,
                 startedAt: Date, endsAt: Date, energyReward: Int,
-                energyGranted: Int = 0, energyPausedUntil: Date? = nil) {
+                energyGranted: Int = 0, energyPausedUntil: Date? = nil, observation: CatRestObservation? = nil) {
         self.id = id
         self.furnitureID = furnitureID
         self.startedAt = startedAt
@@ -33,5 +34,6 @@ public struct CatRest: Codable, Equatable, Sendable, Identifiable {
         self.energyReward = energyReward
         self.energyGranted = energyGranted
         self.energyPausedUntil = energyPausedUntil ?? startedAt
+        self.observation = observation
     }
 }

@@ -6,6 +6,11 @@ public enum ActionKind: String, Codable, Sendable {
 }
 
 public enum ActionFailure: String, Equatable, Sendable {
+    case habitCatUnavailable = "catHabits.error.catUnavailable"
+    case habitPlayBusy = "catHabits.error.busy"
+    case habitPlaySessionEnded = "catHabits.error.sessionEnded"
+    case habitInputInvalid = "catHabits.error.input"
+    case habitCornerUnavailable = "catHabits.error.corner"
     case townEventMissing = "townEvents.error.missing"
     case townEventDayChanged = "townEvents.error.dayChanged"
     case townEventCompleted = "townEvents.error.completed"
@@ -69,6 +74,10 @@ public enum ActionFailure: String, Equatable, Sendable {
 }
 
 public enum ActionSuccess: String, Equatable, Sendable {
+    case habitPlayOpened = "catHabits.playOpened"
+    case habitPlayUpdated = "catHabits.playUpdated"
+    case habitPlayEnded = "catHabits.playEnded"
+    case habitCornerSelected = "catHabits.cornerSelected"
     case townEventCompleted = "townEvents.completedNotice"
     case townMilestoneClaimed = "townEvents.milestoneClaimedNotice"
     case exchanged = "market.exchanged"
@@ -108,7 +117,8 @@ public enum ActionSuccess: String, Equatable, Sendable {
              .foodPurchased, .litterPurchased, .toyPurchased, .communityGiftPurchased, .supplyPurchased, .exchanged: return .purchase
         case .companionSelected, .avatarSaved, .equipped, .unequipped, .starterEquipped,
              .taskClaimed, .catTreated, .neighborVisited, .neighborChatted, .neighborGifted,
-             .townEventCompleted, .townMilestoneClaimed: return .none
+              .townEventCompleted, .townMilestoneClaimed: return .none
+        case .habitPlayOpened, .habitPlayUpdated, .habitPlayEnded, .habitCornerSelected: return .none
         case .sleepStarted: return .sleepStarted
         case .sleepEnded: return .sleepEnded
         case .catRestStarted: return .catRestStarted

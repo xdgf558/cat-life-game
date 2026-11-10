@@ -134,7 +134,7 @@ struct CatNeedBubble: View {
                 switch need {
                 case .food, .buyFood: store.feed()
                 case .clean: store.clean()
-                case .play: store.play()
+                case .play: store.presentPlayChoices()
                 case .hospital: store.openHospital(catID: store.cat?.id)
                 }
             } label: {

@@ -24,7 +24,7 @@ struct RoomHomeHUD: View {
                 HStack(alignment: .bottom, spacing: 10) {
                     Spacer(minLength: 0)
                     VStack(spacing: 12) {
-                        careButton("care.play", asset: "icon-play", symbol: "party.popper.fill", id: "playButton", size: 58) { store.play() }
+                        careButton("care.play", asset: "icon-play", symbol: "party.popper.fill", id: "playButton", size: 58) { store.presentPlayChoices() }
                         careButton("care.clean", asset: "icon-clean", symbol: "sparkles", id: "cleanButton", size: 58) { store.clean() }
                             .overlay(alignment: .topTrailing) {
                                 if (store.snapshot?.inventory.litter ?? 0) == 0,

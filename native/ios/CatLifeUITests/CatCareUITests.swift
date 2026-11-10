@@ -142,14 +142,14 @@ extension RoomHomeUITests {
 
         // An empty toy inventory must still route to the real shop before the
         // playing response can occur. Buying and animating must each happen once.
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         waitForElement("buyToyButton", in: app)
         scrollCareerPage("destinationScroll", to: "buyToyButton", in: app)
         tapAnimationControl("buyToyButton", in: app)
         waitForObservedValue("shopGoldCount", "165", in: app)
         tapAnimationControl("tabHome", in: app)
         waitForAnimationPhase("idle", in: app, timeout: 18)
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         waitForAnimationPhase("playing", in: app, timeout: 4)
         attachScreenshot(app, named: "Animation — looking at and pouncing toward the toy")
         waitForAnimationPhase("idle", in: app, timeout: 18)

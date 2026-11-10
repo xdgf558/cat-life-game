@@ -25,6 +25,15 @@ final class RoomPresentationRendererTests: XCTestCase {
         let padded = CGPoint(x: frontFrame.midX - 15, y: frontFrame.midY)
         XCTAssertFalse(frontFrame.contains(padded))
         XCTAssertEqual(source.renderer.hit(screen: padded, editing: true), "furniture-front")
+        rear.position.x = front.position.x + 10 * scale
+        source.update()
+        let adjacent = try XCTUnwrap(source.renderer.frame("furniture-rear"))
+        let exposed = CGPoint(x: adjacent.minX + 0.5, y: adjacent.midY)
+        XCTAssertTrue(adjacent.contains(exposed))
+        XCTAssertFalse(frontFrame.contains(exposed))
+        XCTAssertTrue(frontFrame.insetBy(dx: -3, dy: -3).contains(exposed))
+        XCTAssertEqual(source.renderer.hit(screen: exposed, editing: true), "furniture-rear",
+                       "Even three points of touch padding must not steal another visible image.")
     }
 
     @MainActor

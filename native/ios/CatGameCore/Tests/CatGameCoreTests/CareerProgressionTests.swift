@@ -362,6 +362,7 @@ struct CareerProgressionTests {
     @Test func unrepresentableExperienceCannotPartiallyPayOrDecayState() {
         var state = GameSnapshot.fresh(now: now)
         _ = GameEngine.startWork(&state, now: now)
+        #expect(CatHabitEngine.beginPlay(&state, catID: state.activeCatID, now: now).succeeded)
         state.player.level = Int.max / 100
         state.player.exp = WorkCatalog.requiredExperience(forLevel: state.player.level) - 1
         #expect(state.isValid)

@@ -71,6 +71,8 @@ enum GameActionNotice {
                     : GameStrings.text(success.rawValue)
             case .neighborChatted, .communityGiftPurchased, .townEventCompleted, .townMilestoneClaimed:
                 return GameStrings.text(success.rawValue)
+            case .habitPlayOpened, .habitPlayUpdated, .habitPlayEnded, .habitCornerSelected:
+                return GameStrings.text(success.rawValue)
             case .layoutSaved: return GameStrings.text("layout.saved")
             }
         }
@@ -85,7 +87,8 @@ enum GameActionNotice {
              .exchangeMissing, .exchangeStageRequired, .exchangeDailyLimit, .exchangeMaterialsRequired,
              .careSupplyInvalid, .carePremiumFoodRequired, .carePremiumLitterRequired,
              .townEventMissing, .townEventDayChanged, .townEventCompleted, .townEventStaminaRequired,
-             .townEventSuppliesRequired, .townMilestoneClaimed, .townMilestoneIncomplete, .townEventBusy:
+              .townEventSuppliesRequired, .townMilestoneClaimed, .townMilestoneIncomplete, .townEventBusy,
+              .habitCatUnavailable, .habitPlayBusy, .habitPlaySessionEnded, .habitInputInvalid, .habitCornerUnavailable:
             return GameStrings.text(outcome.messageKey)
         case .taskLevelRequired, .shopLevelRequired, .shopFurnitureLimit, .homeLevelRequired,
              .catPlayerLevelRequired, .catRoomLevelRequired, .hospitalGoldRequired:

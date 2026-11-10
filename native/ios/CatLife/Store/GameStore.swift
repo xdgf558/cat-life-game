@@ -70,6 +70,16 @@ final class GameStore {
     var inventoryCategory: InventoryCategory = .supplies
     var selectedInventorySupply: SupplyKind = .food
     var supplyPicker: SupplyKind?
+    var showsPlayChoices = false
+    var isShowingPlayTogether = false
+    var playTogetherSessionID: String?
+    var habitStudyMode = false {
+        didSet { sharedHomeNoticeDefaults.set(habitStudyMode, forKey: "catlife.habits.studyMode.v1") }
+    }
+    var habitStudyError = false
+    @ObservationIgnored let habitStudyLog: HabitStudyLog
+    @ObservationIgnored var pendingCatPlayEnd: PendingCatPlayEnd?
+    @ObservationIgnored var recordedFirstHabitAction = false
     var furniturePurchaseNotice: String?
     private(set) var furniturePurchaseItemID: String?
     private(set) var selectedStoredFurnitureID: String?
@@ -152,6 +162,7 @@ final class GameStore {
         let furnitureID: String?
         let sessionID: String
         let occurredAt: Date
+        var observation: CatRestObservation? = nil
     }
 
     private struct SaveContext {
@@ -159,6 +170,7 @@ final class GameStore {
         var candidate: GameSnapshot
         let transitions: [RestTransition]
         let foregroundEpoch: Int
+        let playEnd: PendingCatPlayEnd?
     }
 
     init(directory: URL? = nil) {
@@ -172,6 +184,7 @@ final class GameStore {
             reminderDefaults.removeObject(forKey: GameOnboardingCenter.progressKey)
             reminderDefaults.removeObject(forKey: Self.sharedHomeSpaceNoticesKey)
             reminderDefaults.removeObject(forKey: "catlife.home.upperHintSeen.v1")
+            reminderDefaults.removeObject(forKey: "catlife.habits.studyMode.v1")
         }
         let saveDirectory = directory ?? base.appendingPathComponent(testing ? "CatLife-UITests" : "CatLife", isDirectory: true)
         fixtures = GameStoreFixtures(arguments: arguments, allowsSeeding: directory == nil)
@@ -185,17 +198,21 @@ final class GameStore {
         let saveDirectory = directory ?? base.appendingPathComponent("CatLife", isDirectory: true)
         #endif
         repository = FileSaveRepository(directory: saveDirectory)
+        habitStudyLog = HabitStudyLog(directory: directory)
         sharedHomeNoticeDefaults = reminderDefaults
         adoptionReminders = GameAdoptionReminderCenter(defaults: reminderDefaults)
         onboarding = GameOnboardingCenter(defaults: reminderDefaults)
+        habitStudyMode = reminderDefaults.bool(forKey: "catlife.habits.studyMode.v1")
     }
 
-    init(repository: any GameSaveRepository, reminderDefaults: UserDefaults? = nil) {
+    init(repository: any GameSaveRepository, reminderDefaults: UserDefaults? = nil, studyLog: HabitStudyLog = HabitStudyLog()) {
         self.repository = repository
+        habitStudyLog = studyLog
         let defaults = reminderDefaults ?? UserDefaults(suiteName: "com.stationcat.catlife.tests.\(UUID().uuidString)")!
         sharedHomeNoticeDefaults = defaults
         adoptionReminders = GameAdoptionReminderCenter(defaults: defaults)
         onboarding = GameOnboardingCenter(defaults: defaults)
+        habitStudyMode = defaults.bool(forKey: "catlife.habits.studyMode.v1")
     }
 
     var cat: CatState? { snapshot?.activeCat }
@@ -394,7 +411,8 @@ final class GameStore {
 
     // Capture the physical arrival/exit time immediately. Save operations are
     // serialized; waiting for an unrelated write must not extend a short rest.
-    func setRestingFurniture(id: String?, sessionID: String, catID: String? = nil) {
+    func setRestingFurniture(id: String?, sessionID: String, catID: String? = nil,
+                             observation: CatRestObservation? = nil, occurredAt: Date = Date()) {
         guard let catID = catID ?? cat?.id,
               snapshot?.cats.contains(where: { $0.id == catID }) == true else { return }
         if let id {
@@ -407,7 +425,10 @@ final class GameStore {
             presentedRestSessionID = nil
         }
         restTransitions.append(RestTransition(catID: catID, furnitureID: id,
-                                               sessionID: sessionID, occurredAt: Date()))
+            sessionID: sessionID, occurredAt: occurredAt,
+            observation: foreground && activeSheet == nil && !isShowingSettings
+                && inspectedCatID == nil && !isShowingPlayTogether && !showsPlayChoices
+                && !showSaveError && homeUpgradeCelebration == nil ? observation : nil))
         processNextRestTransition()
     }
 
@@ -416,6 +437,7 @@ final class GameStore {
               saveRetry.permitsAutomaticAttempt(at: Date()), let context = saveContext() else { return }
         if context.candidate == context.original {
             acknowledgeTransitions(context.transitions)
+            if pendingCatPlayEnd?.id == context.playEnd?.id { pendingCatPlayEnd = nil }
             drainPendingSynchronization()
             return
         }
@@ -440,14 +462,19 @@ final class GameStore {
         for transition in transitions {
             if let furnitureID = transition.furnitureID {
                 _ = GameEngine.startCatRest(&candidate, catID: transition.catID,
-                    furnitureID: furnitureID, sessionID: transition.sessionID, now: transition.occurredAt)
+                    furnitureID: furnitureID, sessionID: transition.sessionID,
+                    observation: transition.observation, now: transition.occurredAt)
             } else {
                 _ = GameEngine.endCatRest(&candidate, catID: transition.catID,
                     sessionID: transition.sessionID, now: transition.occurredAt)
             }
         }
+        let playEnd = pendingCatPlayEnd
+        if let playEnd {
+            _ = CatHabitEngine.endPlay(&candidate, catID: playEnd.catID, sessionID: playEnd.sessionID, now: playEnd.occurredAt)
+        }
         return SaveContext(original: original, candidate: candidate, transitions: transitions,
-                           foregroundEpoch: foregroundEpoch)
+                           foregroundEpoch: foregroundEpoch, playEnd: playEnd)
     }
 
     private func acknowledgeTransitions(_ transitions: [RestTransition]) {
@@ -467,6 +494,8 @@ final class GameStore {
             feedback = nil
         }
         snapshot = context.candidate
+        recordHabitCommit(from: context.original, to: context.candidate)
+        if let end = context.playEnd, pendingCatPlayEnd?.id == end.id { pendingCatPlayEnd = nil }
         acknowledgeTransitions(context.transitions)
         clearSaveFailure()
         let canPlayProgress = silentProgressThrough == nil && foreground && hasEnteredHome && !isLoading
@@ -594,6 +623,9 @@ final class GameStore {
             drainPendingSynchronization()
         }
         var candidate = archive.snapshot
+        if let play = candidate.catPlay.activeSession {
+            _ = CatHabitEngine.endPlay(&candidate, catID: play.catID, sessionID: play.id, now: importDate)
+        }
         for cat in candidate.cats {
             if let rest = cat.activeRest {
                 _ = GameEngine.endCatRest(&candidate, catID: cat.id, sessionID: rest.id, now: importDate)
@@ -613,6 +645,10 @@ final class GameStore {
             throw SaveTransferError.writeFailed
         }
         restTransitions.removeAll()
+        pendingCatPlayEnd = nil
+        showsPlayChoices = false
+        isShowingPlayTogether = false
+        playTogetherSessionID = nil
         audioSaveRequest?.completion?.resume(returning: false)
         audioSaveRequest = nil
         pendingAudioSettings = nil
@@ -726,6 +762,9 @@ final class GameStore {
         startupPhase = "welcome.syncing"
         await Task.yield()
         let loadDate = Date()
+        if let session = loaded.catPlay.activeSession {
+            pendingCatPlayEnd = PendingCatPlayEnd(catID: session.catID, sessionID: session.id, occurredAt: loadDate)
+        }
         silentProgressThrough = max(silentProgressThrough ?? .distantPast, loadDate)
         let hadCatRest = loaded.cats.contains { $0.activeRest != nil }
         for cat in loaded.cats {
@@ -748,6 +787,7 @@ final class GameStore {
         startupPhase = "welcome.ready"
         now = Date()
         lastSyncCheck = now
+        if let cat { recordHabitStudy("launch", catID: cat.id) }
         var notices: [String] = []
         if case .recoveredBackup = loadDisposition { notices.append(GameStrings.text("save.recovered")) }
         if hadCatRest { notices.append(GameStrings.text("rest.loadEnded")) }
@@ -760,6 +800,9 @@ final class GameStore {
         foreground = active
         syncAudio()
         now = Date()
+        if !active, let session = snapshot?.catPlay.activeSession, pendingCatPlayEnd?.sessionID != session.id {
+            pendingCatPlayEnd = PendingCatPlayEnd(catID: session.catID, sessionID: session.id, occurredAt: now)
+        }
         timerTask?.cancel()
         timerTask = nil
         if snapshot != nil { synchronize(playsProgressFeedback: false) }
@@ -845,6 +888,7 @@ final class GameStore {
     }
 
     func play() {
+        guard !isShowingPlayTogether else { return }
         guard !isDecorating, !isBusy, let cat else { return }
         audio.noteUserInteraction()
         guard (snapshot?.inventory.toys ?? 0) > 0 else { showNotice(GameStrings.text("care.needToy")); shopCategory = .supplies; activeSheet = .shop; return }
@@ -1448,6 +1492,7 @@ final class GameStore {
         let needsSave = requiresDurableSave(context.candidate, comparedTo: context.original)
         guard hasSaveFailure || needsSave else {
             acknowledgeTransitions(context.transitions)
+            if pendingCatPlayEnd?.id == context.playEnd?.id { pendingCatPlayEnd = nil }
             finishSilentCatchUp(context)
             refreshAdoptionReminders()
             return
@@ -1483,6 +1528,7 @@ final class GameStore {
             return
         }
         if processPendingAudioSettings() { return }
+        if pendingCatPlayEnd != nil { synchronize(); return }
         if !restTransitions.isEmpty {
             processNextRestTransition()
             return
@@ -1514,6 +1560,7 @@ final class GameStore {
 
     func showNotice(_ message: String) { notices.show(message, ready: hasEnteredHome) }
     var canPresentTownEventResult: Bool { foreground && hasEnteredHome }
+    var isHabitInteractionActive: Bool { foreground && hasEnteredHome && !isLoading }
 
     private func message(for outcome: ActionOutcome) -> String {
         GameActionNotice.message(for: outcome, snapshot: snapshot)

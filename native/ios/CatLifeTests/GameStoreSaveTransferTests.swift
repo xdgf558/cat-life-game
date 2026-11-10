@@ -26,6 +26,49 @@ final class GameStoreSaveTransferTests: XCTestCase {
     }
 
     @MainActor
+    func testImportEndsAnArchivedPlaySessionAndKeepsItsSinglePaidSettlement() async throws {
+        let repository = TransferTestRepository(seed())
+        let store = makeStore(repository)
+        await store.load()
+        let generation = store.saveSceneGeneration
+        let start = Date().addingTimeInterval(-10)
+        var incoming = GameSnapshot.fresh(now: start)
+        incoming.settings = seed().settings
+        XCTAssertTrue(CatHabitEngine.beginPlay(&incoming, catID: incoming.activeCatID, now: start).succeeded)
+        let tutorial = try XCTUnwrap(incoming.catPlay.activeSession)
+        for (index, kind) in [CatPlayInputKind.slowMove, .moveAndPause].enumerated() {
+            XCTAssertTrue(CatHabitEngine.recordPlayInput(&incoming, catID: tutorial.catID, sessionID: tutorial.id,
+                report: .init(sequence: index + 1, kind: kind, control: .tap, duration: 2, movementDuration: 0),
+                now: start.addingTimeInterval(Double(index + 1) * 2)).succeeded)
+        }
+        _ = CatHabitEngine.endPlay(&incoming, catID: tutorial.catID, sessionID: tutorial.id, now: start.addingTimeInterval(5))
+        incoming.inventory.toys = 6
+        XCTAssertTrue(CatHabitEngine.beginPlay(&incoming, catID: incoming.activeCatID, now: start.addingTimeInterval(6)).succeeded)
+        let paid = try XCTUnwrap(incoming.catPlay.activeSession)
+        XCTAssertTrue(CatHabitEngine.recordPlayInput(&incoming, catID: paid.catID, sessionID: paid.id,
+            report: .init(sequence: 1, kind: .slowMove, control: .tap, duration: 0, movementDuration: 0),
+            now: start.addingTimeInterval(6)).succeeded)
+        let preview = try archive(incoming)
+        for _ in 0..<2 {
+            try await store.importSaveArchive(preview)
+            XCTAssertNil(store.snapshot?.catPlay.activeSession)
+            XCTAssertEqual(store.snapshot?.catPlay.lastResult?.id, paid.id)
+            XCTAssertEqual(store.snapshot?.inventory.toys, 5)
+            XCTAssertEqual(store.snapshot?.tasks.dailyPlayCount, 1)
+            XCTAssertEqual(store.snapshot?.cats.map(\.habits), preview.snapshot.cats.map(\.habits))
+            XCTAssertFalse(store.isShowingPlayTogether)
+            XCTAssertNotEqual(store.saveSceneGeneration, generation)
+        }
+        store.requestPlayEnd(catID: tutorial.catID, sessionID: tutorial.id, generation: generation)
+        XCTAssertNil(store.pendingCatPlayEnd)
+        let reopened = makeStore(repository)
+        await reopened.load()
+        XCTAssertNil(reopened.snapshot?.catPlay.activeSession)
+        XCTAssertEqual(reopened.snapshot?.inventory.toys, 5)
+        XCTAssertEqual(reopened.snapshot?.tasks.dailyPlayCount, 1)
+    }
+
+    @MainActor
     func testImportPublishesOnlyAfterWriteAndSerializesActionsAndBackgroundSync() async throws {
         let repository = TransferTestRepository(seed())
         let store = makeStore(repository)

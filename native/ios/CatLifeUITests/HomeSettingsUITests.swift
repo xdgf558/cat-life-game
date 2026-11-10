@@ -216,12 +216,12 @@ extension RoomHomeUITests {
         XCTAssertFalse(element("settingsBackButton", in: app).exists,
                        "The settings root stays within the fixed bottom navigation.")
         tapSettingsRootControl("settingsUpdatesRow", in: app)
-        waitForObservedValue("currentAppVersion", "0.20.0 (62)", in: app)
+        waitForObservedValue("currentAppVersion", "0.21.0 (63)", in: app)
         waitForLabel("currentAppVersion", "当前版本", in: app)
         waitForLabel("settingsBackButton", "返回", in: app)
         XCTAssertTrue(app.navigationBars["版本更新"].waitForExistence(timeout: 8))
         attachScreenshot(app, named: "Settings — version page at the top before scrolling")
-        for (release, version) in [(62, "0.20.0"), (61, "0.19.1"), (60, "0.19.0")] {
+        for (release, version) in [(63, "0.21.0"), (62, "0.20.0"), (61, "0.19.1")] {
             let identifier = "releaseNote_\(release)"
             bringIntoView(identifier, in: app)
             waitForElement(identifier, in: app)
@@ -290,7 +290,7 @@ extension RoomHomeUITests {
         waitForLabel("homeNameStatus", "Home name saved", in: app)
         tapAnimationControl("settingsBackButton", in: app)
         tapSettingsRootControl("settingsUpdatesRow", in: app)
-        waitForObservedValue("currentAppVersion", "0.20.0 (62)", in: app)
+        waitForObservedValue("currentAppVersion", "0.21.0 (63)", in: app)
         attachScreenshot(app, named: "Settings — English updates before scrolling")
         bringIntoView("releaseNote_60", in: app)
         XCTAssertTrue(element("releaseNote_60", in: app).isHittable)

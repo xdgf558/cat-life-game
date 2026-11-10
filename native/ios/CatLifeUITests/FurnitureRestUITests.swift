@@ -106,14 +106,12 @@ extension RoomHomeUITests {
                                            && $0.restExits == (resting.restExits ?? -1) + 1 })
         XCTAssertEqual(feeding.completedMeals, resting.completedMeals,
                        "Leaving furniture must not count as completing a meal.")
-        _ = waitForFurniture(in: app, timeout: 30, description: "awakened cat's mouth reaches the actual food",
-                             matching: { $0.foodContactSamples > resting.foodContactSamples })
-        attachScreenshot(app, named: "Rest — awakened cat reaches the food bowl before eating")
         let finished = waitForFurniture(in: app, timeout: 40, description: "interrupted rest followed by exactly one complete meal",
-                                        matching: { $0.phase == "idle" && $0.restFurniture == nil
-                                            && $0.completedMeals == resting.completedMeals + 1 })
+                                         matching: { $0.phase == "idle" && $0.restFurniture == nil
+                                             && $0.completedMeals == resting.completedMeals + 1 })
         XCTAssertGreaterThan(finished.foodContactSamples, resting.foodContactSamples)
         XCTAssertEqual(finished.restExits, (resting.restExits ?? -1) + 1)
+        attachScreenshot(app, named: "Rest — awakened cat completed one real meal with recorded mouth contact")
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("catSatiety", "60", in: app)
         waitForObservedValue("goldCount", "200", in: app)
@@ -197,7 +195,7 @@ extension RoomHomeUITests {
                 guard let target = object as? XCUIElement, target.exists else { return false }
                 return observe(target.value)
             }, object: room)
-        room.coordinate(withNormalizedOffset: restFurnitureTouchPoint(item)).tap()
+        try restFurnitureCoordinate(item, in: app).tap()
         let entered: XCTWaiter.Result
         if id == "catBed" {
             let deadline = Date(timeIntervalSinceNow: 60)

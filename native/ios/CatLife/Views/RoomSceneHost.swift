@@ -24,6 +24,8 @@ struct RoomSceneHost: View {
     @State private var previewFrame: CGRect?
     @State private var previewReservedStatusFrame: CGRect?
     @State private var previewHeight: CGFloat = 200
+    @State private var habitOfferFrame: CGRect?
+    @State private var habitPromptHeight: CGFloat = 150
     @State private var accessibleGrowthID: String?
     @State private var isSavingGrowth = false
     @State private var scene = RoomScene(size: CGSize(width: 390, height: 480))
@@ -135,7 +137,7 @@ struct RoomSceneHost: View {
         #endif
         .overlay {
             CatNeedBubble(store: store, presentation: catNeedPresentation,
-                          canvasSize: geometry.size, isActive: isActive && ownsPresentation && previewCatID == nil,
+                          canvasSize: geometry.size, isActive: isActive && ownsPresentation && previewCatID == nil && !showsHabitPrompt,
                           canAct: { scene.canShowCatNeed }, avoidingFrame: controlsLayout.stairFrame)
         }
         .overlay {
@@ -147,6 +149,7 @@ struct RoomSceneHost: View {
         .overlay {
             residentPreview(geometry: geometry, below: max(controlsLayout.controlsTop + viewControlsSize.height, controlsLayout.stairFrame.maxY) + 12)
         }
+        .overlay { habitPrompt(in: controlsLayout.usableRect) }
         .overlay(alignment: .topLeading) {
             cameraControls(width: controlsLayout.width, left: controlsLayout.controlsLeft, top: controlsLayout.controlsTop)
         }
@@ -156,6 +159,40 @@ struct RoomSceneHost: View {
         .onChange(of: controlsLayout.usableRect, initial: true) { _, rect in updateRoomViewUsableRect(rect) }
         .onChange(of: isActive) { _, active in
             if active { updateRoomViewUsableRect(controlsLayout.usableRect) }
+        }
+    }
+
+    private var showsHabitIntro: Bool {
+        guard let play = store.snapshot?.catPlay else { return false }
+        return play.tutorialID == nil && !play.introDismissed
+    }
+
+    private var showsHabitPrompt: Bool {
+        isActive && ownsPresentation && !store.isDecorating && previewCatID == nil
+            && !store.hasSaveFailure && store.toast == nil
+            && store.cat?.healthState?.illness == nil
+            && (showsHabitIntro || (store.habitCornerOffer != nil && habitOfferFrame != nil))
+    }
+
+    @ViewBuilder private func habitPrompt(in bounds: CGRect) -> some View {
+        if showsHabitPrompt, bounds.width >= 150, bounds.height >= 90 {
+            let anchor = showsHabitIntro ? catNeedPresentation.localCatFrame : habitOfferFrame
+            let frame = HabitRoomPromptLayout.frame(above: anchor ?? bounds, within: bounds, height: habitPromptHeight)
+            ScrollView {
+                Group {
+                    if showsHabitIntro { HabitIntroBanner(store: store) }
+                    else if let receipt = store.habitCornerOffer, let cat = store.cat {
+                        HabitCornerOfferView(store: store, catID: cat.id, receipt: receipt)
+                    }
+                }
+                .background { GeometryReader { prompt in
+                    Color.clear.onAppear { habitPromptHeight = prompt.size.height }
+                        .onChange(of: prompt.size.height) { _, height in habitPromptHeight = height }
+                }.allowsHitTesting(false) }
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .accessibilityIdentifier("habitRoomPromptScroll")
+            .frame(width: frame.width, height: frame.height).position(x: frame.midX, y: frame.midY)
         }
     }
 
@@ -213,6 +250,7 @@ struct RoomSceneHost: View {
                     closePreview()
                     if ownsPresentation { catNeedPresentation.anchor = nil; catNeedPresentation.localCatFrame = nil }
                     arrangementFrame = nil
+                    habitOfferFrame = nil
                     scene.cancelPlacementPreview()
                 }
             }
@@ -228,6 +266,9 @@ struct RoomSceneHost: View {
                 scene.onBackgroundTapped = nil
                 scene.onVisibleResidentsChanged = nil
                 scene.onInspectedResidentFrameChanged = nil
+                scene.onHabitOfferFrameChanged = nil
+                scene.onRestingFurnitureChanged = nil
+                habitOfferFrame = nil
                 if ownsPresentation {
                     catNeedPresentation.anchor = nil; catNeedPresentation.localCatFrame = nil
                     catNeedPresentation.focusRoom = nil
@@ -252,10 +293,10 @@ struct RoomSceneHost: View {
         scene.scaleMode = .resizeFill
         if scene.size != geometry.size { scene.size = geometry.size }
         #if DEBUG
-        scene.diagnostics.onPresentationChanged = { animationPhase = $0 }
-        scene.diagnostics.onNavigationChanged = { navigationStatus = $0 }
-        scene.diagnostics.onDragMetricsChanged = { dragStatus = $0 }
-        scene.diagnostics.onFurnitureDiagnosticsChanged = { furnitureStatus = $0 }
+        scene.diagnostics.onPresentationChanged = { value in DispatchQueue.main.async { animationPhase = value } }
+        scene.diagnostics.onNavigationChanged = { value in DispatchQueue.main.async { navigationStatus = value } }
+        scene.diagnostics.onDragMetricsChanged = { value in DispatchQueue.main.async { dragStatus = value } }
+        scene.diagnostics.onFurnitureDiagnosticsChanged = { value in DispatchQueue.main.async { furnitureStatus = value } }
         dragStatus = scene.diagnostics.dragDescription
         furnitureStatus = scene.diagnostics.furnitureDescription
         navigationStatus = scene.diagnostics.navigationDescription
@@ -282,13 +323,16 @@ struct RoomSceneHost: View {
             previewFrame = frame
             if frame == nil { closePreview() }
         }
-        scene.onFloorTravelAvailabilityChanged = {
-            guard acceptsSceneUpdates() else { return }
-            canTravelFloors = $0
-            store.roomFloorTravelReady = $0
+        scene.onHabitOfferFrameChanged = { if acceptsSceneUpdates() { habitOfferFrame = $0 } }
+        scene.onFloorTravelAvailabilityChanged = { ready in
+            DispatchQueue.main.async {
+                guard acceptsSceneUpdates() else { return }
+                canTravelFloors = ready
+                store.roomFloorTravelReady = ready
+            }
         }
         scene.onRoomViewChanged = {
-            if acceptsSceneUpdates() { refreshRoomViewControls() }
+            DispatchQueue.main.async { if acceptsSceneUpdates() { refreshRoomViewControls() } }
         }
         let presentation = catNeedPresentation
         presentation.focusRoom = { [weak source = scene] in source?.resetCamera() }
@@ -304,13 +348,22 @@ struct RoomSceneHost: View {
         scene.onFurniturePlacementFinished = {
             if acceptsSceneUpdates() { store.finishFurniturePlacement(id: $0, succeeded: $1) }
         }
-        scene.onRestingFurnitureChanged = { furnitureID, sessionID, catID in
-            guard acceptsSceneUpdates() else { return }
-            store.setRestingFurniture(id: furnitureID, sessionID: sessionID, catID: catID)
+        scene.onRestingFurnitureChanged = { [weak source = scene] furnitureID, sessionID, catID in
+            let observation = furnitureID != nil ? source?.currentRestObservation : nil
+            let occurredAt = Date()
+            // Reconciliation can run inside UIViewRepresentable updates; keep the captured time, not that render transaction.
+            DispatchQueue.main.async {
+                guard acceptsSceneUpdates() else { return }
+                store.setRestingFurniture(id: furnitureID, sessionID: sessionID, catID: catID,
+                    observation: observation, occurredAt: occurredAt)
+            }
         }
         scene.onFurnitureNotice = {
             guard acceptsSceneUpdates() else { return }
             if $0 != "room.sharedHomeNoSpace" { store.showFurnitureNotice($0) }
+            if let cat = store.cat, ["rest.blocked", "catHabits.rest.eating", "catHabits.rest.waitCare"].contains($0) {
+                store.recordHabitStudy("restBlocked", catID: cat.id, detail: $0)
+            }
         }
         refreshScene()
         scene.setPresentationActive(isActive)
@@ -454,6 +507,7 @@ struct RoomSceneHost: View {
 
     private func refreshScene() {
         guard ownsPresentation else { return }
+        scene.habitOfferItemID = store.habitCornerOffer?.furnitureID
         if let value = store.sceneSnapshot {
             scene.apply(snapshot: value, editing: store.isDecorating,
                         selectedFurnitureID: store.selectedFurnitureID,
