@@ -32,9 +32,6 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         self.community = community
         self.catPlay = catPlay
         self.community.events.advance(to: self.tasks.dailyDayKey)
-        for index in self.cats.indices {
-            self.cats[index].habits.seedRestLocations(home: home, inventory: inventory)
-        }
     }
 
     private enum CodingKeys: String, CodingKey {
@@ -127,10 +124,14 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     }
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {
-        GameSnapshot(player: PlayerState(staminaUpdatedAt: now),
-                     cats: [CatState(id: CatCatalog.initialCatID, name: "小橘", now: now)],
-                     inventory: InventoryState(), home: HomeState(),
-                     meta: SaveMetadata(createdAt: now, lastSyncAt: now))
+        var snapshot = GameSnapshot(player: PlayerState(staminaUpdatedAt: now),
+                                    cats: [CatState(id: CatCatalog.initialCatID, name: "小橘", now: now)],
+                                    inventory: InventoryState(), home: HomeState(),
+                                    meta: SaveMetadata(createdAt: now, lastSyncAt: now))
+        for index in snapshot.cats.indices {
+            snapshot.cats[index].habits.seedRestLocations(home: snapshot.home, inventory: snapshot.inventory)
+        }
+        return snapshot
     }
 }
 

@@ -210,6 +210,57 @@ struct CompanionExperienceTests {
         #expect(state.cats[0].intimacy == 75 && has(.understandEachOther, in: state))
     }
 
+    @Test func autonomousRestsRecoverEnergyWithoutCreatingUnderstandingWhenEveryConditionIsReady() throws {
+        var state = readyForUnderstanding()
+        state.cats[0].energy = 60
+        let habits = state.cats[0].habits
+        let inventory = state.inventory
+        let gold = state.player.gold
+        for attempt in 0..<2 {
+            let startedAt = now.addingTimeInterval(Double(attempt * 30))
+            #expect(GameEngine.startCatRest(&state, catID: state.activeCatID,
+                furnitureID: "floorCushion", sessionID: "ambient-\(attempt)", now: startedAt).succeeded)
+            let rest = try #require(state.cats[0].activeRest)
+            #expect(rest.observation == nil)
+            #expect(state.cats[0].habits == habits)
+            #expect(GameEngine.synchronize(&state, now: rest.endsAt).succeeded)
+            #expect(state.cats[0].activeRest == nil)
+            #expect(state.cats[0].habits == habits)
+        }
+        #expect(state.cats[0].energy > 60)
+        #expect(state.inventory == inventory && state.player.gold == gold)
+        #expect(state.isValid)
+    }
+
+    @Test func playerRestCreatesUnderstandingOnlyAfterACompleteObservationAndNeverAfterInterruption() throws {
+        for interrupted in [true, false] {
+            var state = readyForUnderstanding()
+            let inventory = state.inventory
+            let gold = state.player.gold
+            try beginRest(&state, id: "floorCushion", session: "observed", at: now)
+            let rest = try #require(state.cats[0].activeRest)
+            #expect(!has(.understandEachOther, in: state))
+            if interrupted {
+                #expect(GameEngine.endCatRest(&state, catID: state.activeCatID,
+                    sessionID: rest.id, now: now.addingTimeInterval(3)).succeeded)
+            } else {
+                #expect(GameEngine.synchronize(&state, now: rest.endsAt.addingTimeInterval(-0.001)).succeeded)
+                #expect(!has(.understandEachOther, in: state))
+            }
+            #expect(GameEngine.synchronize(&state, now: rest.endsAt).succeeded)
+            #expect(has(.understandEachOther, in: state) == !interrupted)
+            if !interrupted {
+                #expect(state.cats[0].habits.memories.first { $0.kind == .understandEachOther }?.createdAt == rest.endsAt)
+                #expect(state.cats[0].habits.lastRestObservation?.id == rest.id)
+            }
+            let memories = state.cats[0].habits.memories
+            #expect(GameEngine.synchronize(&state, now: rest.endsAt.addingTimeInterval(20)).succeeded)
+            #expect(state.cats[0].habits.memories == memories)
+            #expect(state.inventory == inventory && state.player.gold == gold)
+            #expect(state.isValid)
+        }
+    }
+
     @Test func legacyInFlightRestKeepsItsOriginalClueButCannotInventEitherNewMemoryOnLoad() throws {
         var old = readyForUnderstanding()
         old.cats[0].habits.restClueSessionIDs = ["old-first"]

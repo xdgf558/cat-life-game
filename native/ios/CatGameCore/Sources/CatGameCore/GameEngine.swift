@@ -160,7 +160,6 @@ public enum GameEngine {
             energyReward: 20 + candidate.home.comfortScore / 20, observation: observation)
         candidate.cats[index].lastRestSessionID = sessionID
         candidate.cats[index].habits.seedRestLocations(home: candidate.home, inventory: candidate.inventory)
-        CatHabitEngine.rememberUnderstanding(&candidate.cats[index], at: timestamp)
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
         return ActionOutcome(success: .catRestStarted)
