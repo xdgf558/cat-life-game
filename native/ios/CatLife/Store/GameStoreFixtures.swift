@@ -32,7 +32,15 @@ struct GameStoreFixtures {
         futureLoadFailure = arguments.contains("--save-load-future-fixture")
         damagedLoadFailure = arguments.contains("--save-load-damaged-fixture")
         if futureLoadFailure || damagedLoadFailure { return }
-        if arguments.contains("--town-events-fixture") {
+        if arguments.contains("--habit-play-need-fixture") {
+            var value = GameSnapshot.fresh(now: now)
+            value.cats[0].satiety = 80
+            value.cats[0].cleanliness = 80
+            value.cats[0].mood = 30
+            value.inventory.toys = 3
+            value.settings.audio = AudioSettings(musicEnabled: false, effectsEnabled: false, catEnabled: false, haptics: false)
+            initialSnapshot = value
+        } else if arguments.contains("--town-events-fixture") {
             let calendar = Calendar(identifier: .gregorian)
             let start = calendar.date(byAdding: .day, value: -6, to: now)!
             var value = GameSnapshot.fresh(now: start)
