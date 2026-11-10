@@ -137,7 +137,7 @@ extension RoomHomeUITests {
         let steps = [("care", ["playButton", "cleanButton", "feedButton"], "feedButton"),
                      ("work", ["tabWork"], "startWorkButton"),
                      ("supplies", ["tabShop"], "shopCategory_supplies"),
-                     ("tasks", ["homeTasksButton"], "tasksScroll"),
+                     ("tasks", ["tabMore"], "tasksScroll"),
                      ("town", ["tabTown"], "townMapScroll")]
         for (step, controls, destination) in steps {
             waitForObservedValue("onboardingStep", step, in: app)
@@ -236,7 +236,7 @@ extension RoomHomeUITests {
     private func assertHomeGuideDoesNotOverlapCatStatus(in app: XCUIApplication) {
         waitForElement("onboardingResumeButton", in: app)
         let resume = element("onboardingResumeButton", in: app)
-        let catStatus = element("homeCatInfo", in: app)
+        let catStatus = element("homeMyCatsButton", in: app)
         if !resume.isHittable {
             attachScreenshot(app, named: "Home guide resume is not tappable")
             let hierarchy = XCTAttachment(string: app.debugDescription)
@@ -246,7 +246,7 @@ extension RoomHomeUITests {
         }
         XCTAssertTrue(resume.isHittable)
         XCTAssertFalse(resume.frame.intersects(catStatus.frame),
-                       "Continue guide must not be covered by the cat status card.")
+                       "Continue guide must not cover the current care recipient.")
     }
 
     @MainActor

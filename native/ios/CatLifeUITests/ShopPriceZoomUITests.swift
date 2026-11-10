@@ -51,8 +51,7 @@ extension RoomHomeUITests {
         let room = element("roomScene", in: app)
         let original = try waitForZoom(wholeRoom: true, in: app)
         XCTAssertEqual(original.scale, original.fitScale, accuracy: 0.001)
-        tapAnimationControl("homeCareVisibilityButton", in: app)
-        waitForObservedValue("homeCareVisibilityButton", "hidden", in: app)
+        XCTAssertTrue(element("homeCareBar63", in: app).isHittable)
         element("roomPinchSurface", in: app).pinch(withScale: 2, velocity: 1)
         let magnified = try waitForZoom(in: app, description: "pinch magnifies the whole-room view") {
             !$0.wholeRoom && $0.scale < original.scale
@@ -65,8 +64,7 @@ extension RoomHomeUITests {
         let overview = try waitForZoom(wholeRoom: true, in: app)
         XCTAssertEqual(overview.scale, overview.fitScale, accuracy: 0.001)
         XCTAssertEqual(overview.layout, original.layout)
-        tapAnimationControl("homeCareVisibilityButton", in: app)
-        waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
+        XCTAssertTrue(element("homeCareBar63", in: app).isHittable)
         waitForObservedValue("foodCount", "3", in: app)
         waitForObservedValue("goldCount", "5,000", in: app)
         attachScreenshot(app, named: "Room — pinch out shows the complete expanded room")
@@ -106,11 +104,11 @@ extension RoomHomeUITests {
         XCTAssertEqual(fed.violations, 0)
         XCTAssertEqual(fed.foodContactViolations, 0)
         waitForObservedValue("foodCount", "2", in: app)
-        tapAnimationControl("focusCatButton", in: app)
-        _ = try waitForZoom(in: app, description: "Find Cat focuses within the current whole-room scale") {
+        tapAnimationControl("roomOverviewButton", in: app)
+        _ = try waitForZoom(in: app, description: "Close up focuses within the current whole-room scale") {
             !$0.wholeRoom && abs($0.scale - $0.fitScale / 1.6) < 0.025
         }
-        attachScreenshot(app, named: "Room — Find Cat shows a close view after a real meal")
+        attachScreenshot(app, named: "Room — Close up shows a close view after a real meal")
         app.terminate()
         app.launchArguments = arguments(reset: false) + ["--furniture-test"]
         launchAndEnterHome(app)

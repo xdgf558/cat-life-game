@@ -53,6 +53,6 @@ extension RoomHomeUITests {
         scrollCareerPage("homeUpgradeCelebrationScroll", to: "homeUpgradeCelebrationDone", in: app)
         tapAnimationControl("homeUpgradeCelebrationDone", in: app)
         tapAnimationControl("layoutCancelButton", in: app)
-        waitForElement("homeStairsButton", in: app)
+        waitForElement("homeFloor_upper", in: app)
     }
 }

@@ -45,6 +45,7 @@ extension RoomHomeUITests {
         let activeCatID: String?
         let catAppearance: String?
         let cameraScale: Double?
+        let fitScale: Double?
         let cameraX: Double?
         let cameraY: Double?
         let worldWidth: Double?

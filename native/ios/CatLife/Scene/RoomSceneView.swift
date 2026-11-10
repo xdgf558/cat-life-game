@@ -26,6 +26,14 @@ extension RoomScene {
         updateRoomPresentation()
     }
 
+    func showCatCloseUp() {
+        resetCamera()
+        guard let frame = roomPresentation.frame("cat"), frame.width.isFinite, frame.width > 0 else { return }
+        // Use the existing safe zoom range; tiny high-level companions should remain the visual focus.
+        roomPresentation.camera.zoom(by: max(1, 70 / frame.width))
+        updateRoomPresentation()
+    }
+
     func showWholeRoom() {
         guard canChangeRoomView else { return }
         cancelCameraInteraction()

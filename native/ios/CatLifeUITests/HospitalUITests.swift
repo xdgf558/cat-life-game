@@ -42,7 +42,7 @@ extension RoomHomeUITests {
         assertRoomFrame(room, in: app, context: "hospital treatment")
         relaunchPreservingSave(app)
         waitForObservedValue("goldCount", "880", in: app)
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         scrollCareerPage("catProfileScroll", to: "catHealthButton", in: app)
         tapAnimationControl("catHealthButton", in: app)
         waitForObservedValue("hospitalCondition", "healthy", in: app)
@@ -82,7 +82,7 @@ extension RoomHomeUITests {
     func testHospitalInsufficientGoldCanReturnToWorkFromCatProfile() throws {
         continueAfterFailure = false
         let app = hospitalFixture(["--hospital-low-gold"])
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         scrollCareerPage("catProfileScroll", to: "catHealthButton", in: app)
         tapAnimationControl("catHealthButton", in: app)
         XCTAssertFalse(element("hospitalTreatButton", in: app).exists, "Insufficient funds shows the work action instead of a disabled treatment button.")

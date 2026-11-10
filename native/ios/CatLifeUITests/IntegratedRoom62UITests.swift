@@ -8,12 +8,12 @@ extension RoomHomeUITests {
         app.launchArguments = arguments(reset: true)
             + ["--shared-home-test", "--shared-home-upper-test", "--furniture-test"]
         launchAndEnterHome(app)
-        waitForObservedValue("homeCaringContext", "cat_001", in: app)
-        let contextFrame = integrated62Element("homeCaringContext", in: app).frame
+        waitForObservedValue("homeMyCatsButton", "cat_001", in: app)
+        let contextFrame = integrated62Element("homeMyCatsButton", in: app).frame
 
         for (index, floor) in ["1F · 一楼", "2F · 二楼"].enumerated() {
-            if index > 0 { tapAnimationControl("homeStairsButton", in: app) }
-            waitForObservedValue("homeStairsButton", floor, in: app)
+            if index > 0 { tapAnimationControl("homeFloor_upper", in: app) }
+            waitForHomeFloor(index == 0 ? "ground" : "upper", in: app)
             let original = try integrated62Wait(in: app, angle: 0, whole: true)
             integrated62AssertRoom(original, original: original, contextFrame: contextFrame, in: app)
             integrated62Screenshot("Integrated 62 — \(floor), front, five cats", in: app)
@@ -29,7 +29,7 @@ extension RoomHomeUITests {
             integrated62AssertPreview(targetID, contextFrame: contextFrame, in: app)
             integrated62Screenshot("Integrated 62 — \(floor), left, resident preview", in: app)
 
-            tapAnimationControl("focusCatButton", in: app)
+            tapAnimationControl("roomOverviewButton", in: app)
             let close = try integrated62Wait(in: app, angle: -1, whole: false)
             integrated62AssertIdentityAndSave(close, original: original, contextFrame: contextFrame, in: app)
             integrated62AssertPreview(targetID, contextFrame: contextFrame, in: app)
@@ -59,16 +59,16 @@ extension RoomHomeUITests {
     }
 
     @MainActor
-    func testChangingFloorsWithResidentPreviewOpenRestoresTheNewFloorsStatusCard() throws {
+    func testChangingFloorsWithResidentPreviewOpenRetainsTheCurrentCareRecipient() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = arguments(reset: true)
             + ["--shared-home-test", "--shared-home-upper-test", "--furniture-test"]
         launchAndEnterHome(app)
-        waitForObservedValue("homeCaringContext", "cat_001", in: app)
-        waitForElement("homeCatInfo", in: app)
+        waitForObservedValue("homeMyCatsButton", "cat_001", in: app)
+        waitForElement("homeMyCatsButton", in: app)
         let original = try integrated62Wait(in: app, angle: 0, whole: true)
-        let contextFrame = integrated62Element("homeCaringContext", in: app).frame
+        let contextFrame = integrated62Element("homeMyCatsButton", in: app).frame
         let resources = try ["foodCount", "goldCount", "staminaCount"].map { identifier in
             (identifier, try XCTUnwrap(integrated62Element(identifier, in: app).value as? String))
         }
@@ -77,62 +77,62 @@ extension RoomHomeUITests {
 
         // Do not dismiss first: the outgoing host must relinquish this preview to the new floor owner.
         tapAnimationControl("homeFloor_upper", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        waitForHomeFloor("upper", in: app)
         let upstairs = try integrated62Wait(in: app, angle: 0, whole: true)
         let restored = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            let status = self.integrated62Element("homeCatInfo", in: app)
+            let status = self.integrated62Element("homeMyCatsButton", in: app)
             return !self.integrated62Element("roomResidentPreview", in: app).exists
                 && status.exists && status.isHittable
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [restored], timeout: 10), .completed,
-                       "The upstairs host must clear the old preview and restore its cat status card.")
+                       "The upstairs host must clear the old preview and keep the current care capsule reachable.")
         XCTAssertEqual(upstairs.activeCatID, original.activeCatID)
         XCTAssertEqual(upstairs.companionLabelText, original.companionLabelText)
         XCTAssertEqual(upstairs.completedMeals, original.completedMeals)
         XCTAssertEqual(upstairs.completedPounces, original.completedPounces)
-        waitForObservedValue("homeCaringContext", "cat_001", in: app)
-        XCTAssertEqual(integrated62Element("homeCaringContext", in: app).frame, contextFrame)
+        waitForObservedValue("homeMyCatsButton", "cat_001", in: app)
+        XCTAssertEqual(integrated62Element("homeMyCatsButton", in: app).frame, contextFrame)
         for (identifier, value) in resources { waitForObservedValue(identifier, value, in: app) }
         integrated62Screenshot("Integrated 62 — switching floors closes a resident preview and restores status", in: app)
 
         tapAnimationControl("homeFloor_ground", in: app)
-        waitForObservedValue("homeStairsButton", "1F · 一楼", in: app)
+        waitForHomeFloor("ground", in: app)
         let downstairs = try integrated62Wait(in: app, angle: 0, whole: true)
         XCTAssertFalse(integrated62Element("roomResidentPreview", in: app).exists)
-        XCTAssertTrue(integrated62Element("homeCatInfo", in: app).exists)
+        XCTAssertTrue(integrated62Element("homeMyCatsButton", in: app).exists)
         integrated62AssertIdentityAndSave(downstairs, original: original, contextFrame: contextFrame, in: app)
         for (identifier, value) in resources { waitForObservedValue(identifier, value, in: app) }
     }
 
     @MainActor
-    func testOpeningResidentPreviewAfterFocusingTheCatKeepsItBelowRoomTools() throws {
+    func testOpeningResidentPreviewAfterFocusingTheCatKeepsItInsideTheStage() throws {
         continueAfterFailure = false
         let app = XCUIApplication()
         app.launchArguments = arguments(reset: true)
             + ["--shared-home-test", "--shared-home-upper-test", "--furniture-test"]
         launchAndEnterHome(app)
-        waitForObservedValue("homeCaringContext", "cat_001", in: app)
+        waitForObservedValue("homeMyCatsButton", "cat_001", in: app)
         let original = try integrated62Wait(in: app, angle: 0, whole: true)
-        let contextFrame = integrated62Element("homeCaringContext", in: app).frame
+        let contextFrame = integrated62Element("homeMyCatsButton", in: app).frame
         let resources = try ["foodCount", "goldCount", "staminaCount"].map { identifier in
             (identifier, try XCTUnwrap(integrated62Element(identifier, in: app).value as? String))
         }
 
-        tapAnimationControl("focusCatButton", in: app)
+        tapAnimationControl("roomOverviewButton", in: app)
         let near = try integrated62Wait(in: app, angle: 0, whole: false)
-        waitForObservedValue("homeCatInfo", "compact", in: app)
+        XCTAssertFalse(integrated62Element("homeCatInfo", in: app).exists)
         XCTAssertFalse(integrated62Element("roomResidentPreview", in: app).exists)
         let targetID = try integrated62OpenResident(from: near, in: app)
         let preview = integrated62Element("roomResidentPreview", in: app)
         waitForObservedValue("roomResidentPreview", targetID, in: app)
-        let tools = ["roomViewControls", "homeStairsButton"].map { integrated62Element($0, in: app) }
+        let tools = ["roomViewControls", "homeFloor_ground", "homeFloor_upper"].map { integrated62Element($0, in: app) }
         let settled = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
-            preview.exists && app.frame.contains(preview.frame)
-                && tools.allSatisfy { $0.exists && $0.isHittable && $0.frame.maxY <= preview.frame.minY }
+            preview.exists && self.integrated62Element("roomStage63", in: app).frame.contains(preview.frame)
+                && tools.allSatisfy { $0.exists && $0.isHittable && !$0.frame.intersects(preview.frame) }
         }, object: nil)
         XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 10), .completed,
-                       "Opening from near view must release the hidden top card and leave the preview entirely below room tools.")
-        for obstacle in ["playButton", "cleanButton", "feedButton", "homeCaringContext"] {
+                       "Opening from near view must keep the preview inside the stage and clear of room tools.")
+        for obstacle in ["playButton", "cleanButton", "feedButton", "homeMyCatsButton"] {
             let control = integrated62Element(obstacle, in: app)
             XCTAssertTrue(control.exists && control.isHittable)
             XCTAssertFalse(preview.frame.intersects(control.frame), "Preview covers \(obstacle).")
@@ -181,9 +181,9 @@ extension RoomHomeUITests {
                                                    file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(state.activeCatID, "cat_001", file: file, line: line)
         XCTAssertEqual(state.companionLabelText, "♥ 小橘", "The real projected name plaque must still name the care companion.", file: file, line: line)
-        let context = integrated62Element("homeCaringContext", in: app)
+        let context = integrated62Element("homeMyCatsButton", in: app)
         XCTAssertEqual(context.value as? String, "cat_001", file: file, line: line)
-        XCTAssertEqual(context.label, "照顾：小橘", file: file, line: line)
+        XCTAssertTrue(context.label.contains("照顾：小橘"), file: file, line: line)
         XCTAssertEqual(context.frame, contextFrame, "Previewing and changing the view must not move the fixed care recipient.", file: file, line: line)
         XCTAssertEqual(state.savedBowl, original.savedBowl, file: file, line: line)
         XCTAssertEqual(state.savedFurniture.sorted { $0.itemID < $1.itemID },
@@ -207,7 +207,7 @@ extension RoomHomeUITests {
         for control in controls {
             XCTAssertTrue(control.exists && control.isHittable, "Care controls must remain reachable.", file: file, line: line)
         }
-        for id in ["roomViewControls", "homeStairsButton"] {
+        for id in ["roomViewControls", "homeFloor_ground", "homeFloor_upper"] {
             let tool = integrated62Element(id, in: app)
             XCTAssertTrue(tool.exists && tool.isHittable, "Room tools must remain reachable.", file: file, line: line)
             for control in controls {
@@ -216,7 +216,7 @@ extension RoomHomeUITests {
         }
         for resident in state.residentCats {
             let frame = resident.frame(in: roomFrame)
-            XCTAssertTrue(app.frame.contains(frame), "The whole-room view must contain the real frame of \(resident.id): \(frame).", file: file, line: line)
+            XCTAssertTrue(integrated62Element("roomStage63", in: app).frame.contains(frame), "The whole-room stage must contain the real frame of \(resident.id): \(frame).", file: file, line: line)
             for control in controls {
                 XCTAssertFalse(frame.intersects(control.frame),
                                "Real cat frame \(resident.id) \(frame) overlaps care button \(control.identifier) \(control.frame).", file: file, line: line)
@@ -227,8 +227,8 @@ extension RoomHomeUITests {
     @MainActor
     private func integrated62OpenResident(from state: Integrated62RoomState, in app: XCUIApplication) throws -> String {
         let room = integrated62Element("roomScene", in: app)
-        let hud = ["playButton", "cleanButton", "feedButton", "homeCaringContext", "homeCatInfo",
-                   "catNeedBubble", "roomViewControls", "homeStairsButton"].map { integrated62Element($0, in: app) }.filter(\.exists)
+        let hud = ["playButton", "cleanButton", "feedButton", "homeMyCatsButton",
+                   "catNeedBubble", "roomViewControls", "homeFloor_ground", "homeFloor_upper"].map { integrated62Element($0, in: app) }.filter(\.exists)
         let target = try XCTUnwrap(state.residentCats.sorted { $0.id < $1.id }.first { resident in
             guard resident.id != state.activeCatID else { return false }
             let frame = resident.frame(in: room.frame)
@@ -246,14 +246,14 @@ extension RoomHomeUITests {
                                            file: StaticString = #filePath, line: UInt = #line) {
         waitForObservedValue("roomResidentPreview", targetID, in: app, file: file, line: line)
         let preview = integrated62Element("roomResidentPreview", in: app)
-        XCTAssertTrue(app.frame.contains(preview.frame), "The resident preview must fit on screen.", file: file, line: line)
-        let obstacles = ["playButton", "cleanButton", "feedButton", "homeCaringContext", "roomViewControls", "homeStairsButton"].map { integrated62Element($0, in: app) }
+        XCTAssertTrue(integrated62Element("roomStage63", in: app).frame.contains(preview.frame), "The resident preview must fit inside its stage.", file: file, line: line)
+        let obstacles = ["playButton", "cleanButton", "feedButton", "homeMyCatsButton", "roomViewControls", "homeFloor_ground", "homeFloor_upper"].map { integrated62Element($0, in: app) }
         for obstacle in obstacles {
             XCTAssertFalse(preview.frame.intersects(obstacle.frame),
                            "Preview \(preview.frame) covers \(obstacle.identifier) \(obstacle.frame).", file: file, line: line)
             XCTAssertTrue(obstacle.exists && obstacle.isHittable, "The preview must leave care controls and context accessible.", file: file, line: line)
         }
-        XCTAssertEqual(integrated62Element("homeCaringContext", in: app).frame, contextFrame, file: file, line: line)
+        XCTAssertEqual(integrated62Element("homeMyCatsButton", in: app).frame, contextFrame, file: file, line: line)
         for id in ["roomResidentGrowthButton", "roomResidentCompanionButton"] {
             let button = integrated62Element(id, in: app)
             if !(button.exists && button.isEnabled && button.isHittable) {

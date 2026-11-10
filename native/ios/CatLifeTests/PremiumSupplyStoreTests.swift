@@ -57,13 +57,40 @@ final class PremiumSupplyStoreTests: XCTestCase {
                         "room.inspectResident", "releases.59.title", "releases.59.body",
                         "roomView.current", "roomView.angle.left", "roomView.angle.front", "roomView.angle.right",
                         "roomView.whole", "roomView.close", "roomView.turnLeft", "roomView.turnRight",
-                        "roomView.showWhole", "roomView.showClose", "releases.62.title", "releases.62.body"] {
+                        "roomView.showWhole", "roomView.showClose", "releases.62.title", "releases.62.body",
+                        "releases.64.title", "releases.64.body"] {
                 XCTAssertNotNil(dictionary[key], "Each language must register \(key) without relying on a fallback.")
             }
         }
-        XCTAssertEqual(AppVersion.current.version, "0.20.0")
-        XCTAssertEqual(AppVersion.current.build, "62")
-        XCTAssertEqual(AppRelease.recent.map(\.build), [62, 61, 60])
+        XCTAssertEqual(AppVersion.current.version, "0.20.1")
+        XCTAssertEqual(AppVersion.current.build, "64")
+        XCTAssertEqual(AppRelease.recent.map(\.build), [64, 62, 61])
+    }
+
+    @MainActor
+    func testHomeHUDStringsAreRegisteredAndFormatInEveryLanguage() {
+        let previous = GameLocalization.shared.language
+        defer { GameLocalization.shared.language = previous }
+        let keys: Set<String> = ["home63.switchSummary", "home63.switchShort", "home63.profileAction", "home63.closeCat",
+                                 "home63.needFor", "home63.need.food", "home63.need.clean", "home63.need.play",
+                                 "home63.need.hospital", "home63.level"]
+        for dictionary in [GameStrings.chinese, GameStrings.traditionalChinese, GameStrings.english] {
+            XCTAssertEqual(Set(dictionary.keys.filter { $0.hasPrefix("home63.") }), keys)
+            for key in keys {
+                XCTAssertFalse(dictionary[key, default: ""].isEmpty, "Each language must register \(key).")
+            }
+        }
+        for (language, summary, closeCat, needFor) in [
+            (GameLanguage.simplifiedChinese, "2只猫 · 点猫或这里切换", "近看Mochi", "Mochi想要"),
+            (.traditionalChinese, "2隻貓 · 點貓或這裡切換", "近看Mochi", "Mochi想要"),
+            (.english, "2 cats · Tap a cat or here to switch", "Close up: Mochi", "Mochi wants")
+        ] {
+            GameLocalization.shared.language = language
+            XCTAssertEqual(GameStrings.format("home63.switchSummary", 2), summary)
+            XCTAssertEqual(GameStrings.format("home63.closeCat", "Mochi"), closeCat)
+            XCTAssertEqual(GameStrings.format("home63.needFor", "Mochi"), needFor)
+            XCTAssertEqual(GameStrings.format("home63.level", 6), "Lv6")
+        }
     }
 
     @MainActor

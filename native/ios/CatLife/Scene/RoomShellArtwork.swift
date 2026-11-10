@@ -41,6 +41,15 @@ final class RoomShellArtwork: SKNode {
         let wallHeight = projection.wallHeight
         let rimHeight = max(7, unit * 0.025)
         let floorPath = path(outline)
+        let footprint = floorPath.boundingBoxOfPath
+        let shadow = SKShapeNode(ellipseOf: CGSize(width: footprint.width * 0.94, height: max(12, footprint.height * 0.36)))
+        shadow.name = "room-shell-ground-shadow"
+        shadow.position = CGPoint(x: footprint.midX, y: footprint.minY + footprint.height * 0.26 - rimHeight)
+        shadow.fillColor = UIColor(red: 0.34, green: 0.23, blue: 0.12, alpha: 0.13)
+        shadow.strokeColor = .clear
+        shadow.glowWidth = max(3, unit * 0.02)
+        shadow.zPosition = -60
+        addChild(shadow)
 
         for index in outline.indices {
             let a = outline[index], b = outline[(index + 1) % outline.count]

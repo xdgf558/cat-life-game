@@ -62,7 +62,7 @@ extension GameStrings {
         "onboarding.supplies.tip3": "Arrange lets you move furniture in your room. Furniture stored in your bag can be placed again later.",
         "onboarding.tasks.title": "Start with one small goal",
         "onboarding.tasks.explore": "Explore tasks",
-        "onboarding.tasks.tip1": "Open Tasks from home or More to find starter goals, daily tasks, and longer-term achievements.",
+        "onboarding.tasks.tip1": "Open Tasks in More to find starter goals, daily tasks, and longer-term achievements. A red dot on More means rewards are ready to claim.",
         "onboarding.tasks.tip2": "Tap Claim when a goal is complete. Rewards arrive after saving succeeds, and claimed cards disappear.",
         "onboarding.tasks.tip3": "Daily tasks refresh on a new day. More goals become available as you level up.",
         "onboarding.town.title": "Take a stroll through Cat Town",
@@ -1061,4 +1061,5 @@ extension GameStrings {
     ].merging(careers57English) { _, new in new }.merging(design55English) { _, new in new }.merging(marketDesign55English) { _, new in new }.merging(supplyDesign55English) { _, new in new }.merging(shopDesign55English) { _, new in new }.merging(marketEnglish) { _, new in new }.merging(furniture54English) { _, new in new }.merging(suppliesEnglish) { _, new in new }.merging(catGrowth57English) { _, new in new }.merging(shopBrowseEnglish) { _, new in new }.merging(homeExpansion58English) { _, new in new }.merging(homeInventory58English) { _, new in new }.merging(townMap58English) { _, new in new }.merging(townMusic58English) { _, new in new }.merging(sharedHome59English) { _, new in new }.merging(townEvents60English) { _, new in new }
         .merging(handoff61English) { _, new in new }
         .merging(roomViews62English) { _, new in new }
+        .merging(homeHUD63English) { _, new in new }
 }

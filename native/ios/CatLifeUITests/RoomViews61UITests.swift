@@ -23,7 +23,7 @@ extension RoomHomeUITests {
         assertRoomView61Layout(right, equals: initial)
         XCTAssertFalse(element("roomViewRightButton", in: app).isEnabled)
         attachScreenshot(app, named: "Room 61 — complete right view")
-        tapAnimationControl("focusCatButton", in: app)
+        tapAnimationControl("roomOverviewButton", in: app)
         assertRoomView61Layout(try waitForRoomView61(whole: false, in: app), equals: initial)
         tapAnimationControl("roomOverviewButton", in: app)
         assertRoomView61Layout(try waitForRoomView61(whole: true, in: app), equals: initial)
@@ -32,8 +32,8 @@ extension RoomHomeUITests {
         let ground = try waitForRoomView61(whole: true, in: app)
         assertRoomView61Layout(ground, equals: initial)
         let gold = try XCTUnwrap(element("goldCount", in: app).value as? String)
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForHomeFloor("upper", in: app)
         _ = try waitForRoomView61(angle: 0, whole: true, in: app)
 
         tapAnimationControl("homeDecorateButton", in: app)
@@ -66,17 +66,17 @@ extension RoomHomeUITests {
         tapAnimationControl("tabHome", in: app)
         assertRoomView61Layout(try waitForRoomView61(angle: beforeNavigation.viewAngle,
                                                    whole: beforeNavigation.wholeRoom, in: app), equals: upstairs)
-        tapAnimationControl("focusCatButton", in: app)
+        tapAnimationControl("roomOverviewButton", in: app)
         _ = try waitForRoomView61(whole: false, in: app)
         app.terminate()
         app.launchArguments = arguments(reset: false) + ["--furniture-test"]
         launchAndEnterHome(app)
-        waitForObservedValue("homeStairsButton", "1F · 一楼", in: app)
+        waitForHomeFloor("ground", in: app)
         assertRoomView61Layout(try waitForRoomView61(angle: 0, whole: true, in: app), equals: ground)
         waitForObservedValue("goldCount", gold, in: app)
         waitForObservedValue("foodCount", "5", in: app)
-        tapAnimationControl("homeStairsButton", in: app)
-        waitForObservedValue("homeStairsButton", "2F · 二楼", in: app)
+        tapAnimationControl("homeFloor_upper", in: app)
+        waitForHomeFloor("upper", in: app)
         assertRoomView61Layout(try waitForRoomView61(angle: 0, whole: true, in: app), equals: upstairs)
         attachScreenshot(app, named: "Room 61 — saved upstairs layout after a cold launch")
     }
@@ -107,12 +107,14 @@ extension RoomHomeUITests {
             _ = try waitForRoomView61(angle: 0, whole: true, in: app)
             tapAnimationControl("roomViewRightButton", in: app)
             _ = try waitForRoomView61(angle: 1, whole: true, in: app)
-            tapAnimationControl("focusCatButton", in: app)
+            tapAnimationControl("roomOverviewButton", in: app)
             _ = try waitForRoomView61(whole: false, in: app)
             tapAnimationControl("roomOverviewButton", in: app)
             _ = try waitForRoomView61(whole: true, in: app)
             assertRoomView61ControlsVisible(in: app, atFront: false)
-            tapAnimationControl("homeStairsButton", in: app)
+            let nextFloor = element("homeFloor_ground", in: app).isSelected ? "upper" : "ground"
+            tapAnimationControl("homeFloor_" + nextFloor, in: app)
+            waitForHomeFloor(nextFloor, in: app)
             _ = try waitForRoomView61(angle: 0, whole: true, in: app)
             assertRoomView61ControlsVisible(in: app)
             attachScreenshot(app, named: "Room 61 — \(language) stairs keep the full room visible")
@@ -165,14 +167,14 @@ extension RoomHomeUITests {
         tapAnimationControl("homeUpgradeConfirm", in: app)
         tapAnimationControl("homeUpgradeCelebrationDone", in: app)
         tapAnimationControl("layoutCancelButton", in: app)
-        waitForElement("homeStairsButton", in: app)
+        waitForElement("homeFloor_upper", in: app)
         _ = try waitForRoomView61(whole: true, in: app)
     }
 
     @MainActor
     private func assertRoomView61ControlsVisible(in app: XCUIApplication, atFront: Bool = true,
                                                 file: StaticString = #filePath, line: UInt = #line) {
-        let identifiers = ["roomViewLeftButton", "roomOverviewButton", "roomViewRightButton", "focusCatButton", "homeStairsButton"]
+        let identifiers = ["roomViewLeftButton", "roomOverviewButton", "roomViewRightButton", "homeFloor_ground", "homeFloor_upper"]
         let controls = identifiers.map { element($0, in: app) }
         let viewport = app.frame.insetBy(dx: -0.5, dy: -0.5)
         let tabs = element("homeNavigationBar", in: app).frame

@@ -6,49 +6,6 @@ struct HomeUpgradeCelebration: Identifiable, Equatable {
     let level: Int
 }
 
-/// A landing outside the furniture canvas, so adding a floor never displaces
-/// an old layout or puts a new obstacle underneath a sleeping cat.
-@MainActor
-struct HomeStairLanding: View {
-    let store: GameStore
-    var roomReady = true
-    private var destination: HomeFloor { store.visibleHomeFloor == .ground ? .upper : .ground }
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var floats = false
-
-    var body: some View {
-        Button {
-            if !roomReady && !store.isDecorating { store.showFurnitureNotice("homeFloor.waitCare") }
-            else { Task { await store.changeHomeFloor(to: destination) } }
-        } label: {
-            VStack(spacing: 5) {
-                HStack(spacing: 3) {
-                    Image(systemName: store.visibleHomeFloor == .ground ? "arrow.up" : "arrow.down")
-                    Text(GameStrings.text("homeFloor.to.\(destination.rawValue)"))
-                }
-                .font(.caption2.weight(.heavy)).foregroundStyle(.white).padding(.horizontal, 9).padding(.vertical, 4)
-                .background(RoomTheme.mint, in: Capsule()).overlay(Capsule().stroke(.white, lineWidth: 2))
-                .offset(y: !reduceMotion && floats ? -3 : 0)
-                GameIcon(asset: "room-stairs-cartoon", symbol: "stairs", size: 52, tint: RoomTheme.darkMint)
-            }
-            .padding(4).frame(minWidth: 76).contentShape(Rectangle())
-            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-        }
-        .buttonStyle(.plain)
-        .disabled(store.isBusy || store.isChangingHomeFloor)
-        .opacity(store.canChangeHomeFloor && roomReady ? 1 : 0.6)
-        .accessibilityIdentifier("homeStairsButton")
-        .accessibilityLabel(GameStrings.text("homeFloor.to.\(destination.rawValue)"))
-        .accessibilityValue(GameStrings.text("homeFloor.\(store.visibleHomeFloor.rawValue)"))
-        .accessibilityHint(GameStrings.text(store.isDecorating ? "homeFloor.finishLayout" : "homeFloor.hint"))
-        .task(id: reduceMotion) {
-            floats = false
-            guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 1).repeatForever(autoreverses: true)) { floats = true }
-        }
-    }
-}
-
 @MainActor
 struct HomeUpgradeCelebrationView: View {
     let celebration: HomeUpgradeCelebration

@@ -10,7 +10,7 @@ extension RoomHomeUITests {
         let room = element("roomScene", in: app).frame
         let food = element("foodCount", in: app).value as? String
         let gold = element("goldCount", in: app).value as? String
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         XCTAssertFalse(element("catGrowthAge", in: app).exists, "Growth details belong on a separate page.")
         scrollCareerPage("catProfileScroll", to: "catGrowthEntry", in: app)
         tapAnimationControl("catGrowthEntry", in: app)
@@ -56,7 +56,7 @@ extension RoomHomeUITests {
         XCTAssertEqual(element("goldCount", in: app).value as? String, gold)
         relaunchPreservingSave(app)
         waitForObservedValue("homeCatName", "牛奶", in: app)
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         scrollCareerPage("catProfileScroll", to: "catGrowthEntry", in: app)
         tapAnimationControl("catGrowthEntry", in: app)
         waitForObservedValue("catGrowthAge", "6 个月 20 天", in: app)
@@ -70,7 +70,7 @@ extension RoomHomeUITests {
         launchAndEnterHome(app)
         let food = element("foodCount", in: app).value as? String
         let gold = element("goldCount", in: app).value as? String
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         scrollCareerPage("catProfileScroll", to: "catGrowthEntry", in: app)
         tapAnimationControl("catGrowthEntry", in: app)
 
@@ -116,7 +116,7 @@ extension RoomHomeUITests {
             "-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
         launchAndEnterHome(app)
         selectCatTestLanguage("en", in: app)
-        tapAnimationControl("homeCatProfileButton", in: app)
+        try openCurrentCatProfile(in: app)
         scrollCareerPage("catProfileScroll", to: "catGrowthEntry", in: app)
         tapAnimationControl("catGrowthEntry", in: app)
         for identifier in ["catGrowthAge", "catGrowthSex", "catGrowthStage", "catGrowthNextStage", "catGrowthNextBond", "catGrowthJoined"] {

@@ -214,28 +214,20 @@ extension RoomHomeUITests {
         let app = launchFurnitureHome()
         let roomFrame = element("roomScene", in: app).frame
         let original = furnitureState(in: app)
-        waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
-        tapAnimationControl("homeCareVisibilityButton", in: app)
-        waitForObservedValue("homeCareVisibilityButton", "hidden", in: app)
-        for id in ["feedButton", "cleanButton", "playButton", "homeCatInfo", "foodCount"] {
-            XCTAssertFalse(element(id, in: app).exists, "\(id) should leave the accessibility tree when care HUD is hidden.")
-        }
-        XCTAssertTrue(element("homeCareVisibilityButton", in: app).isHittable)
-        waitForObservedValue("goldCount", "200", in: app)
-        assertRoomFrame(roomFrame, in: app, context: "hiding care controls to view the floor")
-        attachScreenshot(app, named: "Redesign — unobstructed room with care HUD hidden")
-        tapAnimationControl("homeCareVisibilityButton", in: app)
-        waitForObservedValue("homeCareVisibilityButton", "visible", in: app)
-        for id in ["feedButton", "cleanButton", "playButton", "homeCatInfo"] {
+        XCTAssertFalse(element("homeCareVisibilityButton", in: app).exists)
+        for id in ["feedButton", "cleanButton", "playButton", "homeMyCatsButton", "foodCount"] {
             waitForElement(id, in: app)
+            XCTAssertTrue(element(id, in: app).isHittable, "\(id) must be available without opening care controls.")
         }
-        assertRoomFrame(roomFrame, in: app, context: "restoring care controls")
-        assertHomeControlRows(in: app, stage: "restored adaptive care HUD")
+        waitForObservedValue("goldCount", "200", in: app)
+        assertHomeControlRows(in: app, stage: "permanent horizontal care bar")
 
         tapAnimationControl("homeDecorateButton", in: app)
         _ = waitForFurniture(in: app, description: "editing before collapsing arrangement tray", matching: {
             $0.phase == "editing" && !$0.pending
         })
+        XCTAssertFalse(element("homeCareBar63", in: app).exists, "Arrangement replaces the care row with its real furniture tray.")
+        let editingRoomFrame = element("roomScene", in: app).frame
         waitForObservedValue("layoutTrayToggle", "expanded", in: app)
         waitForElement("selectedFurnitureName", in: app)
         tapAnimationControl("layoutTrayToggle", in: app)
@@ -246,13 +238,13 @@ extension RoomHomeUITests {
         for id in ["layoutCancelButton", "layoutDoneButton", "layoutTrayToggle"] {
             XCTAssertTrue(element(id, in: app).isHittable, "\(id) must stay reachable with the tray collapsed.")
         }
-        assertRoomFrame(roomFrame, in: app, context: "collapsing the arrangement tray")
+        assertRoomFrame(editingRoomFrame, in: app, context: "collapsing the arrangement tray")
         attachScreenshot(app, named: "Redesign — collapsed arrangement tray with fixed cancel and done")
         tapAnimationControl("layoutTrayToggle", in: app)
         waitForObservedValue("layoutTrayToggle", "expanded", in: app)
         waitForElement("selectedFurnitureName", in: app)
         XCTAssertTrue(element("furnitureInventoryButton", in: app).isHittable)
-        assertRoomFrame(roomFrame, in: app, context: "expanding the arrangement tray")
+        assertRoomFrame(editingRoomFrame, in: app, context: "expanding the arrangement tray")
         tapAnimationControl("layoutTrayToggle", in: app)
         waitForObservedValue("layoutTrayToggle", "collapsed", in: app)
         tapAnimationControl("layoutCancelButton", in: app)

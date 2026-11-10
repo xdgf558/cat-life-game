@@ -7,6 +7,12 @@ struct GameBottomBar: View {
     @Binding var moreVisible: Bool
     let select: (HomeSheet?) -> Void
 
+    private var claimableTaskCount: Int {
+        store.snapshot.map { snapshot in
+            GameTaskCatalog.all.filter { GameTaskCatalog.isClaimable($0, in: snapshot) }.count
+        } ?? 0
+    }
+
     var body: some View {
         HStack(spacing: 2) {
             tab("tab.home", english: "Home", symbol: "house.fill", id: "tabHome",
@@ -22,6 +28,15 @@ struct GameBottomBar: View {
                 store.playFeedback(moreVisible ? .back : .sheet)
                 withAnimation(.easeOut(duration: 0.18)) { moreVisible.toggle() }
             }
+            .overlay(alignment: .top) {
+                if claimableTaskCount > 0 {
+                    Circle().fill(RoomTheme.coralDeep).frame(width: 8, height: 8)
+                        .overlay(Circle().strokeBorder(RoomTheme.paper, lineWidth: 1.5))
+                        .offset(x: 14, y: 1).allowsHitTesting(false).accessibilityHidden(true)
+                }
+            }
+            .accessibilityValue(claimableTaskCount > 0 ? GameStrings.format("tasks.claimableCount", claimableTaskCount) : "")
+            .onboardingTarget(.tasks)
         }
         .padding(.horizontal, 8).padding(.vertical, 4)
         .background(RoomTheme.paper, in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))

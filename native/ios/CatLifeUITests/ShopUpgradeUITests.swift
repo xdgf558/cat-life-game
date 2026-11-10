@@ -165,7 +165,7 @@ extension RoomHomeUITests {
         XCTAssertGreaterThan(abs(afterPan.number("cameraX") - beforePan.number("cameraX"))
                              + abs(afterPan.number("cameraY") - beforePan.number("cameraY")), 5)
         XCTAssertEqual(afterPan.savedLayout, beforePan.savedLayout, "Panning cannot save a furniture move.")
-        tapAnimationControl("focusCatButton", in: app)
+        tapAnimationControl("roomOverviewButton", in: app)
         attachScreenshot(app, named: "Expanded room — camera view with unchanged cat and furniture scale")
         app.terminate()
         app.launchArguments = arguments(reset: false) + ["--furniture-test"]

@@ -62,7 +62,7 @@ extension GameStrings {
         "onboarding.supplies.tip3": "房間裡的「佈置」可以移動家具；收納到背包的家具，之後還能重新擺放。",
         "onboarding.tasks.title": "從一個小目標開始",
         "onboarding.tasks.explore": "前往看看任務",
-        "onboarding.tasks.tip1": "從首頁或「更多」裡的任務入口，可以查看新手目標、每日任務和長期成就。",
+        "onboarding.tasks.tip1": "從「更多」裡的任務入口，可以查看新手目標、每日任務和長期成就；有獎勵可領取時，「更多」會顯示紅點。",
         "onboarding.tasks.tip2": "完成後點「領取」。獎勵儲存成功才到帳，領過的卡片會自動隱藏。",
         "onboarding.tasks.tip3": "每日任務在新的一天重新整理。等級提高後，還會出現更多目標。",
         "onboarding.town.title": "出門逛逛貓町",
@@ -1061,4 +1061,5 @@ extension GameStrings {
     ].merging(careers57TraditionalChinese) { _, new in new }.merging(design55TraditionalChinese) { _, new in new }.merging(marketDesign55TraditionalChinese) { _, new in new }.merging(supplyDesign55TraditionalChinese) { _, new in new }.merging(shopDesign55TraditionalChinese) { _, new in new }.merging(marketTraditionalChinese) { _, new in new }.merging(furniture54TraditionalChinese) { _, new in new }.merging(suppliesTraditionalChinese) { _, new in new }.merging(catGrowth57Traditional) { _, new in new }.merging(shopBrowseTraditionalChinese) { _, new in new }.merging(homeExpansion58Traditional) { _, new in new }.merging(homeInventory58Traditional) { _, new in new }.merging(townMap58Traditional) { _, new in new }.merging(townMusic58Traditional) { _, new in new }.merging(sharedHome59Traditional) { _, new in new }.merging(townEvents60Traditional) { _, new in new }
         .merging(handoff61Traditional) { _, new in new }
         .merging(roomViews62Traditional) { _, new in new }
+        .merging(homeHUD63Traditional) { _, new in new }
 }
