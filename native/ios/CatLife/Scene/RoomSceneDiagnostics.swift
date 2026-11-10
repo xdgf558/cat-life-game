@@ -192,7 +192,7 @@ final class RoomSceneDiagnostics {
 
     func publishNavigationStatus(phase presentationPhase: String, cat: CatActor, bowl: CGPoint,
                                  geometry: RoomWorldGeometry, presentation: RoomPresentationRenderer) {
-        let size = geometry.viewportSize
+        let size = presentation.camera.viewportSize
         guard navigationTesting, size.width > 0, size.height > 0 else { return }
         let catPoint = presentation.anchor("cat") ?? .zero
         let bowlPoint = presentation.anchor("bowl") ?? .zero
@@ -205,7 +205,7 @@ final class RoomSceneDiagnostics {
     }
     func publishDragMetrics(pending isPlacementPending: Bool, bowl: CGPoint,
                             geometry: RoomWorldGeometry, presentation: RoomPresentationRenderer) {
-        let size = geometry.viewportSize
+        let size = presentation.camera.viewportSize
         guard dragTesting, size.width > 0, size.height > 0 else { return }
         let point = presentation.anchor("bowl") ?? .zero
         dragDescription = String(format: "%d|%.3f|%d|%.3f,%.3f", dragMoveSamples, maximumDragMoveMs,
@@ -215,7 +215,7 @@ final class RoomSceneDiagnostics {
 
     func publishFurnitureStatus(_ state: FurnitureState, cat: CatActor, bowl: CGPoint,
                                 residents: RoomResidentCats, bowlHasFood: Bool) {
-        let size = state.geometry.viewportSize
+        let size = state.presentation.camera.viewportSize
         let worldSize = state.geometry.worldSize
         func screenPoint(_ point: CGPoint) -> [String: CGFloat] {
             let projected = state.presentation.camera.viewPoint(projectedWorld: state.presentation.projection.project(point))

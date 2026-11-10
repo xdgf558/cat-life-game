@@ -73,6 +73,7 @@ struct RoomSceneHost: View {
     @State private var isWholeRoomView = true
     @State private var canChangeRoomView = false
     let catNeedPresentation: CatNeedPresentation
+    let referenceViewportSize: CGSize
     var arrangementBottomInset: CGFloat = 0
     #if DEBUG
     @State private var animationPhase = "idle"
@@ -308,7 +309,12 @@ struct RoomSceneHost: View {
             }
             .onChange(of: geometry.size) { _, size in
                 cancelViewTransition()
+                scene.setReferenceViewportSize(referenceViewportSize)
                 scene.size = size
+            }
+            .onChange(of: referenceViewportSize) { _, size in
+                cancelViewTransition()
+                scene.setReferenceViewportSize(size)
             }
             .onChange(of: geometry.frame(in: .global).origin) { _, origin in catNeedPresentation.canvasOrigin = origin }
             .onChange(of: effectiveReducedMotion) { _, value in
@@ -335,6 +341,7 @@ struct RoomSceneHost: View {
     }
 
     private func configureScene(geometry: GeometryProxy) {
+        scene.setReferenceViewportSize(referenceViewportSize)
         scene.scaleMode = .resizeFill
         if scene.size != geometry.size { scene.size = geometry.size }
         #if DEBUG

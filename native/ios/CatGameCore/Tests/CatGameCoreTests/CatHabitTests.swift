@@ -269,7 +269,7 @@ struct CatHabitTests {
             for i in cats.indices { cats[i].removeValue(forKey: "habits") }
             json["cats"] = cats
             let migrated = try NativeSaveCodec.decodeSnapshot(JSONSerialization.data(withJSONObject: json), now: now)
-            #expect(migrated.schemaVersion == 12)
+            #expect(migrated.schemaVersion == 13)
             #expect(migrated.player == original.player)
             #expect(migrated.inventory == original.inventory)
             #expect(migrated.cats == original.cats)
@@ -280,14 +280,17 @@ struct CatHabitTests {
 
     @Test func currentSchemaMissingOrMalformedHabitProgressIsRejectedInsteadOfReset() throws {
         let original = GameSnapshot.fresh(now: now)
-        for key in ["catPlay", "habits"] {
-            var json = try #require(JSONSerialization.jsonObject(with: NativeSaveCodec.encoder().encode(original)) as? [String: Any])
-            if key == "catPlay" { json.removeValue(forKey: key) }
-            else {
-                var cats = try #require(json["cats"] as? [[String: Any]])
-                cats[0].removeValue(forKey: key); json["cats"] = cats
+        for schema in [12, 13] {
+            for key in ["catPlay", "habits"] {
+                var json = try #require(JSONSerialization.jsonObject(with: NativeSaveCodec.encoder().encode(original)) as? [String: Any])
+                json["schemaVersion"] = schema
+                if key == "catPlay" { json.removeValue(forKey: key) }
+                else {
+                    var cats = try #require(json["cats"] as? [[String: Any]])
+                    cats[0].removeValue(forKey: key); json["cats"] = cats
+                }
+                #expect(throws: (any Error).self) { try NativeSaveCodec.decodeSnapshot(JSONSerialization.data(withJSONObject: json), now: now) }
             }
-            #expect(throws: (any Error).self) { try NativeSaveCodec.decodeSnapshot(JSONSerialization.data(withJSONObject: json), now: now) }
         }
         var invalid = original
         invalid.cats[0].habits.restClueSessionIDs = ["same", "same"]
@@ -389,7 +392,7 @@ struct CatHabitTests {
 
     private func expireHistoricalSession(_ data: Data, startedAt start: Date) throws -> GameSnapshot {
         var loaded = try NativeSaveCodec.decodeSnapshot(data, now: start.addingTimeInterval(3))
-        #expect(loaded.schemaVersion == 12 && loaded.isValid)
+        #expect(loaded.schemaVersion == 13 && loaded.isValid)
         let session = try #require(loaded.catPlay.activeSession)
         let inventory = loaded.inventory
         let tasks = loaded.tasks

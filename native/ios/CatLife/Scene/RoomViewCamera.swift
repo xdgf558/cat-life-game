@@ -85,6 +85,11 @@ final class RoomViewCamera {
         center = clampedCenter(point)
     }
 
+    func recenter(on point: CGPoint) {
+        guard finite(point) else { return }
+        center = clampedCenter(point)
+    }
+
     func follow(_ point: CGPoint) {
         guard !isWholeRoom, !isPinching, panOrigin == nil, finite(point) else { return }
         let halfWidth = visibleRect.width * 0.3

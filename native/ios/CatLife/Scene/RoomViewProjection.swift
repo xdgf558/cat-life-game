@@ -15,29 +15,41 @@ enum RoomViewAngle: Int, CaseIterable, Hashable, Sendable {
 struct RoomViewProjection: Sendable {
     let worldSize: CGSize
     let angle: RoomViewAngle
+    let frontFloor: RoomFrontFloorProjection?
 
-    var wallHeight: CGFloat { min(worldSize.width * 0.43, worldSize.height * 0.27) }
+    var wallHeight: CGFloat {
+        if angle == .front, let frontFloor { return frontFloor.destination.height * 0.34 / 0.66 }
+        return min(worldSize.width * 0.43, worldSize.height * 0.27)
+    }
 
-    init(worldSize: CGSize, angle: RoomViewAngle) {
+    init(worldSize: CGSize, angle: RoomViewAngle, frontFloor: RoomFrontFloorProjection? = nil) {
         self.worldSize = worldSize
         self.angle = angle
+        self.frontFloor = frontFloor
     }
 
     func project(_ point: CGPoint) -> CGPoint {
-        guard angle != .front else { return point }
+        if angle == .front { return frontFloor?.project(point) ?? point }
         let center = CGPoint(x: worldSize.width / 2, y: worldSize.height / 2)
         let offset = vector(CGPoint(x: point.x - center.x, y: point.y - center.y))
         return CGPoint(x: center.x + offset.x, y: center.y + offset.y)
     }
 
     func unproject(_ point: CGPoint) -> CGPoint {
-        guard angle != .front else { return point }
+        if angle == .front { return frontFloor?.unproject(point) ?? point }
         let center = CGPoint(x: worldSize.width / 2, y: worldSize.height / 2)
         let offset = transform(CGPoint(x: point.x - center.x, y: point.y - center.y), radians: -angle.radians)
         return CGPoint(x: center.x + offset.x, y: center.y + offset.y)
     }
 
-    func vector(_ delta: CGPoint) -> CGPoint { transform(delta, radians: angle.radians) }
+    /// Rectification is piecewise affine, so a local displacement must retain its origin.
+    func vector(_ delta: CGPoint, at origin: CGPoint = .zero) -> CGPoint {
+        if angle == .front, frontFloor != nil {
+            let a = project(origin), b = project(CGPoint(x: origin.x + delta.x, y: origin.y + delta.y))
+            return CGPoint(x: b.x - a.x, y: b.y - a.y)
+        }
+        return transform(delta, radians: angle.radians)
+    }
 
     /// Ground depth excludes a sprite's height, so tall furniture still sorts by its feet.
     func projectedDepth(_ point: CGPoint) -> CGFloat { project(point).y }
@@ -45,6 +57,11 @@ struct RoomViewProjection: Sendable {
     /// Wall decorations retain their original wall coordinates; only their displayed height is remapped.
     func wallPoint(_ point: CGPoint) -> CGPoint {
         guard sourceWallHeight > 0, wallHeight > 0 else { return project(point) }
+        if angle == .front, let frontFloor {
+            let ground = wallGround(at: point.x)
+            return CGPoint(x: frontFloor.project(ground).x,
+                           y: frontFloor.destination.maxY + (point.y - ground.y) * wallHeight / sourceWallHeight)
+        }
         let ground = wallGround(at: point.x)
         let projected = project(ground)
         return CGPoint(x: projected.x, y: projected.y + (point.y - ground.y) * wallHeight / sourceWallHeight)
@@ -52,6 +69,15 @@ struct RoomViewProjection: Sendable {
 
     func unprojectWallPoint(_ point: CGPoint) -> CGPoint {
         guard sourceWallHeight > 0, wallHeight > 0 else { return unproject(point) }
+        if angle == .front, let frontFloor {
+            // Legal decorations lie on one straight legacy right-wall edge, whose rectified x mapping is affine.
+            let leftX = worldSize.width / 2, rightX = worldSize.width * 0.75
+            let a = frontFloor.project(wallGround(at: leftX)), b = frontFloor.project(wallGround(at: rightX))
+            guard abs(b.x - a.x) > 0.00001 else { return unproject(point) }
+            let x = leftX + (point.x - a.x) * (rightX - leftX) / (b.x - a.x)
+            let ground = wallGround(at: x)
+            return CGPoint(x: x, y: ground.y + (point.y - frontFloor.destination.maxY) * sourceWallHeight / wallHeight)
+        }
         let a = project(wallGround(at: 0)), b = project(wallGround(at: worldSize.width))
         guard abs(b.x - a.x) > 0.00001 else { return unproject(point) }
         let x = (point.x - a.x) / (b.x - a.x) * worldSize.width
