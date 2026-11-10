@@ -1,4 +1,8 @@
-最新上传：0.18.0（59）多猫同屋、任务翻译与照顾修复，2026-11-09 07:00（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
+最新上传：0.20.0（62）完整房间、三视角与UI/UX设计整合，2026-11-10 09:23（GMT+8）上传成功。Xcode返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认Apple处理完成或测试开放；未关联内外测群组、邀请测试者或提交Beta Review，后续由用户手动添加。
+PR #24、#25已依次合并，发布源码为main提交373edbbe691342ec5fd4e6941b799d6ae9a4a00b，完整源码树与已测试的677fa66一致。新建归档0.20.0-62/TestFlight/CatLife-0.20.0-62-main.xcarchive，原始归档、日志及验证JSON均保留在Git外。归档二进制SHA256：c690d8d6cba439c09ccb21ade054e62577cd70035c9f66a2332b84f6994cf633；上传前后534项生产输入指纹一致。
+版本、Bundle ID、严格签名、描述文件、dSYM、隐私清单、45份音频和60个UI测试参数隔离均通过。归档由自动开发描述文件签名，Xcode导出时进行App Store分发重签，分发流水线确认get-task-allow关闭；不自动提升版本号，不限制为Internal Only。303项App全量及7个不同UI方法的分轮回归为同源码合并前验证，本次不计作重跑，边界见../../QA/room-views-build62-summary.md。本轮未安装真实设备或修改玩家存档。目标App ID 6830428076，Bundle ID com.stationcat.catlife.native；测试重点见room-design-0.20.0-62.txt，发布摘要见../../QA/testflight-build62-summary.md。0.19.0（60）和0.19.1（61）未单独上传，随本版交付。
+
+历史上传：0.18.0（59）多猫同屋、任务翻译与照顾修复，2026-11-09 07:00（GMT+8）上传成功。Xcode 返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认 Apple 处理完成或测试开放；未关联内外测群组、邀请测试者或提交 Beta Review，后续由用户手动添加。
 PR #22 已合并，合并提交 1fc2cefbb9fb3e4025d91a386de3607e064caf9a；本地 main 已同步，完整源码树与已审查的 8b33c45cbb53eb8be6d3d779ecfe279db423205d 一致。从 main 新建 CatLife-0.18.0-59-main.xcarchive，包含自主休息、提示去重和暂停恢复顺序的复审修复。归档二进制 SHA256：dfe7c26d2f2531c9b550a934e7514bd91996902cffd6426287738aefc323e4e7；上传前后核对468项生产输入指纹一致。
 版本、Bundle ID、严格签名、有效描述文件、dSYM、隐私清单和 Release 测试入口隔离均已校验；不自动修改构建号，不限制为 Internal Only。257项不同App测试和大小屏回归是同源码合并前验证，本次不计作重跑；范围及真机性能等限制见 ../../QA/shared-home-build59-summary.md。本轮未安装真实设备或修改玩家存档。目标 App ID 6830428076，Bundle ID com.stationcat.catlife.native。测试内容见 shared-home-0.18.0-59.txt。
 
