@@ -121,12 +121,36 @@ extension RoomHomeUITests {
                                 matching: { $0.phase == "idle" && !$0.pending && $0.restPhase == "none" })
     }
 
-    func restFurnitureTouchPoint(_ item: FurnitureItemState, cameraScale: Double = 1) -> CGVector {
-        // The cat can return in front of the bed after eating; its visible head
-        // overlaps the center. The exposed left rear mattress remains tappable.
-        let isBed = item.id == "catBed"
-        return CGVector(dx: item.x - (isBed ? 0.065 : 0) / cameraScale,
-                        dy: item.y - (isBed ? 0.055 : 0.02) / cameraScale)
+    @MainActor
+    func restFurnitureCoordinate(_ item: FurnitureItemState, in app: XCUIApplication,
+                                 file: StaticString = #filePath, line: UInt = #line) throws -> XCUICoordinate {
+        let canvas = element("roomScene", in: app).frame
+        let expected = CGPoint(x: canvas.minX + item.x * canvas.width, y: canvas.minY + item.y * canvas.height)
+        let frames = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "furniture-" + item.id))
+            .allElementsBoundByIndex.map(\.frame).filter { $0.intersects(canvas) && !$0.isEmpty }
+        // The logical source and displayed proxy share names; use the live visible frame, not a cached camera anchor.
+        let frame = try XCTUnwrap(frames.min {
+            hypot($0.midX - expected.x, $0.midY - expected.y) < hypot($1.midX - expected.x, $1.midY - expected.y)
+        }, "Expected displayed furniture \(item.id)", file: file, line: line)
+        let visible = frame.intersection(canvas)
+        let diagnostic = try XCTUnwrap(element("roomScene", in: app).value as? String, file: file, line: line)
+        let payload = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(diagnostic.utf8)) as? [String: Any],
+                                   file: file, line: line)
+        let residents = try XCTUnwrap(payload["residentCats"] as? [[String: Any]], file: file, line: line)
+        let catFrames = residents.compactMap { cat -> CGRect? in
+            guard cat["visible"] as? Bool == true,
+                  let x = cat["x"] as? Double, let y = cat["y"] as? Double,
+                  let width = cat["screenWidth"] as? Double, let height = cat["screenHeight"] as? Double else { return nil }
+            return CGRect(x: canvas.minX + x * canvas.width - width / 2,
+                          y: canvas.minY + y * canvas.height - height / 2, width: width, height: height)
+        }
+        // A cat can stand over the old tap point after leaving; touch visible furniture once, not the cat.
+        let candidates = [(0.25, 0.12), (0.75, 0.12), (0.5, 0.25), (0.75, 0.5), (0.25, 0.5)]
+            .map { CGPoint(x: visible.minX + visible.width * $0.0, y: visible.minY + visible.height * $0.1) }
+        let point = try XCTUnwrap(candidates.first { point in
+            !catFrames.contains { $0.insetBy(dx: -2, dy: -2).contains(point) }
+        }, "Expected an exposed part of furniture \(item.id)", file: file, line: line)
+        return app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: point.x, dy: point.y))
     }
 
     @MainActor
@@ -134,8 +158,7 @@ extension RoomHomeUITests {
                                     file: StaticString = #filePath, line: UInt = #line) throws -> FurnitureState {
         let before = furnitureState(in: app, file: file, line: line)
         let item = try XCTUnwrap(before.items.first { $0.id == id }, file: file, line: line)
-        element("roomScene", in: app)
-            .coordinate(withNormalizedOffset: restFurnitureTouchPoint(item, cameraScale: before.cameraScale ?? 1)).tap()
+        try restFurnitureCoordinate(item, in: app, file: file, line: line).tap()
         let resting = waitForFurniture(in: app, timeout: 60, description: "cat walks to and settles on \(id)",
                                        matching: { $0.phase == "resting" && $0.restFurniture == id && $0.restPhase == "resting"
                                            && ($0.restContactSamples ?? -1) > (before.restContactSamples ?? -1) },

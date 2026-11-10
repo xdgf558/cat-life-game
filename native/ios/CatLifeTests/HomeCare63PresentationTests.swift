@@ -17,11 +17,11 @@ final class HomeCare63PresentationTests: XCTestCase {
     @MainActor
     func testCareHintsDistinguishRestockingPremiumChoiceAndRequiredMealPortions() async throws {
         for (food, premiumFood, litter, premiumLitter, toys, required, foodHint, litterHint, playHint) in [
-            (0, 0, 0, 0, 0, 1, "care.shopFood", "care.shopLitter", "care.shopToy"),
-            (0, 1, 0, 1, 1, 1, "supply.home.foodChoice", "supply.home.litterChoice", ""),
-            (1, 1, 1, 0, 1, 2, "care.shopFood", "", ""),
-            (2, 1, 1, 0, 1, 2, "", "", ""),
-            (1, 2, 1, 0, 1, 2, "supply.home.foodShort", "", "")
+            (0, 0, 0, 0, 0, 1, "care.shopFood", "care.shopLitter", "catHabits.choosePlay"),
+            (0, 1, 0, 1, 1, 1, "supply.home.foodChoice", "supply.home.litterChoice", "catHabits.choosePlay"),
+            (1, 1, 1, 0, 1, 2, "care.shopFood", "", "catHabits.choosePlay"),
+            (2, 1, 1, 0, 1, 2, "", "", "catHabits.choosePlay"),
+            (1, 2, 1, 0, 1, 2, "supply.home.foodShort", "", "catHabits.choosePlay")
         ] {
             let now = Date()
             var state = GameSnapshot.fresh(now: now)

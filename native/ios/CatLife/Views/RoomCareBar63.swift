@@ -21,7 +21,7 @@ struct RoomCareBar63: View {
                 ? (store.snapshot?.inventory.premiumLitter ?? 0) : (store.snapshot?.inventory.litter ?? 0),
                 premium: cleanUsesPremium, stockID: cleanUsesPremium ? "litterPremiumCount" : "litterCount") { store.clean() }
             careButton(.play, key: "care.play", count: store.snapshot?.inventory.toys ?? 0,
-                premium: false, stockID: "toyCount") { store.play() }
+                premium: false, stockID: "toyCount") { store.presentPlayChoices() }
         }
         .disabled(store.isBusy || store.isDecorating || store.cat == nil)
         .accessibilityElement(children: .contain)

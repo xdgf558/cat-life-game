@@ -160,7 +160,7 @@ extension RoomHomeUITests {
             }
         }
         for identifier in ["homeNavigationBar", "workStartBar", "inventorySelectedItemBar",
-                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail", "townEventConfirmButton"] {
+                           "neighborActionBar", "communityGiftConfirmBar", "marketPaginationBar", "marketConfirmationBar", "marketResultBar", "townPlaceDetail", "townEventConfirmButton", "playTogetherActionBar"] {
             let bar = element(identifier, in: app)
             // A presented sheet covers the home bar even while its AX node remains present.
             if bar.exists, bar.isHittable, bar.frame.intersects(viewport), bar.frame.minY > contentTop {
@@ -382,7 +382,7 @@ extension RoomHomeUITests {
     }
 
     @MainActor
-    func launchAndEnterHome(_ app: XCUIApplication,
+    func launchAndEnterHome(_ app: XCUIApplication, keepsHabitIntro: Bool = false,
                                      file: StaticString = #filePath, line: UInt = #line) {
         app.launch()
         waitForWelcomeEntryReady(in: app, file: file, line: line)
@@ -410,6 +410,15 @@ extension RoomHomeUITests {
             }
         }
         waitForElement("feedButton", in: app, file: file, line: line)
+        if !keepsHabitIntro, element("habitIntroLater", in: app).exists {
+            if !element("habitIntroLater", in: app).isHittable {
+                scrollCareerPage("habitRoomPromptScroll", to: "habitIntroLater", in: app, file: file, line: line)
+            }
+            tapAnimationControl("habitIntroLater", in: app, file: file, line: line)
+            let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"),
+                                                      object: element("habitIntroBanner", in: app))
+            XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed, file: file, line: line)
+        }
     }
 
     @MainActor
@@ -462,12 +471,14 @@ extension RoomHomeUITests {
     @MainActor
     func observedHomeValue(_ identifier: String, in app: XCUIApplication) -> String? {
         if identifier == "catSatiety" || identifier == "homeCatName" {
-            guard let text = element("homeCareState63", in: app).value as? String,
+            let diagnostic = element("homeCareState63", in: app)
+            guard diagnostic.exists, let text = diagnostic.value as? String,
                   let values = try? JSONSerialization.jsonObject(with: Data(text.utf8)) as? [String: Any] else { return nil }
             if identifier == "homeCatName" { return values["name"] as? String }
             return (values["satiety"] as? NSNumber)?.stringValue
         }
-        return element(identifier, in: app).value as? String
+        let target = element(identifier, in: app)
+        return target.exists ? target.value as? String : nil
     }
 
     @MainActor
@@ -488,6 +499,10 @@ extension RoomHomeUITests {
 
     @MainActor
     func openCurrentCatProfile(in app: XCUIApplication) throws {
+        if app.launchArguments.contains("--rest-test") {
+            _ = waitForFurniture(in: app, description: "the companion has finished leaving its resting place before inspection",
+                                 matching: { $0.phase == "idle" && $0.restPhase == "none" && !$0.pending })
+        }
         let id = try XCTUnwrap(try homeCareState63(in: app)["id"] as? String)
         let measured = element("homeCareState63", in: app)
         let ready = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
@@ -495,7 +510,8 @@ extension RoomHomeUITests {
                   let frame = values["catFrame"] as? [String: Double],
                   let x = frame["x"], let y = frame["y"], let width = frame["width"], let height = frame["height"] else { return false }
             let rect = CGRect(x: x, y: y, width: width, height: height)
-            return width > 0 && height > 0 && self.element("roomStage63", in: app).frame.contains(rect)
+            return self.element("homeMyCatsButton", in: app).isEnabled
+                && width > 0 && height > 0 && self.element("roomStage63", in: app).frame.contains(rect)
         }, object: measured)
         XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed,
                        "The real projected companion frame must be visible before tapping its body.")
@@ -571,6 +587,15 @@ extension RoomHomeUITests {
                            "\(identifier) did not become tappable", file: file, line: line)
         }
         target.tap()
+    }
+
+    @MainActor
+    func tapQuickPlay(in app: XCUIApplication, file: StaticString = #filePath, line: UInt = #line) {
+        tapAnimationControl("playButton", in: app, file: file, line: line)
+        let choice = app.buttons.matching(NSPredicate(format: "identifier == %@ OR label IN %@",
+            "quickPlayChoice", ["快速陪玩", "Quick Play"])).firstMatch
+        XCTAssertTrue(choice.waitForExistence(timeout: 5), file: file, line: line)
+        choice.tap()
     }
 
     @MainActor

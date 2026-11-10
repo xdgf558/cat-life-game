@@ -1062,4 +1062,5 @@ extension GameStrings {
         .merging(handoff61Traditional) { _, new in new }
         .merging(roomViews62Traditional) { _, new in new }
         .merging(homeHUD63Traditional) { _, new in new }
+        .merging(catHabits63Traditional) { _, new in new }
 }

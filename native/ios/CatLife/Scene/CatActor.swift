@@ -21,13 +21,14 @@ final class CatActor: SKNode {
         let elevation: CGFloat
         let contactProgress: CGFloat
         let onSettled: () -> Void
+        let habitMatched: Bool?
     }
 
     private enum Activity {
         case feed(eatingPoint: CGPoint, facing: CGFloat, approach: [CGPoint], dockingPath: [CGPoint],
                   returnPath: [CGPoint], onMealFinished: () -> Void)
         case clean(home: CGPoint)
-        case play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint])
+        case play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], prepared: Bool)
         case stroll(path: [CGPoint])
         case rest(RestRequest)
 
@@ -35,7 +36,7 @@ final class CatActor: SKNode {
             switch self {
             case let .clean(home): home
             case .rest: origin
-            case let .feed(_, _, _, _, path, _), let .play(_, _, path), let .stroll(path):
+            case let .feed(_, _, _, _, path, _), let .play(_, _, path, _), let .stroll(path):
                 // Empty/single-point routes convey no movement. In particular,
                 // they must not turn a reduced-motion change into a teleport.
                 CatWalkRoute(path)?.destination ?? origin
@@ -276,8 +277,8 @@ final class CatActor: SKNode {
         submit(.clean(home: home), completion: completion)
     }
 
-    func play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], completion: @escaping () -> Void) {
-        submit(.play(landing: landing, facing: facing, returnPath: returnPath), completion: completion)
+    func play(landing: CGPoint, facing: CGFloat, returnPath: [CGPoint], prepared: Bool = false, completion: @escaping () -> Void) {
+        submit(.play(landing: landing, facing: facing, returnPath: returnPath, prepared: prepared), completion: completion)
     }
 
     func stroll(along path: [CGPoint], completion: @escaping () -> Void) {
@@ -288,13 +289,32 @@ final class CatActor: SKNode {
     /// until the scene supplies a separately validated exit with leaveRest().
     func rest(approach: [CGPoint], entry: [CGPoint], facing: CGFloat,
               duration: TimeInterval, elevation: CGFloat,
-              contactProgress: CGFloat = CatFurnitureStepTimeline.defaultContactProgress,
+               contactProgress: CGFloat = CatFurnitureStepTimeline.defaultContactProgress,
+               habitMatched: Bool? = nil,
               onSettled: @escaping () -> Void,
               completion: @escaping () -> Void) {
         submit(.rest(RestRequest(approach: approach, entry: entry, facing: facing,
-                                 duration: duration, elevation: elevation, contactProgress: contactProgress,
-                                 onSettled: onSettled)),
+                                  duration: duration, elevation: elevation, contactProgress: contactProgress,
+                                  onSettled: onSettled, habitMatched: habitMatched)),
                completion: completion)
+    }
+
+    func habitAttention(style: CatBehaviorStyle, facing direction: CGFloat) {
+        guard !isPerforming, !isEnteringFurniture else { return }
+        stopIdle(); setFacing(direction)
+        let action: SKAction
+        switch style {
+        case .playful: action = frame(.expressions, 4, hold: 0.08)
+        case .curious: action = frames(.expressions, [4, 5, 4], durations: [0.15, 0.1, 0.1])
+        case .quiet: action = frames(.play, [0, 1], durations: [0.18, 0.16])
+        }
+        run(action, withKey: "habit-attention")
+    }
+
+    func habitWaiting(facing direction: CGFloat) {
+        guard !isPerforming, !isEnteringFurniture else { return }
+        removeAction(forKey: "habit-attention")
+        stopIdle(); setFacing(direction); show(.expressions, frame: 4)
     }
 
     /// The scene may interrupt a rest while approaching, stepping in or asleep.
@@ -395,6 +415,7 @@ final class CatActor: SKNode {
         activityGeneration += 1
         stopIdle()
         removeAction(forKey: "activity")
+        removeAction(forKey: "habit-attention")
         pose.removeAllActions()
         sprite.removeAllActions()
         let callbacks = completions + (pending?.completions ?? [])
@@ -424,6 +445,7 @@ final class CatActor: SKNode {
     private func start(_ activity: Activity, completions callbacks: [() -> Void]) {
         stopIdle()
         removeAction(forKey: "activity")
+        removeAction(forKey: "habit-attention")
         activityGeneration += 1
         let generation = activityGeneration
         isPerforming = true
@@ -457,8 +479,8 @@ final class CatActor: SKNode {
                                     dockingPath: dockingPath, returnPath: returnPath,
                                     generation: generation, onMealFinished: onMealFinished)
             case let .clean(home): animation = cleaning(home: home)
-            case let .play(landing, facing, returnPath):
-                animation = playing(landing: landing, facing: facing, returnPath: returnPath)
+            case let .play(landing, facing, returnPath, prepared):
+                animation = playing(landing: landing, facing: facing, returnPath: returnPath, prepared: prepared)
             case let .stroll(path): animation = strolling(along: path)
             case .rest: preconditionFailure("Rest is composed above")
             }
@@ -516,6 +538,9 @@ final class CatActor: SKNode {
             self.restPhase = .settling
             self.setFacing(request.facing)
         }]
+        if let matched = request.habitMatched {
+            actions.append(frames(.expressions, matched ? [6, 3, 0] : [4, 5, 0], durations: [0.14, 0.12, 0.10]))
+        }
         actions.append(settlingAfterStep(elevation: request.elevation, generation: generation))
         actions.append(.run { [weak self] in
             guard let self, self.activityGeneration == generation else { return }
@@ -898,7 +923,7 @@ final class CatActor: SKNode {
         ])
     }
 
-    private func playing(landing: CGPoint, facing direction: CGFloat, returnPath: [CGPoint]) -> SKAction {
+    private func playing(landing: CGPoint, facing direction: CGFloat, returnPath: [CGPoint], prepared: Bool) -> SKAction {
         let origin = position
         guard landing.x.isFinite, landing.y.isFinite else { return frame(.expressions, 6, hold: 0.35) }
         let leapHeight = visualWidth * 0.095
@@ -922,10 +947,15 @@ final class CatActor: SKNode {
             self.show(.play, frame: t < 0.48 ? 5 : 6)
             self.deform(chest: Float(-0.014 * sin(t * .pi)), sway: 0)
         }
-        return .sequence([
+        let preparation: [SKAction] = prepared ? [
+            .run { [weak self] in self?.setFacing(direction) },
+            frames(.play, [1, 2], durations: [0.08, 0.12])
+        ] : [
             frame(.expressions, 4, hold: Double.random(in: 0.30...0.52)),
             stand(facing: direction),
-            frames(.play, [0, 1, 2], durations: [0.09, 0.14, 0.21]),
+            frames(.play, [0, 1, 2], durations: [0.09, 0.14, 0.21])
+        ]
+        return .sequence(preparation + [
             leap,
             .run { [weak self] in self?.onSound?(.play) },
             .run { [weak self] in self?.position = landing },

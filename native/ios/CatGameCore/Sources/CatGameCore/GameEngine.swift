@@ -39,6 +39,7 @@ public enum GameEngine {
         guard synchronized.succeeded else { return synchronized }
         guard state.cats.contains(where: { $0.id == catID }) else { return failure(.careCatMissing) }
         guard state.activeCatID != catID else { return ActionOutcome() }
+        CatHabitEngine.finishPlay(&state, now: effectiveTime(state, now: now))
         if let index = state.cats.firstIndex(where: { $0.id == state.activeCatID }) {
             finishCatRest(&state, index: index, now: effectiveTime(state, now: now))
         }
@@ -129,6 +130,7 @@ public enum GameEngine {
 
     public static func startCatRest(_ state: inout GameSnapshot, catID: String, furnitureID: String,
                                     sessionID: String = UUID().uuidString,
+                                    observation: CatRestObservation? = nil,
                                     now: Date = Date()) -> ActionOutcome {
         let synchronized = synchronize(&state, now: now)
         guard synchronized.succeeded else { return synchronized }
@@ -145,11 +147,16 @@ public enum GameEngine {
         guard state.home.furniture.contains(where: { $0.itemID == furnitureID }),
               let item = state.inventory.furniture.first(where: { $0.id == furnitureID }),
               let duration = catRestDuration(for: item.kind) else { return failure(.restInvalidFurniture) }
+        if let observation {
+            guard observation.isValid, state.home.furniture.contains(where: {
+                $0.itemID == furnitureID && $0.floor == observation.floor && $0.position == observation.position
+            }) else { return failure(.restInvalidFurniture) }
+        }
         var candidate = state
         let timestamp = effectiveTime(candidate, now: now)
         candidate.cats[index].activeRest = CatRest(id: sessionID, furnitureID: furnitureID,
             startedAt: timestamp, endsAt: timestamp.addingTimeInterval(duration),
-            energyReward: 20 + candidate.home.comfortScore / 20)
+            energyReward: 20 + candidate.home.comfortScore / 20, observation: observation)
         candidate.cats[index].lastRestSessionID = sessionID
         guard candidate.isValid else { return failure(.gameInvalidState) }
         state = candidate
@@ -182,6 +189,7 @@ public enum GameEngine {
             return failure(supply == .premiumFood ? .carePremiumFoodRequired : .careFoodRequired, amount: units)
         }
         let timestamp = effectiveTime(state, now: now)
+        CatHabitEngine.finishPlay(&state, now: timestamp)
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory[keyPath: supply.stock] -= units
         CatHealthEngine.relieveRisk(&state.cats[index], caringFor: \.satiety, points: 2)
@@ -206,6 +214,7 @@ public enum GameEngine {
             return failure(supply == .premiumLitter ? .carePremiumLitterRequired : .careLitterRequired)
         }
         let timestamp = effectiveTime(state, now: now)
+        CatHabitEngine.finishPlay(&state, now: timestamp)
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory[keyPath: supply.stock] -= 1
         CatHealthEngine.relieveRisk(&state.cats[index], caringFor: \.cleanliness, points: 2)
@@ -229,6 +238,7 @@ public enum GameEngine {
         guard state.player.gold >= cost else { return failure(.hospitalGoldRequired, amount: cost) }
         var candidate = state
         let timestamp = effectiveTime(state, now: now)
+        CatHabitEngine.finishPlay(&candidate, now: timestamp)
         candidate.player.gold -= cost
         candidate.cats[index].healthState = CatHealthState(now: timestamp)
         candidate.cats[index].health = max(CatHealthCatalog.treatedHealth, candidate.cats[index].health)
@@ -247,6 +257,12 @@ public enum GameEngine {
         }
         guard state.inventory.toys > 0 else { return failure(.careToyRequired) }
         let timestamp = effectiveTime(state, now: now)
+        CatHabitEngine.finishPlay(&state, now: timestamp)
+        return applyPlay(&state, index: index, now: timestamp)
+    }
+
+    static func applyPlay(_ state: inout GameSnapshot, index: Int, now timestamp: Date) -> ActionOutcome {
+        guard state.inventory.toys > 0 else { return failure(.careToyRequired) }
         finishCatRest(&state, index: index, now: timestamp)
         state.inventory.toys -= 1
         let comfortBonus = state.home.comfortScore / 20
@@ -369,8 +385,12 @@ public enum GameEngine {
             }
             workProgress = progress
         }
+        if let session = state.catPlay.activeSession, timestamp >= session.endsAt { CatHabitEngine.finishPlay(&state, now: timestamp) }
         for index in state.cats.indices {
             var cat = state.cats[index]
+            if let rest = cat.activeRest, timestamp >= rest.endsAt {
+                CatHabitEngine.completeRest(&cat, rest: rest, home: state.home, inventory: state.inventory)
+            }
             if cat.growthState == nil {
                 cat.growthState = .legacy(appearance: cat.appearance, now: timestamp, isPregnant: cat.isPregnant)
             }
@@ -476,6 +496,11 @@ public enum GameEngine {
         state.home.setBowlPosition(bowlPosition, on: floor)
         state.home.furniture = merged
         state.inventory.furniture = owned
+        for index in state.cats.indices {
+            if let corner = state.cats[index].habits.cornerFurnitureID, !merged.contains(where: { $0.itemID == corner }) {
+                state.cats[index].habits.cornerFurnitureID = nil
+            }
+        }
         return ActionOutcome(success: .layoutSaved)
     }
 
@@ -595,7 +620,7 @@ extension GameSnapshot {
               (0...Self.maximumGold).contains(player.completedWorkCount),
               WorkCatalog.validProgress(level: player.level, exp: player.exp),
               player.profile.isValid,
-              tasks.isValid, community.isValid, inventory.validGifts,
+              tasks.isValid, community.isValid, inventory.validGifts, catPlay.isValid,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0),
               [inventory.food, inventory.litter, inventory.toys, inventory.premiumFood, inventory.premiumLitter].allSatisfy({ (0...Self.maximumStock).contains($0) }),
@@ -610,6 +635,14 @@ extension GameSnapshot {
               Set(cats.map(\.id)).count == cats.count,
               [meta.createdAt, meta.lastSyncAt, player.staminaUpdatedAt].allSatisfy({ $0.timeIntervalSince1970.isFinite })
         else { return false }
+        if let session = catPlay.activeSession {
+            guard session.catID == activeCatID else { return false }
+            if session.isTutorial, catPlay.tutorialCatID != session.catID || catPlay.tutorialID == nil { return false }
+            // Completed input is historical; later catalog edits must not invalidate a save.
+            if session.completeResponse, session.observedRhythms.isEmpty { return false }
+        }
+        if let tutorialCat = catPlay.tutorialCatID, !cats.contains(where: { $0.id == tutorialCat }) { return false }
+        if let result = catPlay.lastResult, !cats.contains(where: { $0.id == result.catID }) { return false }
         if let sleep = player.activeSleep {
             guard player.activeWork == nil,
                   [sleep.startedAt, sleep.staminaUpdatedAt, sleep.moodUpdatedAt].allSatisfy({ $0.timeIntervalSince1970.isFinite }),
@@ -622,11 +655,16 @@ extension GameSnapshot {
                   cat.customName.map({ CatNameRules.normalized($0) == $0 }) ?? true,
                   cat.healthState?.isValid ?? true,
                   cat.growthState?.isValid ?? true,
+                  cat.habits.isValid,
                   !cat.isPregnant || cat.growthState?.sex != .male,
                   [cat.satiety, cat.cleanliness, cat.mood, cat.intimacy, cat.energy, cat.health].allSatisfy({ (0...100).contains($0) }),
                   [cat.decayTracker.satiety, cat.decayTracker.cleanliness, cat.decayTracker.mood,
                    cat.decayTracker.energy].allSatisfy({ $0.timeIntervalSince1970.isFinite })
             else { return false }
+            if let corner = cat.habits.cornerFurnitureID {
+                guard home.furniture.contains(where: { $0.itemID == corner }),
+                      inventory.furniture.contains(where: { $0.id == corner && GameEngine.catRestDuration(for: $0.kind) != nil }) else { return false }
+            }
             if let session = cat.lastRestSessionID,
                session.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return false }
             if let rest = cat.activeRest {
@@ -639,7 +677,7 @@ extension GameSnapshot {
                       rest.endsAt.timeIntervalSince(rest.startedAt) == duration,
                       rest.energyPausedUntil >= rest.startedAt, rest.energyPausedUntil <= rest.endsAt,
                       (20...25).contains(rest.energyReward),
-                      (0...rest.energyReward).contains(rest.energyGranted) else { return false }
+                      (0...rest.energyReward).contains(rest.energyGranted), rest.observation?.isValid ?? true else { return false }
             }
         }
         if let work = player.activeWork {

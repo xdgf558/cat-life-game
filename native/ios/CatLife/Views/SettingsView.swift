@@ -21,7 +21,7 @@ struct SettingsView: View {
     @State private var saveTransferWorking = false
     @FocusState private var nameFieldFocused: Bool
 
-    private enum Destination: Hashable { case homeName, updates, audio, saves }
+    private enum Destination: Hashable { case homeName, updates, audio, saves, habitStudy }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -104,6 +104,9 @@ struct SettingsView: View {
                     }
                 }
                 .accessibilityIdentifier("settingsSaveState")
+                NavigationLink(value: Destination.habitStudy) {
+                    settingRow(symbol: "pawprint.fill", title: "catHabits.studyTitle", value: GameStrings.text("catHabits.localOnly"), tint: RoomTheme.mint)
+                }.buttonStyle(.plain).gameCard().accessibilityIdentifier("settingsHabitStudyRow")
                 Text(GameStrings.text("home.name") + " · " + AppVersion.current.localizedDisplay)
                     .font(.system(size: 12, weight: .bold)).foregroundStyle(RoomTheme.secondary)
                     .frame(maxWidth: .infinity).multilineTextAlignment(.center)
@@ -126,6 +129,7 @@ struct SettingsView: View {
                     case .homeName: homeNamePage
                     case .updates: updatesPage
                     case .audio: audioPage
+                    case .habitStudy: HabitStudySettingsView(store: store)
                     case .saves:
                         SaveManagementView(store: store, onWorkingChange: { working in
                             saveTransferWorking = working

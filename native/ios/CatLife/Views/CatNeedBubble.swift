@@ -77,8 +77,7 @@ enum CatNeed: Equatable {
             if (store.snapshot?.inventory.litter ?? 0) == 0 && (store.snapshot?.inventory.premiumLitter ?? 0) == 0 {
                 return "care.shopLitter"
             }
-        case .play:
-            if (store.snapshot?.inventory.toys ?? 0) == 0 { return "care.shopToy" }
+        case .play: return "catHabits.choosePlay"
         case .hospital: return nil
         }
         return premiumChoice(in: store) ? actionTitleKey(in: store) : nil
@@ -212,7 +211,7 @@ struct CatNeedBubble: View {
             switch need {
             case .food, .buyFood: store.feed()
             case .clean: store.clean()
-            case .play: store.play()
+            case .play: store.presentPlayChoices()
             case .hospital: store.openHospital(catID: store.cat?.id)
             }
         } label: {

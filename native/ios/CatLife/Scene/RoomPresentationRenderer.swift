@@ -189,7 +189,7 @@ final class RoomPresentationRenderer {
             return (key, frame, objectDepths[key] ?? 0)
         }
         // Touch padding helps small objects, but never covers another object's visible image.
-        if let visible = candidates.filter({ $0.frame.insetBy(dx: -3, dy: -3).contains(screen) })
+        if let visible = candidates.filter({ $0.frame.contains(screen) })
             .max(by: { $0.depth < $1.depth }) { return visible.key }
         let assisted = candidates.filter {
             $0.frame.insetBy(dx: -max(3, (44 - $0.frame.width) / 2),

@@ -408,7 +408,7 @@ extension RoomHomeUITests {
         waitForObservedValue("foodCount", "2", in: app)
 
         let pounces = try XCTUnwrap(fed.completedPounces)
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         _ = waitForFurniture(in: app, timeout: 15, description: "\(appearance) cat begins the real play route") {
             $0.phase == "playing" && $0.carePlanning == false
         }
@@ -436,9 +436,9 @@ extension RoomHomeUITests {
         XCTAssertEqual(try XCTUnwrap(overview.cameraY), worldHeight / 2, accuracy: 0.5)
         for id in ["catBed", "floorCushion"] {
             let item = try XCTUnwrap(overview.items.first { $0.id == id })
-            let touch = restFurnitureTouchPoint(item, cameraScale: overview.cameraScale ?? 1)
-            XCTAssertTrue([item.x, item.y, Double(touch.dx), Double(touch.dy)].allSatisfy { $0 > 0 && $0 < 1 },
-                          "\(id) and its actual touch point must be visible in the complete room.")
+            let touch = try restFurnitureCoordinate(item, in: app)
+            XCTAssertTrue([item.x, item.y].allSatisfy { $0 > 0 && $0 < 1 })
+            XCTAssertTrue(app.frame.contains(touch.screenPoint), "\(id)'s actual touch point must be visible in the complete room.")
         }
         attachScreenshot(app, named: "\(appearance) cat — complete expanded room before furniture rests")
 
@@ -531,7 +531,7 @@ extension RoomHomeUITests {
         let bed = try XCTUnwrap(ready.items.first { $0.id == "catBed" })
         ensureHomeNavigationItemVisible("tabTown", in: app)
         let restTownTouch = element("tabTown", in: app).coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
-        element("roomScene", in: app).coordinate(withNormalizedOffset: restFurnitureTouchPoint(bed)).tap()
+        try restFurnitureCoordinate(bed, in: app).tap()
         let resting = waitForFurniture(in: app, timeout: 60, description: "cow rest session commits before the next switch") {
             $0.phase == "resting" && $0.restFurniture == "catBed" && $0.restSessionCommitted == true
                 && $0.savedRestSession != nil

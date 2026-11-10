@@ -80,6 +80,7 @@ struct CatProfileView: View {
                     }
                     .buttonStyle(.plain).disabled(isSaving)
                     .accessibilityIdentifier("catGrowthEntry")
+                    CatHabitsSection(store: store, cat: cat)
                     attributeGroup("catProfile.daily") {
                         stat("stat.satiety", value: cat.satiety, identifier: "catProfileSatiety")
                         stat("stat.cleanliness", value: cat.cleanliness, identifier: "catProfileCleanliness")

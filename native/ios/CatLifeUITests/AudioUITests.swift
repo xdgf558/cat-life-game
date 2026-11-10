@@ -272,14 +272,14 @@ extension RoomHomeUITests {
         waitForNavigationPhase("idle", in: app, timeout: 12)
 
         // Use the real purchase path: the fresh save has no toy to play with.
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         scrollCareerPage("destinationScroll", to: "buyToyButton", in: app)
         tapAnimationControl("buyToyButton", in: app)
         waitForObservedValue("shopGoldCount", "165", in: app)
         tapAnimationControl("tabHome", in: app)
         let beforePlay = waitForNavigationPhase("idle", in: app, timeout: 10)
         let beforePlayAudio = try XCTUnwrap(AudioState(value: element("audioDiagnostics", in: app).value))
-        tapAnimationControl("playButton", in: app)
+        tapQuickPlay(in: app)
         _ = try waitForAudio(in: app, description: "play cue at the cat's real pounce") {
             $0.effectPlayCounts["play", default: 0] == beforePlayAudio.effectPlayCounts["play", default: 0] + 1
         }

@@ -83,15 +83,29 @@ struct RoomHomeView: View {
                     .interactiveDismissDisabled(store.isBusy)
             }
         }
+        .confirmationDialog(GameStrings.text("catHabits.choosePlay"), isPresented: $store.showsPlayChoices, titleVisibility: .visible) {
+            Button(GameStrings.text("catHabits.quickPlay")) { store.play() }.accessibilityIdentifier("quickPlayChoice")
+            Button(GameStrings.text("catHabits.playTogether")) { Task { _ = await store.openPlayTogether() } }
+                .accessibilityIdentifier("playTogetherChoice")
+            Button(GameStrings.text("common.cancel"), role: .cancel) {}
+        }
+        .fullScreenCover(isPresented: $store.isShowingPlayTogether) {
+            if let session = store.presentedPlaySession {
+                CatPlayTogetherView(store: store, session: session).id(session.id)
+            }
+        }
         .onChange(of: store.onboarding.isPresented, initial: true) { _, presented in
             if presented {
                 moreVisible = false
                 store.supplyPicker = nil
+                store.showsPlayChoices = false
+                store.isShowingPlayTogether = false
                 store.activeSheet = nil
                 store.isShowingSettings = false
             }
         }
         .saveRecoveryAlert(store: store, isActive: !store.onboarding.isPresented
+                          && !store.isShowingPlayTogether && !store.showsPlayChoices
                           && store.inspectedCatID == nil && store.activeSheet != .town
                           && store.activeSheet != .player && store.supplyPicker == nil && !store.isPresentingExchange
                           && !store.isPresentingAdoptionConfirmation && !store.isPresentingCommunityGift)
@@ -259,7 +273,8 @@ struct RoomHomeView: View {
             ZStack(alignment: .topLeading) {
                 RoomSceneHost(store: store,
                               isActive: scenePhase == .active && homeVisible && !moreVisible
-                                  && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
+                                  && !store.isShowingPlayTogether && !store.showsPlayChoices && !store.showSaveError
+                                  && store.homeUpgradeCelebration == nil && store.inspectedCatID == nil && store.supplyPicker == nil && !store.onboarding.isPresented,
                               reducedMotion: usesReducedMotion, catNeedPresentation: catNeedPresentation,
                               arrangementBottomInset: store.isDecorating ? arrangementPanelHeight : 0)
                     .id("\(store.saveSceneGeneration)-\(store.visibleHomeFloor.rawValue)")
