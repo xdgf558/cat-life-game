@@ -133,8 +133,24 @@ extension RoomHomeUITests {
             hypot($0.midX - expected.x, $0.midY - expected.y) < hypot($1.midX - expected.x, $1.midY - expected.y)
         }, "Expected displayed furniture \(item.id)", file: file, line: line)
         let visible = frame.intersection(canvas)
-        let point = CGVector(dx: visible.minX + visible.width * 0.25, dy: visible.minY + visible.height * 0.12)
-        return app.coordinate(withNormalizedOffset: .zero).withOffset(point)
+        let diagnostic = try XCTUnwrap(element("roomScene", in: app).value as? String, file: file, line: line)
+        let payload = try XCTUnwrap(try JSONSerialization.jsonObject(with: Data(diagnostic.utf8)) as? [String: Any],
+                                   file: file, line: line)
+        let residents = try XCTUnwrap(payload["residentCats"] as? [[String: Any]], file: file, line: line)
+        let catFrames = residents.compactMap { cat -> CGRect? in
+            guard cat["visible"] as? Bool == true,
+                  let x = cat["x"] as? Double, let y = cat["y"] as? Double,
+                  let width = cat["screenWidth"] as? Double, let height = cat["screenHeight"] as? Double else { return nil }
+            return CGRect(x: canvas.minX + x * canvas.width - width / 2,
+                          y: canvas.minY + y * canvas.height - height / 2, width: width, height: height)
+        }
+        // A cat can stand over the old tap point after leaving; touch visible furniture once, not the cat.
+        let candidates = [(0.25, 0.12), (0.75, 0.12), (0.5, 0.25), (0.75, 0.5), (0.25, 0.5)]
+            .map { CGPoint(x: visible.minX + visible.width * $0.0, y: visible.minY + visible.height * $0.1) }
+        let point = try XCTUnwrap(candidates.first { point in
+            !catFrames.contains { $0.insetBy(dx: -2, dy: -2).contains(point) }
+        }, "Expected an exposed part of furniture \(item.id)", file: file, line: line)
+        return app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: point.x, dy: point.y))
     }
 
     @MainActor
