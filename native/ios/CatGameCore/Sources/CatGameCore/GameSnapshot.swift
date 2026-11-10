@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 12
+    public static let currentSchemaVersion = 13
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -66,14 +66,14 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
         // The original starter cushion is cropped off the full-height room.
         // Only migrate the complete untouched starter layout; a moved, stored
         // or newly placed item makes the player's arrangement authoritative.
-        if version < 6, home.bowlPosition == HomeState().bowlPosition {
-            var legacyPlacements = FurnitureCatalog.defaultPlacements
+        if version < 6, home.bowlPosition == NormalizedPoint(x: 0.76, y: 0.79) {
+            var legacyPlacements = FurnitureCatalog.legacyPlacementsV6
             if let index = legacyPlacements.firstIndex(where: { $0.itemID == "floorCushion" }) {
                 legacyPlacements[index].position.x = 0.12
                 if home.furniture.sorted(by: { $0.itemID < $1.itemID })
                     == legacyPlacements.sorted(by: { $0.itemID < $1.itemID }),
                    let savedIndex = home.furniture.firstIndex(where: { $0.itemID == "floorCushion" }) {
-                    home.furniture[savedIndex].position = FurnitureCatalog.defaultPlacements[index].position
+                    home.furniture[savedIndex].position = FurnitureCatalog.legacyPlacementsV6[index].position
                 }
             }
         }
@@ -88,6 +88,29 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
             ? CommunityState() : try CommunityState(from: values.superDecoder(forKey: .community), schemaVersion: version)
         if version < 11 { community.events.advance(to: tasks.dailyDayKey) }
         catPlay = version < 12 && !values.contains(.catPlay) ? CatPlayState() : try values.decode(CatPlayState.self, forKey: .catPlay)
+        // Reflow only untouched starter rooms; in-use and player-authored places remain authoritative.
+        if version < 13, home.bowlPosition == NormalizedPoint(x: 0.76, y: 0.79), home.upperBowlPosition == nil,
+           home.furniture.sorted(by: { $0.itemID < $1.itemID })
+            == FurnitureCatalog.legacyPlacementsV6.sorted(by: { $0.itemID < $1.itemID }),
+           catPlay.activeSession == nil,
+           !cats.contains(where: { cat in
+               cat.activeRest != nil || cat.habits.cornerFurnitureID != nil
+                   || cat.habits.lastRestObservation.map { $0.id != cat.habits.dismissedRestOfferID } == true
+           }) {
+            let starterKinds: [String: FurnitureKind] = [
+                "cabinet": .cabinet, "catTree": .catTree, "catBed": .catBed,
+                "wallFlower": .wallFlower, "wallCat": .wallCat, "plantLarge": .plant,
+                "plantSmall": .plant, "floorCushion": .floorCushion, "flowerStool": .flowerStool
+            ]
+            if starterKinds.allSatisfy({ id, kind in
+                inventory.furniture.filter { $0.id == id } == [FurnitureItem(id: id, kind: kind)]
+            }) {
+                let positions = Dictionary(uniqueKeysWithValues: FurnitureCatalog.frontPlacementsV13.map { ($0.itemID, $0.position) })
+                for index in home.furniture.indices {
+                    if let position = positions[home.furniture[index].itemID] { home.furniture[index].position = position }
+                }
+            }
+        }
         guard community.isValid, inventory.validGifts,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0)
@@ -439,7 +462,7 @@ public struct HomeState: Codable, Equatable, Sendable {
             while !placements.isAtEnd {
                 furniture.append(try FurniturePlacement(from: placements.superDecoder(), schemaVersion: schemaVersion))
             }
-        } else { furniture = FurnitureCatalog.defaultPlacements }
+        } else { furniture = schemaVersion < 13 ? FurnitureCatalog.legacyPlacementsV6 : FurnitureCatalog.defaultPlacements }
         // Unlike cosmetic names, purchased room progress must not be silently
         // reset. Only an absent field belongs to the schema-1 migration.
         roomLevel = values.contains(.roomLevel) ? try values.decode(Int.self, forKey: .roomLevel) : 1

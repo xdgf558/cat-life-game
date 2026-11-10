@@ -159,7 +159,7 @@ final class RoomScene: SKScene {
     var editing = false
     var dragging = false
     var touchOrigin: CGPoint?
-    var dragOffset = CGPoint.zero
+    var dragDisplayOffset = CGPoint.zero
     private var catWidth: CGFloat = 120
     private var presentationBusy = false
     private var pendingFeedback: ActionKind?

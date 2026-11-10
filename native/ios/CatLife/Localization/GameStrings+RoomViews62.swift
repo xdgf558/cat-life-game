@@ -10,6 +10,8 @@ extension GameStrings {
         "roomView.turnRight": "向右切换房间视角",
         "roomView.showWhole": "查看完整房间",
         "roomView.showClose": "近看陪伴猫",
+        "releases.66.title": "平正的正面小家",
+        "releases.66.body": "默认正面房间改为平直后墙和完整地板，并重新排开初始家具，留出活动通道。已手动调整的布置保持原样；保留左右视角、近看、两层布置与猫咪互动。",
         "releases.62.title": "全屋总览与三向房间视角",
         "releases.62.body": "进入小家、升级和上下楼时，默认展示完整房间。使用左右按钮切换左侧、正面和右侧固定视角，从不同方向查看家具与猫咪；可随时切换近看或找到陪伴猫。保留原有存档、家具布局和房间互动。"
     ]
@@ -24,6 +26,8 @@ extension GameStrings {
         "roomView.turnRight": "向右切換房間視角",
         "roomView.showWhole": "查看完整房間",
         "roomView.showClose": "近看陪伴貓",
+        "releases.66.title": "平正的正面小家",
+        "releases.66.body": "預設正面房間改為平直後牆和完整地板，並重新排開初始家具，留出活動通道。已手動調整的布置保持原樣；保留左右視角、近看、兩層布置與貓咪互動。",
         "releases.62.title": "全屋總覽與三向房間視角",
         "releases.62.body": "進入小家、升級和上下樓時，預設展示完整房間。使用左右按鈕切換左側、正面和右側固定視角，從不同方向查看家具與貓咪；可隨時切換近看或找到陪伴貓。保留原有存檔、家具布局和房間互動。"
     ]
@@ -38,6 +42,8 @@ extension GameStrings {
         "roomView.turnRight": "Turn to the right room view",
         "roomView.showWhole": "Show the whole room",
         "roomView.showClose": "Look closer at your companion cat",
+        "releases.66.title": "A straighter front-facing home",
+        "releases.66.body": "The default front room now has a straight back wall and a complete floor. Starter furniture is spaced out to leave room for cats to move. Custom layouts are preserved, along with side views, close-ups, both floors and cat interactions.",
         "releases.62.title": "Whole-room overview and three room views",
         "releases.62.body": "See the whole room when entering home, upgrading or changing floors. Use the left and right buttons to switch between fixed left, front and right views of your cats and furniture. Switch to a close view or find your companion cat at any time. Existing saves, furniture layouts and room interactions are preserved."
     ]

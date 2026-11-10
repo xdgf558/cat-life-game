@@ -121,8 +121,9 @@ extension RoomScene {
         dragScreenPoint = touch.location(in: view)
         _ = roomPresentation.camera.endPan()
         setPlacementPending(true)
-        let input = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall)
-        dragOffset = CGPoint(x: selectedNode.position.x - input.x, y: selectedNode.position.y - input.y)
+        // The front floor is not affine; keep the grip in display pixels across its projection sectors.
+        let anchor = roomPresentation.anchor(hit) ?? screen
+        dragDisplayOffset = CGPoint(x: anchor.x - screen.x, y: anchor.y - screen.y)
         updateSelection()
 #if DEBUG
         publishFurnitureStatus()
@@ -148,8 +149,9 @@ extension RoomScene {
         let started = CACurrentMediaTime()
 #endif
         guard let view else { return }
-        let point = roomPresentation.worldPoint(screen: touch.location(in: view), wall: selectedIsWall)
-        selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
+        let point = roomPresentation.worldPoint(screen: touch.location(in: view), wall: selectedIsWall,
+                                               displayOffset: dragDisplayOffset)
+        selectedNode.position = previewFloorPoint(point)
 #if DEBUG
         diagnostics.furnitureDragPreviewSamples += 1
         diagnostics.furnitureDragPreviewPoint = selectedNode.position
@@ -178,8 +180,9 @@ extension RoomScene {
         if dragging {
             guard let view else { return }
             let screen = touch.location(in: view)
-            let point = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall)
-            selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
+            let point = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall,
+                                                   displayOffset: dragDisplayOffset)
+            selectedNode.position = previewFloorPoint(point)
             // A tap selects without doing an expensive route search.
             if let origin = touchOrigin,
                hypot(screen.x - origin.x, screen.y - origin.y) < 3,
@@ -235,8 +238,9 @@ extension RoomScene {
     func updateRoomEdgeScrolling(delta: TimeInterval) {
         guard dragging, let screen = dragScreenPoint,
               roomPresentation.camera.scrollNearEdge(at: screen, delta: delta) else { return }
-        let point = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall)
-        selectedNode.position = previewFloorPoint(CGPoint(x: point.x + dragOffset.x, y: point.y + dragOffset.y))
+        let point = roomPresentation.worldPoint(screen: screen, wall: selectedIsWall,
+                                               displayOffset: dragDisplayOffset)
+        selectedNode.position = previewFloorPoint(point)
         updateSelection()
     }
 }

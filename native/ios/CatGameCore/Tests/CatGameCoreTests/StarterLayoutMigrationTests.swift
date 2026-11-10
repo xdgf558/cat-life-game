@@ -8,6 +8,7 @@ struct StarterLayoutMigrationTests {
 
     private func legacyStarter() throws -> GameSnapshot {
         var state = GameSnapshot.fresh(now: now)
+        state.home.furniture = FurnitureCatalog.legacyPlacementsV6
         let cushion = try #require(state.home.furniture.firstIndex { $0.itemID == "floorCushion" })
         state.home.furniture[cushion].position.x = 0.12
         return state
@@ -19,8 +20,9 @@ struct StarterLayoutMigrationTests {
         return try JSONDecoder().decode(GameSnapshot.self, from: JSONEncoder().encode(encoded))
     }
 
-    @Test func newRoomPlacesCushionInsideFullHeightFloor() throws {
-        let state = GameSnapshot.fresh(now: now)
+    @Test func frozenSchemaSixStarterPlacesCushionInsideFullHeightFloor() throws {
+        var state = GameSnapshot.fresh(now: now)
+        state.home.furniture = FurnitureCatalog.legacyPlacementsV6
         let cushion = try #require(state.home.furniture.first { $0.itemID == "floorCushion" })
         #expect(cushion.position == NormalizedPoint(x: 0.22, y: 0.7))
         #expect(state.isValid)

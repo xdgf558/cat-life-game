@@ -110,7 +110,7 @@ public enum FurnitureCatalog {
         .init(id: "flowerStool", kind: .flowerStool)
     ]
 
-    public static let defaultPlacements: [FurniturePlacement] = [
+    static let legacyPlacementsV6: [FurniturePlacement] = [
         .init(itemID: "cabinet", position: .init(x: 0.5, y: 0.425)),
         .init(itemID: "catTree", position: .init(x: 0.84, y: 0.6)),
         .init(itemID: "catBed", position: .init(x: 0.27, y: 0.6)),
@@ -121,4 +121,18 @@ public enum FurnitureCatalog {
         .init(itemID: "floorCushion", position: .init(x: 0.22, y: 0.7)),
         .init(itemID: "flowerStool", position: .init(x: 0.25, y: 0.78))
     ]
+
+    static let frontPlacementsV13: [FurniturePlacement] = [
+        .init(itemID: "cabinet", position: .init(x: 0.58, y: 0.47)),
+        .init(itemID: "catTree", position: .init(x: 0.835, y: 0.64)),
+        .init(itemID: "catBed", position: .init(x: 0.285, y: 0.635)),
+        .init(itemID: "wallFlower", position: .init(x: 0.54, y: 0.22)),
+        .init(itemID: "wallCat", position: .init(x: 0.655, y: 0.245)),
+        .init(itemID: "plantLarge", position: .init(x: 0.18, y: 0.54)),
+        .init(itemID: "plantSmall", position: .init(x: 0.90, y: 0.76)),
+        .init(itemID: "floorCushion", position: .init(x: 0.25, y: 0.74)),
+        .init(itemID: "flowerStool", position: .init(x: 0.64, y: 0.648))
+    ]
+
+    public static let defaultPlacements = frontPlacementsV13
 }

@@ -13,11 +13,11 @@ struct CommunityMigrationTests {
         try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
-    @Test func schema12HabitMigrationKeepsReviewedCommunityLedgers() throws {
+    @Test func schema13StarterLayoutMigrationKeepsReviewedCommunityLedgers() throws {
         // Freeze the v7 ledger independently of the catalog and fresh-save defaults.
         let schema7IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
-        #expect(GameSnapshot.currentSchemaVersion == 12,
-                "Review the v12 habit migration before updating this schema guard; preserve the independent v7/v8/v10 ledgers below.")
+        #expect(GameSnapshot.currentSchemaVersion == 13,
+                "Review the v13 starter-layout migration before updating this schema guard; preserve the independent v7/v8/v10 and v12 habit ledgers below.")
         #expect(CommunityCatalog.neighbors.map(\.id).sorted() == schema7IDs,
                 "Changing neighbors requires a schema/migration review, not just a new catalog entry.")
         let recordedRelationship: [String: Any] = [
@@ -42,6 +42,61 @@ struct CommunityMigrationTests {
                     (schema >= 8 ? NeighborExchangeCount(today: 1, total: 7) : NeighborExchangeCount()))
             #expect(loaded.community.events.dayKey == loaded.tasks.dailyDayKey)
             #expect(loaded.community.events.totalCompleted == 0 && loaded.community.events.letters.isEmpty)
+        }
+    }
+
+    @Test func frozenSchemaElevenEventsAndSchemaTwelveHabitLedgersSurviveSchemaThirteen() throws {
+        let schema12IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
+        var original = GameSnapshot.fresh(now: now)
+        original.home.furniture = FurnitureCatalog.legacyPlacementsV6
+        let day = try #require(original.tasks.dailyDayKey)
+        original.community.relationships = Dictionary(uniqueKeysWithValues: schema12IDs.map {
+            ($0, NeighborRelationship(friendship: 28, visitedToday: true, giftsGivenToday: 1,
+                                       totalVisitCount: 3, totalGiftCount: 2, rewardedStageLevels: [2]))
+        })
+        original.community.exchangeCounts["neighbor_mira"] = .init(today: 1, total: 7)
+        original.community.events = .init(dayKey: day, eventID: "retired-v11-event",
+            letters: [.init(dayKey: day, eventID: "retired-v11-event", choiceID: "old-choice",
+                            neighborID: "neighbor_mira", completedAt: now, friendshipGained: 3,
+                            stageBefore: 1, stageAfter: 1, rewards: .init(food: 1))], totalCompleted: 1)
+        for schema in [11, 12] {
+            var saved = try object(original)
+            saved["schemaVersion"] = schema
+            var cats = try #require(saved["cats"] as? [[String: Any]])
+            if schema == 12 {
+                // Freeze the released v12 receipt shape rather than using current defaults.
+                cats[0]["habits"] = [
+                    "restClueSessionIDs": ["v12-rest-1", "v12-rest-2"],
+                    "playClueSessionIDs": ["v12-play-1", "v12-play-2"],
+                    "memories": ["firstResponse", "favoriteRest", "favoritePlay"].map {
+                        ["kind": $0, "createdAt": now.timeIntervalSinceReferenceDate] as [String: Any]
+                    }
+                ]
+                saved["catPlay"] = ["tutorialCompleted": true, "introDismissed": true,
+                    "tutorialID": "v12-tutorial", "tutorialCatID": "cat_001",
+                    "tutorialRhythms": ["slowMove", "moveAndPause"]]
+            } else {
+                cats[0].removeValue(forKey: "habits")
+                saved.removeValue(forKey: "catPlay")
+            }
+            saved["cats"] = cats
+            let loaded = try decode(saved)
+            #expect(loaded.isValid && loaded.schemaVersion == 13)
+            #expect(loaded.community == original.community)
+            #expect(loaded.home.furniture == FurnitureCatalog.frontPlacementsV13)
+            #expect(loaded.player == original.player && loaded.inventory == original.inventory && loaded.tasks == original.tasks)
+            if schema == 12 {
+                let habits = loaded.cats[0].habits
+                #expect(habits.restClueSessionIDs == ["v12-rest-1", "v12-rest-2"])
+                #expect(habits.playClueSessionIDs == ["v12-play-1", "v12-play-2"])
+                #expect(habits.memories.map(\.kind) == [.firstResponse, .favoriteRest, .favoritePlay])
+                #expect(habits.memories.allSatisfy { $0.createdAt == now })
+                #expect(loaded.catPlay.tutorialCompleted && loaded.catPlay.introDismissed)
+                #expect(loaded.catPlay.tutorialID == "v12-tutorial" && loaded.catPlay.tutorialCatID == "cat_001")
+                #expect(loaded.catPlay.tutorialRhythms == [.slowMove, .moveAndPause])
+            } else {
+                #expect(loaded.cats[0].habits == CatHabitState() && loaded.catPlay == CatPlayState())
+            }
         }
     }
 

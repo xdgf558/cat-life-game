@@ -353,14 +353,19 @@ extension RoomHomeUITests {
     func assertKnownHomeViewportBaseline(in app: XCUIApplication,
                                                  file: StaticString = #filePath, line: UInt = #line) {
         let room = element("roomScene", in: app)
-        let bar = element("homeNavigationBar", in: app)
         waitForElement("roomScene", in: app, file: file, line: line)
-        XCTAssertEqual(room.frame.width, app.frame.width, accuracy: 0.5, file: file, line: line)
-        XCTAssertEqual(room.frame.minX, app.frame.minX, accuracy: 0.5, file: file, line: line)
-        XCTAssertGreaterThan(room.frame.height, app.frame.height * 0.65,
-                             "The redesigned room fills the canvas above the fixed bottom bar.", file: file, line: line)
-        XCTAssertGreaterThanOrEqual(room.frame.maxY + 1, bar.frame.minY, file: file, line: line)
-        XCTAssertLessThanOrEqual(room.frame.maxY, bar.frame.maxY + 1, file: file, line: line)
+        let stage = element("roomStage63", in: app).frame
+        let care = element("homeCareBar63", in: app).frame
+        let navigation = element("homeNavigationBar", in: app).frame
+        XCTAssertTrue(app.frame.contains(stage), file: file, line: line)
+        XCTAssertEqual(room.frame.width, stage.width, accuracy: 0.5, file: file, line: line)
+        XCTAssertEqual(room.frame.height, stage.height, accuracy: 0.5, file: file, line: line)
+        XCTAssertEqual(room.frame.minX, stage.minX, accuracy: 0.5, file: file, line: line)
+        XCTAssertEqual(room.frame.minY, stage.minY, accuracy: 0.5, file: file, line: line)
+        XCTAssertGreaterThan(room.frame.height, 100,
+                             "The room must fill its dedicated stage above the care row.", file: file, line: line)
+        XCTAssertLessThanOrEqual(room.frame.maxY, care.minY + 1, file: file, line: line)
+        XCTAssertLessThanOrEqual(care.maxY, navigation.minY + 1, file: file, line: line)
     }
 
     @MainActor

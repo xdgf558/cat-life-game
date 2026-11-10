@@ -9,6 +9,7 @@ final class RoomShellArtwork: SKNode {
     private(set) var renderedFloor: HomeFloor = .ground
     private(set) var windowGroundAnchor: CGPoint?
     private var shellBounds = CGRect.null
+    private let frontArtwork = RoomFrontArtwork()
     private lazy var woodTexture = UIImage(named: "room-floor-wood").map { SKTexture(image: $0) }
     private lazy var plasterTexture = UIImage(named: "room-wall-plaster").map { SKTexture(image: $0) }
     private lazy var windowTexture = UIImage(named: "room-window-arched").map { SKTexture(image: $0) }
@@ -34,6 +35,13 @@ final class RoomShellArtwork: SKNode {
         guard floorPolygon.count >= 3, worldSize.width.isFinite, worldSize.height.isFinite,
               worldSize.width > 0, worldSize.height > 0,
               floorPolygon.allSatisfy({ $0.x.isFinite && $0.y.isFinite }) else { return }
+        if projection.frontFloor != nil {
+            frontArtwork.configure(projection: projection, floor: homeFloor)
+            addChild(frontArtwork)
+            contentBounds = frontArtwork.contentBounds
+            windowGroundAnchor = frontArtwork.windowGroundAnchor
+            return
+        }
         let outline = floorPolygon.map(projection.project)
         let winding = signedArea(outline)
         guard abs(winding) > 0.001 else { return }

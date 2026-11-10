@@ -20,6 +20,8 @@ final class RoomPresentationRenderer {
     private var homeFloor: HomeFloor = .ground
     private var requestedUsableRect: CGRect?
     private var configuredUsableRect: CGRect?
+    private var cameraUsableRect = CGRect.zero
+    private var frontFramingBounds: CGRect?
 
     init() {
         root.name = "room-presentation"
@@ -48,9 +50,9 @@ final class RoomPresentationRenderer {
             || configuredUsableRect != requestedUsableRect
         guard changed else { return }
         let reset = self.level != level || projection.angle != angle || self.homeFloor != homeFloor || worldSize == .zero
+        let previousProjection = projection
+        let wasWholeRoom = camera.isWholeRoom
         worldSize = world; self.viewport = viewport; polygon = floor; self.level = level; self.homeFloor = homeFloor
-        projection = RoomViewProjection(worldSize: world, angle: angle)
-        shell.configure(projection: projection, floorPolygon: floor, worldSize: world, floor: homeFloor)
         backdrop.size = CGSize(width: viewport.width + 4, height: viewport.height + 4)
         let top = min(320, viewport.height * 0.43)
         let bottom = min(100, viewport.height * 0.15)
@@ -58,8 +60,26 @@ final class RoomPresentationRenderer {
                               height: max(100, viewport.height - top - bottom))
         let usable = requestedUsableRect ?? fallback
         configuredUsableRect = requestedUsableRect
-        camera.configure(bounds: shell.contentBounds.insetBy(dx: -24, dy: -24), viewport: viewport,
+        cameraUsableRect = usable
+        frontFramingBounds = nil
+        let minX = floor.map(\.x).min()!, maxX = floor.map(\.x).max()!
+        let minY = floor.map(\.y).min()!, maxY = floor.map(\.y).max()!
+        let footprint = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
+        let frontBounds = CGRect(x: footprint.minX, y: footprint.minY, width: footprint.width,
+                                 height: footprint.width * usable.height / usable.width * 0.66)
+        let front = angle == .front ? RoomFrontFloorProjection(polygon: floor, destination: frontBounds) : nil
+        let mappingChanged = previousProjection.frontFloor?.destination != front?.destination
+        let previousCenter = !reset && !wasWholeRoom && mappingChanged
+            ? previousProjection.unproject(camera.center) : nil
+        projection = RoomViewProjection(worldSize: world, angle: angle, frontFloor: front)
+        shell.configure(projection: projection, floorPolygon: floor, worldSize: world, floor: homeFloor)
+        let cameraBounds = front == nil ? shell.contentBounds.insetBy(dx: -24, dy: -24) : shell.contentBounds
+        camera.configure(bounds: cameraBounds, viewport: viewport,
                          usableRect: usable, worldScale: CGFloat(HomeCatalog.level(level)?.worldScale ?? 1), reset: reset)
+        if !reset, mappingChanged {
+            if wasWholeRoom { camera.fit() }
+            else if let previousCenter { camera.recenter(on: projection.project(previousCenter)) }
+        }
         updateCamera()
     }
 
@@ -149,6 +169,24 @@ final class RoomPresentationRenderer {
             mirrors.removeValue(forKey: key)?.node.removeFromParent()
             objectFrames.removeValue(forKey: key); objectDepths.removeValue(forKey: key)
         }
+        if projection.frontFloor != nil, frontFramingBounds == nil || selection.isHidden {
+            let visible = Set(active.filter { key in
+                guard key == "bowl" || key.hasPrefix("furniture-"), let node = mirrors[key]?.node else { return false }
+                return !node.isHidden && node.alpha > 0.02
+            })
+            var bounds = shell.contentBounds
+            for key in visible {
+                if let frame = objectFrames[key] { bounds = bounds.union(frame) }
+            }
+            if bounds != frontFramingBounds {
+                // Tall artwork can rise above the wall; keep it whole without changing its size or moving the camera during a drag.
+                let wasWholeRoom = camera.isWholeRoom
+                frontFramingBounds = bounds
+                camera.configure(bounds: bounds.insetBy(dx: -2, dy: -2), viewport: viewport,
+                                 usableRect: cameraUsableRect,
+                                 worldScale: CGFloat(HomeCatalog.level(level)?.worldScale ?? 1), reset: wasWholeRoom)
+            }
+        }
         updateCamera()
     }
 
@@ -159,8 +197,8 @@ final class RoomPresentationRenderer {
         content.position = CGPoint(x: origin.x - viewport.width / 2, y: viewport.height / 2 - origin.y)
     }
 
-    func worldPoint(screen: CGPoint, wall: Bool = false) -> CGPoint {
-        let point = camera.worldPoint(viewPoint: screen)
+    func worldPoint(screen: CGPoint, wall: Bool = false, displayOffset: CGPoint = .zero) -> CGPoint {
+        let point = camera.worldPoint(viewPoint: CGPoint(x: screen.x + displayOffset.x, y: screen.y + displayOffset.y))
         return wall ? projection.unprojectWallPoint(point) : projection.unproject(point)
     }
 
