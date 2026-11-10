@@ -163,6 +163,56 @@ struct CatHabitTests {
         #expect(loaded.tasks.dailyPlayCount == 1)
     }
 
+    @Test func archivedCompletedSessionSurvivesAChangedCatalogPreferenceWithoutReplayingBenefits() throws {
+        var state = try paidSeed()
+        let start = state.meta.lastSyncAt
+        let id = try open(&state, at: start)
+        let current = try #require(CatHabitCatalog.definition(for: state.activeCatID)?.play)
+        input(&state, id: id, sequence: 1, kind: CatPlayInputKind(rawValue: current.rawValue)!,
+              duration: 2, at: start.addingTimeInterval(2))
+        let historical: CatPlayRhythm = current == .slowMove ? .moveAndPause : .slowMove
+        state.catPlay.activeSession?.observedRhythms = [historical]
+        state.cats[0].habits.lastPlayObservation = CatPlayObservation(
+            sessionID: id, rhythm: historical, observedAt: start.addingTimeInterval(2), matched: true)
+        let loaded = try expireHistoricalSession(NativeSaveCodec.encoder().encode(state), startedAt: start)
+        #expect(loaded.catPlay.lastResult?.session.observedRhythms == [historical])
+        #expect(loaded.catPlay.lastResult?.session.completeResponse == true)
+    }
+
+    @Test func archivedSessionForAnOwnedCatWithoutACurrentHabitDefinitionCanStillLoadAndExpire() throws {
+        var state = try paidSeed()
+        let start = state.meta.lastSyncAt
+        let id = try open(&state, at: start)
+        input(&state, id: id, sequence: 1, kind: .moveAndPause, duration: 2, at: start.addingTimeInterval(2))
+        let retired = "retired-habit-cat"
+        #expect(CatHabitCatalog.definition(for: retired) == nil)
+        var saved = try #require(JSONSerialization.jsonObject(with: NativeSaveCodec.encoder().encode(state)) as? [String: Any])
+        saved["activeCatID"] = retired
+        var cats = try #require(saved["cats"] as? [[String: Any]])
+        cats[0]["id"] = retired; saved["cats"] = cats
+        var play = try #require(saved["catPlay"] as? [String: Any])
+        play["tutorialCatID"] = retired
+        var session = try #require(play["activeSession"] as? [String: Any])
+        session["catID"] = retired; play["activeSession"] = session
+        var result = try #require(play["lastResult"] as? [String: Any])
+        var previous = try #require(result["session"] as? [String: Any])
+        previous["catID"] = retired; result["session"] = previous; play["lastResult"] = result
+        saved["catPlay"] = play
+        let loaded = try expireHistoricalSession(JSONSerialization.data(withJSONObject: saved), startedAt: start)
+        #expect(loaded.cats[0].id == retired && loaded.catPlay.lastResult?.catID == retired)
+        #expect(loaded.catPlay.lastResult?.session.effects.toysSpent == 1)
+    }
+
+    @Test func aCompletedSessionWithoutAnyObservedRhythmRemainsInvalid() throws {
+        var state = GameSnapshot.fresh(now: now)
+        _ = try open(&state, at: now)
+        state.catPlay.activeSession?.completeResponse = true
+        #expect(state.catPlay.activeSession?.observedRhythms.isEmpty == true)
+        #expect(!state.isValid)
+        let data = try NativeSaveCodec.encoder().encode(state)
+        #expect(throws: SaveRepositoryError.invalidSnapshot) { try NativeSaveCodec.decodeSnapshot(data, now: now) }
+    }
+
     @Test func onlyVisiblePlayerInitiatedNaturalRestsProduceClues() throws {
         var state = GameSnapshot.fresh(now: now)
         #expect(GameEngine.startCatRest(&state, catID: state.activeCatID, furnitureID: "floorCushion", sessionID: "ambient", now: now).succeeded)
@@ -335,6 +385,23 @@ struct CatHabitTests {
         #expect(state.cats[0].habits.restClueSessionIDs.isEmpty)
         #expect(state.cats[0].habits.lastRestObservation == nil)
         #expect(state.inventory.toys == 0 && state.tasks.dailyPlayCount == 0)
+    }
+
+    private func expireHistoricalSession(_ data: Data, startedAt start: Date) throws -> GameSnapshot {
+        var loaded = try NativeSaveCodec.decodeSnapshot(data, now: start.addingTimeInterval(3))
+        #expect(loaded.schemaVersion == 12 && loaded.isValid)
+        let session = try #require(loaded.catPlay.activeSession)
+        let inventory = loaded.inventory
+        let tasks = loaded.tasks
+        let habits = loaded.cats[0].habits
+        #expect(GameEngine.synchronize(&loaded, now: start.addingTimeInterval(21)).succeeded)
+        #expect(loaded.catPlay.activeSession == nil && loaded.catPlay.lastResult?.session == session)
+        #expect(loaded.inventory == inventory && loaded.tasks == tasks && loaded.cats[0].habits == habits)
+        let receipt = loaded.catPlay.lastResult
+        #expect(GameEngine.synchronize(&loaded, now: start.addingTimeInterval(22)).succeeded)
+        #expect(loaded.catPlay.lastResult == receipt)
+        #expect(loaded.inventory == inventory && loaded.tasks == tasks && loaded.cats[0].habits == habits)
+        return loaded
     }
 
     private func open(_ state: inout GameSnapshot, at date: Date) throws -> String {

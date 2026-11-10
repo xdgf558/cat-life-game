@@ -43,7 +43,7 @@ final class CatPlayTogetherScene: SKScene {
     }
 
     func runControl(_ rhythm: CatPlayRhythm) {
-        guard !isPaused, !isResponding else { return }
+        guard !isPaused, !isResponding, program == nil else { return }
         dragging = false; tracker.reset(); program = (rhythm, CACurrentMediaTime())
         attentionUntil = CACurrentMediaTime() + (style == .playful ? 0.05 : 0.35)
         actor.habitAttention(style: style, facing: toy.position.x < actor.position.x ? -1 : 1)

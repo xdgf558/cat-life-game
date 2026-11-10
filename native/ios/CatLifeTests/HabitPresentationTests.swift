@@ -38,7 +38,10 @@ final class HabitPresentationTests: XCTestCase {
             defer { scene.stop(); view.presentScene(nil); window.isHidden = true; window.rootViewController = nil }
             let other: CatPlayRhythm = definition.play == .slowMove ? .moveAndPause : .slowMove
             scene.runControl(other)
+            for _ in 0..<100 { scene.runControl(definition.play) }
+            XCTAssertEqual(sequence, 1, "Repeated taps must not restart the running comparison or enqueue more saves.")
             try await waitForScene { state.catPlay.activeSession?.observedRhythms.contains(other) == true }
+            XCTAssertEqual(sequence, 2, "One demonstration emits only its start and completed input reports.")
             XCTAssertEqual(scene.pounces, 0, "\(definition.id) must not pounce for its comparison rhythm.")
             XCTAssertEqual(state.cats[0].habits.playClueSessionIDs.count, 0)
             scene.runControl(definition.play)

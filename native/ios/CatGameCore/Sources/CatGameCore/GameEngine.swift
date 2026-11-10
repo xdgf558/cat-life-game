@@ -636,10 +636,10 @@ extension GameSnapshot {
               [meta.createdAt, meta.lastSyncAt, player.staminaUpdatedAt].allSatisfy({ $0.timeIntervalSince1970.isFinite })
         else { return false }
         if let session = catPlay.activeSession {
-            guard session.catID == activeCatID, CatHabitCatalog.definition(for: session.catID) != nil else { return false }
+            guard session.catID == activeCatID else { return false }
             if session.isTutorial, catPlay.tutorialCatID != session.catID || catPlay.tutorialID == nil { return false }
-            if session.completeResponse,
-               !session.observedRhythms.contains(CatHabitCatalog.definition(for: session.catID)!.play) { return false }
+            // Completed input is historical; later catalog edits must not invalidate a save.
+            if session.completeResponse, session.observedRhythms.isEmpty { return false }
         }
         if let tutorialCat = catPlay.tutorialCatID, !cats.contains(where: { $0.id == tutorialCat }) { return false }
         if let result = catPlay.lastResult, !cats.contains(where: { $0.id == result.catID }) { return false }
