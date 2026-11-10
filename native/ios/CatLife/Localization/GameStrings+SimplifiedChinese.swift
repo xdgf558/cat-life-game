@@ -62,7 +62,7 @@ extension GameStrings {
         "onboarding.supplies.tip3": "房间里的“布置”可以移动家具；收纳到背包的家具，之后还能重新摆放。",
         "onboarding.tasks.title": "从一个小目标开始",
         "onboarding.tasks.explore": "前往看看任务",
-        "onboarding.tasks.tip1": "从首页或“更多”里的任务入口，可以查看新手目标、每日任务和长期成就。",
+        "onboarding.tasks.tip1": "从“更多”里的任务入口，可以查看新手目标、每日任务和长期成就；有奖励可领取时，“更多”会显示红点。",
         "onboarding.tasks.tip2": "完成后点“领取”。奖励保存成功才到账，领过的卡片会自动隐藏。",
         "onboarding.tasks.tip3": "每日任务在新的一天刷新。等级提高后，还会出现更多目标。",
         "onboarding.town.title": "出门逛逛猫町",

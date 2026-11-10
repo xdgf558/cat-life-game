@@ -2,17 +2,6 @@ import SwiftUI
 import SpriteKit
 import CatGameCore
 
-enum RoomStairLandingLayout {
-    static let topInset: CGFloat = 240
-    static let trailingInset: CGFloat = 12
-
-    static func frame(size: CGSize, canvas: CGSize, floor: HomeFloor = .ground, top: CGFloat = RoomStairLandingLayout.topInset) -> CGRect {
-        guard size.width > 0, size.height > 0 else { return .zero }
-        return CGRect(x: floor == .upper ? trailingInset : canvas.width - trailingInset - size.width, y: top,
-                      width: size.width, height: size.height)
-    }
-}
-
 /// Stage-local UIKit rectangles; external HUD and care bars never reduce this viewport twice.
 enum RoomStageLayout {
     static let controlsHeight: CGFloat = 52
@@ -250,7 +239,6 @@ struct RoomSceneHost: View {
             .onAppear { configureScene(geometry: geometry) }
             .onChange(of: isActive) { _, active in
                 scene.setPresentationActive(active && ownsPresentation)
-                if active && ownsPresentation { catNeedPresentation.focusRoom = { [weak source = scene] in source?.showCatCloseUp() } }
                 if !active {
                     cancelViewTransition()
                     closePreview()
@@ -274,7 +262,6 @@ struct RoomSceneHost: View {
                 scene.onInspectedResidentFrameChanged = nil
                 if ownsPresentation {
                     catNeedPresentation.anchor = nil; catNeedPresentation.localCatFrame = nil
-                    catNeedPresentation.focusRoom = nil
                 }
                 scene.cancelPlacementPreview()
             }
@@ -348,7 +335,6 @@ struct RoomSceneHost: View {
             if acceptsSceneUpdates() { refreshRoomViewControls() }
         }
         let presentation = catNeedPresentation
-        presentation.focusRoom = { [weak source = scene] in source?.showCatCloseUp() }
         presentation.canvasOrigin = geometry.frame(in: .global).origin
         scene.onCatNeedAnchorChanged = { [weak presentation] point in if acceptsSceneUpdates() { presentation?.anchor = point } }
         scene.onCatVisualFrameChanged = { [weak presentation] frame in if acceptsSceneUpdates() { presentation?.localCatFrame = frame } }
@@ -508,7 +494,6 @@ struct RoomSceneHost: View {
     private func refreshRoomViewControls() {
         roomViewAngle = scene.roomViewAngle
         isWholeRoomView = scene.isWholeRoomView
-        catNeedPresentation.showsWholeRoom = isWholeRoomView
         canChangeRoomView = scene.canChangeRoomView
     }
 

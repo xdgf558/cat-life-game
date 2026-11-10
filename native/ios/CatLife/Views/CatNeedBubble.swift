@@ -69,6 +69,20 @@ enum CatNeed: Equatable {
         return self == .clean && (store.snapshot?.inventory.litter ?? 0) == 0
             && (store.snapshot?.inventory.premiumLitter ?? 0) > 0
     }
+    @MainActor func careHintKey(in store: GameStore) -> String? {
+        switch self {
+        case .food, .buyFood:
+            if !store.hasFood { return "care.shopFood" }
+        case .clean:
+            if (store.snapshot?.inventory.litter ?? 0) == 0 && (store.snapshot?.inventory.premiumLitter ?? 0) == 0 {
+                return "care.shopLitter"
+            }
+        case .play:
+            if (store.snapshot?.inventory.toys ?? 0) == 0 { return "care.shopToy" }
+        case .hospital: return nil
+        }
+        return premiumChoice(in: store) ? actionTitleKey(in: store) : nil
+    }
     @MainActor func actionTitleKey(in store: GameStore) -> String {
         guard premiumChoice(in: store) else { return titleKey }
         if self == .food {
@@ -130,13 +144,9 @@ final class CatNeedPresentation {
     var stageFrame: CGRect?
     var headerFrame: CGRect?
     var careActionsFrame: CGRect?
-    var focusRoom: (() -> Void)?
     var isInspectingResident = false
     var anchor: CGPoint?
     var localCatFrame: CGRect?
-    var statusCardIsCompact = false
-    var statusCardFrame: CGRect?
-    var showsWholeRoom = true
     var canvasOrigin = CGPoint.zero
     var catFrame: CGRect? { localCatFrame?.offsetBy(dx: canvasOrigin.x, dy: canvasOrigin.y) }
 }
@@ -184,6 +194,7 @@ struct CatNeedBubble: View {
                     .background(RoomTheme.paper, in: Capsule())
                     .overlay(Capsule().strokeBorder(RoomTheme.mint, lineWidth: 1.5))
                     .accessibilityIdentifier("catCompanionName")
+                    .allowsHitTesting(false)
             }
         }
         .background {

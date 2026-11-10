@@ -61,7 +61,7 @@ struct RoomCareBar63: View {
         .buttonStyle(.plain)
         .accessibilityIdentifier(action.careButtonID ?? "")
         .accessibilityLabel(GameStrings.text(key))
-        .accessibilityHint(premium ? GameStrings.text(action.actionTitleKey(in: store)) : "")
+        .accessibilityHint(action.careHintKey(in: store).map { GameStrings.text($0) } ?? "")
         .background {
             if highlighted && !reduceMotion {
                 RoundedRectangle(cornerRadius: 22).stroke(RoomTheme.friendship.opacity(0.55), lineWidth: 2)

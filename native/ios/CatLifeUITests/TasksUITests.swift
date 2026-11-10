@@ -6,9 +6,13 @@ extension RoomHomeUITests {
         continueAfterFailure = false
         let app = launchFreshHome()
         let roomFrame = element("roomScene", in: app).frame
+        XCTAssertTrue((element("tabMore", in: app).value as? String ?? "").isEmpty,
+                      "A new game must not announce rewards before a goal is completed.")
         tapAnimationControl("feedButton", in: app)
         waitForObservedValue("foodCount", "2", in: app)
         waitForObservedValue("goldCount", "200", in: app)
+        waitForObservedValue("tabMore", "2 项可领取", in: app)
+        attachScreenshot(app, named: "Home review — More marks two rewards without adding a home task card")
 
         tapAnimationControl("tabTasks", in: app)
         waitForObservedValue("tasksDailySummary", "1/5", in: app)
@@ -22,6 +26,7 @@ extension RoomHomeUITests {
         attachScreenshot(app, named: "Tasks — committed reward celebration")
         assertClaimedTaskIsHidden("daily_feed", in: app)
         waitForObservedValue("tasksClaimableSummary", "1", in: app)
+        waitForObservedValue("tabMore", "1 项可领取", in: app)
 
         openTaskCard("tutorial_feed", category: "tutorial", in: app)
         tapAnimationControl("taskClaim_tutorial_feed", in: app)
@@ -30,6 +35,9 @@ extension RoomHomeUITests {
         tapAnimationControl("tabHome", in: app)
         waitForObservedValue("goldCount", "235", in: app)
         waitForObservedValue("foodCount", "2", in: app)
+        XCTAssertTrue((element("tabMore", in: app).value as? String ?? "").isEmpty,
+                      "Claiming the last reward must clear More's visual reminder and spoken value.")
+        attachScreenshot(app, named: "Home review — More reminder clears after both real rewards are claimed")
         assertRoomFrame(roomFrame, in: app, context: "returning from two committed task rewards")
         tapAnimationControl("tabWork", in: app)
         waitForObservedValue("playerExperience", "9", in: app)
