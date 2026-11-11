@@ -2,6 +2,8 @@
 
 ## Project Overview
 - Project name: `打工养猫日记`
+- Repository scope: standalone web version. Native iOS is maintained separately at [cat-life-game-ios](https://github.com/xdgf558/cat-life-game-ios).
+- Web and iOS saves are independent; repository separation does not migrate browser saves.
 - Type: static single-player web game
 - Stack: plain `HTML + CSS + JavaScript`
 - Runtime target: direct local open via `file://`
@@ -40,8 +42,9 @@
 - If a feature creates generated cats or furniture layout state, ensure reload/import paths preserve them.
 
 ## Development Workflow
-- 每次对本仓库的网页版或原生 iOS 进行开发、修复、重构、代码审查或依赖调整时，都加载并应用 `$ponytail`，默认使用 `full` 模式；用户明确指定其它模式或停用时，以用户要求为准。技能说明位于 `$CODEX_HOME/skills/ponytail/SKILL.md`，未设置 `CODEX_HOME` 时使用 `~/.codex/skills/ponytail/SKILL.md`。
-- Ponytail 的检查范围覆盖当前任务及相关调用方、边界和必要验证；保留现有架构、存档兼容、可访问性、QA 与 iOS 发布规则。配套 review/audit/debt/gain/help 技能按任务需要使用，不默认触发全仓审计或无关重构。
+- 原生 iOS 的开发、测试与发布规则以 [cat-life-game-ios](https://github.com/xdgf558/cat-life-game-ios) 仓库为准；本仓库只维护网页版。
+- 每次对本仓库的网页版进行开发、修复、重构、代码审查或依赖调整时，都加载并应用 `$ponytail`，默认使用 `full` 模式；用户明确指定其它模式或停用时，以用户要求为准。技能说明位于 `$CODEX_HOME/skills/ponytail/SKILL.md`，未设置 `CODEX_HOME` 时使用 `~/.codex/skills/ponytail/SKILL.md`。
+- Ponytail 的检查范围覆盖当前任务及相关调用方、边界和必要验证；保留现有网页架构、存档兼容、可访问性与 QA 规则。配套 review/audit/debt/gain/help 技能按任务需要使用，不默认触发全仓审计或无关重构。
 
 ## QA Rules
 - Minimum check after JS edits: run `node --check` across `src/js`.

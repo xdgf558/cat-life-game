@@ -1,6 +1,8 @@
-# 打工养猫日记
+# 打工养猫日记 · 网页版
 
-原生 HTML、CSS 与 JavaScript 编写的单机生活模拟游戏。直接打开 `index.html` 即可游玩，存档保存在浏览器的 `catGameSaveV1` 中。
+本仓库独立维护使用原生 HTML、CSS 与 JavaScript 编写的单机生活模拟游戏网页版。原生 iOS 版已迁至 [cat-life-game-ios](https://github.com/xdgf558/cat-life-game-ios)。
+
+直接以 `file://` 打开本仓库的 `index.html` 即可游玩，无需后端或构建。网页存档保存在当前浏览器的 `localStorage`，主键为 `catGameSaveV1`；网页版与原生 iOS 分别存档，不会自动同步。拆分仓库不会迁移或修改已有浏览器存档。
 
 ## UI 重构
 
@@ -11,7 +13,9 @@
 - 商店接入 20 张压缩商品插画，覆盖全部 25 个商品条目。
 - 保持直接 `file://` 打开、原脚本加载顺序和旧存档兼容。
 
-运行 `npm test` 可检查睡眠入口、Toast 消费、版本导航、动态文案转义与配置阈值等关键 UI 回归。
+## 验证
+
+安装 Node.js 后，在仓库根目录运行 `npm test`，可检查睡眠入口、Toast 消费、版本导航、动态文案转义与配置阈值等关键 UI 回归。测试不需要安装第三方依赖。
 
 ## v1.17.0 更新内容
 

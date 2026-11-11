@@ -1,2 +1,2 @@
 [lfs]
-	fetchinclude = native/ios/CatLife/**
+	fetchinclude = docs/**

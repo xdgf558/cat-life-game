@@ -1,9 +1,0 @@
-.DS_Store
-.build/
-DerivedData/
-build/
-*.xcuserstate
-xcuserdata/
-*.xcresult/
-*.log
-!QA/**/*.log
