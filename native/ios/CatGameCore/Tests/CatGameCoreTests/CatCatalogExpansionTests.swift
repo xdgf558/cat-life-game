@@ -52,8 +52,10 @@ struct CatCatalogExpansionTests {
         #expect(outcome.success == .catAdopted && outcome.amount == 600 && state.player.gold == 0)
         #expect(state.cats.map(\.id) == [CatCatalog.initialCatID, CatCatalog.blueCatID])
         #expect(state.activeCatID == original.activeCatID && state.cats[0] == original.cats[0])
-        #expect(state.cats[1] == CatState(id: CatCatalog.blueCatID, name: "蓝影", satiety: 70,
-            cleanliness: 85, mood: 80, intimacy: 10, energy: 85, health: 100, now: now, appearance: .blue))
+        var expectedCat = CatState(id: CatCatalog.blueCatID, name: "蓝影", satiety: 70,
+            cleanliness: 85, mood: 80, intimacy: 10, energy: 85, health: 100, now: now, appearance: .blue)
+        expectedCat.habits.restLocations = expectedRestReferences(home: original.home, inventory: original.inventory)
+        #expect(state.cats[1] == expectedCat)
         #expect(state.home == original.home && state.inventory == original.inventory && state.tasks == original.tasks)
         let once = state
         #expect(GameEngine.adoptCat(&state, catID: CatCatalog.blueCatID, now: now).failure == .catAlreadyOwned)
@@ -107,12 +109,13 @@ struct CatCatalogExpansionTests {
             var object = try json(original)
             object["schemaVersion"] = version
             var loaded = try decode(object)
-            #expect(loaded == original && loaded.schemaVersion == GameSnapshot.currentSchemaVersion && loaded.isValid)
+            let expected = expectedCompanionMigration(original)
+            #expect(loaded == expected && loaded.schemaVersion == GameSnapshot.currentSchemaVersion && loaded.isValid)
             #expect(loaded.cats.map(\.appearance) == [.orange, .cow])
             #expect(GameEngine.claimTask(&loaded, id: "tutorial_furniture", now: now).failure == .taskAlreadyClaimed)
             #expect(GameEngine.claimTask(&loaded, id: "daily_clean", expectedDayKey: loaded.tasks.dailyDayKey,
                                          now: now).failure == .taskAlreadyClaimed)
-            #expect(loaded == original)
+            #expect(loaded == expected)
         }
     }
 

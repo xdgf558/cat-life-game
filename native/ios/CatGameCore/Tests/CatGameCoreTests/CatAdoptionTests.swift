@@ -22,7 +22,7 @@ struct CatAdoptionTests {
         for index in cats.indices { cats[index].removeValue(forKey: "appearance") }
         object["cats"] = cats
         let decoded = try decode(object)
-        #expect(decoded == original)
+        #expect(decoded == expectedCompanionMigration(original))
         #expect(decoded.activeCatID == CatCatalog.initialCatID)
         #expect(decoded.activeCat?.appearance == .orange)
         #expect(decoded.schemaVersion == GameSnapshot.currentSchemaVersion)

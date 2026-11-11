@@ -39,7 +39,8 @@ public enum CatHabitCatalog {
 }
 
 public enum CatMemoryKind: String, Codable, CaseIterable, Sendable {
-    case firstResponse, favoriteRest, favoritePlay, littleCorner
+    case firstResponse, favoriteRest, favoritePlay, littleCorner, settledAfterMove, understandEachOther
+    public var isPinnable: Bool { [.favoritePlay, .littleCorner, .settledAfterMove].contains(self) }
     public var titleKey: String { "catMemories.\(rawValue).title" }
     public var bodyKey: String { "catMemories.\(rawValue).body" }
 }

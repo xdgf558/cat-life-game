@@ -1,4 +1,7 @@
-最新上传：0.20.0（62）完整房间、三视角与UI/UX设计整合，2026-11-10 09:23（GMT+8）上传成功。Xcode返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认Apple处理完成或测试开放；未关联内外测群组、邀请测试者或提交Beta Review，后续由用户手动添加。
+最新上传：0.21.1（66）正面房间、初始布置与托盘比例一致性修复，2026-11-10 23:27:02（GMT+8）上传成功。Xcode返回Upload succeeded / EXPORT SUCCEEDED，并确认Uploaded package is processing；未确认Apple处理完成或开放测试，内测外测由用户手动添加，未操作群组或Beta Review。
+PR #28已合并，发布main为aa89f1d8a8b22f310c3a8cdf09974bb49f8005da，与审查通过的a00086b完整源码树一致。从main新建签名归档；实际App Store分发包get-task-allow关闭、无设备列表，510项生产输入上传前后无漂移。目标App6830428076，Bundle com.stationcat.catlife.native。验证范围见../../QA/testflight-build66-summary.md；测试重点见front-room-0.21.1-66.txt。此前65的准确记录见../../QA/testflight-build65-summary.md。下面保留原历史记录。
+
+历史上传：0.20.0（62）完整房间、三视角与UI/UX设计整合，2026-11-10 09:23（GMT+8）上传成功。Xcode返回 Upload succeeded / EXPORT SUCCEEDED，并确认 Uploaded package is processing。尚未确认Apple处理完成或测试开放；未关联内外测群组、邀请测试者或提交Beta Review，后续由用户手动添加。
 PR #24、#25已依次合并，发布源码为main提交373edbbe691342ec5fd4e6941b799d6ae9a4a00b，完整源码树与已测试的677fa66一致。新建归档0.20.0-62/TestFlight/CatLife-0.20.0-62-main.xcarchive，原始归档、日志及验证JSON均保留在Git外。归档二进制SHA256：c690d8d6cba439c09ccb21ade054e62577cd70035c9f66a2332b84f6994cf633；上传前后534项生产输入指纹一致。
 版本、Bundle ID、严格签名、描述文件、dSYM、隐私清单、45份音频和60个UI测试参数隔离均通过。归档由自动开发描述文件签名，Xcode导出时进行App Store分发重签，分发流水线确认get-task-allow关闭；不自动提升版本号，不限制为Internal Only。303项App全量及7个不同UI方法的分轮回归为同源码合并前验证，本次不计作重跑，边界见../../QA/room-views-build62-summary.md。本轮未安装真实设备或修改玩家存档。目标App ID 6830428076，Bundle ID com.stationcat.catlife.native；测试重点见room-design-0.20.0-62.txt，发布摘要见../../QA/testflight-build62-summary.md。0.19.0（60）和0.19.1（61）未单独上传，随本版交付。
 

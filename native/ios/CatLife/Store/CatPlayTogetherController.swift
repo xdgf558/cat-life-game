@@ -43,6 +43,11 @@ final class CatPlayTogetherController {
     var result: CatPlayReceipt? { store.snapshot?.catPlay.lastResult.flatMap { $0.id == session.id ? $0 : nil } }
     var current: CatPlaySession { store.snapshot?.catPlay.activeSession.flatMap { $0.id == session.id ? $0 : nil } ?? result?.session ?? session }
 
+    var motionKey: String {
+        guard phase == "satisfied", let index = scene.responseFinishIndex else { return "catHabits.motion.\(phase)" }
+        return index == 0 ? "catHabits.motion.contentSit" : "catHabits.motion.softPaw"
+    }
+
     func tick() {
         let next = max(0, deadline - ProcessInfo.processInfo.systemUptime)
         if ceil(next) != ceil(remaining) || next == 0 { remaining = next }
@@ -87,10 +92,13 @@ final class CatPlayTogetherController {
                 }
                 if self.queue.first?.sequence == report.sequence { self.queue.removeFirst() }
                 guard self.visible, !self.ending else { break }
+                guard self.generation == self.store.saveSceneGeneration else { self.finish(); break }
                 if let rhythm = report.kind.rhythm, self.current.observedRhythms.contains(rhythm),
                    report.duration >= (rhythm == .moveAndPause ? CatHabitCatalog.pauseResponseDuration : CatHabitCatalog.responseDuration) {
                     if rhythm == CatHabitCatalog.definition(for: self.session.catID)?.play {
-                        self.phase = "pouncing"; self.scene.completeResponse()
+                        self.phase = "pouncing"
+                        let cat = self.store.snapshot?.cats.first { $0.id == self.session.catID }
+                        self.scene.completeResponse(finishIndex: cat?.habits.playConfirmed == true ? cat?.habits.lastResponseFinishIndex : nil)
                     } else { self.phase = "waiting"; self.scene.waitAndWatch() }
                 }
                 if self.session.isTutorial, self.store.snapshot?.catPlay.tutorialCompleted == true, self.tutorialEndTask == nil {

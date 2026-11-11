@@ -215,9 +215,10 @@ struct CatHabitTests {
 
     @Test func onlyVisiblePlayerInitiatedNaturalRestsProduceClues() throws {
         var state = GameSnapshot.fresh(now: now)
+        let initialHabits = state.cats[0].habits
         #expect(GameEngine.startCatRest(&state, catID: state.activeCatID, furnitureID: "floorCushion", sessionID: "ambient", now: now).succeeded)
         #expect(GameEngine.synchronize(&state, now: now.addingTimeInterval(9)).succeeded)
-        #expect(state.cats[0].habits == CatHabitState())
+        #expect(state.cats[0].habits == initialHabits)
         try observe(&state, itemID: "floorCushion", sessionID: "first", at: now.addingTimeInterval(10))
         #expect(state.cats[0].habits.restClueSessionIDs == ["first"])
         try observe(&state, itemID: "floorCushion", sessionID: "second", at: now.addingTimeInterval(20))
@@ -230,6 +231,7 @@ struct CatHabitTests {
     @Test func careAndLayoutInterruptionsCannotBecomeRestClues() throws {
         for action in ["feed", "clean", "play", "layout"] {
             var state = GameSnapshot.fresh(now: now); state.inventory.toys = 2
+            let initialHabits = state.cats[0].habits
             let point = try #require(state.home.furniture.first { $0.itemID == "floorCushion" }?.position)
             #expect(GameEngine.startCatRest(&state, catID: state.activeCatID, furnitureID: "floorCushion", sessionID: action,
                 observation: .init(floor: .ground, position: point), now: now).succeeded)
@@ -241,7 +243,7 @@ struct CatHabitTests {
             default: _ = GameEngine.setBowlPosition(&state, .init(x: 0.5, y: 0.8), now: date)
             }
             #expect(GameEngine.synchronize(&state, now: now.addingTimeInterval(12)).succeeded)
-            #expect(state.cats[0].habits == CatHabitState())
+            #expect(state.cats[0].habits == initialHabits)
         }
     }
 
@@ -269,7 +271,7 @@ struct CatHabitTests {
             for i in cats.indices { cats[i].removeValue(forKey: "habits") }
             json["cats"] = cats
             let migrated = try NativeSaveCodec.decodeSnapshot(JSONSerialization.data(withJSONObject: json), now: now)
-            #expect(migrated.schemaVersion == 13)
+            #expect(migrated.schemaVersion == GameSnapshot.currentSchemaVersion)
             #expect(migrated.player == original.player)
             #expect(migrated.inventory == original.inventory)
             #expect(migrated.cats == original.cats)
@@ -280,7 +282,7 @@ struct CatHabitTests {
 
     @Test func currentSchemaMissingOrMalformedHabitProgressIsRejectedInsteadOfReset() throws {
         let original = GameSnapshot.fresh(now: now)
-        for schema in [12, 13] {
+        for schema in [12, 13, 14] {
             for key in ["catPlay", "habits"] {
                 var json = try #require(JSONSerialization.jsonObject(with: NativeSaveCodec.encoder().encode(original)) as? [String: Any])
                 json["schemaVersion"] = schema
@@ -328,7 +330,7 @@ struct CatHabitTests {
             input(&state, id: paid, sequence: 1, kind: CatPlayInputKind(rawValue: definition.play.rawValue)!,
                   duration: 2, at: now.addingTimeInterval(37))
             #expect(state.activeCat?.habits.playConfirmed == true)
-            #expect(Set(state.activeCat!.habits.memories.map(\.kind)) == Set(CatMemoryKind.allCases))
+            #expect(Set(state.activeCat!.habits.memories.map(\.kind)) == Set([CatMemoryKind.firstResponse, .favoriteRest, .favoritePlay, .littleCorner]))
             #expect(state.tasks.dailyPlayCount == 1)
             #expect(state.inventory.toys == 1)
             #expect(state.cats.filter { $0.id != definition.id } == unrelated)
@@ -338,17 +340,18 @@ struct CatHabitTests {
             let stale = CatHabitEngine.recordPlayInput(&state, catID: definition.id, sessionID: paid,
                 report: .init(sequence: 2, kind: .slowMove, control: .tap, duration: 2, movementDuration: 0), now: now.addingTimeInterval(39))
             #expect(stale.failure == .habitPlaySessionEnded)
-            #expect(state.activeCat?.habits == CatHabitState())
+            #expect(state.activeCat?.habits == other.habits)
         }
     }
 
     @Test func tutorialCannotEarnAResponseFromAStationaryDragOrInflatedDuration() throws {
         var state = GameSnapshot.fresh(now: now)
+        let initialHabits = state.cats[0].habits
         let id = try open(&state, at: now)
         let stationary = CatPlayInputReport(sequence: 1, kind: .slowMove, control: .drag, duration: 2, movementDuration: 0)
         #expect(CatHabitEngine.recordPlayInput(&state, catID: state.activeCatID, sessionID: id, report: stationary,
             now: now.addingTimeInterval(2)).succeeded)
-        #expect(state.cats[0].habits == CatHabitState())
+        #expect(state.cats[0].habits == initialHabits)
         let inflated = CatPlayInputReport(sequence: 2, kind: .moveAndPause, control: .tap, duration: 10, movementDuration: 0)
         #expect(CatHabitEngine.recordPlayInput(&state, catID: state.activeCatID, sessionID: id, report: inflated,
             now: now.addingTimeInterval(3)).failure == .habitInputInvalid)
@@ -392,7 +395,7 @@ struct CatHabitTests {
 
     private func expireHistoricalSession(_ data: Data, startedAt start: Date) throws -> GameSnapshot {
         var loaded = try NativeSaveCodec.decodeSnapshot(data, now: start.addingTimeInterval(3))
-        #expect(loaded.schemaVersion == 13 && loaded.isValid)
+        #expect(loaded.schemaVersion == GameSnapshot.currentSchemaVersion && loaded.isValid)
         let session = try #require(loaded.catPlay.activeSession)
         let inventory = loaded.inventory
         let tasks = loaded.tasks

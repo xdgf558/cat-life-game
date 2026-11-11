@@ -48,6 +48,7 @@ struct StarterLayoutMigrationTests {
                 var expected = original
                 let cushion = try #require(expected.home.furniture.firstIndex { $0.itemID == "floorCushion" })
                 expected.home.furniture[cushion].position.x = 0.22
+                expected = expectedCompanionMigration(expected)
                 let loaded = try reload(original, schema: version)
                 #expect(loaded == expected)
                 #expect(loaded.isValid && loaded.schemaVersion == GameSnapshot.currentSchemaVersion)
@@ -79,16 +80,16 @@ struct StarterLayoutMigrationTests {
         emptyRoom.home.furniture = []
         for state in [movedBowl, movedBed, movedCushion, storedCushion, storedOtherItem, newlyPlaced, emptyRoom] {
             #expect(state.isValid)
-            #expect(try reload(state, schema: 5) == state)
+            #expect(try reload(state, schema: 5) == expectedCompanionMigration(state))
         }
     }
 
     @Test func schemaSixDoesNotReapplyMigrationToAPlayerChosenOldPosition() throws {
         let original = try legacyStarter()
-        #expect(try reload(original, schema: 6) == original)
+        #expect(try reload(original, schema: 6) == expectedCompanionMigration(original))
         var upgraded = try reload(original, schema: 5)
         let cushion = try #require(upgraded.home.furniture.firstIndex { $0.itemID == "floorCushion" })
         upgraded.home.furniture[cushion].position.x = 0.12
-        #expect(try reload(upgraded, schema: 6) == upgraded)
+        #expect(try reload(upgraded, schema: 6) == expectedCompanionMigration(upgraded))
     }
 }

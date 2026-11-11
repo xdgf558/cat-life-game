@@ -110,7 +110,8 @@ struct NeighborDetailView: View {
             } else {
                 HStack(alignment: .center, spacing: 14) { CommunityPortrait(neighbor: neighbor, size: 96); biography(neighbor) }
             }
-            Label(GameStrings.text(dialogueKey ?? "community.dialogueHint"), systemImage: "text.bubble.fill")
+            Label(dialogueKey.map { GameStrings.text($0) } ?? CompanionshipPresentation.neighborDialogue(for: store.cat)
+                  ?? GameStrings.text("community.dialogueHint"), systemImage: "text.bubble.fill")
                 .font(.subheadline.weight(.bold)).foregroundStyle(dialogueKey == nil ? RoomTheme.secondary : RoomTheme.ink)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(14).frame(maxWidth: .infinity, alignment: .leading)

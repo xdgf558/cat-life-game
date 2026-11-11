@@ -13,11 +13,11 @@ struct CommunityMigrationTests {
         try JSONDecoder().decode(GameSnapshot.self, from: JSONSerialization.data(withJSONObject: object))
     }
 
-    @Test func schema13StarterLayoutMigrationKeepsReviewedCommunityLedgers() throws {
+    @Test func schema14CompanionMigrationKeepsReviewedCommunityLedgers() throws {
         // Freeze the v7 ledger independently of the catalog and fresh-save defaults.
         let schema7IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
-        #expect(GameSnapshot.currentSchemaVersion == 13,
-                "Review the v13 starter-layout migration before updating this schema guard; preserve the independent v7/v8/v10 and v12 habit ledgers below.")
+        #expect(GameSnapshot.currentSchemaVersion == 14,
+                "Review the v14 companionship migration before updating this schema guard; preserve the independent v7/v8/v10, v11 events and v12/v13 habit ledgers below.")
         #expect(CommunityCatalog.neighbors.map(\.id).sorted() == schema7IDs,
                 "Changing neighbors requires a schema/migration review, not just a new catalog entry.")
         let recordedRelationship: [String: Any] = [
@@ -45,7 +45,7 @@ struct CommunityMigrationTests {
         }
     }
 
-    @Test func frozenSchemaElevenEventsAndSchemaTwelveHabitLedgersSurviveSchemaThirteen() throws {
+    @Test func frozenSchemaElevenEventsAndSchemaTwelveAndThirteenHabitLedgersSurviveSchemaFourteen() throws {
         let schema12IDs = ["neighbor_grace", "neighbor_ken", "neighbor_luna", "neighbor_mira"]
         var original = GameSnapshot.fresh(now: now)
         original.home.furniture = FurnitureCatalog.legacyPlacementsV6
@@ -59,11 +59,11 @@ struct CommunityMigrationTests {
             letters: [.init(dayKey: day, eventID: "retired-v11-event", choiceID: "old-choice",
                             neighborID: "neighbor_mira", completedAt: now, friendshipGained: 3,
                             stageBefore: 1, stageAfter: 1, rewards: .init(food: 1))], totalCompleted: 1)
-        for schema in [11, 12] {
+        for schema in [11, 12, 13] {
             var saved = try object(original)
             saved["schemaVersion"] = schema
             var cats = try #require(saved["cats"] as? [[String: Any]])
-            if schema == 12 {
+            if schema >= 12 {
                 // Freeze the released v12 receipt shape rather than using current defaults.
                 cats[0]["habits"] = [
                     "restClueSessionIDs": ["v12-rest-1", "v12-rest-2"],
@@ -81,11 +81,11 @@ struct CommunityMigrationTests {
             }
             saved["cats"] = cats
             let loaded = try decode(saved)
-            #expect(loaded.isValid && loaded.schemaVersion == 13)
+            #expect(loaded.isValid && loaded.schemaVersion == 14)
             #expect(loaded.community == original.community)
-            #expect(loaded.home.furniture == FurnitureCatalog.frontPlacementsV13)
+            #expect(loaded.home.furniture == (schema < 13 ? FurnitureCatalog.frontPlacementsV13 : FurnitureCatalog.legacyPlacementsV6))
             #expect(loaded.player == original.player && loaded.inventory == original.inventory && loaded.tasks == original.tasks)
-            if schema == 12 {
+            if schema >= 12 {
                 let habits = loaded.cats[0].habits
                 #expect(habits.restClueSessionIDs == ["v12-rest-1", "v12-rest-2"])
                 #expect(habits.playClueSessionIDs == ["v12-play-1", "v12-play-2"])
@@ -95,7 +95,9 @@ struct CommunityMigrationTests {
                 #expect(loaded.catPlay.tutorialID == "v12-tutorial" && loaded.catPlay.tutorialCatID == "cat_001")
                 #expect(loaded.catPlay.tutorialRhythms == [.slowMove, .moveAndPause])
             } else {
-                #expect(loaded.cats[0].habits == CatHabitState() && loaded.catPlay == CatPlayState())
+                var empty = CatHabitState()
+                empty.seedRestLocations(home: loaded.home, inventory: loaded.inventory)
+                #expect(loaded.cats[0].habits == empty && loaded.catPlay == CatPlayState())
             }
         }
     }

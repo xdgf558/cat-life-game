@@ -22,6 +22,26 @@ extension GameStore {
               }) == true else { return nil }
         return receipt
     }
+    var canShowPinnedHabitHint: Bool {
+        guard let cat, cat.habits.pinnedMemory != nil, adoptionReminders.pendingOffer == nil else { return false }
+        return CatNeed.current(in: self) == nil && cat.energy >= 30 && cat.activeRest == nil
+            && roomFloorTravelReady && !isChangingHomeFloor
+    }
+
+    @discardableResult
+    func pinHabitMemory(catID: String, memory: CatMemoryKind?) async -> Bool {
+        await performPersistedAction(playsSound: false, showsSuccessNotice: false) {
+            CatHabitEngine.pinMemory(&$0, catID: catID, memory: memory, now: $1)
+        }
+    }
+
+    @discardableResult
+    func setPinnedHabitHintCollapsed(catID: String, collapsed: Bool) async -> Bool {
+        await performPersistedAction(playsSound: false, showsSuccessNotice: false) {
+            CatHabitEngine.setPinnedHintCollapsed(&$0, catID: catID, collapsed: collapsed, now: $1)
+        }
+    }
+
     var canOpenPlayTogether: Bool {
         isHabitInteractionActive && pendingCatPlayEnd == nil && !isShowingPlayTogether
             && !isBusy && !isDecorating && !isInspectingHealth && !isChangingHomeFloor && !saveTransferInProgress

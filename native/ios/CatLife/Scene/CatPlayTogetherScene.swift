@@ -15,6 +15,7 @@ final class CatPlayTogetherScene: SKScene {
     private var reported: Set<CatPlayRhythm> = []
     private var attentionUntil: TimeInterval = 0
     private(set) var isResponding = false
+    private(set) var responseFinishIndex: Int?
     private(set) var pounces = 0
     var onInput: ((CatPlayInputKind, CatPlayControl, Double, Double) -> Void)?
     var onMotion: ((String) -> Void)?
@@ -92,15 +93,16 @@ final class CatPlayTogetherScene: SKScene {
     }
 
     /// Called only after Core accepts and saves a complete response.
-    func completeResponse() {
+    func completeResponse(finishIndex: Int? = nil) {
         guard !isResponding else { return }
         dragging = false; program = nil; tracker.reset(); previousInputKind = .still
         actor.cancelAndSettle(at: actor.position); actor.setIdleEnabled(false)
         isResponding = true
+        responseFinishIndex = finishIndex
         pounces += 1; onMotion?("pouncing")
         let origin = actor.position
         let target = CGPoint(x: min(size.width - 65, max(65, toy.position.x)), y: home.y)
-        actor.play(landing: target, facing: target.x < origin.x ? -1 : 1, returnPath: [target], prepared: true) { [weak self] in
+        actor.play(landing: target, facing: target.x < origin.x ? -1 : 1, returnPath: [target], prepared: true, responseFinishIndex: finishIndex) { [weak self] in
             self?.isResponding = false
             self?.onMotion?("satisfied")
         }

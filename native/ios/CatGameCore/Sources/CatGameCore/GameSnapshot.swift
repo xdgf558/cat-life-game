@@ -2,7 +2,7 @@ import Foundation
 
 /// The native prototype's own save format. Web saves are never read or overwritten.
 public struct GameSnapshot: Codable, Equatable, Sendable {
-    public static let currentSchemaVersion = 13
+    public static let currentSchemaVersion = 14
     public var schemaVersion: Int
     public var player: PlayerState
     public var cats: [CatState]
@@ -111,6 +111,12 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
                 }
             }
         }
+        if version < 14 {
+            for index in cats.indices {
+                cats[index].habits.seedRestLocations(home: home, inventory: inventory)
+                cats[index].habits.legacyRestSessionID = cats[index].activeRest?.id
+            }
+        }
         guard community.isValid, inventory.validGifts,
               community.events.dayKey.map({ eventDay in tasks.dailyDayKey.map { eventDay <= $0 } ?? false }) ?? true,
               tasks.dailyDayKey != nil || (community.dailyVisitCount == 0 && community.dailyGiftCount == 0 && community.dailyExchangeCount == 0)
@@ -118,10 +124,14 @@ public struct GameSnapshot: Codable, Equatable, Sendable {
     }
 
     public static func fresh(now: Date = Date()) -> GameSnapshot {
-        GameSnapshot(player: PlayerState(staminaUpdatedAt: now),
-                     cats: [CatState(id: CatCatalog.initialCatID, name: "小橘", now: now)],
-                     inventory: InventoryState(), home: HomeState(),
-                     meta: SaveMetadata(createdAt: now, lastSyncAt: now))
+        var snapshot = GameSnapshot(player: PlayerState(staminaUpdatedAt: now),
+                                    cats: [CatState(id: CatCatalog.initialCatID, name: "小橘", now: now)],
+                                    inventory: InventoryState(), home: HomeState(),
+                                    meta: SaveMetadata(createdAt: now, lastSyncAt: now))
+        for index in snapshot.cats.indices {
+            snapshot.cats[index].habits.seedRestLocations(home: snapshot.home, inventory: snapshot.inventory)
+        }
+        return snapshot
     }
 }
 
@@ -306,7 +316,7 @@ public struct CatState: Codable, Equatable, Sendable, Identifiable {
         activeRest = try values.decodeIfPresent(CatRest.self, forKey: .activeRest)
         lastRestSessionID = try values.decodeIfPresent(String.self, forKey: .lastRestSessionID)
         habits = schemaVersion < 12 && !values.contains(.habits) ? CatHabitState()
-            : try values.decode(CatHabitState.self, forKey: .habits)
+            : try CatHabitState(from: values.superDecoder(forKey: .habits), schemaVersion: schemaVersion)
     }
 }
 

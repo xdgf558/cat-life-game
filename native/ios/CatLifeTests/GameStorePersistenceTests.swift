@@ -346,7 +346,8 @@ final class GameStorePersistenceTests: XCTestCase {
 
     @MainActor
     func testFullStaminaClockDoesNotCausePassiveWritesOrBankExtraRecovery() async throws {
-        let date = Date()
+        // Isolate stamina timestamps from a legitimate daily reset when this test runs near midnight.
+        let date = Calendar.current.date(bySettingHour: 12, minute: 0, second: 0, of: Date())!
         var seed = mutedSnapshot(now: date)
         seed.player.stamina = 100
         let repository = MemorySaveRepository(seed)
@@ -371,6 +372,18 @@ final class GameStorePersistenceTests: XCTestCase {
         XCTAssertEqual(later.player.stamina, 90, "Full idle time is not banked toward recovery after spending.")
         _ = GameEngine.synchronize(&later, now: workDate.addingTimeInterval(3600))
         XCTAssertEqual(later.player.stamina, 95)
+    }
+
+    @MainActor
+    func testDailyRolloverStillRequiresADurableSaveAtFullStamina() {
+        let midnight = Calendar.current.startOfDay(for: Date())
+        let date = midnight.addingTimeInterval(-60)
+        var original = mutedSnapshot(now: date)
+        original.player.stamina = 100
+        var next = original
+        XCTAssertTrue(GameEngine.synchronize(&next, now: date.addingTimeInterval(120)).succeeded)
+        XCTAssertNotEqual(next.tasks.dailyDayKey, original.tasks.dailyDayKey)
+        XCTAssertTrue(requiresDurableSave(next, comparedTo: original), "A daily reset is meaningful even when stamina is already full.")
     }
 
     @MainActor

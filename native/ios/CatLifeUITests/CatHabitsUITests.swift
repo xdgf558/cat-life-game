@@ -248,3 +248,46 @@ extension RoomHomeUITests {
         XCTAssertEqual(result, .completed, "Stage value: \(stage.exists ? String(describing: stage.value) : "no stage; result shown: \(element("playTogetherResult", in: app).exists)")")
     }
 }
+
+
+extension RoomHomeUITests {
+    @MainActor
+    func testCompanionship67ConfirmedPlayEndingsAlternateAcrossColdLaunchWithOneToyPerSession() throws {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = arguments(reset: true) + ["--habit-play-need-fixture", "--furniture-test"]
+        launchAndEnterHome(app)
+        openHabitPlay(in: app)
+        completeHabitTutorial(in: app)
+        waitForObservedValue("habitPlayProgress", "1/2", in: app)
+        tapAnimationControl("playTogetherFinishButton", in: app)
+        waitForObservedValue("toyCount", "3", in: app)
+
+        var reactions: [String] = []
+        for remaining in [2, 1] {
+            if remaining == 1 {
+                relaunchPreservingSave(app)
+                waitForObservedValue("toyCount", "2", in: app)
+            }
+            openHabitPlay(in: app)
+            waitForElement("playTogetherStage", in: app)
+            tapAnimationControl("playTogether_moveAndPause", in: app)
+            waitForHabitStage(in: app, matching: { $0.hasPrefix("satisfied|1|1") })
+            reactions.append(element("playTogetherReaction", in: app).label)
+            attachScreenshot(app, named: "Companionship 67 — confirmed response ending, toys remaining \(remaining)")
+            XCUIDevice.shared.press(.home)
+            waitForAppBackground(in: app)
+            app.activate()
+            waitForElement("playTogetherResult", in: app)
+            waitForObservedValue("playTogetherToyCost", "1", in: app)
+            waitForObservedValue("habitPlayProgress", "2/2", in: app)
+            tapAnimationControl("playTogetherFinishButton", in: app)
+            waitForObservedValue("toyCount", String(remaining), in: app)
+            waitForObservedValue("goldCount", "200", in: app)
+            waitForObservedValue("foodCount", "3", in: app)
+        }
+        XCTAssertEqual(reactions.count, 2)
+        XCTAssertFalse(reactions[0].isEmpty)
+        XCTAssertNotEqual(reactions[0], reactions[1], "A new scene after cold launch must use the next committed ending.")
+    }
+}
