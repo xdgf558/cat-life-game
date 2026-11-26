@@ -24,27 +24,70 @@ enum GameStrings {
     }
 
     static func format(_ key: String, _ values: CVarArg...) -> String {
-        String(format: text(key), locale: Locale(identifier: GameLocalization.shared.language.rawValue), arguments: values)
+        String(
+            format: text(key),
+            locale: Locale(identifier: GameLocalization.shared.language.rawValue),
+            arguments: values
+        )
     }
 
-    static func furnitureName(_ item: FurnitureItem) -> String {
-        if item.id == "plantLarge" { return text("furniture.plantLarge") }
-        if item.id == "plantSmall" { return text("furniture.plantSmall") }
-        return text(FurnitureCatalog.metadata(for: item.kind).nameKey)
+    static func itemName(_ item: MergeItem) -> String {
+        text("item.\(item.rawID)")
     }
 
-    static func catName(_ cat: CatState) -> String {
-        if let customName = cat.customName { return customName }
-        if cat.id == CatCatalog.initialCatID, cat.name == "小橘" { return text("cat.defaultName") }
-        if let offer = CatCatalog.adoptionOffer(catID: cat.id), cat.name == offer.name { return catAdoptionName(offer) }
-        return cat.name
+    static func chainName(_ chain: MergeChain) -> String {
+        text("chain.\(chain.rawValue)")
     }
 
-    static func catAdoptionName(_ offer: CatAdoptionOffer) -> String {
-        text(offer.appearance == .orange ? "cat.defaultName" : "cat.\(offer.appearance.rawValue)Name")
+    static func generatorName(_ chain: MergeChain) -> String {
+        text("gen.\(chain.rawValue)")
     }
 
-    static func catDescription(_ appearance: CatAppearance) -> String {
-        text("cat.\(appearance.rawValue)Description")
+    static func furnitureName(_ id: FurnitureID) -> String {
+        text("furn.\(id.rawValue)")
+    }
+
+    static func customerName(_ id: CustomerID) -> String {
+        text("customer.\(id.rawValue)")
+    }
+
+    static func roomName(_ id: RoomID) -> String {
+        text("room.\(id.rawValue)")
+    }
+
+    static func photoTitle(_ id: String) -> String {
+        text("photo.\(id).title")
+    }
+
+    static func photoCaption(_ id: String) -> String {
+        text("photo.\(id).caption")
+    }
+
+    static func photoCategoryName(_ category: PhotoCategory) -> String {
+        text("diary.cat.\(category.rawValue)")
+    }
+
+    static func wishLabel(_ goal: WishGoal) -> String {
+        switch goal {
+        case .pet: text("wish.goal.pet")
+        case .play(let item): format("wish.goal.play", itemName(item))
+        case .feed(let item): format("wish.goal.feed", itemName(item))
+        }
+    }
+
+    static func wishHint(_ goal: WishGoal, bonusXP: Int) -> String {
+        switch goal {
+        case .pet: format("wish.hint.pet", bonusXP)
+        case .play(let item): format("wish.hint.play", itemName(item), bonusXP)
+        case .feed(let item): format("wish.hint.feed", itemName(item), bonusXP)
+        }
+    }
+
+    static func unlockDescription(_ rule: UnlockRule) -> String {
+        switch rule.kind {
+        case .chain(let chain): format("unlock.chain", generatorName(chain))
+        case .room(let room): format("unlock.room", roomName(room))
+        case .customer(let customer): format("unlock.customer", customerName(customer))
+        }
     }
 }

@@ -2,11 +2,11 @@ import SwiftUI
 
 @main
 struct CatLifeApp: App {
-    @State private var store = GameStore()
+    @State private var store = DiaryAppStore()
 
     var body: some Scene {
         WindowGroup {
-            RoomHomeView(store: store)
+            DiaryRootView(store: store)
         }
     }
 }

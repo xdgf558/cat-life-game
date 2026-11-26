@@ -1,0 +1,12 @@
+{
+  "images": [
+    {
+      "filename": "npc_grandma.png",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}

@@ -4,8 +4,8 @@ import Observation
 import CatGameCore
 import UIKit
 
-/// One audio owner per app process. Preferences are committed by GameStore;
-/// players and audio-session state are intentionally never part of a game save.
+/// Single audio owner per app process. Preserves AVAudioSession interruption/route handling
+/// while adding ad playback muting and variable-rate combo merge pitch.
 @MainActor
 @Observable
 final class GameAudioController: NSObject {
@@ -23,6 +23,7 @@ final class GameAudioController: NSObject {
     #endif
     private(set) var interrupted = false
     private(set) var routePaused = false
+    private(set) var adPaused = false
 
     @ObservationIgnored private var music: AVAudioPlayer?
     @ObservationIgnored private var loadedTrack: GameMusicTrack?
@@ -35,6 +36,7 @@ final class GameAudioController: NSObject {
     @ObservationIgnored private var previewPaused = false
     @ObservationIgnored private var ducked = false
     @ObservationIgnored private var duckTask: Task<Void, Never>?
+    @ObservationIgnored private var purrHapticTask: Task<Void, Never>?
     @ObservationIgnored private var lastCatPlayed: TimeInterval = -100
     @ObservationIgnored private var lastHapticAt: TimeInterval = -100
     @ObservationIgnored private var sessionActive = false
@@ -46,6 +48,7 @@ final class GameAudioController: NSObject {
 
     private struct PendingEffect {
         let effect: GameSoundEffect
+        let rate: Float
         let requestedAt: TimeInterval
     }
 
@@ -83,7 +86,7 @@ final class GameAudioController: NSObject {
             }
         }
         pendingEffects.removeAll { GameAudioPolicy.effectVolume($0.effect, settings: settings) == 0 }
-        if !foreground || !ready {
+        if !foreground || !ready || adPaused {
             pauseAll()
             deactivateSession()
             return
@@ -92,22 +95,31 @@ final class GameAudioController: NSObject {
         reconcileMusic()
     }
 
-    /// Resume on a new explicit action without emitting its effect before the
-    /// saved action or scene animation reaches the appropriate sound cue.
+    func setAdPaused(_ paused: Bool) {
+        guard adPaused != paused else { return }
+        adPaused = paused
+        if paused {
+            purrHapticTask?.cancel()
+            pauseAll()
+            deactivateSession()
+        } else {
+            reconcileMusic()
+        }
+    }
+
     func noteUserInteraction() {
-        guard ready, isForeground, routePaused || interrupted else { return }
+        guard ready, isForeground, !adPaused, routePaused || interrupted else { return }
         routePaused = false
         recoverInterruptedSession()
         reconcileMusic()
     }
 
-    func play(_ effect: GameSoundEffect, userInitiated: Bool = false) {
-        guard ready, isForeground else { return }
+    func play(_ effect: GameSoundEffect, rate: Float = 1.0, userInitiated: Bool = false) {
+        guard ready, isForeground, !adPaused else { return }
         if userInitiated { noteUserInteraction() }
         guard !routePaused, !interrupted || recoveringInterruption else { return }
         let now = ProcessInfo.processInfo.systemUptime
-        // A saved reward can also level up; adjacent cues share one physical feedback.
-        if settings.haptics, effect.successHaptic || effect.lightHaptic, now - lastHapticAt >= 0.12 {
+        if settings.haptics, effect.successHaptic || effect.lightHaptic, now - lastHapticAt >= 0.08 {
             if effect.successHaptic { UINotificationFeedbackGenerator().notificationOccurred(.success) }
             else if effect.lightHaptic { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
             lastHapticAt = now
@@ -118,38 +130,58 @@ final class GameAudioController: NSObject {
         guard GameAudioPolicy.effectVolume(effect, settings: settings) > 0 else { return }
         if effect.isCatVoice {
             let pendingCat = pendingEffects.last(where: { $0.effect.isCatVoice })?.requestedAt ?? -100
-            guard now - max(lastCatPlayed, pendingCat) >= 4 else { return }
+            guard now - max(lastCatPlayed, pendingCat) >= 2.0 else { return }
         }
         pendingEffects.removeAll { now - $0.requestedAt > 0.5 }
         let lastRequested = pendingEffects.last(where: { $0.effect == effect })?.requestedAt ?? -100
         guard now - max(lastPlayed[effect] ?? -100, lastRequested) >= minimumGap(for: effect) else { return }
         if !sessionActive {
-            // Keep the first fresh cue while activation yields the main actor.
-            // Never replay a backlog after a slow activation or a lifecycle change.
             if pendingEffects.count >= GameAudioPolicy.simultaneousEffects {
                 guard let index = GameAudioPolicy.replacementIndex(for: effect, active: pendingEffects.map(\.effect)) else { return }
                 pendingEffects.remove(at: index)
             }
-            pendingEffects.append(PendingEffect(effect: effect, requestedAt: now))
+            pendingEffects.append(PendingEffect(effect: effect, rate: rate, requestedAt: now))
             requestSessionActivation(recoveringInterruption: recoveringInterruption)
             return
         }
-        playPreparedEffect(effect)
+        playPreparedEffect(effect, rate: rate)
+    }
+
+    /// 3 gentle pulses spaced 120ms apart when petting Xiaoju.
+    func playPetPurrHaptics() {
+        guard ready, isForeground, !adPaused, settings.haptics else { return }
+        purrHapticTask?.cancel()
+        purrHapticTask = Task { @MainActor [weak self] in
+            let gen = UIImpactFeedbackGenerator(style: .light)
+            gen.prepare()
+            for idx in 0..<3 {
+                guard let self, !Task.isCancelled, self.isForeground, !self.adPaused, self.settings.haptics else { return }
+                gen.impactOccurred(intensity: 0.65)
+                #if DEBUG
+                self.hapticPlayCount += 1
+                #endif
+                if idx < 2 {
+                    try? await Task.sleep(for: .milliseconds(120))
+                }
+            }
+        }
     }
 
     private func minimumGap(for effect: GameSoundEffect) -> TimeInterval {
-        effect.isCatVoice ? 4 : 0.12
+        effect.isCatVoice ? 2.0 : (effect == .merge ? 0.06 : 0.1)
     }
 
-    private func playPreparedEffect(_ effect: GameSoundEffect) {
-        guard ready, isForeground, sessionActive, !interrupted, !routePaused,
+    private func playPreparedEffect(_ effect: GameSoundEffect, rate: Float) {
+        guard ready, isForeground, !adPaused, sessionActive, !interrupted, !routePaused,
               GameAudioPolicy.effectVolume(effect, settings: settings) > 0 else { return }
         let now = ProcessInfo.processInfo.systemUptime
         guard now - (lastPlayed[effect] ?? -100) >= minimumGap(for: effect),
-              !effect.isCatVoice || now - lastCatPlayed >= 4 else { return }
-        if effects[effect] == nil { effects[effect] = (0..<2).compactMap { _ in makePlayer(effect.fileName) } }
-        let active = effects.flatMap { effect, players in
-            players.filter(\.isPlaying).map { (effect: effect, player: $0) }
+              !effect.isCatVoice || now - lastCatPlayed >= 2.0 else { return }
+        if effects[effect] == nil {
+            effects[effect] = (0..<2).compactMap { _ in makePlayer(effect.fileName, ext: effect.fileExtension) }
+        }
+        let active = effects.flatMap { eff, players in
+            players.filter(\.isPlaying).map { (effect: eff, player: $0) }
         }
         if active.count >= GameAudioPolicy.simultaneousEffects {
             guard let index = GameAudioPolicy.replacementIndex(for: effect, active: active.map(\.effect)) else { return }
@@ -157,21 +189,23 @@ final class GameAudioController: NSObject {
         }
         guard let player = effects[effect]?.first(where: { !$0.isPlaying }) else { return }
         player.currentTime = 0
+        player.enableRate = true
+        player.rate = min(2.0, max(0.5, rate))
         player.volume = GameAudioPolicy.effectVolume(effect, settings: settings)
         if player.play() {
             lastPlayed[effect] = now
             if effect.isCatVoice { lastCatPlayed = now }
             if effect.ducksMusic { duckMusic() }
-        #if DEBUG
+            #if DEBUG
             effectPlayCount += 1
             effectPlayCounts[effect.rawValue, default: 0] += 1
             lastEffect = effect.rawValue
-        #endif
+            #endif
         }
     }
 
     func toggleMusicPreview() {
-        guard ready, isForeground, settings.musicEnabled, settings.musicVolume > 0 else { return }
+        guard ready, isForeground, !adPaused, settings.musicEnabled, settings.musicVolume > 0 else { return }
         let shouldPause = musicPlaying
         noteUserInteraction()
         previewPaused = shouldPause
@@ -200,14 +234,12 @@ final class GameAudioController: NSObject {
     }
 
     private func reconcileMusic() {
-        guard ready, isForeground, !interrupted, !routePaused else { pauseAll(); return }
+        guard ready, isForeground, !adPaused, !interrupted, !routePaused else { pauseAll(); return }
         guard hasAudibleOutput else {
             pauseAll()
             deactivateSession()
             return
         }
-        // Prepare once on welcome/foreground entry even when only effects are
-        // enabled, so the first interaction normally already has an active session.
         guard sessionActive else {
             pauseMusic()
             requestSessionActivation()
@@ -217,22 +249,23 @@ final class GameAudioController: NSObject {
             pauseMusic()
             return
         }
-        // Ambient mixes with other audio; avoid layering our BGM over a podcast/music app.
         guard !AVAudioSession.sharedInstance().secondaryAudioShouldBeSilencedHint else { pauseMusic(); return }
         if loadedTrack != currentTrack || music == nil {
-            guard let next = makePlayer(currentTrack.fileName) else { pauseMusic(); return }
+            guard let next = makePlayer(currentTrack.fileName, ext: currentTrack.fileExtension) else {
+                pauseMusic(); return
+            }
             next.numberOfLoops = -1
             next.volume = 0
             guard next.play() else { musicPlaying = false; return }
             fadeTask?.cancel()
             fadingMusic?.stop()
             fadingMusic = music
-            fadingMusic?.setVolume(0, fadeDuration: 1.2)
+            fadingMusic?.setVolume(0, fadeDuration: 1.0)
             music = next
             loadedTrack = currentTrack
-            next.setVolume(musicVolume, fadeDuration: 1.2)
+            next.setVolume(musicVolume, fadeDuration: 1.0)
             fadeTask = Task { [weak self] in
-                do { try await Task.sleep(for: .milliseconds(1_250)) } catch { return }
+                do { try await Task.sleep(for: .milliseconds(1_050)) } catch { return }
                 self?.fadingMusic?.stop()
                 self?.fadingMusic = nil
             }
@@ -246,21 +279,22 @@ final class GameAudioController: NSObject {
         musicPlaying = music?.isPlaying == true
     }
 
-    private func makePlayer(_ name: String) -> AVAudioPlayer? {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "caf", subdirectory: "Audio") else {
-        #if DEBUG
+    private func makePlayer(_ name: String, ext: String) -> AVAudioPlayer? {
+        guard let url = Bundle.main.url(forResource: name, withExtension: ext, subdirectory: "Audio") else {
+            #if DEBUG
             assetLoadFailures += 1
-        #endif
+            #endif
             return nil
         }
         do {
             let player = try AVAudioPlayer(contentsOf: url)
+            player.enableRate = true
             player.prepareToPlay()
             return player
         } catch {
-        #if DEBUG
+            #if DEBUG
             assetLoadFailures += 1
-        #endif
+            #endif
             return nil
         }
     }
@@ -272,14 +306,12 @@ final class GameAudioController: NSObject {
     }
 
     private func requestSessionActivation(recoveringInterruption: Bool = false) {
-        guard ready, isForeground, !routePaused, hasAudibleOutput,
+        guard ready, isForeground, !adPaused, !routePaused, hasAudibleOutput,
               !interrupted || recoveringInterruption,
               !sessionActive, !activationInFlight else { return }
         activationInFlight = true
         self.recoveringInterruption = interrupted && recoveringInterruption
         let generation = sessionGeneration
-        // Synchronous AVAudioSession calls may wait for system audio services.
-        // A serial worker keeps those waits off MainActor on every supported iOS.
         sessionQueue.async { [weak self] in
             let succeeded: Bool
             do {
@@ -297,8 +329,6 @@ final class GameAudioController: NSObject {
     }
 
     private func completeSessionActivation(succeeded: Bool, generation: UInt) {
-        // Invalidation queues deactivation behind any in-flight activation;
-        // a stale completion must never publish active state or restart players.
         guard generation == sessionGeneration else { return }
         activationInFlight = false
         let wasRecovering = recoveringInterruption
@@ -307,11 +337,11 @@ final class GameAudioController: NSObject {
             sessionActive = false
             pendingEffects.removeAll()
             musicPlaying = false
-            return // Retry only on a later foreground/configuration/user event.
+            return
         }
         sessionActive = true
         if wasRecovering { interrupted = false }
-        guard ready, isForeground, !interrupted, !routePaused, hasAudibleOutput else {
+        guard ready, isForeground, !adPaused, !interrupted, !routePaused, hasAudibleOutput else {
             pauseAll()
             deactivateSession()
             return
@@ -320,14 +350,11 @@ final class GameAudioController: NSObject {
         let queued = pendingEffects
         pendingEffects.removeAll()
         for request in queued where ProcessInfo.processInfo.systemUptime - request.requestedAt <= 0.5 {
-            playPreparedEffect(request.effect)
+            playPreparedEffect(request.effect, rate: request.rate)
         }
     }
 
     private func recoverInterruptedSession() {
-        // iOS does not guarantee an ended notification for every interruption.
-        // A foreground return or explicit action may try again; an ongoing
-        // higher-priority session can reject activation and must stay paused.
         guard interrupted else { return }
         requestSessionActivation(recoveringInterruption: true)
     }
@@ -375,7 +402,7 @@ final class GameAudioController: NSObject {
                 if AVAudioSession.InterruptionOptions(rawValue: options).contains(.shouldResume) {
                     self.reconcileMusic()
                 } else {
-                    self.routePaused = true // Wait for an explicit user action.
+                    self.routePaused = true
                     self.pauseAll()
                     self.deactivateSession()
                 }
@@ -408,8 +435,6 @@ final class GameAudioController: NSObject {
 
     @objc nonisolated private func receivedSecondaryHint(_ notification: Notification) {
         Task { @MainActor [weak self] in
-            // Notifications aren't delivered while we're inactive. Always
-            // query the live hint in reconcileMusic rather than caching begin.
             self?.reconcileMusic()
         }
     }

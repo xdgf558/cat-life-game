@@ -1,0 +1,12 @@
+{
+  "images": [
+    {
+      "filename": "ui_ad_tv.png",
+      "idiom": "universal"
+    }
+  ],
+  "info": {
+    "author": "xcode",
+    "version": 1
+  }
+}
